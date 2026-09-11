@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backups are disabled entirely (android:allowBackup="false"), but this
+     file documents intent and covers the device-transfer path too: exclude
+     everything so an admin session token can never leave the device via
+     cloud backup or device-to-device transfer. -->
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapability="true">
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+    </device-transfer>
+</data-extraction-rules>

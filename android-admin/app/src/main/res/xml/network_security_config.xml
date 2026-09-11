@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Production/default: HTTPS only. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!-- Cleartext is only allowed for local development against a backend
+         running on the same machine as the emulator (10.0.2.2) or a device
+         on your LAN during testing. Remove this block once the admin API
+         is deployed behind HTTPS. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
