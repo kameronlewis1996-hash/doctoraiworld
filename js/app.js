@@ -151,7 +151,13 @@
   // ---------- Library ----------
 
   async function refreshLibrary() {
-    const all = await dbGetAll();
+    let all;
+    try {
+      all = await dbGetAll();
+    } catch (err) {
+      console.error('Could not read song library from storage', err);
+      all = [];
+    }
     all.sort((a, b) => b.createdAt - a.createdAt);
     state.songs = all;
     renderLibrary();
@@ -236,9 +242,27 @@
       createdAt: Date.now(),
     };
 
-    await dbPut(song);
-    await refreshLibrary();
-    await loadSong(song.id);
+    const createBtn = el('createSongBtn');
+    const originalLabel = createBtn.textContent;
+    createBtn.disabled = true;
+    createBtn.textContent = 'Creating…';
+    try {
+      await dbPut(song);
+      await refreshLibrary();
+      await loadSong(song.id);
+    } catch (err) {
+      console.error('Could not save song to browser storage', err);
+      alert(
+        "Couldn't save this song to your browser's storage, so it won't be here next time you open " +
+        "this page. This usually happens in Private/Incognito browsing, or when a browser blocks local " +
+        "storage. You can still use it for now — it just won't persist.\n\n(" + (err && err.message ? err.message : err) + ")"
+      );
+      state.songs = [song, ...state.songs];
+      await openSong(song);
+    } finally {
+      createBtn.disabled = false;
+      createBtn.textContent = originalLabel;
+    }
   });
 
   function parseImportedSync(text, filename) {
@@ -270,9 +294,13 @@
   // ---------- Load / manage song ----------
 
   async function loadSong(id) {
-    stopLoop();
     const song = await dbGet(id);
     if (!song) return;
+    await openSong(song);
+  }
+
+  async function openSong(song) {
+    stopLoop();
     state.currentSong = song;
     state.syncPointer = song.lyrics.findIndex(l => l.time == null);
     if (state.syncPointer === -1) state.syncPointer = song.lyrics.length;
@@ -332,8 +360,21 @@
     URL.revokeObjectURL(url);
   });
 
+  let storageWarned = false;
+
   async function persistCurrentSong() {
-    if (state.currentSong) await dbPut(state.currentSong);
+    if (!state.currentSong) return;
+    try {
+      await dbPut(state.currentSong);
+    } catch (err) {
+      console.error('Could not persist song', err);
+      if (!storageWarned) {
+        storageWarned = true;
+        alert("Heads up: this browser isn't letting the app save your progress here (often due to " +
+          "Private/Incognito browsing). Your work will keep going for this session but won't be saved " +
+          "once you leave the page.");
+      }
+    }
   }
 
   // ---------- Player controls ----------
