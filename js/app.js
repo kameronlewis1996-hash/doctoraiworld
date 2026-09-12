@@ -165,9 +165,13 @@
     }
     for (const meta of state.songs) {
       const item = document.createElement('div');
-      item.className = 'song-item' + (state.currentSong && state.currentSong.id === meta.id ? ' active' : '');
-      const syncedCount = (meta.lyrics || []).filter(l => l.time != null).length;
-      const total = (meta.lyrics || []).length;
+      const isCurrent = state.currentSong && state.currentSong.id === meta.id;
+      item.className = 'song-item' + (isCurrent ? ' active' : '');
+      // Use the live in-memory lyrics for the open song, since state.songs
+      // holds a snapshot fetched at load time that mutations don't touch.
+      const lyrics = isCurrent ? state.currentSong.lyrics : (meta.lyrics || []);
+      const syncedCount = lyrics.filter(l => l.time != null).length;
+      const total = lyrics.length;
       item.innerHTML = `${escapeHtml(meta.title)}<span class="song-sub">${syncedCount}/${total} lines synced</span>`;
       item.addEventListener('click', () => loadSong(meta.id));
       songListEl.appendChild(item);
