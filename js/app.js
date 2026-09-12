@@ -99,7 +99,8 @@
     audio: new Audio(),
     audioUrl: null,
     syncPointer: 0,   // index of next unsynced line
-    selection: null,  // {start, end} indices for practice loop
+    loopRange: null,  // { start, end } in seconds — the section to loop
+    dragging: null,   // 'start' | 'end' | null, while a range handle is being dragged
     looping: false,
     loopTimer: null,
     loopRepeatsLeft: 0,
@@ -129,6 +130,7 @@
 
   const syncList = el('syncList');
   const tapBtn = el('tapBtn');
+  const autoSyncBtn = el('autoSyncBtn');
   const resetSyncBtn = el('resetSyncBtn');
   const syncProgress = el('syncProgress');
 
@@ -137,6 +139,12 @@
   const stopLoopBtn = el('stopLoopBtn');
   const gapSelect = el('gapSelect');
   const repeatSelect = el('repeatSelect');
+  const rangeTrack = el('rangeTrack');
+  const rangeFill = el('rangeFill');
+  const rangeHandleStart = el('rangeHandleStart');
+  const rangeHandleEnd = el('rangeHandleEnd');
+  const rangeStartLabel = el('rangeStartLabel');
+  const rangeEndLabel = el('rangeEndLabel');
   const loopStatus = el('loopStatus');
 
   // ---------- View switching ----------
@@ -323,7 +331,8 @@
     state.currentSong = song;
     state.syncPointer = song.lyrics.findIndex(l => l.time == null);
     if (state.syncPointer === -1) state.syncPointer = song.lyrics.length;
-    state.selection = null;
+    state.loopRange = null;
+    lastActiveIdx = -1;
 
     if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
     state.audioUrl = URL.createObjectURL(song.audioBlob);
@@ -336,6 +345,7 @@
     renderLibrary();
     renderSyncList();
     renderPracticeList();
+    renderRangePicker();
     updateLoopButtonState();
     showView('workspace');
   }
@@ -410,6 +420,12 @@
   state.audio.addEventListener('loadedmetadata', () => {
     seekBar.max = state.audio.duration;
     durTimeEl.textContent = formatTime(state.audio.duration);
+    // Default the loop range to the whole song once its length is known,
+    // so the slider is immediately usable.
+    state.loopRange = { start: 0, end: state.audio.duration };
+    renderRangePicker();
+    renderPracticeList();
+    updateLoopButtonState();
   });
 
   state.audio.addEventListener('timeupdate', () => {
@@ -517,7 +533,30 @@
     renderLibrary();
   });
 
+  autoSyncBtn.addEventListener('click', () => {
+    const duration = state.audio.duration;
+    if (!duration || !isFinite(duration)) {
+      alert('Play the song for a moment first so its length is known, then try Auto-sync again.');
+      return;
+    }
+    if (!confirm('Auto-sync spaces every line evenly across the song and overwrites any existing timestamps. Continue?')) return;
+    const lyrics = state.currentSong.lyrics;
+    const marginStart = duration * 0.02;
+    const marginEnd = duration * 0.98;
+    const span = Math.max(0, marginEnd - marginStart);
+    lyrics.forEach((line, i) => {
+      line.time = lyrics.length > 1 ? marginStart + span * (i / (lyrics.length - 1)) : marginStart;
+    });
+    state.syncPointer = lyrics.length;
+    persistCurrentSong();
+    renderSyncList();
+    renderPracticeList();
+    renderLibrary();
+  });
+
   // Highlight the currently playing line across both tabs
+  let lastActiveIdx = -1;
+
   function updateActiveLine() {
     const lyrics = state.currentSong.lyrics;
     const t = state.audio.currentTime;
@@ -531,6 +570,17 @@
         li.classList.toggle('active', i === activeIdx);
       });
     });
+    // Auto-follow: keep the currently playing line in view without the
+    // user needing to scroll manually. Only on change, not every tick.
+    if (activeIdx !== lastActiveIdx) {
+      lastActiveIdx = activeIdx;
+      if (activeIdx >= 0) {
+        [syncList, practiceList].forEach(listEl => {
+          const li = listEl.children[activeIdx];
+          if (li) li.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        });
+      }
+    }
   }
 
   // ---------- Practice / loop tab ----------
@@ -538,10 +588,13 @@
   function renderPracticeList() {
     practiceList.innerHTML = '';
     const lyrics = state.currentSong.lyrics;
+    const range = state.loopRange;
     lyrics.forEach((line, i) => {
       const li = document.createElement('li');
       li.className = 'lyric-line';
-      if (isSelected(i)) li.classList.add('selected');
+      if (range && line.time != null && line.time >= range.start - 0.01 && line.time < range.end + 0.01) {
+        li.classList.add('selected');
+      }
 
       const timeSpan = document.createElement('span');
       timeSpan.className = 'line-time' + (line.time == null ? ' unset' : '');
@@ -554,18 +607,19 @@
       li.appendChild(timeSpan);
       li.appendChild(textSpan);
 
-      li.addEventListener('click', (ev) => {
+      li.addEventListener('click', () => {
         if (line.time == null) {
           alert('This line has no timestamp yet — sync it first in the "Sync lyrics" tab.');
           return;
         }
-        if (ev.shiftKey && state.selection) {
-          const start = Math.min(state.selection.start, i);
-          const end = Math.max(state.selection.start, i);
-          state.selection = { start, end };
-        } else {
-          state.selection = { start: i, end: i };
+        // Jump the loop range to this line's span (its start through the
+        // next timestamped line, or the end of the song).
+        let end = state.audio.duration;
+        for (let j = i + 1; j < lyrics.length; j++) {
+          if (lyrics[j].time != null) { end = lyrics[j].time; break; }
         }
+        state.loopRange = { start: line.time, end: Math.max(end, line.time + 0.1) };
+        renderRangePicker();
         renderPracticeList();
         updateLoopButtonState();
       });
@@ -574,36 +628,107 @@
     });
   }
 
-  function isSelected(i) {
-    return state.selection && i >= state.selection.start && i <= state.selection.end;
-  }
-
   function updateLoopButtonState() {
-    loopBtn.disabled = !state.selection;
+    const r = state.loopRange;
+    loopBtn.disabled = !r || !(r.end > r.start);
   }
 
-  function getLoopBounds() {
-    const lyrics = state.currentSong.lyrics;
-    const sel = state.selection;
-    const startTime = lyrics[sel.start].time;
-    const endTime = (sel.end + 1 < lyrics.length && lyrics[sel.end + 1].time != null)
-      ? lyrics[sel.end + 1].time
-      : state.audio.duration;
-    return { startTime, endTime };
+  // ---------- Drag-to-select range slider ----------
+
+  function renderRangePicker() {
+    const duration = state.audio.duration;
+    if (!duration || !isFinite(duration) || !state.loopRange) {
+      rangeHandleStart.style.left = '0%';
+      rangeHandleEnd.style.left = '100%';
+      rangeFill.style.left = '0%';
+      rangeFill.style.width = '0%';
+      rangeStartLabel.textContent = '0:00.0';
+      rangeEndLabel.textContent = '0:00.0';
+      return;
+    }
+    const startPct = clampPct(state.loopRange.start / duration);
+    const endPct = clampPct(state.loopRange.end / duration);
+    rangeHandleStart.style.left = (startPct * 100) + '%';
+    rangeHandleEnd.style.left = (endPct * 100) + '%';
+    rangeFill.style.left = (startPct * 100) + '%';
+    rangeFill.style.width = ((endPct - startPct) * 100) + '%';
+    rangeStartLabel.textContent = formatTime(state.loopRange.start);
+    rangeEndLabel.textContent = formatTime(state.loopRange.end);
   }
+
+  function clampPct(p) { return Math.min(1, Math.max(0, p)); }
+
+  function timeFromPointer(clientX) {
+    const rect = rangeTrack.getBoundingClientRect();
+    const pct = clampPct((clientX - rect.left) / rect.width);
+    return pct * (state.audio.duration || 0);
+  }
+
+  function setupRangeHandle(handleEl, which) {
+    handleEl.addEventListener('pointerdown', (ev) => {
+      if (!state.audio.duration) return;
+      ev.preventDefault();
+      handleEl.setPointerCapture(ev.pointerId);
+      state.dragging = which;
+
+      const onMove = (moveEv) => {
+        const t = timeFromPointer(moveEv.clientX);
+        if (!state.loopRange) state.loopRange = { start: 0, end: state.audio.duration };
+        const MIN_GAP = 0.2;
+        if (which === 'start') {
+          state.loopRange.start = Math.min(t, state.loopRange.end - MIN_GAP);
+        } else {
+          state.loopRange.end = Math.max(t, state.loopRange.start + MIN_GAP);
+        }
+        renderRangePicker();
+        renderPracticeList();
+        updateLoopButtonState();
+      };
+      const onUp = (upEv) => {
+        handleEl.releasePointerCapture(upEv.pointerId);
+        state.dragging = null;
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+      };
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+
+    // Arrow-key nudging for keyboard/accessibility use.
+    handleEl.addEventListener('keydown', (ev) => {
+      if (!state.loopRange || !state.audio.duration) return;
+      const step = ev.shiftKey ? 1 : 0.2;
+      let delta = 0;
+      if (ev.key === 'ArrowLeft') delta = -step;
+      else if (ev.key === 'ArrowRight') delta = step;
+      else return;
+      ev.preventDefault();
+      const MIN_GAP = 0.2;
+      if (which === 'start') {
+        state.loopRange.start = Math.min(Math.max(0, state.loopRange.start + delta), state.loopRange.end - MIN_GAP);
+      } else {
+        state.loopRange.end = Math.max(Math.min(state.audio.duration, state.loopRange.end + delta), state.loopRange.start + MIN_GAP);
+      }
+      renderRangePicker();
+      renderPracticeList();
+      updateLoopButtonState();
+    });
+  }
+
+  setupRangeHandle(rangeHandleStart, 'start');
+  setupRangeHandle(rangeHandleEnd, 'end');
 
   loopBtn.addEventListener('click', startLoop);
   stopLoopBtn.addEventListener('click', stopLoop);
 
   function startLoop() {
-    if (!state.selection) return;
+    if (!state.loopRange || !(state.loopRange.end > state.loopRange.start)) return;
     state.looping = true;
     const target = parseInt(repeatSelect.value, 10);
     state.loopRepeatsLeft = target; // 0 means infinite
     loopBtn.classList.add('hidden');
     stopLoopBtn.classList.remove('hidden');
-    const { startTime } = getLoopBounds();
-    state.audio.currentTime = startTime;
+    state.audio.currentTime = state.loopRange.start;
     state.audio.play();
     updateLoopStatus();
   }
@@ -623,9 +748,9 @@
   }
 
   function checkLoopBoundary() {
-    if (!state.looping || !state.selection) return;
-    const { startTime, endTime } = getLoopBounds();
-    if (state.audio.currentTime >= endTime - 0.03) {
+    if (!state.looping || !state.loopRange) return;
+    const { start, end } = state.loopRange;
+    if (state.audio.currentTime >= end - 0.03) {
       state.audio.pause();
       const target = parseInt(repeatSelect.value, 10);
       if (target !== 0) {
@@ -636,7 +761,7 @@
       const gap = parseFloat(gapSelect.value) * 1000;
       state.loopTimer = setTimeout(() => {
         if (!state.looping) return;
-        state.audio.currentTime = startTime;
+        state.audio.currentTime = start;
         state.audio.play();
       }, gap);
     }

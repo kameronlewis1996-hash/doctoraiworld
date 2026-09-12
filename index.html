@@ -104,11 +104,14 @@
         <div id="syncTab" class="tab-panel active">
           <p class="hint">
             Press <kbd>Play</kbd>, then hit <kbd>Space</kbd> or <strong>Tap</strong> exactly when each
-            highlighted line starts. It auto-advances to the next line. Tap any line's time badge
-            to fine-tune it manually, or tap a line's text to jump playback there.
+            highlighted line starts. It auto-advances to the next line, and the current line stays
+            scrolled into view automatically. Tap any line's time badge to fine-tune it manually, or
+            tap a line's text to jump playback there. In a hurry? <strong>Auto-sync</strong> spaces every
+            line evenly across the song as a rough starting point you can fine-tune afterward.
           </p>
           <div class="sync-controls">
             <button id="tapBtn" class="btn btn-primary">⏱ Tap next line</button>
+            <button id="autoSyncBtn" class="btn btn-ghost">⚡ Auto-sync</button>
             <button id="resetSyncBtn" class="btn btn-ghost">Reset all timestamps</button>
             <span id="syncProgress" class="meta"></span>
           </div>
@@ -117,9 +120,21 @@
 
         <div id="practiceTab" class="tab-panel">
           <p class="hint">
-            Tap a line to select it. Shift-click (or tap, then tap another) to select a range. Then hit
+            Drag the handles below to pick any part of the song — down to the exact second, not just
+            whole lines. Or tap a lyric line to jump the range straight to it. Then hit
             <strong>Loop selection</strong> to repeat just that part, over and over, until you've got it.
           </p>
+          <div class="range-picker" id="rangePicker">
+            <div class="range-picker-times">
+              <span id="rangeStartLabel" class="time">0:00.0</span>
+              <span id="rangeEndLabel" class="time">0:00.0</span>
+            </div>
+            <div class="range-track" id="rangeTrack">
+              <div class="range-fill" id="rangeFill"></div>
+              <div class="range-handle" id="rangeHandleStart" role="slider" aria-label="Loop start" tabindex="0"></div>
+              <div class="range-handle" id="rangeHandleEnd" role="slider" aria-label="Loop end" tabindex="0"></div>
+            </div>
+          </div>
           <div class="practice-controls">
             <button id="loopBtn" class="btn btn-primary" disabled>🔁 Loop selection</button>
             <button id="stopLoopBtn" class="btn btn-ghost hidden">■ Stop loop</button>

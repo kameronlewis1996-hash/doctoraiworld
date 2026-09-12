@@ -361,6 +361,71 @@ kbd {
 }
 .inline-field select { width: auto; padding: 6px 8px; font-family: var(--font-mono); }
 
+/* ---------- range picker (drag-to-select loop section) ---------- */
+
+.range-picker {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px 18px;
+  margin-bottom: 16px;
+}
+
+.range-picker-times {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--loop);
+  margin-bottom: 14px;
+}
+
+.range-track {
+  position: relative;
+  height: 24px;
+}
+
+.range-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  background: var(--surface-2);
+  border-radius: 2px;
+}
+
+.range-fill {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  background: var(--loop);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.range-handle {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  transform: translateY(-50%);
+  background: var(--loop);
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 1px 5px rgba(0,0,0,.45);
+}
+.range-handle:active { cursor: grabbing; }
+.range-handle:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+
 /* ---------- karaoke lyric list ---------- */
 
 .lyric-list {
