@@ -332,7 +332,6 @@
     state.syncPointer = song.lyrics.findIndex(l => l.time == null);
     if (state.syncPointer === -1) state.syncPointer = song.lyrics.length;
     state.loopRange = null;
-    lastActiveIdx = -1;
 
     if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
     state.audioUrl = URL.createObjectURL(song.audioBlob);
@@ -533,30 +532,95 @@
     renderLibrary();
   });
 
-  autoSyncBtn.addEventListener('click', () => {
+  // Decode the song and measure short-window loudness to find where the
+  // track actually starts and stops making sound, so auto-sync doesn't
+  // burn time on a silent/instrumental intro or outro.
+  async function detectActiveSpan(blob, fallbackDuration) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    const arrayBuffer = await blob.arrayBuffer();
+    const ctx = new AudioCtx();
+    let audioBuffer;
+    try {
+      audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    } finally {
+      ctx.close();
+    }
+    const sr = audioBuffer.sampleRate;
+    const numChannels = audioBuffer.numberOfChannels;
+    const length = audioBuffer.length;
+    const hop = Math.max(1, Math.floor(sr * 0.05)); // 50ms windows
+    const frameCount = Math.ceil(length / hop);
+    const channelData = [];
+    for (let c = 0; c < numChannels; c++) channelData.push(audioBuffer.getChannelData(c));
+
+    const energies = new Float32Array(frameCount);
+    let max = 0;
+    for (let f = 0; f < frameCount; f++) {
+      const start = f * hop;
+      const end = Math.min(start + hop, length);
+      let sum = 0;
+      for (let c = 0; c < numChannels; c++) {
+        const data = channelData[c];
+        for (let i = start; i < end; i++) sum += data[i] * data[i];
+      }
+      const e = Math.sqrt(sum / Math.max(1, (end - start) * numChannels));
+      energies[f] = e;
+      if (e > max) max = e;
+    }
+    if (max <= 0) return { start: 0, end: audioBuffer.duration || fallbackDuration };
+
+    const threshold = max * 0.06; // ~6% of peak = audibly "sound present"
+    let firstActive = -1, lastActive = -1;
+    for (let f = 0; f < frameCount; f++) {
+      if (energies[f] > threshold) {
+        if (firstActive === -1) firstActive = f;
+        lastActive = f;
+      }
+    }
+    if (firstActive === -1) return { start: 0, end: audioBuffer.duration || fallbackDuration };
+    return {
+      start: (firstActive * hop) / sr,
+      end: Math.min(audioBuffer.duration || fallbackDuration, ((lastActive + 1) * hop) / sr),
+    };
+  }
+
+  autoSyncBtn.addEventListener('click', async () => {
     const duration = state.audio.duration;
     if (!duration || !isFinite(duration)) {
       alert('Play the song for a moment first so its length is known, then try Auto-sync again.');
       return;
     }
-    if (!confirm('Auto-sync spaces every line evenly across the song and overwrites any existing timestamps. Continue?')) return;
+    if (!confirm('Auto-sync analyzes the track to line up with where the sound actually starts and stops (skipping a silent intro/outro), then spaces lines evenly in between. It overwrites any existing timestamps. Continue?')) return;
+
+    const originalLabel = autoSyncBtn.textContent;
+    autoSyncBtn.disabled = true;
+    autoSyncBtn.textContent = 'Analyzing…';
+
+    let span = { start: duration * 0.02, end: duration * 0.98 };
+    try {
+      const detected = await detectActiveSpan(state.currentSong.audioBlob, duration);
+      if (detected && detected.end > detected.start) span = detected;
+    } catch (err) {
+      console.error('Auto-sync audio analysis failed, falling back to even spacing across the full track', err);
+    }
+
     const lyrics = state.currentSong.lyrics;
-    const marginStart = duration * 0.02;
-    const marginEnd = duration * 0.98;
-    const span = Math.max(0, marginEnd - marginStart);
+    const spanLen = Math.max(0, span.end - span.start);
     lyrics.forEach((line, i) => {
-      line.time = lyrics.length > 1 ? marginStart + span * (i / (lyrics.length - 1)) : marginStart;
+      line.time = lyrics.length > 1 ? span.start + spanLen * (i / (lyrics.length - 1)) : span.start;
     });
     state.syncPointer = lyrics.length;
     persistCurrentSong();
     renderSyncList();
     renderPracticeList();
     renderLibrary();
+
+    autoSyncBtn.disabled = false;
+    autoSyncBtn.textContent = originalLabel;
   });
 
   // Highlight the currently playing line across both tabs
-  let lastActiveIdx = -1;
-
   function updateActiveLine() {
     const lyrics = state.currentSong.lyrics;
     const t = state.audio.currentTime;
@@ -570,17 +634,6 @@
         li.classList.toggle('active', i === activeIdx);
       });
     });
-    // Auto-follow: keep the currently playing line in view without the
-    // user needing to scroll manually. Only on change, not every tick.
-    if (activeIdx !== lastActiveIdx) {
-      lastActiveIdx = activeIdx;
-      if (activeIdx >= 0) {
-        [syncList, practiceList].forEach(listEl => {
-          const li = listEl.children[activeIdx];
-          if (li) li.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        });
-      }
-    }
   }
 
   // ---------- Practice / loop tab ----------
