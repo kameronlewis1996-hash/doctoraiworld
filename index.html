@@ -4,147 +4,151 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lyric Sync — Learn Songs Line by Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<div class="app">
-
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h1>🎵 Lyric Sync</h1>
-      <button id="newSongBtn" class="btn btn-primary btn-block">+ New Song</button>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">Lyric Sync</span>
+      <span class="eq" id="eqIcon"><i></i><i></i><i></i><i></i></span>
     </div>
-    <div class="song-list" id="songList">
-      <p class="empty-hint">No songs yet. Click "New Song" to import an MP3 and its lyrics.</p>
-    </div>
-  </aside>
+    <button id="newSongBtn" class="btn btn-primary">+ New song</button>
+  </header>
 
-  <main class="main" id="mainPanel">
+  <div class="layout">
 
-    <!-- Empty state -->
-    <section id="emptyState" class="panel empty-state">
-      <h2>Welcome 👋</h2>
-      <p>Import an MP3 and its lyrics, tap out the timing while it plays, then loop any
-         line or section on repeat until you've got it memorized.</p>
-      <button id="emptyNewSongBtn" class="btn btn-primary">+ Import a song</button>
-    </section>
+    <aside class="library" id="sidebar">
+      <div class="library-label">Your songs</div>
+      <div class="song-list" id="songList">
+        <p class="empty-hint">No songs yet — import an MP3 and its lyrics to get started.</p>
+      </div>
+    </aside>
 
-    <!-- Import / Setup panel -->
-    <section id="setupPanel" class="panel hidden">
-      <h2>Import song</h2>
-      <div class="field">
-        <label for="titleInput">Song title</label>
-        <input type="text" id="titleInput" placeholder="e.g. My Favorite Song">
-      </div>
-      <div class="field">
-        <label for="audioInput">MP3 file</label>
-        <input type="file" id="audioInput" accept="audio/*" class="visually-hidden">
-        <button type="button" id="audioFileBtn" class="btn btn-block file-btn">📁 Choose file…</button>
-        <small style="display:block; color:var(--text-dim); margin-top:6px;">
-          Needs to be a downloaded audio file already on this device — a song streamed from
-          Spotify/Apple Music won't show up in this picker.
-        </small>
-      </div>
-      <div class="field">
-        <label for="lyricsInput">Lyrics (one line per row)</label>
-        <textarea id="lyricsInput" rows="12" placeholder="Paste the full lyrics here, one line per row..."></textarea>
-      </div>
-      <div class="field">
-        <label for="lrcInput">Or import a synced .lrc / .json file (optional)</label>
-        <input type="file" id="lrcInput" accept=".lrc,.json,.txt" class="visually-hidden">
-        <button type="button" id="lrcFileBtn" class="btn btn-block file-btn">📄 Choose file (optional)…</button>
-      </div>
-      <div class="actions">
-        <button id="createSongBtn" class="btn btn-primary">Create song</button>
-        <button id="cancelSetupBtn" class="btn btn-ghost">Cancel</button>
-      </div>
-    </section>
+    <main class="main" id="mainPanel">
 
-    <!-- Song workspace -->
-    <section id="workspace" class="panel hidden">
-      <header class="workspace-header">
-        <div>
-          <h2 id="songTitle">Untitled</h2>
-          <span id="songMeta" class="meta"></span>
+      <section id="emptyState" class="panel empty-state">
+        <h2>Learn every line.</h2>
+        <p>Import an MP3 and its lyrics, tap out the timing while it plays, then loop any
+           line or section on repeat until it's locked in.</p>
+        <button id="emptyNewSongBtn" class="btn btn-primary">+ Import a song</button>
+      </section>
+
+      <section id="setupPanel" class="panel hidden">
+        <h2 style="margin-bottom:18px;">Import song</h2>
+        <div class="field">
+          <label for="titleInput">Song title</label>
+          <input type="text" id="titleInput" placeholder="e.g. My Favorite Song">
         </div>
-        <div class="workspace-actions">
-          <button id="renameBtn" class="btn btn-ghost" title="Rename">Rename</button>
-          <button id="exportBtn" class="btn btn-ghost" title="Export synced lyrics as JSON">Export</button>
-          <button id="deleteSongBtn" class="btn btn-danger" title="Delete this song">Delete</button>
+        <div class="field">
+          <label for="audioInput">MP3 file</label>
+          <input type="file" id="audioInput" accept="audio/*" class="visually-hidden">
+          <button type="button" id="audioFileBtn" class="btn btn-block file-btn">📁 Choose file…</button>
+          <small style="display:block; color:var(--text-dim); margin-top:6px; font-size:12px;">
+            Needs to be a downloaded audio file already on this device — a song streamed from
+            Spotify/Apple Music won't show up in this picker.
+          </small>
         </div>
-      </header>
-
-      <div class="player">
-        <button id="playBtn" class="btn btn-icon" title="Play/Pause (Space)">▶</button>
-        <span id="curTime" class="time">0:00.0</span>
-        <input type="range" id="seekBar" min="0" max="100" step="0.01" value="0" class="seek">
-        <span id="durTime" class="time">0:00.0</span>
-        <label class="speed-label">Speed
-          <select id="speedSelect">
-            <option value="0.5">0.5×</option>
-            <option value="0.75">0.75×</option>
-            <option value="1" selected>1×</option>
-            <option value="1.25">1.25×</option>
-            <option value="1.5">1.5×</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="sync">🎯 Sync Lyrics</button>
-        <button class="tab-btn" data-tab="practice">🔁 Practice / Loop</button>
-      </div>
-
-      <!-- SYNC TAB -->
-      <div id="syncTab" class="tab-panel active">
-        <p class="hint">
-          Press <kbd>Play</kbd>, then hit <kbd>Space</kbd> or <strong>Tap</strong> exactly when each
-          highlighted line starts. It auto-advances to the next line. Click any line's time badge
-          to fine-tune it manually, or click a line's text to jump playback there.
-        </p>
-        <div class="sync-controls">
-          <button id="tapBtn" class="btn btn-primary">⏱ Tap next line</button>
-          <button id="resetSyncBtn" class="btn btn-ghost">Reset all timestamps</button>
-          <span id="syncProgress" class="meta"></span>
+        <div class="field">
+          <label for="lyricsInput">Lyrics (one line per row)</label>
+          <textarea id="lyricsInput" rows="10" placeholder="Paste the full lyrics here, one line per row..."></textarea>
         </div>
-        <ol id="syncList" class="lyric-list"></ol>
-      </div>
+        <div class="field">
+          <label for="lrcInput">Or import a synced .lrc / .json file (optional)</label>
+          <input type="file" id="lrcInput" accept=".lrc,.json,.txt" class="visually-hidden">
+          <button type="button" id="lrcFileBtn" class="btn btn-block file-btn">📄 Choose file (optional)…</button>
+        </div>
+        <div class="actions">
+          <button id="createSongBtn" class="btn btn-primary">Create song</button>
+          <button id="cancelSetupBtn" class="btn btn-ghost">Cancel</button>
+        </div>
+      </section>
 
-      <!-- PRACTICE TAB -->
-      <div id="practiceTab" class="tab-panel">
-        <p class="hint">
-          Click a line to select it. Shift-click another line to select a range. Then hit
-          <strong>Loop selection</strong> to repeat just that part, over and over, until you've got it.
-        </p>
-        <div class="practice-controls">
-          <button id="loopBtn" class="btn btn-primary" disabled>🔁 Loop selection</button>
-          <button id="stopLoopBtn" class="btn btn-ghost hidden">■ Stop loop</button>
-          <label class="inline-field">Gap between repeats
-            <select id="gapSelect">
-              <option value="0">none</option>
-              <option value="0.5">0.5s</option>
-              <option value="1" selected>1s</option>
-              <option value="2">2s</option>
-              <option value="3">3s</option>
+      <section id="workspace" class="panel hidden">
+        <header class="workspace-header">
+          <div>
+            <h2 id="songTitle">Untitled</h2>
+            <span id="songMeta" class="meta"></span>
+          </div>
+          <div class="workspace-actions">
+            <button id="renameBtn" class="btn btn-ghost" title="Rename">Rename</button>
+            <button id="exportBtn" class="btn btn-ghost" title="Export synced lyrics as JSON">Export</button>
+            <button id="deleteSongBtn" class="btn btn-danger" title="Delete this song">Delete</button>
+          </div>
+        </header>
+
+        <div class="player">
+          <button id="playBtn" class="btn btn-icon" title="Play/Pause (Space)">▶</button>
+          <span id="curTime" class="time">0:00.0</span>
+          <input type="range" id="seekBar" min="0" max="100" step="0.01" value="0" class="seek">
+          <span id="durTime" class="time">0:00.0</span>
+          <label class="speed-label">Speed
+            <select id="speedSelect">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
             </select>
           </label>
-          <label class="inline-field">Repeat
-            <select id="repeatSelect">
-              <option value="0">∞ until stopped</option>
-              <option value="3">3 times</option>
-              <option value="5">5 times</option>
-              <option value="10">10 times</option>
-            </select>
-          </label>
-          <span id="loopStatus" class="meta"></span>
         </div>
-        <ol id="practiceList" class="lyric-list"></ol>
-      </div>
 
-    </section>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="sync">Sync lyrics</button>
+          <button class="tab-btn" data-tab="practice">Practice / loop</button>
+        </div>
 
-  </main>
+        <div id="syncTab" class="tab-panel active">
+          <p class="hint">
+            Press <kbd>Play</kbd>, then hit <kbd>Space</kbd> or <strong>Tap</strong> exactly when each
+            highlighted line starts. It auto-advances to the next line. Tap any line's time badge
+            to fine-tune it manually, or tap a line's text to jump playback there.
+          </p>
+          <div class="sync-controls">
+            <button id="tapBtn" class="btn btn-primary">⏱ Tap next line</button>
+            <button id="resetSyncBtn" class="btn btn-ghost">Reset all timestamps</button>
+            <span id="syncProgress" class="meta"></span>
+          </div>
+          <ol id="syncList" class="lyric-list"></ol>
+        </div>
+
+        <div id="practiceTab" class="tab-panel">
+          <p class="hint">
+            Tap a line to select it. Shift-click (or tap, then tap another) to select a range. Then hit
+            <strong>Loop selection</strong> to repeat just that part, over and over, until you've got it.
+          </p>
+          <div class="practice-controls">
+            <button id="loopBtn" class="btn btn-primary" disabled>🔁 Loop selection</button>
+            <button id="stopLoopBtn" class="btn btn-ghost hidden">■ Stop loop</button>
+            <label class="inline-field">Gap
+              <select id="gapSelect">
+                <option value="0">none</option>
+                <option value="0.5">0.5s</option>
+                <option value="1" selected>1s</option>
+                <option value="2">2s</option>
+                <option value="3">3s</option>
+              </select>
+            </label>
+            <label class="inline-field">Repeat
+              <select id="repeatSelect">
+                <option value="0">∞ until stopped</option>
+                <option value="3">3 times</option>
+                <option value="5">5 times</option>
+                <option value="10">10 times</option>
+              </select>
+            </label>
+            <span id="loopStatus" class="meta"></span>
+          </div>
+          <ol id="practiceList" class="lyric-list"></ol>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
 </div>
 
 <script src="js/app.js"></script>

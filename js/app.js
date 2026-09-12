@@ -103,7 +103,6 @@
     looping: false,
     loopTimer: null,
     loopRepeatsLeft: 0,
-    rafId: null,
   };
 
   // ---------- DOM refs ----------
@@ -166,7 +165,7 @@
   function renderLibrary() {
     songListEl.innerHTML = '';
     if (state.songs.length === 0) {
-      songListEl.innerHTML = '<p class="empty-hint">No songs yet. Click "New Song" to import an MP3 and its lyrics.</p>';
+      songListEl.innerHTML = '<p class="empty-hint">No songs yet — import an MP3 and its lyrics to get started.</p>';
       return;
     }
     for (const meta of state.songs) {
@@ -178,7 +177,7 @@
       const lyrics = isCurrent ? state.currentSong.lyrics : (meta.lyrics || []);
       const syncedCount = lyrics.filter(l => l.time != null).length;
       const total = lyrics.length;
-      item.innerHTML = `${escapeHtml(meta.title)}<span class="song-sub">${syncedCount}/${total} lines synced</span>`;
+      item.innerHTML = `${escapeHtml(meta.title)}<span class="song-sub">${syncedCount}/${total} synced</span>`;
       item.addEventListener('click', () => loadSong(meta.id));
       songListEl.appendChild(item);
     }
@@ -360,20 +359,18 @@
     state.currentSong = null;
     state.audio.pause();
     await refreshLibrary();
-    showView(state.songs.length ? 'empty' : 'empty');
+    showView('empty');
   });
 
   el('exportBtn').addEventListener('click', () => {
     if (!state.currentSong) return;
-    const data = {
-      title: state.currentSong.title,
-      lyrics: state.currentSong.lyrics,
-    };
+    const data = { title: state.currentSong.title, lyrics: state.currentSong.lyrics };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const filename = `${state.currentSong.title.replace(/[^a-z0-9]+/gi, '_')}.sync.json`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${state.currentSong.title.replace(/[^a-z0-9]+/gi, '_')}.sync.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -403,15 +400,12 @@
 
   function togglePlay() {
     if (!state.currentSong) return;
-    if (state.audio.paused) {
-      state.audio.play();
-    } else {
-      state.audio.pause();
-    }
+    if (state.audio.paused) state.audio.play();
+    else state.audio.pause();
   }
 
-  state.audio.addEventListener('play', () => { playBtn.textContent = '❚❚'; });
-  state.audio.addEventListener('pause', () => { playBtn.textContent = '▶'; });
+  state.audio.addEventListener('play', () => { playBtn.textContent = '❚❚'; document.body.classList.add('is-playing'); });
+  state.audio.addEventListener('pause', () => { playBtn.textContent = '▶'; document.body.classList.remove('is-playing'); });
 
   state.audio.addEventListener('loadedmetadata', () => {
     seekBar.max = state.audio.duration;
@@ -420,20 +414,13 @@
 
   state.audio.addEventListener('timeupdate', () => {
     curTimeEl.textContent = formatTime(state.audio.currentTime);
-    if (!seekBar.matches(':active')) {
-      seekBar.value = state.audio.currentTime;
-    }
+    if (!seekBar.matches(':active')) seekBar.value = state.audio.currentTime;
     updateActiveLine();
     checkLoopBoundary();
   });
 
-  seekBar.addEventListener('input', () => {
-    state.audio.currentTime = parseFloat(seekBar.value);
-  });
-
-  speedSelect.addEventListener('change', () => {
-    state.audio.playbackRate = parseFloat(speedSelect.value);
-  });
+  seekBar.addEventListener('input', () => { state.audio.currentTime = parseFloat(seekBar.value); });
+  speedSelect.addEventListener('change', () => { state.audio.playbackRate = parseFloat(speedSelect.value); });
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
@@ -441,11 +428,8 @@
     if (!state.currentSong) return;
     e.preventDefault();
     const syncActive = document.getElementById('syncTab').classList.contains('active');
-    if (syncActive && !state.audio.paused) {
-      tapNextLine();
-    } else {
-      togglePlay();
-    }
+    if (syncActive && !state.audio.paused) tapNextLine();
+    else togglePlay();
   });
 
   // ---------- Tabs ----------
@@ -472,7 +456,7 @@
       const timeSpan = document.createElement('span');
       timeSpan.className = 'line-time' + (line.time == null ? ' unset' : '');
       timeSpan.textContent = formatTime(line.time);
-      timeSpan.title = 'Click to edit timestamp manually';
+      timeSpan.title = 'Tap to edit timestamp manually';
       timeSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
         const input = prompt('Timestamp (m:ss.s or seconds):', line.time != null ? formatTime(line.time) : '');
@@ -491,9 +475,7 @@
       textSpan.textContent = line.text;
 
       li.addEventListener('click', () => {
-        if (line.time != null) {
-          state.audio.currentTime = line.time;
-        }
+        if (line.time != null) state.audio.currentTime = line.time;
       });
 
       li.appendChild(timeSpan);
@@ -574,7 +556,7 @@
 
       li.addEventListener('click', (ev) => {
         if (line.time == null) {
-          alert('This line has no timestamp yet — sync it first in the "Sync Lyrics" tab.');
+          alert('This line has no timestamp yet — sync it first in the "Sync lyrics" tab.');
           return;
         }
         if (ev.shiftKey && state.selection) {
@@ -628,10 +610,7 @@
 
   function stopLoop() {
     state.looping = false;
-    if (state.loopTimer) {
-      clearTimeout(state.loopTimer);
-      state.loopTimer = null;
-    }
+    if (state.loopTimer) { clearTimeout(state.loopTimer); state.loopTimer = null; }
     loopBtn.classList.remove('hidden');
     stopLoopBtn.classList.add('hidden');
     loopStatus.textContent = '';
@@ -640,11 +619,7 @@
   function updateLoopStatus() {
     if (!state.looping) return;
     const target = parseInt(repeatSelect.value, 10);
-    if (target === 0) {
-      loopStatus.textContent = 'Looping…';
-    } else {
-      loopStatus.textContent = `Repeats left: ${state.loopRepeatsLeft}`;
-    }
+    loopStatus.textContent = target === 0 ? 'Looping…' : `Repeats left: ${state.loopRepeatsLeft}`;
   }
 
   function checkLoopBoundary() {
@@ -655,10 +630,7 @@
       const target = parseInt(repeatSelect.value, 10);
       if (target !== 0) {
         state.loopRepeatsLeft--;
-        if (state.loopRepeatsLeft <= 0) {
-          stopLoop();
-          return;
-        }
+        if (state.loopRepeatsLeft <= 0) { stopLoop(); return; }
       }
       updateLoopStatus();
       const gap = parseFloat(gapSelect.value) * 1000;
