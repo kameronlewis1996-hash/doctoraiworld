@@ -71,8 +71,12 @@
 
   function formatTime(sec) {
     if (sec == null || isNaN(sec)) return '--:--';
-    const m = Math.floor(sec / 60);
-    const s = (sec - m * 60).toFixed(1).padStart(4, '0');
+    // Round to the nearest tenth up front so the rounding toFixed(1) does
+    // internally can't push the seconds portion to "60.0" (e.g. a raw
+    // 59.96 would otherwise render as "1:60.0" instead of "2:00.0").
+    const rounded = Math.round(Math.max(0, sec) * 10) / 10;
+    const m = Math.floor(rounded / 60);
+    const s = (rounded - m * 60).toFixed(1).padStart(4, '0');
     return `${m}:${s}`;
   }
 
@@ -100,7 +104,6 @@
     audioUrl: null,
     syncPointer: 0,   // index of next unsynced line
     loopRange: null,  // { start, end } in seconds — the section to loop
-    dragging: null,   // 'start' | 'end' | null, while a range handle is being dragged
     looping: false,
     loopTimer: null,
     loopRepeatsLeft: 0,
@@ -166,7 +169,11 @@
       all = [];
     }
     all.sort((a, b) => b.createdAt - a.createdAt);
-    state.songs = all;
+    // Drop the audio blob from the sidebar's in-memory snapshot — only
+    // title/lyrics/createdAt are ever read from state.songs, and holding
+    // every song's full audio in memory just to render a list scales badly
+    // with library size.
+    state.songs = all.map(({ audioBlob, ...meta }) => meta);
     renderLibrary();
   }
 
@@ -303,18 +310,24 @@
       } catch (e) { /* fall through */ }
       return null;
     }
-    // Basic .lrc parser: [mm:ss.xx]lyric text
+    // Basic .lrc parser: [mm:ss.xx]lyric text — a line can carry more than
+    // one leading time tag (LRC's standard way to repeat a line, e.g. a
+    // chorus: "[00:12.00][00:45.00]Chorus line"), so pull out every tag on
+    // the line rather than just the first, and emit one entry per tag.
     const lines = text.split('\n');
     const out = [];
-    const lrcRe = /\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)/;
+    const lrcTagRe = /\[(\d+):(\d+(?:\.\d+)?)\]/g;
     for (const line of lines) {
-      const m = line.match(lrcRe);
-      if (m) {
+      const tags = [...line.matchAll(lrcTagRe)];
+      if (tags.length === 0) continue;
+      const t = line.replace(lrcTagRe, '').trim();
+      if (!t) continue;
+      for (const m of tags) {
         const time = parseInt(m[1], 10) * 60 + parseFloat(m[2]);
-        const t = m[3].trim();
-        if (t) out.push({ time, text: t });
+        out.push({ time, text: t });
       }
     }
+    out.sort((a, b) => a.time - b.time);
     return out;
   }
 
@@ -593,6 +606,11 @@
     }
     if (!confirm('Auto-sync analyzes the track to line up with where the sound actually starts and stops (skipping a silent intro/outro), then spaces lines evenly in between. It overwrites any existing timestamps. Continue?')) return;
 
+    // Analysis below is a real async decode that can take a noticeable
+    // moment — remember which song this run is for so that switching to a
+    // different song, or deleting this one, while it's in flight can't
+    // apply the result to the wrong song (or crash on a null currentSong).
+    const targetSongId = state.currentSong.id;
     const originalLabel = autoSyncBtn.textContent;
     autoSyncBtn.disabled = true;
     autoSyncBtn.textContent = 'Analyzing…';
@@ -603,6 +621,15 @@
       if (detected && detected.end > detected.start) span = detected;
     } catch (err) {
       console.error('Auto-sync audio analysis failed, falling back to even spacing across the full track', err);
+    }
+
+    if (!state.currentSong || state.currentSong.id !== targetSongId) {
+      // The user navigated away from (or deleted) this song while the
+      // analysis was running — discard the result instead of misapplying
+      // it to whatever song is open now.
+      autoSyncBtn.disabled = false;
+      autoSyncBtn.textContent = originalLabel;
+      return;
     }
 
     const lyrics = state.currentSong.lyrics;
@@ -622,12 +649,23 @@
 
   // Highlight the currently playing line across both tabs
   function updateActiveLine() {
+    // Guard against a stray 'timeupdate' firing after the song was closed
+    // (e.g. deleted) but before playback fully stopped.
+    if (!state.currentSong) return;
     const lyrics = state.currentSong.lyrics;
     const t = state.audio.currentTime;
+    // Pick whichever timestamped line has the latest time at or before
+    // now — not just "the last one in list order" — so a manually
+    // corrected, out-of-order timestamp can't make this stop early and
+    // freeze the highlight on the wrong line.
     let activeIdx = -1;
+    let bestTime = -Infinity;
     for (let i = 0; i < lyrics.length; i++) {
-      if (lyrics[i].time != null && lyrics[i].time <= t) activeIdx = i;
-      else if (lyrics[i].time != null && lyrics[i].time > t) break;
+      const lt = lyrics[i].time;
+      if (lt != null && lt <= t && lt > bestTime) {
+        bestTime = lt;
+        activeIdx = i;
+      }
     }
     [syncList, practiceList].forEach(listEl => {
       Array.from(listEl.children).forEach((li, i) => {
@@ -722,7 +760,6 @@
       if (!state.audio.duration) return;
       ev.preventDefault();
       handleEl.setPointerCapture(ev.pointerId);
-      state.dragging = which;
 
       const onMove = (moveEv) => {
         const t = timeFromPointer(moveEv.clientX);
@@ -739,7 +776,6 @@
       };
       const onUp = (upEv) => {
         handleEl.releasePointerCapture(upEv.pointerId);
-        state.dragging = null;
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
       };
