@@ -198,11 +198,31 @@
     showView(state.currentSong ? 'workspace' : 'empty');
   });
 
+  const audioFileBtn = el('audioFileBtn');
+  const lrcFileBtn = el('lrcFileBtn');
+  const audioFileBtnDefault = audioFileBtn.textContent;
+  const lrcFileBtnDefault = lrcFileBtn.textContent;
+
+  // Hidden <input type="file"> elements are driven from these buttons —
+  // styling a file input directly makes it unreliable to tap on mobile.
+  audioFileBtn.addEventListener('click', () => audioInput.click());
+  lrcFileBtn.addEventListener('click', () => lrcInput.click());
+  audioInput.addEventListener('change', () => {
+    const f = audioInput.files[0];
+    audioFileBtn.textContent = f ? '🎵 ' + f.name : audioFileBtnDefault;
+  });
+  lrcInput.addEventListener('change', () => {
+    const f = lrcInput.files[0];
+    lrcFileBtn.textContent = f ? '📄 ' + f.name : lrcFileBtnDefault;
+  });
+
   function openSetup() {
     titleInput.value = '';
     audioInput.value = '';
     lyricsInput.value = '';
     lrcInput.value = '';
+    audioFileBtn.textContent = audioFileBtnDefault;
+    lrcFileBtn.textContent = lrcFileBtnDefault;
     showView('setup');
   }
 

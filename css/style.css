@@ -106,7 +106,7 @@ html, body {
   margin-bottom: 6px;
 }
 
-input[type="text"], textarea, select, input[type="file"] {
+input[type="text"], textarea, select {
   width: 100%;
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -118,6 +118,27 @@ input[type="text"], textarea, select, input[type="file"] {
 }
 
 textarea { resize: vertical; line-height: 1.5; }
+
+/* Native <input type="file"> controls render as a small, inconsistently
+   hit-testable button on mobile browsers (especially iOS Safari) once
+   styled directly — taps on the surrounding padded box can silently miss.
+   Hide the raw input and drive it from a normal button instead. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 
 .actions { display: flex; gap: 10px; margin-top: 20px; }
 
