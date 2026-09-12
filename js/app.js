@@ -1,0 +1,614 @@
+// Lyric Sync — vanilla JS app. No build step, no external dependencies.
+// Persists songs (audio blob + synced lyric timestamps) in IndexedDB so
+// they survive page reloads.
+
+(() => {
+  'use strict';
+
+  // ---------- IndexedDB helpers ----------
+
+  const DB_NAME = 'lyric-sync-db';
+  const STORE = 'songs';
+  let dbPromise = null;
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) {
+          db.createObjectStore(STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return dbPromise;
+  }
+
+  async function dbPut(song) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(song);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function dbGetAll() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function dbGet(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(id);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function dbDelete(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  // ---------- Time helpers ----------
+
+  function formatTime(sec) {
+    if (sec == null || isNaN(sec)) return '--:--';
+    const m = Math.floor(sec / 60);
+    const s = (sec - m * 60).toFixed(1).padStart(4, '0');
+    return `${m}:${s}`;
+  }
+
+  // Accepts "1:23.4", "83.4", "83"
+  function parseTime(str) {
+    str = str.trim();
+    if (!str) return null;
+    if (str.includes(':')) {
+      const [m, s] = str.split(':');
+      const mins = parseFloat(m);
+      const secs = parseFloat(s);
+      if (isNaN(mins) || isNaN(secs)) return null;
+      return mins * 60 + secs;
+    }
+    const v = parseFloat(str);
+    return isNaN(v) ? null : v;
+  }
+
+  // ---------- App state ----------
+
+  const state = {
+    songs: [],        // metadata list {id, title, createdAt}
+    currentSong: null, // full record {id, title, lyrics:[{time,text}], audioBlob, createdAt}
+    audio: new Audio(),
+    audioUrl: null,
+    syncPointer: 0,   // index of next unsynced line
+    selection: null,  // {start, end} indices for practice loop
+    looping: false,
+    loopTimer: null,
+    loopRepeatsLeft: 0,
+    rafId: null,
+  };
+
+  // ---------- DOM refs ----------
+
+  const el = (id) => document.getElementById(id);
+  const songListEl = el('songList');
+  const emptyState = el('emptyState');
+  const setupPanel = el('setupPanel');
+  const workspace = el('workspace');
+
+  const titleInput = el('titleInput');
+  const audioInput = el('audioInput');
+  const lyricsInput = el('lyricsInput');
+  const lrcInput = el('lrcInput');
+
+  const songTitleEl = el('songTitle');
+  const songMetaEl = el('songMeta');
+
+  const playBtn = el('playBtn');
+  const curTimeEl = el('curTime');
+  const durTimeEl = el('durTime');
+  const seekBar = el('seekBar');
+  const speedSelect = el('speedSelect');
+
+  const syncList = el('syncList');
+  const tapBtn = el('tapBtn');
+  const resetSyncBtn = el('resetSyncBtn');
+  const syncProgress = el('syncProgress');
+
+  const practiceList = el('practiceList');
+  const loopBtn = el('loopBtn');
+  const stopLoopBtn = el('stopLoopBtn');
+  const gapSelect = el('gapSelect');
+  const repeatSelect = el('repeatSelect');
+  const loopStatus = el('loopStatus');
+
+  // ---------- View switching ----------
+
+  function showView(name) {
+    emptyState.classList.toggle('hidden', name !== 'empty');
+    setupPanel.classList.toggle('hidden', name !== 'setup');
+    workspace.classList.toggle('hidden', name !== 'workspace');
+  }
+
+  // ---------- Library ----------
+
+  async function refreshLibrary() {
+    const all = await dbGetAll();
+    all.sort((a, b) => b.createdAt - a.createdAt);
+    state.songs = all;
+    renderLibrary();
+  }
+
+  function renderLibrary() {
+    songListEl.innerHTML = '';
+    if (state.songs.length === 0) {
+      songListEl.innerHTML = '<p class="empty-hint">No songs yet. Click "New Song" to import an MP3 and its lyrics.</p>';
+      return;
+    }
+    for (const meta of state.songs) {
+      const item = document.createElement('div');
+      item.className = 'song-item' + (state.currentSong && state.currentSong.id === meta.id ? ' active' : '');
+      const syncedCount = (meta.lyrics || []).filter(l => l.time != null).length;
+      const total = (meta.lyrics || []).length;
+      item.innerHTML = `${escapeHtml(meta.title)}<span class="song-sub">${syncedCount}/${total} lines synced</span>`;
+      item.addEventListener('click', () => loadSong(meta.id));
+      songListEl.appendChild(item);
+    }
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------- Create song ----------
+
+  el('newSongBtn').addEventListener('click', openSetup);
+  el('emptyNewSongBtn').addEventListener('click', openSetup);
+  el('cancelSetupBtn').addEventListener('click', () => {
+    showView(state.currentSong ? 'workspace' : 'empty');
+  });
+
+  function openSetup() {
+    titleInput.value = '';
+    audioInput.value = '';
+    lyricsInput.value = '';
+    lrcInput.value = '';
+    showView('setup');
+  }
+
+  el('createSongBtn').addEventListener('click', async () => {
+    const title = titleInput.value.trim() || 'Untitled song';
+    const file = audioInput.files[0];
+    if (!file) {
+      alert('Please choose an MP3 (or other audio) file to import.');
+      return;
+    }
+    const rawLyrics = lyricsInput.value;
+    let lyrics = rawLyrics
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .map(text => ({ time: null, text }));
+
+    // Optional pre-synced import (.lrc or exported .json)
+    const lrcFile = lrcInput.files[0];
+    if (lrcFile) {
+      const text = await lrcFile.text();
+      const imported = parseImportedSync(text, lrcFile.name);
+      if (imported && imported.length) lyrics = imported;
+    }
+
+    if (lyrics.length === 0) {
+      alert('Please paste in the lyrics (or import a synced file) before creating the song.');
+      return;
+    }
+
+    const song = {
+      id: 'song_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      title,
+      lyrics,
+      audioBlob: file,
+      audioName: file.name,
+      createdAt: Date.now(),
+    };
+
+    await dbPut(song);
+    await refreshLibrary();
+    await loadSong(song.id);
+  });
+
+  function parseImportedSync(text, filename) {
+    if (filename.endsWith('.json')) {
+      try {
+        const data = JSON.parse(text);
+        const lyrics = data.lyrics || data;
+        if (Array.isArray(lyrics)) {
+          return lyrics.map(l => ({ time: typeof l.time === 'number' ? l.time : null, text: l.text || '' }));
+        }
+      } catch (e) { /* fall through */ }
+      return null;
+    }
+    // Basic .lrc parser: [mm:ss.xx]lyric text
+    const lines = text.split('\n');
+    const out = [];
+    const lrcRe = /\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)/;
+    for (const line of lines) {
+      const m = line.match(lrcRe);
+      if (m) {
+        const time = parseInt(m[1], 10) * 60 + parseFloat(m[2]);
+        const t = m[3].trim();
+        if (t) out.push({ time, text: t });
+      }
+    }
+    return out;
+  }
+
+  // ---------- Load / manage song ----------
+
+  async function loadSong(id) {
+    stopLoop();
+    const song = await dbGet(id);
+    if (!song) return;
+    state.currentSong = song;
+    state.syncPointer = song.lyrics.findIndex(l => l.time == null);
+    if (state.syncPointer === -1) state.syncPointer = song.lyrics.length;
+    state.selection = null;
+
+    if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+    state.audioUrl = URL.createObjectURL(song.audioBlob);
+    state.audio.src = state.audioUrl;
+    state.audio.playbackRate = parseFloat(speedSelect.value);
+
+    songTitleEl.textContent = song.title;
+    songMetaEl.textContent = song.audioName || '';
+
+    renderLibrary();
+    renderSyncList();
+    renderPracticeList();
+    updateLoopButtonState();
+    showView('workspace');
+  }
+
+  el('renameBtn').addEventListener('click', async () => {
+    if (!state.currentSong) return;
+    const next = prompt('Song title:', state.currentSong.title);
+    if (next && next.trim()) {
+      state.currentSong.title = next.trim();
+      songTitleEl.textContent = state.currentSong.title;
+      await dbPut(state.currentSong);
+      await refreshLibrary();
+    }
+  });
+
+  el('deleteSongBtn').addEventListener('click', async () => {
+    if (!state.currentSong) return;
+    if (!confirm(`Delete "${state.currentSong.title}"? This can't be undone.`)) return;
+    stopLoop();
+    await dbDelete(state.currentSong.id);
+    state.currentSong = null;
+    state.audio.pause();
+    await refreshLibrary();
+    showView(state.songs.length ? 'empty' : 'empty');
+  });
+
+  el('exportBtn').addEventListener('click', () => {
+    if (!state.currentSong) return;
+    const data = {
+      title: state.currentSong.title,
+      lyrics: state.currentSong.lyrics,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${state.currentSong.title.replace(/[^a-z0-9]+/gi, '_')}.sync.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  async function persistCurrentSong() {
+    if (state.currentSong) await dbPut(state.currentSong);
+  }
+
+  // ---------- Player controls ----------
+
+  playBtn.addEventListener('click', togglePlay);
+
+  function togglePlay() {
+    if (!state.currentSong) return;
+    if (state.audio.paused) {
+      state.audio.play();
+    } else {
+      state.audio.pause();
+    }
+  }
+
+  state.audio.addEventListener('play', () => { playBtn.textContent = '❚❚'; });
+  state.audio.addEventListener('pause', () => { playBtn.textContent = '▶'; });
+
+  state.audio.addEventListener('loadedmetadata', () => {
+    seekBar.max = state.audio.duration;
+    durTimeEl.textContent = formatTime(state.audio.duration);
+  });
+
+  state.audio.addEventListener('timeupdate', () => {
+    curTimeEl.textContent = formatTime(state.audio.currentTime);
+    if (!seekBar.matches(':active')) {
+      seekBar.value = state.audio.currentTime;
+    }
+    updateActiveLine();
+    checkLoopBoundary();
+  });
+
+  seekBar.addEventListener('input', () => {
+    state.audio.currentTime = parseFloat(seekBar.value);
+  });
+
+  speedSelect.addEventListener('change', () => {
+    state.audio.playbackRate = parseFloat(speedSelect.value);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (e.code !== 'Space') return;
+    if (!state.currentSong) return;
+    e.preventDefault();
+    const syncActive = document.getElementById('syncTab').classList.contains('active');
+    if (syncActive && !state.audio.paused) {
+      tapNextLine();
+    } else {
+      togglePlay();
+    }
+  });
+
+  // ---------- Tabs ----------
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab + 'Tab').classList.add('active');
+    });
+  });
+
+  // ---------- Sync tab ----------
+
+  function renderSyncList() {
+    syncList.innerHTML = '';
+    const lyrics = state.currentSong.lyrics;
+    lyrics.forEach((line, i) => {
+      const li = document.createElement('li');
+      li.className = 'lyric-line';
+      if (i === state.syncPointer) li.classList.add('next-up');
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'line-time' + (line.time == null ? ' unset' : '');
+      timeSpan.textContent = formatTime(line.time);
+      timeSpan.title = 'Click to edit timestamp manually';
+      timeSpan.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const input = prompt('Timestamp (m:ss.s or seconds):', line.time != null ? formatTime(line.time) : '');
+        if (input == null) return;
+        const t = parseTime(input);
+        if (t != null) {
+          line.time = t;
+          persistCurrentSong();
+          renderSyncList();
+          renderPracticeList();
+        }
+      });
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'line-text';
+      textSpan.textContent = line.text;
+
+      li.addEventListener('click', () => {
+        if (line.time != null) {
+          state.audio.currentTime = line.time;
+        }
+      });
+
+      li.appendChild(timeSpan);
+      li.appendChild(textSpan);
+      syncList.appendChild(li);
+    });
+    updateSyncProgress();
+  }
+
+  function updateSyncProgress() {
+    const lyrics = state.currentSong.lyrics;
+    const synced = lyrics.filter(l => l.time != null).length;
+    syncProgress.textContent = `${synced}/${lyrics.length} lines timestamped`;
+  }
+
+  tapBtn.addEventListener('click', tapNextLine);
+
+  function tapNextLine() {
+    const lyrics = state.currentSong.lyrics;
+    if (state.syncPointer >= lyrics.length) return;
+    lyrics[state.syncPointer].time = state.audio.currentTime;
+    state.syncPointer++;
+    persistCurrentSong();
+    renderSyncList();
+    renderPracticeList();
+    renderLibrary();
+    // auto-scroll next-up line into view
+    const nextEl = syncList.querySelector('.next-up');
+    if (nextEl) nextEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  resetSyncBtn.addEventListener('click', () => {
+    if (!confirm('Clear all timestamps for this song?')) return;
+    state.currentSong.lyrics.forEach(l => { l.time = null; });
+    state.syncPointer = 0;
+    persistCurrentSong();
+    renderSyncList();
+    renderPracticeList();
+    renderLibrary();
+  });
+
+  // Highlight the currently playing line across both tabs
+  function updateActiveLine() {
+    const lyrics = state.currentSong.lyrics;
+    const t = state.audio.currentTime;
+    let activeIdx = -1;
+    for (let i = 0; i < lyrics.length; i++) {
+      if (lyrics[i].time != null && lyrics[i].time <= t) activeIdx = i;
+      else if (lyrics[i].time != null && lyrics[i].time > t) break;
+    }
+    [syncList, practiceList].forEach(listEl => {
+      Array.from(listEl.children).forEach((li, i) => {
+        li.classList.toggle('active', i === activeIdx);
+      });
+    });
+  }
+
+  // ---------- Practice / loop tab ----------
+
+  function renderPracticeList() {
+    practiceList.innerHTML = '';
+    const lyrics = state.currentSong.lyrics;
+    lyrics.forEach((line, i) => {
+      const li = document.createElement('li');
+      li.className = 'lyric-line';
+      if (isSelected(i)) li.classList.add('selected');
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'line-time' + (line.time == null ? ' unset' : '');
+      timeSpan.textContent = formatTime(line.time);
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'line-text';
+      textSpan.textContent = line.text;
+
+      li.appendChild(timeSpan);
+      li.appendChild(textSpan);
+
+      li.addEventListener('click', (ev) => {
+        if (line.time == null) {
+          alert('This line has no timestamp yet — sync it first in the "Sync Lyrics" tab.');
+          return;
+        }
+        if (ev.shiftKey && state.selection) {
+          const start = Math.min(state.selection.start, i);
+          const end = Math.max(state.selection.start, i);
+          state.selection = { start, end };
+        } else {
+          state.selection = { start: i, end: i };
+        }
+        renderPracticeList();
+        updateLoopButtonState();
+      });
+
+      practiceList.appendChild(li);
+    });
+  }
+
+  function isSelected(i) {
+    return state.selection && i >= state.selection.start && i <= state.selection.end;
+  }
+
+  function updateLoopButtonState() {
+    loopBtn.disabled = !state.selection;
+  }
+
+  function getLoopBounds() {
+    const lyrics = state.currentSong.lyrics;
+    const sel = state.selection;
+    const startTime = lyrics[sel.start].time;
+    const endTime = (sel.end + 1 < lyrics.length && lyrics[sel.end + 1].time != null)
+      ? lyrics[sel.end + 1].time
+      : state.audio.duration;
+    return { startTime, endTime };
+  }
+
+  loopBtn.addEventListener('click', startLoop);
+  stopLoopBtn.addEventListener('click', stopLoop);
+
+  function startLoop() {
+    if (!state.selection) return;
+    state.looping = true;
+    const target = parseInt(repeatSelect.value, 10);
+    state.loopRepeatsLeft = target; // 0 means infinite
+    loopBtn.classList.add('hidden');
+    stopLoopBtn.classList.remove('hidden');
+    const { startTime } = getLoopBounds();
+    state.audio.currentTime = startTime;
+    state.audio.play();
+    updateLoopStatus();
+  }
+
+  function stopLoop() {
+    state.looping = false;
+    if (state.loopTimer) {
+      clearTimeout(state.loopTimer);
+      state.loopTimer = null;
+    }
+    loopBtn.classList.remove('hidden');
+    stopLoopBtn.classList.add('hidden');
+    loopStatus.textContent = '';
+  }
+
+  function updateLoopStatus() {
+    if (!state.looping) return;
+    const target = parseInt(repeatSelect.value, 10);
+    if (target === 0) {
+      loopStatus.textContent = 'Looping…';
+    } else {
+      loopStatus.textContent = `Repeats left: ${state.loopRepeatsLeft}`;
+    }
+  }
+
+  function checkLoopBoundary() {
+    if (!state.looping || !state.selection) return;
+    const { startTime, endTime } = getLoopBounds();
+    if (state.audio.currentTime >= endTime - 0.03) {
+      state.audio.pause();
+      const target = parseInt(repeatSelect.value, 10);
+      if (target !== 0) {
+        state.loopRepeatsLeft--;
+        if (state.loopRepeatsLeft <= 0) {
+          stopLoop();
+          return;
+        }
+      }
+      updateLoopStatus();
+      const gap = parseFloat(gapSelect.value) * 1000;
+      state.loopTimer = setTimeout(() => {
+        if (!state.looping) return;
+        state.audio.currentTime = startTime;
+        state.audio.play();
+      }, gap);
+    }
+  }
+
+  // ---------- Boot ----------
+
+  refreshLibrary().then(() => {
+    showView('empty');
+  });
+
+})();
