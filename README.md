@@ -5,7 +5,7 @@ DoctorAI World is a safety-led personal health hub for organising medications, s
 ## Live production
 
 - **Site:** [www.doctoraiworld.com/health-hub](https://www.doctoraiworld.com/health-hub)
-- **Latest production deployment record:** [Vercel deployment 5MW9Wkjohds4MMZKyGU1uxfSnSuG](https://vercel.com/kameronlewis1996-3703s-projects/doctorai-health-hub/5MW9Wkjohds4MMZKyGU1uxfSnSuG)
+- **Vercel deployment history (latest first):** [doctorai-health-hub deployments](https://vercel.com/kameronlewis1996-3703s-projects/doctorai-health-hub/deployments)
 - **Vercel project:** [doctorai-health-hub](https://vercel.com/kameronlewis1996-3703s-projects/doctorai-health-hub)
 
 ## Source snapshots
