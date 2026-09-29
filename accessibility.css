@@ -1,0 +1,462 @@
+/* Shared DoctorAI reading, interaction and feature-icon rules. */
+:root {
+  --feature-cyan: #087fa6;
+  --feature-blue: #2866b3;
+  --feature-violet: #7556ad;
+  --feature-coral: #b85c4f;
+  --feature-mint: #188d76;
+  --feature-yellow: #927018;
+}
+body, body[data-hub-theme], body.doctorai-public-page {
+  --muted: #465f73;
+  --muted-light: #52697a;
+  --green: #23765f;
+}
+html { scroll-padding-top: 100px; }
+body { min-width: 0; }
+body :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #075bc0;
+  outline-offset: 3px;
+}
+body :is(input, select, textarea) { font-size: max(1rem, 16px); }
+body :is(button, a) { touch-action: manipulation; }
+.doctorai-skip-link {
+  position: fixed; top: 8px; left: 8px; z-index: 10000;
+  padding: 12px 18px; background: #071b36; color: white;
+  border-radius: 8px; transform: translateY(-180%);
+}
+.doctorai-skip-link:focus { transform: none; }
+
+/* The colour belongs to the feature; use the same artwork and tile everywhere. */
+body :is(.feature-icon, .profile-shortcut-icon) {
+  --feature-ink: var(--feature-blue); --feature-tint: #f1f6ff; --feature-line: #c4d6ee;
+  color: var(--feature-ink);
+  background: linear-gradient(145deg, #fff, var(--feature-tint));
+  box-shadow: 0 5px 12px rgba(23,53,80,.08), inset 0 0 0 1px var(--feature-line);
+  border: 1px solid #fff;
+  border-radius: 12px;
+  display: inline-grid; place-items: center;
+  width: 36px; height: 36px; padding: 7px; flex: 0 0 36px;
+}
+body :is(.feature-icon, .profile-shortcut-icon).tone-cyan { --feature-ink: var(--feature-cyan); --feature-tint: #effcfe; --feature-line: #bce5ea; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-blue { --feature-ink: var(--feature-blue); --feature-tint: #f1f6ff; --feature-line: #c4d6ee; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-violet,
+body :is(.feature-icon, .profile-shortcut-icon).tone-purple { --feature-ink: var(--feature-violet); --feature-tint: #f8f4ff; --feature-line: #ddcfee; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-coral { --feature-ink: var(--feature-coral); --feature-tint: #fff7f4; --feature-line: #efd4ce; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-mint { --feature-ink: var(--feature-mint); --feature-tint: #effcf7; --feature-line: #bfe8da; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-yellow { --feature-ink: var(--feature-yellow); --feature-tint: #fffcef; --feature-line: #ece0ae; }
+.feature-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.feature-icon .icon-fill { fill: currentColor; stroke: none; opacity: .18; }
+.feature-icon .icon-solid { fill: currentColor; stroke: none; }
+body .profile-shortcut-card:has(.tone-cyan) { background: #f2fcfe; border-color: #bce5ea; }
+body .profile-shortcut-card:has(.tone-blue) { background: #f5f8ff; border-color: #c4d6ee; }
+body .profile-shortcut-card:has(.tone-violet) { background: #faf7ff; border-color: #ddcfee; }
+body .profile-shortcut-card:has(.tone-coral) { background: #fff8f5; border-color: #efd4ce; }
+body .profile-shortcut-card:has(.tone-mint) { background: #f2fcf8; border-color: #bfe8da; }
+body .profile-shortcut-card:has(.tone-yellow) { background: #fffdf3; border-color: #ece0ae; }
+
+/* Reading sizes are deliberate: regular labels 14px, supporting text 12px. */
+body #hub-shell :is(.page-subtitle, .profile-shortcuts-intro, .profile-page-email, .empty-state, .empty-inline, .safety-note p) { font-size: 14px; line-height: 1.6; color: #465f73; }
+body #hub-shell #view-profile .profile-page-email { color: #e5f5ff; }
+body #hub-shell :is(.card-kicker, .eyebrow, .timeline-note, .document-toolbar, .profile-shortcut-copy small, .profile-shortcut-add small, .profile-trust-card p, .profile-shortcuts-edit-note) { font-size: 12px; line-height: 1.5; color: #465f73; }
+body #hub-shell :is(.profile-shortcut-copy b, .profile-shortcut-add b, .nav-item, .category-tab, .category-more-menu b, .filter-tabs button, .document-filters button, .quiet-button, .text-button) { font-size: 14px; line-height: 1.4; }
+body :is(.modal-field > span, .modal-choice b, .profile-shortcut-choice b, .drawer-row b, .drawer-profile b) { font-size: 14px; line-height: 1.4; }
+body :is(.modal-help, .modal-choice small, .profile-shortcut-choice small, .profile-shortcut-picker-note, .drawer-row small, .drawer-safety p, .signin-disclaimer, .chat-disclaimer) { font-size: 12px; line-height: 1.55; color: #465f73; }
+body :is(.modal-actions button, .privacy-actions button, .filter-tabs button, .document-filters button, .profile-shortcut-remove, .icon-button) { min-height: 44px; min-width: 44px; }
+body .profile-shortcut-remove { top: 4px; right: 4px; }
+body .profile-shortcut-item:has(.profile-shortcut-remove) .profile-shortcut-card { padding-right: 52px; }
+body #view-profile .profile-shortcut-card { grid-template-columns: 36px minmax(0, 1fr); gap: 12px; min-height: 104px; }
+body #view-profile .profile-shortcut-arrow { display: none; }
+body .profile-shortcut-copy { overflow-wrap: anywhere; }
+body .profile-shortcuts-grid { align-items: stretch; }
+body .profile-shortcut-item > button:first-child { height: 100%; }
+body .profile-trust-card h2 { font-size: 18px; line-height: 1.3; }
+body .quick-modal { max-height: calc(100dvh - 32px); overflow-y: auto; }
+body .modal-help { height: auto; }
+body .view-stack, body .view, body .panel-card { min-width: 0; }
+body .panel-card { overflow-wrap: anywhere; }
+body .doctorai-site-menu > a { font-size: 14px; min-height: 44px; }
+body .doctorai-site-footer :is(p, small), body .doctorai-site-footer nav a { font-size: 12px; line-height: 1.6; }
+body .doctorai-site-footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+body.doctorai-public-page :is(p, li) { font-size: 16px; line-height: 1.65; }
+body.doctorai-public-page :is(button, .plan-primary, .primary-cta) { font-size: 14px; min-height: 44px; }
+body.doctorai-public-page :is(.updated, .eyebrow, .card-kicker) { font-size: 12px; color: #465f73; }
+body.doctorai-public-page :is(main, section, article, .search-row) { min-width: 0; }
+body.doctorai-public-page main { overflow-wrap: anywhere; }
+@media (max-width: 620px) {
+  body #hub-shell .category-more-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body #hub-shell .category-more-menu small { font-size: 12px; white-space: normal; }
+  body #hub-shell .category-tab { white-space: normal; }
+  body #hub-shell .profile-shortcuts-grid { grid-template-columns: 1fr; }
+  body #hub-shell .profile-shortcut-card { min-height: 86px; padding: 14px; }
+  body #hub-shell .profile-shortcuts-card .card-heading { flex-wrap: wrap; gap: 8px; }
+  body #hub-shell .profile-shortcut-item:has(.profile-shortcut-remove) .profile-shortcut-card { padding-right: 56px; }
+  body .mobile-bottom-nav-item b, body .mobile-bottom-nav-orb b { font-size: 12px; }
+  body #view-today .colour-orbit .orbit-action b { font-size: 12px; line-height: 1.3; }
+  body #view-today .prescription-alert-status :is(p, small) { font-size: 12px; line-height: 1.5; }
+  body #view-today .prescription-alert-status { flex-wrap: wrap; height: auto; }
+  body #view-today .prescription-alert-status > div { flex: 1 1 160px; }
+  body #view-today .prescription-alert-status button { min-height: 44px; font-size: 12px; }
+  body #hub-shell .view { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+  body.doctorai-public-page .search-row { flex-wrap: wrap; }
+  body.doctorai-public-page .search-row input { min-width: 0; width: 100%; }
+}
+@media (min-width: 341px) and (max-width: 620px) {
+  body #hub-shell #view-profile .profile-shortcuts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body #hub-shell #view-profile .profile-shortcut-card,
+  body #hub-shell #view-profile .profile-shortcut-add {
+    min-height: 132px;
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media (forced-colors: active) {
+  body :is(.feature-icon, .profile-shortcut-icon, button, .panel-card) { border: 1px solid ButtonText; }
+  body [aria-current] { outline: 2px solid Highlight; }
+}
+
+/* Older screen-specific styles used 7–11px copy; apply a common reading floor. */
+body .hub-shell :is(p, .empty-inline, .empty-state, .clash-description, .document-permissions-copy) { font-size: 14px !important; line-height: 1.6 !important; }
+body :is(.hub-shell, .quick-modal, .profile-drawer, .doctorai-site-footer) small { font-size: 12px !important; line-height: 1.5 !important; }
+body .hub-shell :is(.eyebrow, .card-kicker, .sidebar-label, .chat-welcome-kicker) { font-size: 12px !important; line-height: 1.5 !important; }
+body .hub-shell :is(.quiet-button, .upload-button, .filter-tabs button, .document-filters button, .trend-tabs button, .composer-length-option, .new-chat-button) { font-size: 14px !important; min-height: 44px; }
+body :is(.chat-disclaimer, .clash-footnote, .result-disclaimer p, .symptom-safety p) { font-size: 12px !important; line-height: 1.55 !important; color: #465f73; }
+body #view-ask .quick-asks { flex-wrap: wrap; overflow: visible; }
+body #view-ask .quick-asks button { flex: 1 1 130px; min-width: 0; font-size: 12px; white-space: normal; }
+body #view-ask :is(.composer-row, .composer-context, .conversation-header small, .chat-response-length label) { font-size: 12px !important; }
+body #view-ask .chat-composer textarea { font-size: 16px !important; }
+body #hub-shell :is(.filter-tabs, .document-filters) { flex-wrap: wrap; overflow: visible; }
+body #hub-shell :is(.filter-tabs, .document-filters) button { flex: 0 1 auto; }
+body #view-profile .profile-shortcut-icon { width: 36px; height: 36px; padding: 6px; }
+body #hub-shell :is(.profile-fact b, .info-card h3, .drawer-row b) { font-size: 14px; line-height: 1.4; }
+body.doctorai-public-page :is(small, .plan-feature-note, .store small), body.doctorai-system-page :is(small, .privacy, .eyebrow, footer) { font-size: 12px !important; line-height: 1.5; }
+body.doctorai-public-page :is(.primary-cta, .secondary-cta, .plan-primary) { font-size: 14px !important; line-height: 1.4; min-height: 44px; }
+body #hub-shell :is(.profile-fact small, .muted-tag) { color: #465f73; }
+body .pro-section-nav { position: relative; top: 0; flex-wrap: wrap; margin-top: 12px; border-radius: 14px; }
+body .pro-section-nav a { min-height: 44px; font-size: 12px; }
+body .pro-shell :is(.comparison-row, .comparison-row b, .preview-grid b, .preview-appointment > div > span, .preview-footer, .trust-line, .billing-note, .plan-price > span, .billing-toggle span, .feature-link, .setup-note) { font-size: 12px !important; line-height: 1.5; }
+body .pro-shell .comparison-row { padding-block: 12px; }
+body .pro-shell .preview-grid > div { grid-template-columns: 36px minmax(0, 1fr); }
+body .pro-shell .preview-grid small { overflow-wrap: anywhere; }
+body .pro-shell .feature-card a { min-height: 44px; display: inline-flex; align-items: center; }
+body .pro-shell .billing-toggle button { color: #465f73; }
+body .pro-shell .billing-toggle button.active { color: #071b36; }
+body .pro-shell .preview-glow { right: 0; pointer-events: none; }
+body .research-tab { display: inline-flex; align-items: center; gap: 6px; }
+body .research-tab .feature-icon { width: 26px; height: 26px; flex-basis: 26px; padding: 4px; margin: 0; }
+body #view-ask .rail-safety :is(b, p) { color: #843b35; font-size: 12px; line-height: 1.5; }
+body #view-ask .composer-context { color: #465f73; }
+body #view-ask .response-length-picker label > span { font-size: 14px; }
+body .highlight-paper-link { font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; }
+body.doctorai-public-page main > .panel .grid p, body.mobile-auth-page .privacy { color: #465f73; }
+body .quick-ask-icon.feature-icon { width: 24px; height: 24px; flex-basis: 24px; padding: 4px; }
+body #hub-shell :is(.primary-button, .secondary-button, .text-button, .pro-button, .add-health-button) { font-size: 14px; min-height: 44px; }
+body #hub-shell .profile-fact b { white-space: normal; overflow: visible; text-overflow: clip; }
+body .hub-shell .info-card .tag-list span { font-size: 12px; }
+@media (max-width: 620px) {
+  body .pro-shell .preview-grid { grid-template-columns: 1fr; }
+  body .pro-shell .hero-copy h1 { font-size: clamp(36px, 10vw, 49px); line-height: 1.05; }
+  body .pro-shell .comparison-row { grid-template-columns: 1.2fr .6fr 1fr; gap: 8px; }
+}
+
+/* Desktop sidebar: keep ordinary navigation text comfortably legible and
+   give the research destination a real two-line label instead of three
+   competing flex children on one row. */
+#hub-shell .sidebar .nav-item:not(.research-nav-highlight) {
+  min-height: 44px;
+  color: #465f73;
+}
+#hub-shell .sidebar .nav-item:not(.research-nav-highlight):hover,
+#hub-shell .sidebar .nav-item.active { color: #0759b6; }
+#hub-shell .sidebar .research-nav-highlight {
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  gap: 2px 12px;
+  min-height: 60px;
+  padding: 8px 12px;
+  color: #0a2340;
+  line-height: 1.35;
+  text-decoration: none;
+}
+#hub-shell .sidebar .research-nav-highlight > .nav-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+#hub-shell .sidebar .research-nav-highlight > span:not(.nav-icon) {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+#hub-shell .sidebar .research-nav-highlight > small {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  color: #465f73;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+/*
+ * Canonical DoctorAI theme
+ *
+ * Home establishes the product palette. Keep every destination on the same
+ * navy / blue / cyan foundation and reserve coral, mint, violet and yellow
+ * for feature identity rather than changing the whole page by section.
+ */
+:root {
+  --doctorai-ink: #0a2340;
+  --doctorai-navy: #071b36;
+  --doctorai-blue: #0865df;
+  --doctorai-blue-dark: #0759b6;
+  --doctorai-cyan: #0089c2;
+  --doctorai-paper: #f7fbff;
+  --doctorai-surface: #ffffff;
+  --doctorai-line: #d5e7f4;
+  --doctorai-muted: #465f73;
+  --doctorai-focus: #0759b6;
+  --doctorai-shadow: 0 18px 48px rgba(10, 35, 64, .08);
+  --doctorai-gradient: linear-gradient(115deg, #0060df, #0072a8);
+}
+
+body[data-hub-theme],
+body.doctorai-public-page,
+body.doctorai-system-page {
+  --navy: var(--doctorai-ink);
+  --navy-deep: var(--doctorai-navy);
+  --blue: var(--doctorai-blue);
+  --blue-strong: var(--doctorai-blue-dark);
+  --cyan: var(--doctorai-cyan);
+  --sky: #eff7ff;
+  --sky-deep: #d3e5ff;
+  --paper: var(--doctorai-paper);
+  --bg: var(--doctorai-paper);
+  --white: var(--doctorai-surface);
+  --line: var(--doctorai-line);
+  --line-soft: #e8f1f8;
+  --muted: var(--doctorai-muted);
+  --muted-light: #52697a;
+  --shadow: var(--doctorai-shadow);
+  color: var(--doctorai-ink);
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body[data-hub-theme] {
+  background:
+    radial-gradient(circle at 8% 2%, rgba(0, 137, 194, .10), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(8, 101, 223, .06), transparent 30rem),
+    var(--doctorai-paper);
+}
+body[data-hub-theme] .hub-topbar,
+body[data-hub-theme] .category-bar { background-color: rgba(247, 251, 255, .91); }
+body[data-hub-theme] :is(.panel-card, .today-card, .chat-shell, .profile-hero-card, .profile-shortcuts-card, .profile-trust-card) {
+  border-color: var(--doctorai-line);
+  box-shadow: var(--doctorai-shadow);
+}
+body[data-hub-theme] :is(.ask-button, .primary-button, .upload-button) {
+  background: var(--doctorai-gradient);
+  box-shadow: 0 9px 22px rgba(8, 101, 223, .18);
+}
+body[data-hub-theme] :is(.ask-button, .primary-button, .upload-button):hover { background: linear-gradient(115deg, #0759c5, #0079aa); }
+body[data-hub-theme] :is(.eyebrow, .card-kicker, .chat-welcome-kicker) { color: var(--doctorai-blue-dark); }
+body #hub-shell .orbit-action { font-size: 12px; }
+body #hub-shell .orbit-action b { font-size: 12px !important; line-height: 1.35; }
+body #hub-shell :is(.symptom-mode-tabs button, .symptom-summary-card small, .soft-count, .info-card-heading button, .history-card a, .past-appointments a) {
+  font-size: 12px !important;
+  line-height: 1.45;
+}
+body #hub-shell .emergency-facts small { font-size: 12px !important; }
+body #hub-shell .emergency-facts b { font-size: 14px !important; }
+body .storage-consent p { font-size: 14px !important; }
+body .storage-consent :is(b, button, a) { font-size: 14px !important; }
+body #hub-shell #chat-send { font-size: 14px !important; }
+body #hub-shell :is(.symptom-safety-banner > div > b, .symptom-summary-card b, .symptom-guide li b, .document-drop b, .pro-gate-copy b) {
+  font-size: 14px !important;
+  line-height: 1.4;
+}
+body #hub-shell :is(.pro-gate > a, .documents-permission button) { font-size: 14px !important; min-height: 44px; }
+
+body.doctorai-public-page {
+  --dai-ink: var(--doctorai-ink);
+  --dai-navy: var(--doctorai-navy);
+  --dai-blue: var(--doctorai-blue);
+  --dai-blue-dark: var(--doctorai-blue-dark);
+  --dai-cyan: var(--doctorai-cyan);
+  --dai-paper: var(--doctorai-paper);
+  --dai-line: var(--doctorai-line);
+  --dai-muted: var(--doctorai-muted);
+  --dai-shadow: var(--doctorai-shadow);
+  background:
+    radial-gradient(circle at 8% 2%, rgba(0, 137, 194, .11), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(117, 86, 173, .07), transparent 30rem),
+    linear-gradient(180deg, #f7fbff, #f1f9ff 54%, #fbfdff);
+}
+body.doctorai-public-page .doctorai-site-header { border-color: var(--doctorai-line); }
+body.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary,
+body.doctorai-public-page :is(.primary-cta, .plan-primary, .install, .search-row button, .primary-discussion-button) {
+  background: var(--doctorai-gradient);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 9px 22px rgba(8, 101, 223, .18);
+}
+body.doctorai-public-page :is(.primary-cta, .plan-primary, .install, .search-row button, .primary-discussion-button):hover {
+  background: linear-gradient(115deg, #0759c5, #0079aa);
+}
+body.doctorai-public-page :is(h1, h2, h3) { color: var(--doctorai-ink); }
+body.doctorai-public-page h1 { letter-spacing: -.045em; }
+body.doctorai-public-page :is(.panel, .feature-card, .plan-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method) {
+  border-color: var(--doctorai-line);
+  box-shadow: var(--doctorai-shadow);
+}
+body.doctorai-public-page :is(.research-trust, .highlight-note, .research-method) {
+  background: linear-gradient(110deg, #effaff, #f6f2ff, #fff5f0);
+}
+body.doctorai-public-page :is(.hero-badge, .period-pill, .pro-pill, .community-badge) { border-color: var(--doctorai-line); }
+body.doctorai-public-page .period-pill { background: #e5f7fb; color: var(--doctorai-blue-dark); }
+body.doctorai-public-page .research-tab.active { background: var(--doctorai-navy); color: #fff; }
+body.doctorai-public-page :is(.preview-appointment b, .pro-safety b, .research-trust b) { font-size: 12px !important; }
+
+body.doctorai-system-page {
+  background:
+    radial-gradient(circle at 8% 2%, rgba(0, 137, 194, .11), transparent 28rem),
+    linear-gradient(180deg, #f7fbff, #f1f9ff);
+}
+body.doctorai-system-page :is(.card, .panel) {
+  border-color: var(--doctorai-line);
+  border-radius: 24px;
+  box-shadow: var(--doctorai-shadow);
+}
+body.doctorai-system-page :is(h1, h2, h3) { color: var(--doctorai-ink); }
+body.doctorai-system-page :is(p, li, label) { color: var(--doctorai-muted); font-size: 16px; line-height: 1.65; }
+body.doctorai-system-page :is(button, .button) { min-height: 44px; font-size: 14px; }
+
+body :is(button, a, input, select, textarea, summary):focus-visible {
+  outline-color: var(--doctorai-focus);
+  outline-offset: 3px;
+}
+body.doctorai-public-page .doctorai-site-footer p,
+body.doctorai-public-page .doctorai-site-footer nav a,
+body.doctorai-public-page .doctorai-site-footer-brand b { font-size: 14px; }
+body.doctorai-public-page .doctorai-site-footer-brand small { font-size: 12px; }
+
+@media (max-width: 620px) {
+  body.doctorai-public-page .doctorai-site-header-inner { min-height: 72px; }
+  body.doctorai-public-page .doctorai-site-brand { width: 120px; height: 58px; }
+  body.doctorai-public-page :is(.research-hero h1, .hero-copy h1) { overflow-wrap: anywhere; }
+  body.doctorai-public-page .doctorai-site-footer-inner { width: calc(100% - 32px); }
+}
+
+/* Approved cross-page consistency pass: Welcome and Today are the reference. */
+body.doctorai-public-page {
+  background:
+    radial-gradient(circle at 8% 2%, rgba(0, 137, 194, .10), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(8, 101, 223, .06), transparent 30rem),
+    linear-gradient(180deg, #f7fbff, #f1f9ff 54%, #fbfdff);
+}
+body.doctorai-public-page .doctorai-site-header-inner { min-height: 108px; }
+body.doctorai-public-page .doctorai-site-brand { width: 168px; height: 84px; }
+body.doctorai-public-page :is(.hero-copy h1 em, .research-hero h1 em) {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  color: var(--doctorai-blue);
+}
+body.doctorai-public-page :is(.hero-copy h1, .research-hero h1, main.shell h1, main > .panel h1) {
+  font-size: clamp(36px, 5vw, 58px);
+  line-height: 1.06;
+  letter-spacing: -.045em;
+}
+body.doctorai-public-page :is(.feature-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method, .plan-card) {
+  border-radius: 20px;
+}
+body.doctorai-public-page :is(.primary-cta, .plan-primary, .install, .search-row button, .primary-discussion-button, .doctorai-site-primary) {
+  border-radius: 12px;
+}
+
+body[data-hub-theme] .hub-topbar {
+  border-bottom-color: var(--doctorai-line);
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 8px 28px rgba(19, 61, 94, .055);
+}
+body[data-hub-theme] .panel-card {
+  border-color: var(--doctorai-line);
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, .94);
+  box-shadow: var(--doctorai-shadow);
+}
+body[data-hub-theme] .page-heading h1 {
+  font-size: clamp(36px, 4vw, 51px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+body[data-hub-theme] :is(.primary-button, .secondary-button, .quiet-button, .text-button, .upload-button, .pro-button) {
+  border-radius: 12px;
+}
+body[data-hub-theme] #view-results .upload-button.pro-feature-control {
+  border-color: #a9d3ec;
+  background: #eaf7ff;
+  color: #0759b6;
+  box-shadow: 0 7px 18px rgba(8, 101, 223, .08);
+}
+body #hub-shell :is(.upgrade-card b, .memory-mini b, .account-link b, .context-rail-head b, .context-toggle-row b) {
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+body #hub-shell :is(.rail-link, .privacy-badge) {
+  font-size: 12px !important;
+  line-height: 1.45;
+}
+body #hub-shell .rail-link { min-height: 44px; align-items: center; }
+body #hub-shell :is(.hub-footer, .hub-footer button, .hub-footer a) {
+  font-size: 12px !important;
+  line-height: 1.5;
+}
+
+@media (max-width: 620px) {
+  body.doctorai-public-page .doctorai-site-header-inner { min-height: 90px; }
+  body.doctorai-public-page .doctorai-site-brand { width: 120px; height: 70px; }
+  body.doctorai-public-page :is(.hero-copy h1, .research-hero h1, main.shell h1, main > .panel h1) {
+    font-size: clamp(34px, 9.2vw, 38px);
+  }
+  body[data-hub-theme] .page-heading h1 { font-size: clamp(34px, 9vw, 40px); }
+}
+
+/* Home is the source of truth for feature cards on Profile and Chat. */
+body #view-profile .profile-shortcut-card,
+body #view-ask .quick-asks button {
+  border: 1px solid var(--home-feature-border, #a7c4e7);
+  border-radius: 17px;
+  background: var(--home-feature-bg, #edf6ff);
+  box-shadow: 0 8px 20px rgba(23, 53, 80, .06);
+}
+body #view-profile .profile-shortcut-card:has(.tone-cyan) { --home-feature-bg: #f0fcff; --home-feature-border: #8bd9e6; }
+body #view-profile .profile-shortcut-card:has(.tone-blue) { --home-feature-bg: #edf6ff; --home-feature-border: #a7c4e7; }
+body #view-profile .profile-shortcut-card:has(.tone-violet),
+body #view-profile .profile-shortcut-card:has(.tone-purple) { --home-feature-bg: #f4f0ff; --home-feature-border: #c8b9ec; }
+body #view-profile .profile-shortcut-card:has(.tone-mint) { --home-feature-bg: #ebfaf4; --home-feature-border: #8fdccc; }
+body #view-profile .profile-shortcut-card:has(.tone-coral) { --home-feature-bg: #fff1ef; --home-feature-border: #edb2a7; }
+body #view-profile .profile-shortcut-card:has(.tone-yellow) { --home-feature-bg: #fffdf3; --home-feature-border: #e7d28b; }
+body #view-ask .quick-asks button:nth-of-type(1) { --home-feature-bg: #f4f0ff; --home-feature-border: #c8b9ec; background: var(--home-feature-bg); border-color: var(--home-feature-border); }
+body #view-ask .quick-asks button:nth-of-type(2) { --home-feature-bg: #fff1ef; --home-feature-border: #edb2a7; background: var(--home-feature-bg); border-color: var(--home-feature-border); }
+body #view-ask .quick-asks button:nth-of-type(3) { --home-feature-bg: #edf6ff; --home-feature-border: #a7c4e7; background: var(--home-feature-bg); border-color: var(--home-feature-border); }
+body #view-profile .profile-shortcut-card:is(:hover, :focus-visible),
+body #view-ask .quick-asks button:is(:hover, :focus-visible) {
+  border-color: var(--home-feature-border);
+  background: var(--home-feature-bg);
+  box-shadow: 0 11px 24px rgba(23, 53, 80, .1);
+}
+body #view-profile .profile-shortcut-card .profile-shortcut-icon,
+body #view-ask .quick-asks .quick-ask-icon.feature-icon {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+body #view-profile .profile-shortcut-card .profile-shortcut-icon { width: 36px; height: 36px; }
+body #view-ask .quick-asks .quick-ask-icon.feature-icon { width: 26px; height: 26px; flex-basis: 26px; }

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5faff">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="description" content="DoctorAI is a private Personal AI Health Hub for daily health organisation: track medications, appointments, symptoms, results, documents and measurements, prepare for care conversations, and ask safety-led AI questions.">
+  <link rel="canonical" href="https://www.doctoraiworld.com/health-hub">
+  <title>Today · DoctorAI Personal Health Hub</title>
+  <link rel="icon" type="image/png" href="/doctorai-app-icon.png?v=10">
+  <link rel="apple-touch-icon" type="image/png" href="/doctorai-app-icon.png?v=10">
+  <meta property="og:title" content="DoctorAI — Personal Health Hub">
+  <meta property="og:description" content="A private Personal AI Health Hub for organising daily health information, understanding results, preparing for appointments and keeping your care story in one place.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.doctoraiworld.com/health-hub">
+  <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DoctorAI — Personal Health Hub">
+  <meta name="twitter:description" content="A private Personal AI Health Hub for organising daily health information, understanding results, preparing for appointments and keeping your care story in one place.">
+  <meta name="twitter:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/health-hub.css?v=67">
+  <script src="/branding.js?v=10"></script>
+  <script defer src="/logo-loader.js?v=10"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script defer src="/pwa.js?v=15"></script>
+  <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+  <link rel="stylesheet" href="/care-design.css?v=7">
+  <link rel="stylesheet" href="/accessibility.css?v=9">
+</head>
+<body data-hub-theme="today" data-subscription="free">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <section class="storage-consent" id="storage-consent" role="dialog" aria-labelledby="storage-consent-title" aria-describedby="storage-consent-description" hidden>
+    <div><b id="storage-consent-title">Choose where this browser keeps your health hub</b><p id="storage-consent-description">Choose to keep entries in this browser between visits, or keep them in memory for this session only. Signed-in account syncing is separate.</p></div>
+    <div class="storage-consent-actions"><button type="button" class="primary-button" data-device-storage-allow>Keep on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><a href="/privacy">Learn more</a></div>
+  </section>
+  <div class="hub-shell" id="hub-shell">
+    <aside class="sidebar" aria-label="DoctorAI navigation">
+      <a class="brand" href="#today" data-view="today" aria-label="DoctorAI Today">
+        <span class="brand-lockup" aria-hidden="true"><img src="/doctorai-public-logo-transparent.png?v=10" alt=""></span>
+      </a>
+
+      <p class="sidebar-label">Personal health hub</p>
+      <nav class="primary-nav" aria-label="Primary">
+        <button class="nav-item active" type="button" data-view="today"><span class="nav-icon">⌂</span><span>Today</span></button>
+        <button class="nav-item" type="button" data-view="ask"><span class="nav-icon nav-spark">✦</span><span>Ask DoctorAI</span></button>
+        <button class="nav-item" type="button" data-view="health"><span class="nav-icon">♡</span><span>My Health</span></button>
+        <button class="nav-item" type="button" data-view="symptoms"><span class="nav-icon">≈</span><span>Symptom Diary</span></button>
+        <button class="nav-item" type="button" data-view="medications"><span class="nav-icon">▣</span><span>Medications</span></button>
+        <button class="nav-item" type="button" data-view="appointments"><span class="nav-icon">◷</span><span>Appointments</span></button>
+        <button class="nav-item" type="button" data-view="results"><span class="nav-icon">⌁</span><span>Results</span></button>
+        <button class="nav-item" type="button" data-view="timeline"><span class="nav-icon">☷</span><span>Timeline</span></button>
+        <button class="nav-item" type="button" data-view="documents"><span class="nav-icon">▤</span><span>Documents</span></button>
+        <a class="nav-item research-nav-highlight" href="/research"><span class="nav-icon">✧</span><span>Latest Research</span><small>G.L. evidence library</small></a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <a class="upgrade-card" href="/subscription" aria-label="Explore DoctorAI Pro"><span class="upgrade-icon">✦</span><span><b>DoctorAI Pro</b><small>Your health story, always ready</small></span><span class="upgrade-arrow">→</span></a>
+        <button class="memory-mini" type="button" data-view="health">
+          <span class="memory-mini-icon">✦</span>
+          <span><b>Health Memory</b><small id="memory-mini-status">Off · no saved details</small></span>
+          <span class="memory-arrow">›</span>
+        </button>
+        <button class="account-link" type="button" data-google-signin><span class="avatar avatar-small google-avatar"><img src="google-g-logo.svg" alt="" class="google-mark"></span><span><b>Sign in with Google</b><small>Keep your health hub private</small></span><span class="account-more">→</span></button>
+      </div>
+    </aside>
+
+    <main class="hub-main" id="main-content" tabindex="-1">
+      <header class="hub-topbar">
+        <div class="mobile-brand-wrap">
+          <button class="mobile-menu-button" type="button" data-mobile-menu aria-expanded="false" aria-controls="category-bar" aria-label="Open health hub navigation">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+          </button>
+          <a class="mobile-brand" href="#today" data-view="today" aria-label="DoctorAI Today"><span class="brand-lockup"><img src="/doctorai-public-logo-transparent.png?v=10" alt=""></span></a>
+          <button class="mobile-notifications-button" type="button" data-open-profile aria-expanded="false" aria-controls="profile-drawer" aria-label="Open profile and settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.5-4.4 3.2-6.8 7.5-6.8s7 2.4 7.5 6.8"></path></svg>
+          </button>
+        </div>
+        <div class="topbar-context"><span class="secure-dot"></span><span>Private health workspace</span><span class="topbar-divider"></span><span id="last-synced">Choose storage settings</span></div>
+        <div class="topbar-actions">
+          <a class="pro-button" href="/subscription"><span>✦</span><b>Pro</b></a>
+          <button class="add-health-button" type="button" data-install-app><span>↥</span> Install web app</button>
+          <button class="add-health-button" type="button" data-add-menu><span>＋</span> Add health item</button>
+          <button class="profile-trigger" type="button" data-google-signin aria-label="Sign in with Google"><span class="avatar google-avatar"><img src="google-g-logo.svg" alt="" class="google-mark"></span><span class="profile-trigger-name">Sign in</span><span class="chevron">⌄</span></button>
+        </div>
+      </header>
+
+      <nav class="category-bar" id="category-bar" aria-label="Health hub categories">
+        <div class="category-bar-scroll">
+          <span class="category-bar-label">Quick access</span>
+          <button class="category-tab active" type="button" data-view="today" aria-current="page"><span aria-hidden="true">⌂</span> Today</button>
+          <button class="category-tab" type="button" data-view="ask"><span aria-hidden="true">✦</span> Ask DoctorAI</button>
+          <button class="category-tab" type="button" data-view="health"><span aria-hidden="true">♡</span> My Health</button>
+          <button class="category-tab" type="button" data-view="medications"><span aria-hidden="true">▣</span> Medications</button>
+          <button class="category-tab" type="button" data-view="appointments"><span aria-hidden="true">◷</span> Appointments</button>
+          <a class="category-tab research-nav-highlight" href="/research"><span aria-hidden="true">✧</span> G.L. Research</a>
+          <div class="category-more">
+            <button class="category-tab" type="button" data-more-menu aria-expanded="false" aria-controls="category-more-menu"><span aria-hidden="true">＋</span> More</button>
+            <div class="category-more-menu" id="category-more-menu" hidden>
+              <button type="button" data-view="symptoms"><span aria-hidden="true">≈</span><span><b>Symptom Diary</b><small>Track changes over time</small></span></button>
+              <button type="button" data-view="results"><span aria-hidden="true">⌁</span><span><b>Results</b><small>Tests and measurements</small></span></button>
+              <button type="button" data-view="timeline"><span aria-hidden="true">☷</span><span><b>Timeline</b><small>Your health history</small></span></button>
+              <button type="button" data-view="documents"><span aria-hidden="true">▤</span><span><b>Documents</b><small>Secure health files</small></span></button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="view-stack">
+        <section class="view active" id="view-today" data-view-panel="today" aria-labelledby="today-title">
+          <section class="colour-hero-live" aria-label="Quick access">
+            <div class="hub-hero-intro">
+              <div class="hub-hero-copy">
+                <p class="hub-hero-greeting" id="today-greeting">Welcome back.</p>
+                <h1 id="today-title">Your health, <span>today.</span></h1>
+                <p class="hub-hero-subtitle">Your medicines, symptoms, appointments, documents and results — organised around you.</p>
+              </div>
+              <button type="button" class="hub-ask-prompt" data-open-today-plan aria-haspopup="dialog" aria-label="Open your private health briefing">
+                <span class="hub-ask-prompt-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/><path d="M18.5 3v3M20 4.5h-3"/></svg></span>
+                <span class="hub-ask-prompt-copy"><b>Open my health briefing</b><small>Medicines, symptoms and today’s safest next steps—together in one place.</small></span>
+                <span class="hub-ask-prompt-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+            <section class="care-visit-card" aria-labelledby="care-visit-title"><div><p class="care-kicker">Since my last visit</p><h2 id="care-visit-title">Walk in with your story ready</h2><p>Your recent notes, main concern and questions. One brief you review before sharing.</p><button type="button" data-open-summary>Build my visit brief <span aria-hidden="true">→</span></button></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5 3 3 5-5"/></svg></section>
+            <div class="colour-orbit" id="quick-access-orbit" role="group" aria-label="Quick access to DoctorAI features">
+              <div class="colour-orbit-ring colour-ring-one"></div>
+              <div class="colour-orbit-ring colour-ring-two"></div>
+              <div class="colour-orbit-core" id="quick-access-drop-zone" role="group" aria-label="Drop a shortcut here to open it">
+                <span class="orbit-core-glow" aria-hidden="true"></span>
+                <img class="orbit-doctorai-mark" src="/doctorai-head-logo-transparent.png?v=10" alt="DoctorAI">
+              </div>
+              <button class="orbit-action orbit-action-ask" type="button" data-open-medication-scanner data-orbit-action data-orbit-tone="cyan" aria-label="Prescriptions and medications — scan a prescription"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M6.5 3.5h8l3 3v14h-11z"/><path d="M6.5 3.5h8l3 3v14h-11zM14.5 3.5v4h4M9.5 11.5h5M12 9v5M9.5 17h5"/></svg></span><span class="orbit-scan-badge" aria-hidden="true">Scan</span><b>Prescriptions &amp; medications</b><small>Capture a prescription, medicine label or barcode and review it before saving</small></button>
+              <button class="orbit-action orbit-action-medicines" type="button" data-view="symptoms" data-orbit-action data-orbit-tone="blue"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M4 12h3l2-5 4 10 2.2-5H20v7H4z"/><path d="M3 12h4l2-5 4 10 2.2-5H21M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/></svg></span><b>Symptom Diary</b><small>Record what changed and notice repeated patterns</small></button>
+              <button class="orbit-action orbit-action-appointments" type="button" data-view="appointments" data-orbit-action data-orbit-tone="violet"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect class="icon-fill" x="3.5" y="5.5" width="17" height="15" rx="3"/><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17M8 15l2 2 4-4"/><circle class="icon-solid" cx="17.5" cy="15.5" r="1"/></svg></span><b>Appointments</b><small>Manage your appointments</small></button>
+              <button class="orbit-action orbit-action-health" type="button" data-view="documents" data-orbit-action data-orbit-tone="mint"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h4"/><circle class="icon-solid" cx="9.5" cy="18" r="1"/></svg></span><b>Documents</b><small>Store &amp; access your health documents</small></button>
+              <button class="orbit-action orbit-action-symptoms" type="button" data-view="results" data-orbit-action data-orbit-tone="coral"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M4 19.5V13l5-5 4 3 6-7v15.5z"/><path d="M4 19.5V5M4 19.5h16M7 16l3.5-4 3 2 5-7"/></svg></span><b>Results</b><small>Keep measurements and test information together</small></button>
+              <button class="orbit-action orbit-action-research" type="button" data-open-personal-overview data-orbit-action data-orbit-tone="yellow"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M5 4.5h14v15H5z"/><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5ZM8 8h8M8 12h8M8 16h5"/></svg></span><b>My overview</b><small>Open one rundown of your important saved information</small></button>
+              <p class="orbit-instruction" id="orbit-instruction"><span aria-hidden="true">‹</span> Swipe to explore <span aria-hidden="true">›</span></p>
+            </div>
+          </section>
+
+          <section class="care-pattern-card" aria-labelledby="care-pattern-heading"><div><p class="care-kicker">Your observations</p><h2 id="care-pattern-heading">Patterns to explore</h2><p id="care-pattern-copy">Log symptoms and what was happening around them. Repeated observations can help you prepare questions.</p><small>An observation is not a confirmed cause.</small></div><button type="button" data-view="symptoms">Review your log <span aria-hidden="true">→</span></button></section>
+          <div class="care-secondary"><button type="button" data-view="ask">Ask DoctorAI <span aria-hidden="true">→</span></button><a href="/research">Explore research <span aria-hidden="true">→</span></a></div>
+          <p class="care-emergency">Not for emergencies. If you may be in immediate danger, contact your local emergency service. Do not wait for DoctorAI.</p>
+
+          <div class="daily-insight">
+            <span class="insight-icon">✦</span><div><b>Start where you are.</b><p id="daily-insight-copy">Add one health item to make today more useful.</p></div><button type="button" class="insight-action" data-view="timeline">View your progress <span>→</span></button>
+          </div>
+
+          <div class="overview-strip" role="group" aria-label="Today's overview">
+            <button class="overview-stat" type="button" data-view="medications"><span class="overview-icon blue">▣</span><span><small>Today's medicines</small><b id="med-overview-value">No medicines logged</b><em id="med-overview-meta">Add medicines to track your routine</em></span><span class="stat-arrow">›</span></button>
+            <button class="overview-stat" type="button" data-view="appointments"><span class="overview-icon purple">◷</span><span><small>Next appointment</small><b id="next-appointment-value">No appointment</b><em id="next-appointment-meta">Add one when you’re ready</em></span><span class="stat-arrow">›</span></button>
+            <button class="overview-stat" type="button" data-view="medications"><span class="overview-icon orange">↻</span><span><small>Prescription refill</small><b id="refill-overview-value">No refill reminder</b><em id="refill-overview-meta">Add refill dates to see them here</em></span><span class="stat-arrow">›</span></button>
+            <button class="overview-stat" type="button" data-view="health"><span class="overview-icon cyan">✦</span><span><small>Health Memory</small><b id="memory-overview-value">Off</b><em id="memory-overview-meta">0 approved details</em></span><span class="stat-arrow">›</span></button>
+          </div>
+
+          <section class="prescription-alert-home" id="home-prescription-alert" aria-labelledby="home-prescription-alert-title">
+            <div class="prescription-alert-heading"><div><p class="card-kicker">Saved-list review</p><h2 id="home-prescription-alert-title">Your medication list</h2></div><span class="prescription-last-checked" id="home-prescription-last-checked">No list to review</span></div>
+            <div class="prescription-alert-status status-note" id="home-prescription-alert-status" role="status" aria-live="polite"><span class="prescription-alert-icon" aria-hidden="true">i</span><div><b>No medicines saved yet</b><p>Add your medication list to review saved details.</p><small>DoctorAI does not check drug interactions or confirm medicines are safe together.</small></div><button type="button" data-view="medications">Add medicines <span aria-hidden="true">→</span></button></div>
+          </section>
+
+          <div class="dashboard-grid">
+            <section class="panel-card day-card">
+              <div class="card-heading"><div><p class="card-kicker">Today</p><h2>Your day</h2></div><a href="#medications" data-view="medications">View all <span>→</span></a></div>
+              <div class="medication-list" id="today-medication-list"></div>
+              <div class="card-footnote"><span class="footnote-icon">i</span> Follow the instructions on your prescription label. DoctorAI does not change medication directions.</div>
+            </section>
+
+            <section class="panel-card appointment-card">
+              <div class="card-heading"><div><p class="card-kicker">Coming up</p><h2>Next appointment</h2></div><a href="#appointments" data-view="appointments">All appointments <span>→</span></a></div>
+              <div class="appointment-preview" id="today-appointment-preview"></div>
+              <div class="appointment-actions"><button type="button" class="secondary-button" data-prepare-appointment>Prepare me <span>✦</span></button><button type="button" class="quiet-button" data-modal="appointment">＋ Add</button></div>
+            </section>
+
+            <section class="panel-card trend-card">
+              <div class="card-heading"><div><p class="card-kicker">Recent signals</p><h2>Health at a glance</h2></div><a href="#results" data-view="results">View trends <span>→</span></a></div>
+              <div class="trend-layout"><div class="trend-summary"><span>Blood pressure</span><b id="today-bp-value">No data yet</b><em id="today-bp-status">Log a measurement to start a trend</em><small class="trend-updated" id="today-bp-updated"></small></div><div class="mini-chart" id="today-mini-chart" aria-label="Blood pressure trend over the last 14 days" hidden><svg viewBox="0 0 320 120" preserveAspectRatio="none"><defs><linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#53bce9" stop-opacity=".26"/><stop offset="1" stop-color="#53bce9" stop-opacity="0"/></linearGradient></defs><path class="chart-gridline" d="M0 28H320M0 61H320M0 94H320"/><path class="chart-area" d="M0 80C18 74 27 76 42 65S71 78 85 63s24-21 39-9 24 16 39 5 28-29 43-18 18 22 36 16 28-28 45-19 21 19 33 9 25-24 40-18V120H0Z"/><path class="chart-line" d="M0 80C18 74 27 76 42 65S71 78 85 63s24-21 39-9 24 16 39 5 28-29 43-18 18 22 36 16 28-28 45-19 21 19 33 9 25-24 40-18"/><circle cx="306" cy="38" r="4"/></svg><div class="chart-labels"><span>05 Aug</span><span>12 Aug</span><span>18 Aug</span></div></div></div>
+              <div class="trend-pills" id="today-trend-pills"><span class="trend-empty">Your personal signals will appear here.</span></div>
+            </section>
+
+            <section class="panel-card tasks-card">
+              <div class="card-heading"><div><p class="card-kicker">Small next steps</p><h2>Health tasks</h2></div><span class="task-count" id="task-count">No tasks yet</span></div>
+              <div class="task-list" id="today-task-list"></div>
+            </section>
+
+            <section class="panel-card ask-prompt-card">
+              <div class="ask-orb"><span>✦</span></div><div><p class="card-kicker">Your AI health guide</p><h2>Have a health question?</h2><p>Ask in plain language. DoctorAI can help you organise information and prepare for professional care.</p><button type="button" class="text-button" data-open-chat>Start a private conversation <span>→</span></button></div>
+            </section>
+
+            <section class="panel-card activity-card">
+              <div class="card-heading"><div><p class="card-kicker">Keep track</p><h2>Recent activity</h2></div><a href="#timeline" data-view="timeline">Full timeline <span>→</span></a></div>
+              <div class="mini-activity" id="mini-activity-list"></div>
+            </section>
+
+            <a class="today-research-card" href="/research">
+              <span><small>G.L. Latest Medical Research</small><b>One good paper.<br>Plain language.</b><em>Fresh evidence, original sources and space to discuss.</em></span>
+              <strong>Explore research <i>↗</i></strong>
+            </a>
+          </div>
+
+          <div class="safety-note"><span>✦</span><p><b>DoctorAI is here to organise and explain.</b> It does not replace a doctor, diagnose conditions, or tell you to start, stop or change prescription medication.</p><button type="button" data-show-privacy>Safety &amp; privacy</button></div>
+          <section class="app-promo panel-card" aria-labelledby="app-promo-title">
+            <div class="app-promo-copy"><p class="card-kicker">Take DoctorAI with you</p><h2 id="app-promo-title">Install DoctorAI on this device</h2><p>Use the web app now. The Google Play and Apple App Store releases remain marked Coming soon until they are approved.</p><button class="primary-button" type="button" data-install-app><span>↥</span> Install web app</button></div>
+            <div class="store-badges" role="group" aria-label="Mobile apps coming soon"><div class="store-badge"><span class="store-glyph android-glyph"><svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.1 8.5h9.8v7.2c0 1.3-1 2.3-2.3 2.3H9.4c-1.3 0-2.3-1-2.3-2.3V8.5Zm-.8 0h-.9v6.2h.9V8.5Zm12.3 0h-.9v6.2h.9V8.5ZM8.8 6.9l-1-1.5.7-.4 1 1.5a5.6 5.6 0 0 1 5.2 0l1-1.5.7.4-1 1.5c.9.6 1.5 1.5 1.5 2.6H7.3c0-1.1.6-2 1.5-2.6Zm1.7 1.1a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Zm3 0a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1Z"/></svg></span><span><b>Android</b><small>Coming soon</small></span></div><div class="store-badge"><span class="store-glyph apple-glyph"><svg class="store-logo apple-store-logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 12.8c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.5-3.2-1.6-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.8-2.8-.8-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7s1.7.7 2.7.7c1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2-.8-2-3.5ZM15 6.7c.6-.8 1-1.9.9-3-.9 0-2 .6-2.6 1.3-.6.7-1 1.8-.9 2.9 1 .1 2-.5 2.6-1.2Z"/></svg></span><span><b>Apple</b><small>Coming soon</small></span></div></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-ask" data-view-panel="ask" aria-labelledby="ask-title" hidden>
+          <h1 id="ask-title" class="sr-only">Ask DoctorAI</h1>
+          <div class="ask-layout">
+            <aside class="context-rail ask-sidebar" aria-label="Ask DoctorAI controls">
+              <div class="ask-sidebar-brand"><span class="ask-sidebar-logo"><img src="/doctorai-head-logo-transparent.png?v=10" alt=""></span><div><b>Ask DoctorAI</b><small>Your private health assistant</small></div></div>
+              <button type="button" class="new-chat-button" data-clear-chat><span>＋</span> New conversation</button>
+              <div class="ask-sidebar-section">
+                <p class="ask-sidebar-label">Conversation context</p>
+<div class="context-toggle-row"><span><b>Health Memory</b><small>Can include details you approve</small></span><label class="switch"><input id="memory-toggle" type="checkbox" aria-label="Use approved Health Memory in chat"><span></span></label></div>
+                <div class="context-list"><span><i>✓</i>Conditions &amp; history</span><span><i>✓</i>Allergies &amp; reactions</span><span><i>✓</i>Blood type</span></div>
+                <button class="rail-link" type="button" data-view="health">Review or edit memory <span>→</span></button>
+              </div>
+              <div class="ask-sidebar-spacer"></div>
+              <div class="rail-safety"><b>Need urgent help?</b><p>Call your local emergency service. DoctorAI is not an emergency service.</p></div>
+            </aside>
+            <section class="conversation-panel" aria-label="DoctorAI conversation">
+              <div class="conversation-header"><div class="assistant-identity"><span class="assistant-mark"><img class="doctorai-head-icon" src="/doctorai-head-logo-transparent.png?v=10" alt=""></span><div><b>DoctorAI</b><small id="chat-assistant-status"><i></i>Ready when you are</small></div></div><div class="conversation-header-actions"><button type="button" class="privacy-badge" data-view="health" title="Review optional Health Memory"><i></i> Memory <b id="chat-memory-status">off</b></button><button type="button" class="quiet-button" data-clear-chat><span aria-hidden="true">↺</span> New chat</button></div></div>
+              <div class="conversation-scroll" id="conversation-scroll">
+                <div class="chat-welcome" id="chat-welcome"><span class="chat-welcome-icon"><img class="doctorai-head-icon" src="/doctorai-head-logo-transparent.png?v=10" alt=""></span><p class="chat-welcome-kicker">AI HEALTH ORGANISATION ASSISTANT</p><h2>What can I help you understand?</h2><p>Explain health information and prepare clear questions for a qualified professional. When you send a message, it is processed by our AI provider to generate a reply.</p></div>
+                <div class="chat-messages" id="chat-messages" role="log" aria-label="Conversation messages" aria-live="polite" aria-relevant="additions text" aria-busy="false"></div>
+              </div>
+              <div class="quick-asks" role="group" aria-label="Suggested questions"><span class="quick-asks-label">Suggested questions</span><button type="button" data-chat-prompt="Help me prepare for my next medical appointment using only the health information I have approved."><span class="quick-ask-icon" aria-hidden="true">◷</span>Prepare for a visit <b aria-hidden="true">↗</b></button><button type="button" data-chat-prompt="Explain a medical result in simple language and tell me what questions I should ask my clinician."><span class="quick-ask-icon" aria-hidden="true">⌁</span>Explain a result <b aria-hidden="true">↗</b></button><button type="button" data-chat-prompt="Help me describe a recent symptom clearly for a healthcare professional."><span class="quick-ask-icon" aria-hidden="true">♡</span>Describe a symptom <b aria-hidden="true">↗</b></button></div>
+              <button class="chat-brief-link" type="button" data-open-summary>Preparing for an appointment? Build a visit brief →</button>
+              <p class="chat-status sr-only" id="chat-status" role="status" aria-live="polite"></p>
+              <form class="chat-composer" id="chat-form"><div class="response-length-picker" role="radiogroup" aria-label="Answer length"><span class="response-length-label">Answer length</span><label><input type="radio" name="chat-response-length" value="short"><span>Short</span></label><label><input type="radio" name="chat-response-length" value="medium" checked><span>Medium</span></label><label><input type="radio" name="chat-response-length" value="detailed"><span>Detailed</span></label></div><label class="sr-only" for="chat-input">Ask DoctorAI a health question</label><textarea id="chat-input" rows="2" maxlength="2000" autocomplete="off" enterkeyhint="send" spellcheck="true" aria-describedby="chat-count chat-disclaimer" placeholder="Message DoctorAI…"></textarea><div class="composer-row"><span class="composer-context"><span aria-hidden="true">◉</span> Sent to AI provider when you choose Send</span><span id="chat-count" aria-live="polite">0 / 2000</span><span class="composer-enter-hint">Enter to send · Shift+Enter for a new line</span><button type="submit" id="chat-send" aria-label="Send message">Send <b aria-hidden="true">↑</b></button></div></form>
+              <p class="chat-disclaimer" id="chat-disclaimer"><span aria-hidden="true">i</span> For education and organisation only — DoctorAI does not diagnose, prescribe or replace professional medical advice.</p>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-health" data-view-panel="health" aria-labelledby="health-title" hidden>
+          <div class="page-heading health-page-heading"><div class="health-heading-copy"><p class="eyebrow">Your information, in your control</p><h1 id="health-title">My Health</h1><p class="page-subtitle">Your essential health details, organised privately in one place.</p></div><div class="health-page-actions"><span class="health-choice-note"><i></i>You choose what to save</span><button class="primary-button" type="button" data-modal="health">Edit health profile <span>→</span></button></div></div>
+          <div class="health-overview-grid">
+            <section class="panel-card health-snapshot"><div class="card-heading"><div><p class="card-kicker">Health snapshot</p><h2>About you</h2></div><button class="health-card-edit" type="button" data-modal="health" aria-label="Edit health snapshot">Edit <span>→</span></button></div><div class="profile-facts" id="profile-facts"></div><div class="health-note"><span>i</span><p>Add only information you are comfortable storing. Edit or delete it whenever you want.</p></div></section>
+            <section class="panel-card memory-card"><div class="memory-card-top"><div class="memory-large-icon">✦</div><div><p class="card-kicker">Optional context</p><h2>DoctorAI Health Memory</h2></div><label class="switch"><input id="health-memory-toggle" type="checkbox" aria-label="Use approved details in Health Memory"><span></span></label></div><p>When enabled, DoctorAI can use the approved details below to make conversations more relevant. You decide what is saved.</p><div class="memory-approved" id="memory-approved-list"></div><div class="memory-card-actions"><button type="button" class="secondary-button" data-modal="health">Edit saved details</button><button type="button" class="text-button" data-show-privacy>Privacy controls <span>→</span></button></div></section>
+          </div>
+          <section class="panel-card personal-overview-card" aria-labelledby="personal-overview-title"><span class="personal-overview-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><div class="personal-overview-copy"><p class="card-kicker">Your health, at a glance</p><h2 id="personal-overview-title">Personal overview</h2><p>Open one clear rundown of the important details, medicines, appointments and notes you have saved.</p></div><button class="personal-overview-button" type="button" data-open-personal-overview aria-haspopup="dialog">View my overview <span aria-hidden="true">→</span></button></section>
+          <div class="section-title-row"><div><p class="eyebrow">Keep the essentials close</p><h2>Health information</h2></div><button type="button" class="quiet-button" data-add-menu>＋ Add information</button></div>
+          <div class="health-info-grid"><section class="panel-card info-card"><div class="info-card-heading"><span class="info-icon blue">▣</span><div><h3>Conditions &amp; history</h3><small>Current and previous health conditions</small></div><button type="button" data-modal="health">Edit</button></div><div class="tag-list" id="conditions-tags"><span class="muted-tag">＋ Add condition</span></div></section><section class="panel-card info-card"><div class="info-card-heading"><span class="info-icon coral">!</span><div><h3>Allergies &amp; reactions</h3><small>Important for every care conversation</small></div><button type="button" data-modal="health">Edit</button></div><div id="allergies-list"><div class="empty-inline">No allergies added</div></div></section><section class="panel-card info-card"><div class="info-card-heading"><span class="info-icon purple">♧</span><div><h3>Local doctors</h3><small>Private contact directory</small></div><button type="button" data-modal="provider">＋ Add</button></div><div id="providers-list"><div class="empty-inline">No local doctors added yet</div></div></section><section class="panel-card info-card emergency-card"><div class="info-card-heading"><span class="info-icon dark">＋</span><div><h3>Emergency information</h3><small>Available when you need it most</small></div><button type="button" data-modal="health">Edit</button></div><div class="emergency-facts"><span><small>Blood type</small><b id="emergency-blood-type">Not added</b></span><span><small>Emergency contact</small><b>Not added</b></span><span><small>Contact number</small><b>Not added</b></span></div></section></div>
+        </section>
+
+        <section class="view profile-view" id="view-profile" data-view-panel="profile" role="region" aria-labelledby="profile-page-name" hidden>
+          <div class="profile-page-hero panel-card">
+            <div class="profile-page-identity"><span class="avatar avatar-large google-avatar" id="profile-page-avatar"><img src="google-g-logo.svg" alt="" class="google-mark"></span><div><p class="eyebrow">Your personal space</p><h1 id="profile-page-name">Your profile</h1><p id="profile-page-email" class="profile-page-email">Shortcuts and settings for your private hub</p></div></div>
+            <button type="button" class="secondary-button" data-open-profile>Account &amp; settings <span>→</span></button>
+          </div>
+          <section class="panel-card profile-shortcuts-card" aria-labelledby="profile-shortcuts-title">
+            <div class="card-heading"><div><p class="card-kicker">Make it yours</p><h2 id="profile-shortcuts-title">Personal shortcuts</h2></div><button type="button" class="quiet-button" data-profile-edit-shortcuts aria-pressed="false">Edit shortcuts</button></div>
+            <p class="profile-shortcuts-intro">Choose the DoctorAI tools you use most. Your shortcuts only change the way this device opens your hub.</p>
+            <div class="profile-shortcuts-grid" id="profile-shortcuts-grid"></div>
+            <p class="profile-shortcuts-edit-note" id="profile-shortcuts-edit-note" hidden><span aria-hidden="true">i</span> Editing mode is on. Remove a shortcut with −, or add another one with the tile below.</p>
+          </section>
+          <section class="profile-trust-grid">
+            <article class="panel-card profile-trust-card"><span class="profile-trust-icon tone-cyan" aria-hidden="true">♢</span><div><p class="card-kicker">Private by default</p><h2>Your choices stay in your control</h2><p>Review health details, optional Health Memory and storage permissions whenever you need to.</p><button type="button" class="text-button" data-show-privacy>Open privacy controls <span>→</span></button></div></article>
+            <article class="panel-card profile-trust-card"><span class="profile-trust-icon tone-violet" aria-hidden="true">✦</span><div><p class="card-kicker">Need a different view?</p><h2>Open your health hub</h2><p>Jump back to today, your health details or any tool from the main navigation.</p><button type="button" class="text-button" data-view="today">Back to Today <span>→</span></button></div></article>
+          </section>
+        </section>
+
+        <section class="view" id="view-symptoms" data-view-panel="symptoms" aria-labelledby="symptoms-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Notice patterns. Prepare for care.</p><h1 id="symptoms-title">Symptom Diary</h1><p class="page-subtitle">Privately record what you notice, when it happened and how it changed — without trying to diagnose the cause.</p></div><div class="page-heading-actions symptom-page-actions"><button class="secondary-button" type="button" data-symptom-guidance aria-haspopup="dialog" aria-describedby="symptom-guidance-note">Check urgency <span>→</span></button><button class="primary-button" type="button" data-modal="symptom">＋ Add symptom</button></div></div>
+          <span class="sr-only" id="symptom-guidance-note">A brief safety check for next steps. It is not a diagnosis and cannot rule out a serious problem.</span>
+          <section class="symptom-safety-banner" aria-label="Symptom diary safety guidance"><span class="symptom-safety-icon" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><path d="M12 3.5 21 20H3z"/><path d="M12 9v4.5M12 17h.01"/></svg></span><div><b>Track symptoms here; do not use the diary for emergencies.</b><p>If a symptom is sudden, severe, rapidly worsening, or you think you may be in immediate danger, contact your local emergency service now. Do not wait for DoctorAI.</p></div></section>
+          <section class="symptom-pattern-card panel-card" id="symptom-pattern-card" aria-labelledby="symptom-pattern-title" aria-live="polite" hidden>
+          <div class="symptom-pattern-heading"><span class="symptom-pattern-icon" aria-hidden="true">✦</span><div><p class="card-kicker">Repeated notes</p><h2 id="symptom-pattern-title">Observations to review</h2></div></div>
+            <div id="symptom-pattern-list"></div>
+            <p class="symptom-pattern-note"><span aria-hidden="true">i</span> These are repeated observations from your notes — not a diagnosis or proof of a cause.</p>
+          </section>
+          <div class="symptom-summary" role="group" aria-label="Symptom diary summary">
+            <article class="symptom-summary-card"><span class="symptom-summary-icon cyan" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2.2-5H21"/></svg></span><div><b id="symptom-week-count">0</b><small>entries this week</small></div></article>
+            <article class="symptom-summary-card"><span class="symptom-summary-icon coral" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3.5v3M16 3.5v3M4 9h16M8 13h.01M12 13h.01M16 13h.01M8 16.5h.01M12 16.5h.01"/></svg></span><div><b id="symptom-days-count">0</b><small>days logged</small></div></article>
+            <article class="symptom-summary-card"><span class="symptom-summary-icon blue" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg></span><div><b id="symptom-last-log">No entries</b><small>last recorded</small></div></article>
+          </div>
+          <div class="symptom-diary-layout">
+            <section class="panel-card symptom-log-card" aria-labelledby="symptom-log-title">
+              <div class="card-heading"><div><p class="card-kicker">Your private log</p><h2 id="symptom-log-title">Symptom log</h2></div><span class="soft-count" id="symptom-count">0 entries</span></div>
+              <div class="symptom-mode-tabs" role="tablist" aria-label="Symptom log views">
+                <button class="active" type="button" role="tab" data-symptom-mode="entries" aria-selected="true" aria-controls="symptom-list">Log</button>
+                <button id="symptom-mode-triggers" type="button" role="tab" data-symptom-mode="triggers" aria-selected="false" aria-controls="symptom-triggers">Possible triggers</button>
+              </div>
+              <div class="symptom-toolbar"><span><i></i> Private log · newest first</span></div>
+              <div class="symptom-list" id="symptom-list" aria-live="polite"></div>
+              <div class="symptom-triggers" id="symptom-triggers" role="tabpanel" aria-labelledby="symptom-mode-triggers" aria-live="polite" hidden></div>
+            </section>
+            <aside class="panel-card symptom-guide" aria-labelledby="symptom-guide-title">
+              <span class="symptom-guide-mark" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/></svg></span><p class="card-kicker">Make each entry useful</p><h2 id="symptom-guide-title">A clear note for your next visit</h2>
+              <ol><li><b>Name what you noticed</b><span>Use your own words; you do not need medical terminology.</span></li><li><b>Add timing and intensity</b><span>Record when it started, how strong it felt and whether it changed.</span></li><li><b>Include useful context</b><span>Note what you were doing, but avoid guessing at a diagnosis.</span></li></ol>
+              <button type="button" class="secondary-button full-width" data-open-chat data-chat-prompt="Help me turn a symptom diary entry into a concise note and questions for a qualified healthcare professional. Do not diagnose me or recommend changing treatment.">Prepare for a care conversation <span>✦</span></button>
+              <p class="symptom-guide-note">DoctorAI can help organise what you choose to share. A qualified professional must assess symptoms in context.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="view-medications" data-view-panel="medications" aria-labelledby="medications-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Stay on top of your routine</p><h1 id="medications-title">Medications</h1><p class="page-subtitle">Keep prescriptions, reminders, supply and history together.</p></div><div class="page-heading-actions"><button class="secondary-button pro-feature-control medication-scan-button" type="button" data-pro-feature="medication-scan" data-open-medication-scanner><span class="medication-scan-button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4M8 9v6M11 8v8M14 9v6M17 8v8"/></svg></span><span>Scan prescription <small>Photo or barcode · Pro</small></span></button><input id="medication-scan" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden><button class="primary-button" type="button" data-modal="medication">＋ Add medication</button></div></div>
+          <div class="medication-view-grid"><section class="panel-card library-card"><div class="card-heading"><div><p class="card-kicker">Current list</p><h2>Active medications</h2></div><span class="soft-count" id="medications-count">0 active</span></div><div id="medication-library" class="library-list"></div><div class="library-disclaimer"><span>i</span><p>Scanned labels are not database verified, and only confirmed active ingredients are compared. These checks do not assess inactive ingredients, dose, route, timing, or New Zealand product formulations. Missing or unmatched medicines and partial checks are not a clear result. Never start, stop, or change a prescribed medicine based only on an app result; confirm warnings and your complete medication list with a pharmacist or clinician.</p></div></section><aside class="medication-side"><section class="panel-card refill-card"><div class="refill-icon">↻</div><p class="card-kicker">Plan ahead</p><h2 id="refill-title">No refill reminders</h2><p id="refill-copy">Add a medication with a refill date to see reminders here.</p><div class="refill-progress" id="refill-progress" hidden><span></span></div><div class="refill-meta" id="refill-meta" hidden><span></span><b></b></div><button type="button" class="secondary-button full-width" id="refill-action" data-view="medications">＋ Add medication <span>→</span></button></section><section class="panel-card history-card"><div class="card-heading"><div><p class="card-kicker">Archive</p><h2>Medication history</h2></div><a href="#timeline" data-view="timeline">Timeline <span>→</span></a></div><div id="medication-history-list"><div class="empty-inline">Medication changes will appear here.</div></div></section></aside></div>
+        </section>
+
+        <section class="view" id="view-appointments" data-view-panel="appointments" aria-labelledby="appointments-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Prepare, remember, follow up</p><h1 id="appointments-title">Appointments</h1><p class="page-subtitle">Keep the reason, questions, notes and next actions in one place.</p></div><button class="primary-button" type="button" data-modal="appointment">＋ Add appointment</button></div>
+          <div class="appointments-layout"><section class="panel-card upcoming-card"><div class="card-heading"><div><p class="card-kicker">Next up</p><h2>Upcoming appointments</h2></div><span class="soft-count" id="appointments-count">0 scheduled</span></div><div id="upcoming-appointments-list"><div class="empty-inline">No upcoming appointments yet.</div></div></section><aside class="panel-card past-appointments"><div class="card-heading"><div><p class="card-kicker">Archive</p><h2>Previous</h2></div><a href="#timeline" data-view="timeline">Timeline <span>→</span></a></div><div id="past-appointments-list"><div class="empty-inline">Previous appointments will appear here.</div></div></aside></div>
+        </section>
+
+        <section class="view" id="view-results" data-view-panel="results" aria-labelledby="results-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Understand the bigger picture</p><h1 id="results-title">Results &amp; trends</h1><p class="page-subtitle">See medical results and everyday measurements without losing the context.</p></div><button class="primary-button" type="button" data-modal="measurement">＋ Log a measurement</button></div>
+          <div class="results-grid"><section class="panel-card result-list-card"><div class="card-heading"><div><p class="card-kicker">Uploaded and saved</p><h2>Recent results</h2></div><button class="upload-button pro-feature-control" type="button" data-pro-feature="files" data-file-action="result-upload">✦ Upload result · Pro</button><input id="result-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden></div><div id="result-list" class="result-list"></div><div class="result-disclaimer"><span>i</span><p>Free keeps typed measurements available. File uploads, health photos, AI extraction and secure sharing are DoctorAI Pro features. AI explanations never replace clinical advice.</p></div></section><section class="panel-card measurements-card"><div class="card-heading"><div><p class="card-kicker">Optional tracking</p><h2>Health trends</h2></div><button type="button" class="quiet-button" data-modal="measurement">＋ Log</button></div><div class="trend-tabs"><button class="active" type="button" data-range="blood-pressure">Blood pressure</button><button type="button" data-range="sleep">Sleep</button><button type="button" data-range="weight">Weight</button></div><div class="large-trend-value"><b id="measurement-value">No data yet</b><span id="measurement-label">Log a measurement to start a trend</span><em id="measurement-status"></em></div><div class="large-chart" id="large-chart" hidden><svg viewBox="0 0 600 180" preserveAspectRatio="none"><path class="chart-gridline" d="M0 28H600M0 75H600M0 122H600M0 169H600"/><path class="large-area" d="M0 124C35 108 55 119 76 94s42 25 65-2 38-45 67-22 37 33 66 6 44-42 74-25 33 32 64 16 52-39 76-17 31 30 56 12 37-35 56-23V180H0Z"/><path class="large-line" d="M0 124C35 108 55 119 76 94s42 25 65-2 38-45 67-22 37 33 66 6 44-42 74-25 33 32 64 16 52-39 76-17 31 30 56 12 37-35 56-23"/><circle cx="572" cy="95" r="5"/></svg><div class="chart-axis"><span>05 Aug</span><span>12 Aug</span><span>18 Aug</span></div></div><div class="measurement-chips" id="measurement-chips"><span class="trend-empty">Your personal signals will appear here.</span></div></section></div>
+        </section>
+
+        <section class="view" id="view-timeline" data-view-panel="timeline" aria-labelledby="timeline-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">A connected view of your health</p><h1 id="timeline-title">Health Timeline</h1><p class="page-subtitle">Symptoms, visits, results, prescriptions and documents in chronological order.</p></div><button class="primary-button" type="button" data-modal="timeline">＋ Add entry</button></div>
+          <div class="timeline-toolbar"><div class="filter-tabs" aria-label="Filter timeline"><button class="active" type="button" data-timeline-filter="all">All activity</button><button type="button" data-timeline-filter="medication">Medications</button><button type="button" data-timeline-filter="appointment">Appointments</button><button type="button" data-timeline-filter="result">Results</button><button type="button" data-timeline-filter="symptom">Symptoms</button></div><span class="timeline-note"><i></i> Automatically organised</span></div>
+          <section class="panel-card timeline-card"><div class="timeline-list" id="timeline-list"></div></section>
+        </section>
+
+        <section class="view" id="view-documents" data-view-panel="documents" aria-labelledby="documents-title" hidden>
+          <div class="page-heading"><div><p class="eyebrow">Your health library</p><h1 id="documents-title">Documents</h1><p class="page-subtitle">Keep a private list of prescriptions, letters, referrals, reports and health photos on this device.</p></div><button class="primary-button upload-primary pro-feature-control" type="button" data-pro-feature="files" data-file-action="document-upload">✦ Upload document · Pro</button><input id="document-upload" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden></div>
+          <section class="document-drop"><div class="drop-icon">↑</div><div><b>Files and photos, organised with permission</b><p>Pro includes PDFs, scans, JPGs, PNGs and every health-related document you choose to list on this device.</p></div><button class="secondary-button pro-feature-control" type="button" data-pro-feature="files" data-file-action="document-upload-inline">Open Pro file library</button><input id="document-upload-inline" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden></section>
+          <div class="document-toolbar"><div class="document-filters"><button class="active" type="button" data-document-filter="all">All documents</button><button type="button" data-document-filter="prescription">Prescriptions</button><button type="button" data-document-filter="result">Results</button><button type="button" data-document-filter="letter">Letters</button></div><span>Private to you</span></div>
+          <div class="documents-grid" id="documents-grid"></div>
+          <div class="documents-permission"><span>✦</span><p><b>Private by default.</b> File and photo uploads, AI extraction and sharing are Pro-only and require your permission. You can delete anything you save at any time.</p><button type="button" data-show-privacy>Manage permissions <span>→</span></button></div>
+        </section>
+      </div>
+
+      <footer class="hub-footer"><span>© DoctorAI</span><span>AI health organisation &amp; education · Not medical care</span><button type="button" data-show-privacy>Privacy controls</button><a href="/privacy">Privacy notice</a><a href="/terms">Terms</a></footer>
+    </main>
+  </div>
+
+  <nav class="mobile-bottom-nav" aria-label="Primary mobile navigation">
+    <button type="button" data-view="today" class="mobile-bottom-nav-item active"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3.5 10 8.5-7 8.5 7v10.5h-6v-6h-5v6h-5z"/></svg></span><b>Home</b></button>
+    <button type="button" data-view="ask" class="mobile-bottom-nav-item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/></svg></span><b>Chat</b></button>
+    <button type="button" data-add-menu class="mobile-bottom-nav-orb" aria-label="Add a health item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></span><b>Add</b></button>
+    <button type="button" data-view="health" class="mobile-bottom-nav-item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.6 5.7c-2.3-2.4-6.2-1.8-8.6 1.1-2.4-2.9-6.3-3.5-8.6-1.1-2.4 2.5-1.2 6.2.7 8.3L12 21l7.9-7c1.9-2.1 3.1-5.8.7-8.3Z"/></svg></span><b>Health</b></button>
+    <button type="button" data-view="profile" class="mobile-bottom-nav-item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.5-4.4 3.2-6.8 7.5-6.8s7 2.4 7.5 6.8"/></svg></span><b>Profile</b></button>
+  </nav>
+
+  <div class="profile-drawer" id="profile-drawer" hidden>
+    <button class="drawer-backdrop" type="button" data-close-profile aria-label="Close profile menu"></button>
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="profile-drawer-title">
+      <div class="drawer-header"><div><p class="eyebrow">Your account</p><h2 id="profile-drawer-title">Profile &amp; settings</h2></div><button type="button" class="icon-button" data-close-profile aria-label="Close profile menu">×</button></div>
+      <div class="drawer-profile"><span class="avatar avatar-large google-avatar"><img src="google-g-logo.svg" alt="" class="google-mark"></span><div><b>Not signed in</b><small>Sign in to personalise your private workspace</small></div><button type="button" class="quiet-button" data-google-signin>Sign in</button></div>
+      <div class="drawer-section pro-status-section"><p class="drawer-label">DoctorAI Pro</p><div class="drawer-pro-status"><span class="drawer-row-icon cyan">✦</span><div><b id="drawer-pro-status">Free plan</b><small id="drawer-pro-countdown">No active Pro access</small></div><a href="/subscription#plans" aria-label="View DoctorAI Pro plans">›</a></div></div>
+      <div class="drawer-section"><p class="drawer-label">Privacy &amp; permissions</p><button class="drawer-row" type="button" data-view="health"><span class="drawer-row-icon cyan">✦</span><span><b>Health Memory</b><small><span id="drawer-memory-status">Off</span> · only approved details</small></span><span>›</span></button><button class="drawer-row" type="button" data-show-privacy><span class="drawer-row-icon blue">♢</span><span><b>Privacy controls</b><small>Storage, access and deletion</small></span><span>›</span></button><button class="drawer-row" type="button" data-api-permissions><span class="drawer-row-icon purple">⌘</span><span><b>AI integrations</b><small>Authorised tools are off by default</small></span><span>›</span></button></div>
+      <div class="drawer-safety"><b>DoctorAI is not a replacement for a doctor.</b><p>Do not use it for emergencies or to change prescription treatment. If you may be in immediate danger, contact local emergency support.</p></div>
+      <button class="drawer-signout" type="button" data-google-signin>Sign in with Google <span>→</span></button>
+    </div>
+  </div>
+
+  <dialog class="quick-modal" id="quick-modal" aria-labelledby="modal-title"><div class="modal-header"><div><p class="eyebrow" id="modal-eyebrow">Health hub</p><h2 id="modal-title">Add to your health hub</h2></div><button class="icon-button" type="button" data-close-modal aria-label="Close dialog">×</button></div><div id="modal-body"></div></dialog>
+  <dialog class="medication-alert-modal" id="medication-alert-modal" closedby="none" tabindex="-1" aria-labelledby="medication-alert-title" aria-describedby="medication-alert-description">
+    <div class="medication-alert-mark" aria-hidden="true">!</div>
+    <p class="eyebrow">Medication safety notice</p>
+    <h2 id="medication-alert-title">Review your medication list</h2>
+    <p id="medication-alert-description">DoctorAI found something in your saved information that needs review.</p>
+    <div class="medication-alert-source" id="medication-alert-source"></div>
+    <p class="medication-alert-safety"><strong>Do not change or stop treatment based on this notice.</strong> Confirm it with a pharmacist or qualified clinician.</p>
+    <div class="medication-alert-actions">
+      <button type="button" class="secondary-button" data-acknowledge-medication-alert>I understand</button>
+      <button type="button" class="primary-button" data-review-medication-alert>Review medicines <span aria-hidden="true">→</span></button>
+    </div>
+  </dialog>
+  <dialog class="medication-scanner-modal" id="medication-scanner-modal" aria-labelledby="medication-scanner-title" aria-describedby="medication-scanner-intro">
+    <div class="modal-header"><div><p class="eyebrow">Medication manager · Pro</p><h2 id="medication-scanner-title">Scan a prescription</h2></div><button class="icon-button" type="button" data-close-medication-scanner aria-label="Close prescription scanner">×</button></div>
+    <div class="medication-scanner-copy">
+      <p class="medication-scanner-intro" id="medication-scanner-intro">Keep the prescription or medicine label clear and in view. A supported package barcode can prefill a catalogue search after you choose to send it.</p>
+      <div class="medication-camera-stage" data-camera-state="idle">
+        <video id="medication-scanner-video" playsinline muted aria-label="Live rear camera for prescription and medicine label scanning"></video>
+        <div class="medication-scan-reticle" aria-hidden="true"><i></i><span>Keep the label clear and steady</span></div>
+        <div class="medication-camera-placeholder" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg></span><b>Starting camera…</b></div>
+      </div>
+      <p class="medication-scanner-status" id="medication-scanner-status" role="status" aria-live="polite">Preparing the camera…</p>
+      <p class="medication-scanner-safety"><span aria-hidden="true">i</span><span>Images are sent only when you capture or choose a label photo. A numeric barcode can be searched against NZF/NZULM only after separate consent; it does not contain your dose or directions. Neither scan verifies medicine safety.</span></p>
+      <label class="medication-image-consent"><input type="checkbox" data-medication-image-consent><span>I agree to send this selected label image to OpenAI for text extraction. It may contain personal health information. OpenAI may retain API content in abuse-monitoring logs for up to 30 days by default; DoctorAI has not confirmed a shorter-retention exception. This scan does not check medicine safety.</span></label>
+    </div>
+    <div class="medication-scanner-actions">
+      <button type="button" class="primary-button medication-capture-button" data-medication-capture disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span>Capture label</span></button>
+      <button type="button" class="secondary-button" data-medication-photo>Choose photo</button>
+      <button type="button" class="secondary-button" data-medication-manual>Enter manually</button>
+    </div>
+  </dialog>
+  <dialog class="google-signin-modal" id="google-signin-modal" aria-labelledby="google-signin-title"><div class="modal-header"><div><p class="eyebrow">Secure account access</p><h2 id="google-signin-title">Sign in to DoctorAI</h2></div><button class="icon-button" type="button" data-close-google-signin aria-label="Close Google sign-in">×</button></div><div class="google-signin-copy"><div id="google-signin-button" class="google-signin-button-host"></div><button type="button" class="google-signin-fallback" data-google-start><span class="google-g-mark"><img src="google-g-logo.svg" alt="" class="google-mark"></span><span>Continue with Google</span><span>→</span></button><p id="google-signin-status" class="signin-status">Loading secure Google sign-in…</p><p class="signin-disclaimer">DoctorAI uses Google only to identify your private workspace. Health information is never made public by signing in.</p></div></dialog>
+  <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy, clearly</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy information">×</button></div><div class="privacy-copy"><div class="privacy-highlight"><span>♢</span><p><b>Your health information belongs to you.</b> You choose whether this browser keeps health-hub entries between visits. When signed in, approved hub data is also encrypted for your account.</p></div><h3>DoctorAI can organise and explain</h3><p>It is not a doctor, does not diagnose, and should not be used to start, stop or change prescribed treatment. Health Memory is optional and you can edit or delete saved details.</p><h3>Urgent or emergency situations</h3><p>Contact your local emergency service or an appropriate crisis service now. Do not wait for an AI response.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep data on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><button type="button" class="secondary-button" data-export-health>Export my hub data</button><button type="button" class="danger-button" data-delete-health>Delete my hub data</button><button type="button" class="secondary-button" data-close-privacy>Close</button><a href="/privacy" class="text-button">Read privacy notice <span>→</span></a><a href="/terms" class="text-button">Read terms</a></div></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="health-hub.js?v=61"></script>
+</body>
+</html>
