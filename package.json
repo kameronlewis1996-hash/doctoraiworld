@@ -1,0 +1,21 @@
+{
+  "name": "doctorai-health-hub",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "check:js": "node scripts/check-js.js",
+    "verify:scan": "node scripts/verify-medication-scan.js",
+    "verify:nzf": "node scripts/verify-nzf-fhir.js",
+    "verify:server": "node scripts/verify-server-core.js",
+    "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
+    "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.0",
+    "stripe": "^18.5.0"
+  }
+}

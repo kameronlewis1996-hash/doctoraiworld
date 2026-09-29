@@ -1,27 +1,29 @@
-# DoctorAI World
+# DoctorAI Health Hub
 
-DoctorAI World is a safety-led personal health hub for organising medications, symptoms, appointments, documents, results and care conversations.
+Source for [DoctorAI World](https://www.doctoraiworld.com), deployed as the `doctorai-health-hub` Vercel project.
 
-## Live production
+DoctorAI is a personal health organizer and information service. It does not diagnose, treat, or replace a qualified clinician or emergency service. Use the in-app medication coverage and privacy disclosures when reviewing scan or medication information.
 
-- **Site:** [www.doctoraiworld.com/health-hub](https://www.doctoraiworld.com/health-hub)
-- **Latest production deployment record:** [Vercel deployment 5MW9Wkjohds4MMZKyGU1uxfSnSuG](https://vercel.com/kameronlewis1996-3703s-projects/doctorai-health-hub/5MW9Wkjohds4MMZKyGU1uxfSnSuG)
-- **Vercel project:** [doctorai-health-hub](https://vercel.com/kameronlewis1996-3703s-projects/doctorai-health-hub)
+## Project layout
 
-## Source snapshots
+- Static pages and browser assets are in the repository root.
+- `api/` contains the Vercel serverless routes.
+- `server-src/` contains shared server handlers.
+- `scripts/` contains source checks and Vercel preparation helpers.
+- `.env.example` lists environment variable names with placeholders only.
 
-- [Latest edited source snapshot — 2026-09-28](https://drive.google.com/file/d/1_tq5Vfwl-BWwhVEpyIWSbvWKszyiTZRy/view?usp=drivesdk) — includes the current medication supply/refill improvements. This snapshot has not been deployed yet.
-- [Shared source workspace](https://drive.google.com/drive/folders/19jI9lFjTdmT5PqelJpCMWzHKZ-pfltWL)
+## Local setup
 
-This repository is the DoctorAI World handoff and deployment index. The current production deployment was created with Vercel CLI; treat the production site and the dated Drive source archives as separate until a source snapshot has been deployed and verified. The legacy `Doctorai` repository is not the current production source.
+Use Node.js 24 and the pnpm version in `package.json`.
 
-## Safety and contribution rules
+```sh
+pnpm install
+pnpm run check:js
+pnpm run verify:static
+```
 
-- DoctorAI must never present itself as a doctor, diagnose, prescribe, or tell a person to change treatment.
-- Keep emergency guidance visible and accurate.
-- Never commit secrets, API keys, tokens, `.env` files, private health data, or staff credentials.
-- Read `PROJECT_RULES.md` before changing the source project. Preserve the existing features and design, and verify the exact preview artifact before promoting it to production.
+The static verification script uses PowerShell. Other focused verification scripts are available as `verify:scan`, `verify:nzf`, and `verify:server`.
 
-## Working across PCs
+## Secrets
 
-Download the newest timestamped source archive from the shared workspace into a local checkout. Keep older snapshots as checkpoints and upload a new timestamped archive after meaningful changes.
+Copy the names from `.env.example` into your local environment or Vercel settings as needed. Never commit populated `.env` files, API keys, Stripe secrets, OAuth secrets, or user health data. Configure production and preview credentials separately in Vercel.
