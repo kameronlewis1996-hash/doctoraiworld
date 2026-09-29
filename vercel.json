@@ -2,47 +2,146 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/server-src/:path*", "destination": "/not-found", "permanent": false },
-    { "source": "/consultation", "destination": "/health-hub#ask", "permanent": true },
-    { "source": "/health-paths", "destination": "/health-hub#health", "permanent": true },
-    { "source": "/care-planner", "destination": "/health-hub#appointments", "permanent": true },
-    { "source": "/cosmetics", "destination": "/research#explore", "permanent": true },
-    { "source": "/marketplace", "destination": "/subscription", "permanent": true },
-    { "source": "/about", "destination": "/health-hub#today", "permanent": true }
+    {
+      "source": "/beta",
+      "destination": "/health-hub",
+      "permanent": true
+    },
+    {
+      "source": "/server-src/:path*",
+      "destination": "/not-found",
+      "permanent": false
+    },
+    {
+      "source": "/consultation",
+      "destination": "/health-hub#ask",
+      "permanent": true
+    },
+    {
+      "source": "/health-paths",
+      "destination": "/health-hub#health",
+      "permanent": true
+    },
+    {
+      "source": "/care-planner",
+      "destination": "/health-hub#appointments",
+      "permanent": true
+    },
+    {
+      "source": "/cosmetics",
+      "destination": "/research#explore",
+      "permanent": true
+    },
+    {
+      "source": "/marketplace",
+      "destination": "/subscription",
+      "permanent": true
+    },
+    {
+      "source": "/about",
+      "destination": "/health-hub#today",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/api/branding/public", "destination": "/doctorai-public-logo-transparent.png" },
-    { "source": "/api/branding/head", "destination": "/doctorai-head-logo-transparent.png" },
-    { "source": "/api/branding/app-icon", "destination": "/doctorai-app-icon.png" },
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/subscription", "destination": "/subscription.html" },
-    { "source": "/download", "destination": "/download.html" },
-    { "source": "/mobile-auth", "destination": "/mobile-auth.html" },
-    { "source": "/health-hub", "destination": "/health-hub.html" },
-    { "source": "/research", "destination": "/research.html" },
-    { "source": "/staff", "destination": "/staff.html" },
-    { "source": "/terms", "destination": "/terms.html" },
-    { "source": "/privacy", "destination": "/privacy.html" }
+    {
+      "source": "/api/branding/public",
+      "destination": "/doctorai-public-logo-transparent.png"
+    },
+    {
+      "source": "/api/branding/head",
+      "destination": "/doctorai-head-logo-transparent.png"
+    },
+    {
+      "source": "/api/branding/app-icon",
+      "destination": "/doctorai-app-icon.png"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/subscription",
+      "destination": "/subscription.html"
+    },
+    {
+      "source": "/download",
+      "destination": "/download.html"
+    },
+    {
+      "source": "/mobile-auth",
+      "destination": "/mobile-auth.html"
+    },
+    {
+      "source": "/health-hub",
+      "destination": "/health-hub.html"
+    },
+    {
+      "source": "/research",
+      "destination": "/research.html"
+    },
+    {
+      "source": "/staff",
+      "destination": "/staff.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    }
   ],
   "headers": [
     {
       "source": "/service-worker.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        { "key": "Origin-Agent-Cluster", "value": "?1" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; style-src 'self' 'sha256-kuI9/DA2bYVjXIT76u5BaYfIIYVRL/06Qd/UizQosGw=' 'sha256-c+AhkSxzGjZ9jX7PqTgGevP1n/yS+fd0q1J+p7vxZ90=' 'sha256-FWNHNXZjlUEke3CxrglZ/aO1N/SUh531q4xosgqObqM=' 'sha256-J71OS+TeGxRMQtNoxAal3tXnJaj6/MECsvd06on3q0g=' 'sha256-rYUHIUE/l9kWus4oEhm70DpR/F555CI7p/3n49UYwFQ=' 'sha256-z7h4f8/IH+G3f/qICenJrLZSaPJMp1NnaF585WjLfJI=' https://fonts.googleapis.com https://accounts.google.com; style-src-attr 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'sha256-Q6xvvDLK+n3MsP69kgkc5GPMG9FSyp6J9dgAEJHdp4c=' 'sha256-t/KCizNPe60ObE9/UDu+NaX9I6Sc9V00SoRbOdbW9r8=' 'sha256-An1iNahBG7u8nzhYYBr42/x5muZiPJoyvIAObZy1z4E=' https://accounts.google.com https://va.vercel-scripts.com; script-src-attr 'none'; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://va.vercel-scripts.com https://www.ebi.ac.uk; frame-src https://accounts.google.com; media-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Permitted-Cross-Domain-Policies",
+          "value": "none"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Origin-Agent-Cluster",
+          "value": "?1"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; style-src 'self' 'sha256-kuI9/DA2bYVjXIT76u5BaYfIIYVRL/06Qd/UizQosGw=' 'sha256-c+AhkSxzGjZ9jX7PqTgGevP1n/yS+fd0q1J+p7vxZ90=' 'sha256-FWNHNXZjlUEke3CxrglZ/aO1N/SUh531q4xosgqObqM=' 'sha256-J71OS+TeGxRMQtNoxAal3tXnJaj6/MECsvd06on3q0g=' 'sha256-rYUHIUE/l9kWus4oEhm70DpR/F555CI7p/3n49UYwFQ=' 'sha256-z7h4f8/IH+G3f/qICenJrLZSaPJMp1NnaF585WjLfJI=' https://fonts.googleapis.com https://accounts.google.com; style-src-attr 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'sha256-Q6xvvDLK+n3MsP69kgkc5GPMG9FSyp6J9dgAEJHdp4c=' 'sha256-t/KCizNPe60ObE9/UDu+NaX9I6Sc9V00SoRbOdbW9r8=' 'sha256-An1iNahBG7u8nzhYYBr42/x5muZiPJoyvIAObZy1z4E=' https://accounts.google.com https://va.vercel-scripts.com; script-src-attr 'none'; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com https://va.vercel-scripts.com https://www.ebi.ac.uk; frame-src https://accounts.google.com; media-src 'self' blob:; worker-src 'self' blob:; upgrade-insecure-requests"
+        }
       ]
     }
   ]
