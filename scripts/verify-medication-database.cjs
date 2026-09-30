@@ -35,4 +35,4 @@ const noKnownAlert = review({ medications: ['paracetamol', 'cetirizine'] });
 assert.equal(noKnownAlert.status, 'no-known-alerts');
 assert.match(noKnownAlert.disclaimer, /does not mean safe/i);
 
-process.stdout.write('Medication database verification passed: curated interaction pairs, reversed ordering, aliases, duplicates, combination-brand fail-closed resolution, unknown coverage, and no-alert disclaimer.\\n');
+console.log('Medication database verification passed: curated interaction pairs, reversed ordering, aliases, duplicates, combination-brand fail-closed resolution, unknown coverage, and no-alert disclaimer');
