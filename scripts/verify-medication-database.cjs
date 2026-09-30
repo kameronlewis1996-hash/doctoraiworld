@@ -28,6 +28,11 @@ for (const name of ['Panadol Extra', 'Nurofen Cold & Flu', 'Panadol with caffein
   assert.deepEqual(match.ingredients, []);
 }
 
+const uncoveredCondition = review({ medications: ['paracetamol'], conditions: ['kidney disease'] });
+assert.equal(uncoveredCondition.status, 'unknown');
+assert.equal(uncoveredCondition.coverage.completeForRequest, false);
+assert.ok(uncoveredCondition.alerts.some(alert => alert.title === 'Condition risks are not covered'));
+
 const unknown = review({ medications: ['unlisted tablet'] });
 assert.equal(unknown.status, 'unknown');
 assert.equal(unknown.coverage.completeForRequest, false);
