@@ -19,6 +19,8 @@ expectRule(['ibuprofen', 'warfarin'], 'warfarin-nsaid');
 assert.equal(resolveMedication('Nurofen 200 mg').ingredients[0]?.id, 'ibuprofen');
 assert.equal(resolveMedication('acetaminophen').ingredients[0]?.id, 'paracetamol');
 assert.ok(review({ medications: ['Panadol', 'paracetamol'] }).alerts.some(alert => alert.type === 'duplicate-ingredient'));
+assert.ok(review({ medications: ['amoxicillin'], allergies: ['penicillin'] }).alerts.some(alert => alert.type === 'allergy'));
+assert.ok(review({ medications: ['ibuprofen'], allergies: ['NSAID'] }).alerts.some(alert => alert.type === 'allergy'));
 
 for (const name of ['Panadol Extra', 'Nurofen Cold & Flu', 'Panadol with caffeine']) {
   const match = resolveMedication(name);
