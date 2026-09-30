@@ -2,12 +2,14 @@ const db = require('../../data/medication/medication-safety.seed.json');
 const norm = value => String(value || '').toLowerCase().replace(/[®™]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const ingredients = new Map(db.ingredients.map(item => [item.id, item]));
 const ingredientTerms = ingredient => [ingredient.name, ...(ingredient.aliases || [])].map(norm).filter(Boolean);
+const strengthSuffix = /^(?:\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))(?:\s+\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))*$/;
+const exactOrStrength = (query, term) => query === term || (query.startsWith(`${term} `) && strengthSuffix.test(query.slice(term.length).trim()));
 function resolveMedication(name) {
   const q = norm(name);
   if (!q) return { name, ingredients: [], status: 'unknown' };
-  const product = db.products.find(item => norm(item.name) === q || q.includes(norm(item.name)));
+  const product = db.products.find(item => exactOrStrength(q, norm(item.name)));
   if (product) return { name, ingredients: product.ingredients.map(id => ingredients.get(id)).filter(Boolean), status: 'resolved', matched: product.name };
-  const ingredient = db.ingredients.find(item => ingredientTerms(item).some(term => term === q || q.includes(term)));
+  const ingredient = db.ingredients.find(item => ingredientTerms(item).some(term => exactOrStrength(q, term)));
   return ingredient ? { name, ingredients: [ingredient], status: 'resolved', matched: ingredient.name } : { name, ingredients: [], status: 'unknown' };
 }
 const matchesSide = (ingredient, side = {}) => side.ingredient ? ingredient.id === side.ingredient : side.class ? ingredient.classes.includes(side.class) : false;
