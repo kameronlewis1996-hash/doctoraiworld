@@ -2,12 +2,14 @@ const db = require('../../data/medication/medication-safety.seed.json');
 const norm = value => String(value || '').toLowerCase().replace(/[®™]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const ingredients = new Map(db.ingredients.map(item => [item.id, item]));
 const ingredientTerms = ingredient => [ingredient.name, ...(ingredient.aliases || [])].map(norm).filter(Boolean);
+const strengthSuffix = /^(?:\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))(?:\s+\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))*$/;
+const exactOrStrength = (query, term) => query === term || (query.startsWith(`${term} `) && strengthSuffix.test(query.slice(term.length).trim()));
 function resolveMedication(name) {
   const q = norm(name);
   if (!q) return { name, ingredients: [], status: 'unknown' };
-  const product = db.products.find(item => norm(item.name) === q || q.includes(norm(item.name)));
+  const product = db.products.find(item => exactOrStrength(q, norm(item.name)));
   if (product) return { name, ingredients: product.ingredients.map(id => ingredients.get(id)).filter(Boolean), status: 'resolved', matched: product.name };
-  const ingredient = db.ingredients.find(item => ingredientTerms(item).some(term => term === q || q.includes(term)));
+  const ingredient = db.ingredients.find(item => ingredientTerms(item).some(term => exactOrStrength(q, term)));
   return ingredient ? { name, ingredients: [ingredient], status: 'resolved', matched: ingredient.name } : { name, ingredients: [], status: 'unknown' };
 }
 const matchesSide = (ingredient, side = {}) => side.ingredient ? ingredient.id === side.ingredient : side.class ? ingredient.classes.includes(side.class) : false;
@@ -44,11 +46,13 @@ function review({ medications = [], allergies = [], conditions = [] } = {}) {
   }
   const conditionText = conditions.map(norm).filter(Boolean);
   for (const medication of resolved) for (const ingredient of medication.ingredients) for (const rule of db.contraindicationRules || []) if (matchesSide(ingredient, rule.medicine) && conditionMatches(rule, conditionText)) alerts.push({ type: 'contraindication', severity: rule.severity, title: 'Condition and medicine need review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id });
+  if (conditionText.length && !(db.contraindicationRules || []).length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Condition risks are not covered', message: 'DoctorAI has no verified medicine-condition rules in its current database, so risks related to recorded conditions could not be checked.', source: { publisher: 'DoctorAI medication database' } });
   const unknown = resolved.filter(item => item.status === 'unknown').map(item => item.name).filter(Boolean);
   if (unknown.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Medicine data incomplete', message: `No verified ingredient mapping is available yet for: ${unknown.join(', ')}. DoctorAI cannot determine whether these medicines clash.`, source: { publisher: 'DoctorAI medication database' } });
   const uniqueAlerts = Array.from(new Map(alerts.map(alert => [`${alert.type}|${alert.ruleId || ''}|${alert.message}`, alert])).values());
   const high = uniqueAlerts.some(alert => alert.severity === 'high' || alert.severity === 'critical');
   const moderate = uniqueAlerts.some(alert => ['moderate', 'medium', 'caution'].includes(alert.severity));
-  return { schemaVersion: db.schemaVersion, datasetVersion: db.datasetVersion, datasetReviewed: db.datasetReviewed || null, resolved, alerts: uniqueAlerts, coverage: { requested: resolved.length, resolved: resolved.length - unknown.length, unknown: unknown.length, completeForRequest: unknown.length === 0 }, status: high ? 'red' : unknown.length ? 'unknown' : moderate ? 'orange' : 'no-known-alerts', disclaimer: 'No-known-alerts does not mean safe. DoctorAI only reports rules present in its verified dataset; medicine decisions require a pharmacist or prescriber.' };
+  const coverageIncomplete = unknown.length > 0 || uniqueAlerts.some(alert => alert.severity === 'unknown');
+  return { schemaVersion: db.schemaVersion, datasetVersion: db.datasetVersion, datasetReviewed: db.datasetReviewed || null, resolved, alerts: uniqueAlerts, coverage: { requested: resolved.length, resolved: resolved.length - unknown.length, unknown: unknown.length, completeForRequest: !coverageIncomplete }, status: high ? 'red' : coverageIncomplete ? 'unknown' : moderate ? 'orange' : 'no-known-alerts', disclaimer: 'No-known-alerts does not mean safe. DoctorAI only reports rules present in its verified dataset; medicine decisions require a pharmacist or prescriber.' };
 }
 module.exports = { review, resolveMedication, norm };
