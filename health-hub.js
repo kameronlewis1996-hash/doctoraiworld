@@ -84,6 +84,8 @@
   function clearMedicationSafetyResults() {
     lastMedicationSafetyResult = null;
     lastIngredientSafetyResult = null;
+    const localResult = $('[data-local-medication-db-result]');
+    if (localResult) localResult.replaceChildren();
   }
 
   const state = {
