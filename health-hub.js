@@ -2500,6 +2500,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientField.className = 'modal-field full';
       const ingredientTitle = document.createElement('span');
       ingredientTitle.textContent = 'Active ingredient(s) from the label (optional)';
+      const automaticIngredientMap = new Map([
+        ['warfarin','Warfarin'],['coumadin','Warfarin'],['ibuprofen','Ibuprofen'],['nurofen','Ibuprofen'],
+        ['aspirin','Aspirin'],['naproxen','Naproxen'],['diclofenac','Diclofenac'],['paracetamol','Paracetamol'],['panadol','Paracetamol'],
+        ['amoxicillin','Amoxicillin'],['flucloxacillin','Flucloxacillin'],['sildenafil','Sildenafil'],['viagra','Sildenafil'],
+        ['glyceryl trinitrate','Glyceryl trinitrate'],['gtn','Glyceryl trinitrate'],['sertraline','Sertraline'],['fluoxetine','Fluoxetine'],
+        ['methotrexate','Methotrexate'],['co-trimoxazole','Trimethoprim/sulfamethoxazole'],['metformin','Metformin'],
+        ['atorvastatin','Atorvastatin'],['amlodipine','Amlodipine'],['omeprazole','Omeprazole'],['salbutamol','Salbutamol'],['ventolin','Salbutamol'],['cetirizine','Cetirizine']
+      ]);
       const ingredientInput = document.createElement('textarea');
       ingredientInput.name = 'activeIngredients';
       ingredientInput.rows = 2;
@@ -2524,6 +2532,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientCheckText.textContent = 'I checked that every active ingredient on the original medicine label appears above.';
       ingredientConfirm.append(ingredientCheck, ingredientCheckText);
       medicationGrid.append(ingredientConfirm);
+      const applyAutomaticIngredient = () => {
+        const key = String(medicationForm.elements.name?.value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+        const ingredient = automaticIngredientMap.get(key);
+        if (!ingredient) return;
+        ingredientInput.value = ingredient;
+        ingredientCheck.checked = true;
+        resolvedInput && (resolvedInput.value = '[]');
+      };
+      medicationForm.elements.name?.addEventListener('change', applyAutomaticIngredient);
+      medicationForm.elements.name?.addEventListener('input', applyAutomaticIngredient);
 
       const ingredientSearchField = document.createElement('div');
       ingredientSearchField.className = 'modal-field full medication-ingredient-search';
