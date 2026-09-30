@@ -688,7 +688,7 @@
     const status = $('.clash-status', panel);
     const result = $('[data-medication-db-result]', panel);
     if (!hasProAccess()) {
-      status.innerHTML = proFeatureGate('Saved medication interaction checks are a Pro feature.', 'Match each medicine to the exact New Zealand product before an interaction check.');
+      status.innerHTML = proFeatureGate('Saved medication interaction checks are a Pro feature.', 'The local check uses DoctorAI’s limited rules and leaves unmatched names unknown. NZF/NZULM needs an exact New Zealand product match.');
       result.textContent = 'Interaction checks require signed-in Pro access, NZF/NZULM approval, and server configuration.';
       const ingredientResult = $('[data-ingredient-safety-result]', panel);
       if (ingredientResult) ingredientResult.textContent = 'Ingredient and health-risk checks require signed-in Pro access, a licensed provider, and server configuration.';
