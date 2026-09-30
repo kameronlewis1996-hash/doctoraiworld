@@ -680,7 +680,7 @@
       panel.className = 'clash-panel pro-feature-control';
       panel.dataset.proFeature = 'medication-clash';
       card.appendChild(panel);
-      panel.innerHTML = `<div class="clash-heading"><div><p class="card-kicker">DoctorAI Pro</p><h2>Saved medication safety checks</h2></div><span>Pro</span></div><p class="clash-description">NZF/NZULM checks interactions for confirmed New Zealand products. A separate ingredient check can compare matched active ingredients with mapped allergies, health conditions, and symptoms. These are separate database services with separate consent. Neither can decide whether treatment is safe for you.</p><div class="clash-status" role="status" aria-live="polite"></div><div class="clash-actions"><button class="secondary-button" type="button" data-medication-safety-profile>Review allergies, conditions &amp; symptoms</button><button class="primary-button" type="button" data-run-medication-safety-check>Check NZ medicine interactions</button><button class="primary-button" type="button" data-run-ingredient-safety-check>Check ingredients &amp; health risks</button></div><label class="clash-consent"><input type="checkbox" data-medication-db-consent><span>NZF/NZULM: this browser sends one product-ID entry per saved medicine (blank for unmatched items) to the DoctorAI server. When enabled, DoctorAI forwards only unique confirmed NZMT product IDs to NZF/NZULM; the unmatched count stays with DoctorAI. No medication names, doses, schedules, notes, scan images, allergies, conditions, or symptoms go to NZF/NZULM. Provider logging and use depend on approved terms.</span></label><div class="medication-db-result" data-medication-db-result role="status" aria-live="polite"></div><label class="clash-consent"><input type="checkbox" data-ingredient-safety-consent><span>DrugBank ingredient check: this browser sends matched ingredient IDs, mapped allergy/condition/symptom IDs, internal medication IDs, and unmatched counts to the DoctorAI server. If enabled, DoctorAI forwards only provider-required ingredient and risk IDs to DrugBank; internal medication IDs and unmatched counts stay with DoctorAI. Medication names, doses, schedules, notes, and scan images are not sent to DrugBank. DrugBank logs API requests. This is ingredient-level, not NZ product-level checking, and remains unavailable until its consumer-use licence, NZ scope, approved modules, and credentials are confirmed.</span></label><div class="medication-db-result" data-ingredient-safety-result role="status" aria-live="polite"></div><small class="clash-footnote">An alert may call for avoidance, monitoring, dose adjustment, or a timing change; it is not automatically a ban. Confirm it with a pharmacist or clinician. Never start, stop, or change treatment based only on an app result.</small>`;
+      panel.innerHTML = `<div class="clash-heading"><div><p class="card-kicker">DoctorAI Pro</p><h2>Saved medication safety checks</h2></div><span>Pro</span></div><p class="clash-description">DoctorAI’s own database can flag a small set of known medicine clashes, duplicate ingredients, and recorded allergy matches. Coverage is limited; an absent alert does not mean the medicines are safe. This local check sends the medicine names and allergy/condition terms you choose to DoctorAI’s server and does not forward them to NZF or DrugBank. Separate provider checks remain gated on their own approvals.</p><div class="clash-status" role="status" aria-live="polite"></div><div class="clash-actions"><button class="secondary-button" type="button" data-medication-safety-profile>Review allergies, conditions &amp; symptoms</button><button class="primary-button" type="button" data-run-medication-safety-check>Check NZ medicine interactions</button><button class="primary-button" type="button" data-run-local-medication-safety-check>Check DoctorAI’s local database</button><button class="primary-button" type="button" data-run-ingredient-safety-check>Check ingredients &amp; health risks</button></div><label class="clash-consent"><input type="checkbox" data-local-medication-db-consent><span>DoctorAI local check: one-time request sends saved medicine names and your recorded allergy and condition terms to the DoctorAI server for checking against DoctorAI’s own limited database. These details are not sent to NZF or DrugBank. Doses, schedules, notes, scan images, and symptoms are not included. No alert does not mean safe.</span></label><div class="medication-db-result" data-local-medication-db-result role="status" aria-live="polite"></div><label class="clash-consent"><input type="checkbox" data-medication-db-consent><span>NZF/NZULM: this browser sends one product-ID entry per saved medicine (blank for unmatched items) to the DoctorAI server. When enabled, DoctorAI forwards only unique confirmed NZMT product IDs to NZF/NZULM; the unmatched count stays with DoctorAI. No medication names, doses, schedules, notes, scan images, allergies, conditions, or symptoms go to NZF/NZULM. Provider logging and use depend on approved terms.</span></label><div class="medication-db-result" data-medication-db-result role="status" aria-live="polite"></div><label class="clash-consent"><input type="checkbox" data-ingredient-safety-consent><span>DrugBank ingredient check: this browser sends matched ingredient IDs, mapped allergy/condition/symptom IDs, internal medication IDs, and unmatched counts to the DoctorAI server. If enabled, DoctorAI forwards only provider-required ingredient and risk IDs to DrugBank; internal medication IDs and unmatched counts stay with DoctorAI. Medication names, doses, schedules, notes, and scan images are not sent to DrugBank. DrugBank logs API requests. This is ingredient-level, not NZ product-level checking, and remains unavailable until its consumer-use licence, NZ scope, approved modules, and credentials are confirmed.</span></label><div class="medication-db-result" data-ingredient-safety-result role="status" aria-live="polite"></div><small class="clash-footnote">An alert may call for avoidance, monitoring, dose adjustment, or a timing change; it is not automatically a ban. Confirm it with a pharmacist or clinician. Never start, stop, or change treatment based only on an app result.</small>`;
     }
     panel.classList.toggle('pro-locked', !hasProAccess());
     const status = $('.clash-status', panel);
@@ -3876,6 +3876,104 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (postSaveToast) showToast(postSaveToast);
   }
 
+  function renderLocalMedicationDatabaseResult(container, result) {
+    container.replaceChildren();
+    const summary = document.createElement('p');
+    summary.className = 'medication-db-summary ' + (result.status === 'no-known-alerts' ? 'is-incomplete' : 'is-incomplete');
+    if (result.status === 'red') summary.textContent = 'The limited DoctorAI database found one or more potential issues. Review every alert with a pharmacist or prescriber.';
+    else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'The check is incomplete. One or more medicines were not matched, so clashes could not be assessed for them.';
+    else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
+    container.append(summary);
+    const coverage = document.createElement('small');
+    coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · matched ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines';
+    container.append(coverage);
+    (Array.isArray(result.resolved) ? result.resolved : []).forEach(item => {
+      const line = document.createElement('p');
+      const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
+      line.textContent = String(item.name || 'Saved medicine') + ': ' + (item.status === 'resolved' && names.length ? 'matched to ' + names.join(', ') : 'not matched; clashes are unknown');
+      container.append(line);
+    });
+    (Array.isArray(result.alerts) ? result.alerts : []).forEach(alert => {
+      const article = document.createElement('article');
+      article.className = 'safety-result-alert';
+      const heading = document.createElement('b');
+      heading.textContent = String(alert.title || 'Medicine safety alert');
+      const copy = document.createElement('p');
+      copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
+      article.append(heading, copy);
+      if (alert.source?.publisher) {
+        const source = document.createElement('small');
+        source.textContent = 'Source: ' + String(alert.source.publisher);
+        article.append(source);
+      }
+      container.append(article);
+    });
+    const disclaimer = document.createElement('p');
+    disclaimer.className = 'medication-db-incomplete-note';
+    disclaimer.textContent = String(result.disclaimer || 'This limited database cannot determine whether treatment is safe. Confirm with a pharmacist or prescriber.');
+    container.append(disclaimer);
+  }
+
+  async function runLocalMedicationSafetyCheck(button) {
+    const panel = button.closest('.clash-panel');
+    const output = panel?.querySelector('[data-local-medication-db-result]');
+    const consent = panel?.querySelector('[data-local-medication-db-consent]');
+    if (!panel || !output) return;
+    if (!authUser) {
+      output.textContent = 'Sign in before running a medication database check.';
+      openGoogleSignIn();
+      return;
+    }
+    if (!hasProAccess()) {
+      output.textContent = 'Medication database checks require DoctorAI Pro.';
+      return;
+    }
+    if (!state.medications.length) {
+      output.textContent = 'Add at least one medication before checking the saved list.';
+      return;
+    }
+    if (state.medications.length > 30) {
+      output.textContent = 'This check supports up to 30 saved medicines at a time. No partial list was sent.';
+      return;
+    }
+    if (consent?.checked !== true) {
+      output.textContent = 'Review the DoctorAI local database notice and check its consent box before this one-time request.';
+      consent?.focus();
+      return;
+    }
+    const payload = {
+      medications: state.medications.map(item => String(item?.name || '').trim()).filter(Boolean),
+      allergies: splitDetails(state.profile?.allergies || ''),
+      conditions: splitDetails(state.profile?.conditions || '')
+    };
+    if (!payload.medications.length) {
+      output.textContent = 'No medicine names are available to check.';
+      return;
+    }
+    button.disabled = true;
+    output.textContent = 'Checking the saved medicine names against DoctorAI’s limited local rules. Unmatched medicines will remain unknown.';
+    try {
+      const response = await fetch('/api/medication/safety', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'The DoctorAI medication database could not be reached.');
+      renderLocalMedicationDatabaseResult(output, result);
+    } catch (error) {
+      output.replaceChildren();
+      const message = document.createElement('p');
+      message.className = 'medication-db-incomplete-note';
+      message.textContent = String(error?.message || 'The DoctorAI database is unavailable. No complete check was returned.');
+      output.append(message);
+    } finally {
+      if (consent) consent.checked = false;
+      button.disabled = false;
+    }
+  }
+
   async function runMedicationSafetyCheck(button) {
     const panel = button.closest('.clash-panel');
     const output = panel?.querySelector('[data-medication-db-result]');
@@ -4079,6 +4177,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (safetyTermCandidate) { event.preventDefault(); chooseMedicationSafetyTerm(safetyTermCandidate); return; }
     const safetyTermRemove = event.target.closest('[data-remove-safety-mapping]');
     if (safetyTermRemove) { event.preventDefault(); removeMedicationSafetyTerm(safetyTermRemove); return; }
+    const localSafetyCheck = event.target.closest('[data-run-local-medication-safety-check]');
+    if (localSafetyCheck) { event.preventDefault(); await runLocalMedicationSafetyCheck(localSafetyCheck); return; }
     const safetyCheck = event.target.closest('[data-run-medication-safety-check]');
     if (safetyCheck) { event.preventDefault(); await runMedicationSafetyCheck(safetyCheck); return; }
     const ingredientSafetyCheck = event.target.closest('[data-run-ingredient-safety-check]');
