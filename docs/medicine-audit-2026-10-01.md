@@ -5,9 +5,10 @@ Review base: `993f593642db8657a3d27cb834d323e534df871c`, `kameronlewis1996-hash/
 ## Findings and scoped repairs
 
 - The local checker UI requires sign-in and Pro, but `/api/medication/safety` accepted anonymous requests. The endpoint now uses the existing durable identity, storage, entitlement, and account rate-limit checks (8 requests/minute), retaining no-store responses and complete-list validation. Tests cover 401, 503, 403, 429 and a successful synthetic Pro request. This adds the existing account-storage dependency to the local checker; storage or entitlement failure must not return a successful check.
+- Free manual medicine entry remains available. The medication form adds to browser/session state and does not require Pro; cloud sync runs only when account sync is enabled. The new gate protects the server-side local-database assessment only. The public printable template's name search loads a fixed, public catalogue with credentials omitted and filters it in the browser.
 - Concurrent calls to the local-check function could send duplicate requests. An in-flight button guard now prevents a second call; a concurrent-submission test verifies one request. Network failure releases the guard and resets consent.
 - Two unescaped apostrophes prevented `public-mcp/api/mcp.js` from parsing (original lines 82 and 146). Only string delimiters changed. Public directory submission and endpoint configuration were not touched.
-- The static verifier could not inspect hidden `.env.example` under Linux PowerShell. `Get-Item -Force` fixes that portability defect. An independent, pre-existing assertion still rejects the medicine-name search form in `medication-list-template.html`; that page was left unchanged.
+- The static verifier initially failed on Linux because `Get-Item` omitted hidden `.env.example`; `Get-Item -Force` fixes that portability issue. It also rejected the intended public catalogue lookup and missed the valid appointment-checklist route. Assertions now specifically constrain the single search field to a local-only, credentials-omitted lookup without making the page collect medication-list details. Updating the verification then exposed the missing CSP hash for the homepage's inline structured data, which is now included. The resource itself was left unchanged.
 - Existing limited-coverage and no-alert-does-not-mean-safe language is retained and exercised in the UI regression test.
 
 ## Existing work and scope
@@ -51,9 +52,13 @@ Passed locally with Node 24.19.0 and pnpm 11.19.0:
 - `node --test public-mcp/test/mcp.test.cjs`: 8 passed.
 - `git diff --check`.
 
-Failed: static verification, after enabling Linux-compatible PowerShell paths, reports “The printable medication-list resource must remain static and must not collect health information.” The assertion currently rejects the existing search form. This remains a release-check blocker; it is not evidence that the form transmits personal data.
+Passed: `scripts/verify-static-site.ps1` under Linux PowerShell after the hidden-file, stale route/search assertions, and missing CSP hash were corrected (70 required files, 10 production pages).
 
 Not run: authenticated browser scan→confirm→add→check→warning, phone camera/upload, durable save/reload, cross-device account state, real OCR/provider calls, deployment build and production tests. There is no general build or typecheck script in package.json. The Vercel preparation helper expects prebuilt output and Windows command names; no deployment/build was attempted.
+
+## Synthetic end-to-end rehearsal plan
+
+Use the existing authorized Pro test account in a controlled preview/test environment. The account owner should sign in interactively; no cookie, password, or token needs to be shared. Set up an empty test profile and enter fictional details. Exercise: (1) manual entry while signed out/free, verify it still saves according to the selected session/device-storage option; (2) Pro sign-in and the medication scan using a synthetic label with the OCR provider mocked at the server boundary; (3) compare extracted fields to the fixture, correct or reject them, confirm and save; (4) reload and verify the saved synthetic record; (5) deliberately submit the DoctorAI local check, verify the expected fixture warning, incomplete-coverage language, consent reset and no duplicate request; (6) verify the same account record on a second authorized test device only if cross-device sync is an in-scope acceptance criterion. Keep NZF, DrugBank, Stripe, and OpenAI endpoints mocked or disabled; the local catalogue check needs no third-party provider call. Remove fixture records at the end. This requires an already available Pro session, test storage, and a test/preview URL that the browser can reach. It does not require a new account, real patient details, provider credentials, or provider spend.
 
 ## Efficiency and access needed
 
