@@ -3932,6 +3932,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function runLocalMedicationSafetyCheck(button) {
+    if (button.disabled) return;
     const panel = button.closest('.clash-panel');
     const output = panel?.querySelector('[data-local-medication-db-result]');
     const consent = panel?.querySelector('[data-local-medication-db-consent]');

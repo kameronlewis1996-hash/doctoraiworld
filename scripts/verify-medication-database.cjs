@@ -93,15 +93,33 @@ for (const [meds, rule] of [
 console.log(`NZ catalogue verification passed: ${mapped} mapped product/formulations, combinations, ambiguous names, duplicates and 13 sourced interaction rules.`);
 
 const handler = require('../api/medication/safety.js');
+const core = require('../server-src/_lib/doctorai-core.cjs');
+const originalCore = Object.fromEntries(['identityFromRequest', 'storageConfigured', 'activeEntitlement', 'rateLimit'].map(key => [key, core[key]]));
 function call(method, body) {
   const result = {headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};
   return handler({method,body},result).then(() => result);
 }
 (async () => {
+  core.identityFromRequest = async () => null;
+  const valid = {medications:['Marevan','Nurofen']};
+  assert.equal((await call('POST',valid)).statusCode,401);
+  core.identityFromRequest = async () => ({email:'audit@example.invalid',sub:'synthetic-audit'});
+  core.storageConfigured = () => false;
+  assert.equal((await call('POST',valid)).statusCode,503);
+  core.storageConfigured = () => true;
+  core.activeEntitlement = async () => null;
+  assert.equal((await call('POST',valid)).statusCode,403);
+  core.activeEntitlement = async () => ({tier:'pro'});
+  core.rateLimit = async () => ({allowed:false,retryAfter:60});
+  const limited = await call('POST',valid);
+  assert.equal(limited.statusCode,429);
+  assert.equal(limited.headers['Retry-After'],'60');
+  assert.equal(limited.body.alerts,undefined);
+  core.rateLimit = async () => ({allowed:true});
   for (const body of [null, 'null', '{', {}, [], {medications:[]}, {medications:['']}, {medications:[{}]}, {medications:Array(51).fill('Warfarin')}, {medications:['Warfarin'],allergies:'penicillin'}]) assert.equal((await call('POST',body)).statusCode,400);
   assert.equal((await call('GET',{})).statusCode,405);
   const r = await call('POST',{medications:['Marevan','Nurofen']});
   assert.equal(r.statusCode,200);assert.equal(r.body.status,'red');assert.equal(r.headers['Cache-Control'],'no-store');
   assert.equal(r.body.coverage.completeForRequest,false);
-  console.log('Endpoint verification passed: malformed/blank/oversized lists rejected without partial checks, no-store, and sourced alerts.');
-})().catch(error => { console.error(error); process.exitCode=1; });
+  console.log('Endpoint verification passed: sign-in, secure storage, Pro and rate-limit gates; malformed/blank/oversized lists rejected without partial checks, no-store, and sourced alerts.');
+})().catch(error => { console.error(error); process.exitCode=1; }).finally(() => Object.assign(core,originalCore));

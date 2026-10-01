@@ -79,7 +79,7 @@ const SITE_GUIDE = {
   },
   doctorai_chat: {
     title: 'Ask DoctorAI',
-    summary: 'Use the website's sign-in-protected AI conversation for health organisation and general education.',
+    summary: "Use the website's sign-in-protected AI conversation for health organisation and general education.",
     destination: 'doctorai_chat',
     access: 'Requires sign-in. Users choose what they send and whether approved Health Memory is included.',
     limits: 'The website assistant does not diagnose, prescribe, confirm medicine combinations as safe, or replace a clinician.'
@@ -143,7 +143,7 @@ const TOOLS = [
   {
     name: 'doctorai_open_site',
     title: 'Open a DoctorAI website section',
-    description: 'Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available.',
+    description: "Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available.",
     inputSchema: {
       type: 'object',
       properties: {
