@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f1f9ff">
   <title>Free Medication List Template for Appointments | DoctorAI</title>
   <meta name="description" content="Use this free medication list template to record label details and questions for your next appointment. Keep it current and review it with your care team.">
@@ -42,7 +43,7 @@
           <button class="guide-button guide-print" id="print-template" type="button">Print blank template</button>
           <button class="guide-button" id="download-csv" type="button">Download blank CSV</button>
         </div>
-        <p class="guide-utility-note">The CSV contains column headings only. This page does not collect or include personal details.</p>
+        <p class="guide-utility-note">The CSV contains column headings only. The template does not collect or include your medicine details. Optional page counts are separate and off until you allow them below.</p>
       </header>
 
       <section class="guide-section" aria-labelledby="template-title">
@@ -106,6 +107,16 @@
         <p>FDA patient guidance recommends listing vitamins and supplements as well as prescription and over-the-counter medicines. Ask your care team what details they need.</p>
         <h3>Where can I learn more?</h3>
         <p>Read the <a href="https://www.fda.gov/consumers/consumer-updates/create-and-keep-medication-list-your-health" rel="noopener noreferrer">FDA guide to creating and keeping a medication list</a> and the <a href="https://medlineplus.gov/ency/patientinstructions/000600.htm" rel="noopener noreferrer">MedlinePlus guide to keeping medicines organized</a>. This page summarizes general organizational guidance; it is not a substitute for personal medical advice.</p>
+      </section>
+      <section class="guide-section guide-measurement" aria-labelledby="measurement-title">
+        <h2 id="measurement-title">Help improve this free resource</h2>
+        <p>If you allow, Vercel can count this page visit using its cookie-free Web Analytics service. We report the same generic resource URL for everyone, with no medicine or Health Hub details. Vercel may produce aggregate browser, device, location and public referrer statistics. Your choice applies to this page visit and is not saved. <a href="/privacy">Read the privacy notice</a>.</p>
+        <div class="guide-actions" role="group" aria-label="Optional page counting">
+          <button class="guide-button" id="measurement-allow" type="button" disabled>Allow for this visit</button>
+          <button class="guide-button guide-button-secondary" id="measurement-decline" type="button" disabled>No thanks</button>
+        </div>
+        <p class="guide-measurement-status" id="measurement-status" role="status" aria-live="polite">Page counting is off until you allow it.</p>
+        <noscript><p>Page counting stays off because JavaScript is unavailable. You can still print this page using your browser.</p></noscript>
       </section>
     </article>
   </main>
