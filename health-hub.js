@@ -2474,8 +2474,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
           ? '<div class="modal-help scan-result-note"><b>Package barcode found.</b><span>The code does not contain your personal dose or directions. Enter those only from your own label.</span></div>'
           : '';
     const editNote = editing ? `<div class="modal-help scan-result-note"><b>Update saved medication details.</b><span>Leave the refill field blank to keep its current value${savedRefill && savedRefill !== 'Not set' ? ` (${escapeHTML(savedRefill)})` : ''}. Check “Clear saved refill date” to remove it. Changes to the medicine name, strength, or ingredient list clear the product match and require you to confirm the medicine again.</span></div>` : '';
-    setModal('Add a medication', 'Medication manager', `${scanNote}<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned || prefill.__barcode)}"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><datalist id="manual-medicine-list"><option value="Warfarin"><option value="Coumadin"><option value="Ibuprofen"><option value="Nurofen"><option value="Aspirin"><option value="Naproxen"><option value="Diclofenac"><option value="Paracetamol"><option value="Panadol"><option value="Amoxicillin"><option value="Flucloxacillin"><option value="Sildenafil"><option value="Viagra"><option value="Glyceryl trinitrate"><option value="GTN"><option value="Sertraline"><option value="Fluoxetine"><option value="Methotrexate"><option value="Co-trimoxazole"><option value="Metformin"><option value="Atorvastatin"><option value="Amlodipine"><option value="Omeprazole"><option value="Salbutamol"><option value="Ventolin"><option value="Cetirizine"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="${escapeHTML(prefill.dose || '')}"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="${escapeHTML(prefill.time || '')}"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="${escapeHTML(prefill.endDate || '')}"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="${escapeHTML(prefill.supply ?? '')}"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="${escapeHTML(prefill.refill || '')}"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="${escapeHTML(prefill.prescriptionExpiry || '')}"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="${escapeHTML(prefill.repeats || '')}"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">${escapeHTML(prefill.instructions || '')}</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span>→</span></button></div></form>`);
+    setModal('Add a medication', 'Medication manager', `${scanNote}<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned || prefill.__barcode)}"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="${escapeHTML(prefill.dose || '')}"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="${escapeHTML(prefill.time || '')}"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="${escapeHTML(prefill.endDate || '')}"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="${escapeHTML(prefill.supply ?? '')}"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="${escapeHTML(prefill.refill || '')}"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="${escapeHTML(prefill.prescriptionExpiry || '')}"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="${escapeHTML(prefill.repeats || '')}"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">${escapeHTML(prefill.instructions || '')}</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span>→</span></button></div></form>`);
     const medicationForm = document.querySelector('[data-modal-form="medication"]');
+    if (medicationForm) attachLocalMedicineSuggestions(medicationForm);
     if (medicationForm && editing) {
       els.modalTitle.textContent = 'Edit medication';
       medicationForm.dataset.editMedicationId = editId;
@@ -2502,14 +2503,6 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientField.className = 'modal-field full';
       const ingredientTitle = document.createElement('span');
       ingredientTitle.textContent = 'Active ingredient(s) from the label (optional)';
-      const automaticIngredientMap = new Map([
-        ['warfarin','Warfarin'],['coumadin','Warfarin'],['ibuprofen','Ibuprofen'],['nurofen','Ibuprofen'],
-        ['aspirin','Aspirin'],['naproxen','Naproxen'],['diclofenac','Diclofenac'],['paracetamol','Paracetamol'],['panadol','Paracetamol'],
-        ['amoxicillin','Amoxicillin'],['flucloxacillin','Flucloxacillin'],['sildenafil','Sildenafil'],['viagra','Sildenafil'],
-        ['glyceryl trinitrate','Glyceryl trinitrate'],['gtn','Glyceryl trinitrate'],['sertraline','Sertraline'],['fluoxetine','Fluoxetine'],
-        ['methotrexate','Methotrexate'],['co-trimoxazole','Trimethoprim/sulfamethoxazole'],['metformin','Metformin'],
-        ['atorvastatin','Atorvastatin'],['amlodipine','Amlodipine'],['omeprazole','Omeprazole'],['salbutamol','Salbutamol'],['ventolin','Salbutamol'],['cetirizine','Cetirizine']
-      ]);
       const ingredientInput = document.createElement('textarea');
       ingredientInput.name = 'activeIngredients';
       ingredientInput.rows = 2;
@@ -2534,17 +2527,6 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientCheckText.textContent = 'I checked that every active ingredient on the original medicine label appears above.';
       ingredientConfirm.append(ingredientCheck, ingredientCheckText);
       medicationGrid.append(ingredientConfirm);
-      const applyAutomaticIngredient = () => {
-        const key = String(medicationForm.elements.name?.value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-        const ingredient = automaticIngredientMap.get(key);
-        if (!ingredient) return;
-        ingredientInput.value = ingredient;
-        ingredientCheck.checked = true;
-        resolvedInput && (resolvedInput.value = '[]');
-      };
-      medicationForm.elements.name?.addEventListener('change', applyAutomaticIngredient);
-      medicationForm.elements.name?.addEventListener('input', applyAutomaticIngredient);
-
       const ingredientSearchField = document.createElement('div');
       ingredientSearchField.className = 'modal-field full medication-ingredient-search';
       const ingredientSearchTitle = document.createElement('b');
@@ -2678,6 +2660,30 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       medicationForm.elements.name?.addEventListener('input', clearIdentityMatch);
       medicationForm.elements.dose?.addEventListener('input', clearIdentityMatch);
     }
+  }
+
+  let localMedicineNamesPromise;
+  function attachLocalMedicineSuggestions(form) {
+    const input = form.elements.name;
+    const list = form.querySelector('#manual-medicine-list');
+    if (!input || !list) return;
+    const notice = document.createElement('small');
+    notice.textContent = 'NZ names from Pharmac community and hospital schedules (October 2026). Confirm the medicine and every ingredient against your label. A name suggestion is not a safety check.';
+    input.parentElement.append(notice);
+    if (!localMedicineNamesPromise) localMedicineNamesPromise = fetch('/data/medication/nz-medicine-names.json?v=20261001', { credentials: 'omit' })
+      .then(response => { if (!response.ok) throw new Error('Medicine names unavailable'); return response.json(); })
+      .then(data => Array.isArray(data.names) ? data.names.filter(name => typeof name === 'string' && name.length <= 120) : [])
+      .catch(() => { localMedicineNamesPromise = null; return []; });
+    const update = names => {
+      if (!form.isConnected) return;
+      const query = input.value.toLocaleLowerCase().trim();
+      list.replaceChildren();
+      if (query.length < 2) return;
+      const matches = names.filter(name => name.toLocaleLowerCase().includes(query));
+      matches.sort((a, b) => Number(!a.toLocaleLowerCase().startsWith(query)) - Number(!b.toLocaleLowerCase().startsWith(query)) || a.length - b.length || a.localeCompare(b));
+      matches.slice(0, 80).forEach(name => { const option = document.createElement('option'); option.value = name; list.append(option); });
+    };
+    localMedicineNamesPromise.then(names => { update(names); input.addEventListener('input', () => update(names)); });
   }
 
   function validNzmtProduct(product) {
@@ -3881,18 +3887,27 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderLocalMedicationDatabaseResult(container, result) {
     container.replaceChildren();
     const summary = document.createElement('p');
-    summary.className = 'medication-db-summary ' + (result.status === 'no-known-alerts' ? 'is-incomplete' : 'is-incomplete');
+    summary.className = 'medication-db-summary is-incomplete';
     if (result.status === 'red') summary.textContent = 'The limited DoctorAI database found one or more potential issues. Review every alert with a pharmacist or prescriber.';
-    else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'The check is incomplete. One or more medicines were not matched, so clashes could not be assessed for them.';
+    else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'This is a limited check. Unmatched medicines and risks outside the curated rules could not be assessed. Matching every medicine does not confirm safety.';
     else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
     container.append(summary);
     const coverage = document.createElement('small');
     coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · matched ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines';
     container.append(coverage);
+    if (result.catalogue) {
+      const catalogue = document.createElement('p');
+      catalogue.textContent = (result.catalogue.productFormulations || 0) + ' NZ product/formulation records · ' + (result.catalogue.brandNames || 0) + ' brand names · ' + (result.coverage?.interactionRuleCount || 0) + ' curated interaction rules. ' + String(result.catalogue.attribution || '') + ' ' + String(result.catalogue.disclaimer || '');
+      const source = document.createElement('a');
+      source.href = 'https://schedule.pharmac.govt.nz/pub/';
+      source.textContent = 'Pharmac source files (CC BY 4.0)';
+      catalogue.append(document.createTextNode(' '), source);
+      container.append(catalogue);
+    }
     (Array.isArray(result.resolved) ? result.resolved : []).forEach(item => {
       const line = document.createElement('p');
       const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
-      line.textContent = String(item.name || 'Saved medicine') + ': ' + (item.status === 'resolved' && names.length ? 'matched to ' + names.join(', ') : 'not matched; clashes are unknown');
+      line.textContent = String(item.name || 'Saved medicine') + ': ' + (item.status === 'resolved' && names.length ? 'matched to ' + names.join(', ') : 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : ''));
       container.append(line);
     });
     (Array.isArray(result.alerts) ? result.alerts : []).forEach(alert => {
@@ -3944,12 +3959,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const payload = {
-      medications: state.medications.map(item => String(item?.name || '').trim()).filter(Boolean),
+      medications: state.medications.map(item => String(item?.name || '').trim()),
       allergies: splitDetails(state.profile?.allergies || ''),
       conditions: splitDetails(state.profile?.conditions || '')
     };
-    if (!payload.medications.length) {
-      output.textContent = 'No medicine names are available to check.';
+    if (!payload.medications.length || payload.medications.some(name => !name)) {
+      output.textContent = 'Every saved medicine needs a name. No partial list was sent.';
       return;
     }
     button.disabled = true;

@@ -1,18 +1,20 @@
 {
-  "schemaVersion": 2,
-  "datasetVersion": "2026-09-30-expanded-v3",
-  "scope": "Versioned medication terminology and curated safety rules. Absence of a rule MUST be treated as unknown evidence, never proof of safety.",
+  "schemaVersion": 3,
+  "datasetVersion": "2026-10-01-nz-pharmac-v4",
+  "scope": "NZ medicine terminology plus a limited set of sourced safety flags. All interaction, allergy and condition coverage remains incomplete; terminology matching is never proof of safety.",
   "ingredients": [
     {
       "id": "warfarin",
       "name": "Warfarin",
       "aliases": [
-        "coumadin"
+        "coumadin",
+        "warfarin sodium"
       ],
       "classes": [
         "vitamin-k-antagonist",
         "anticoagulant"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "ibuprofen",
@@ -23,7 +25,8 @@
       ],
       "classes": [
         "nsaid"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "aspirin",
@@ -35,7 +38,8 @@
         "nsaid",
         "salicylate",
         "antiplatelet"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "naproxen",
@@ -45,17 +49,21 @@
       ],
       "classes": [
         "nsaid"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "diclofenac",
       "name": "Diclofenac",
       "aliases": [
-        "voltaren"
+        "voltaren",
+        "diclofenac sodium",
+        "diclofenac potassium"
       ],
       "classes": [
         "nsaid"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "paracetamol",
@@ -66,36 +74,45 @@
       ],
       "classes": [
         "analgesic"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "amoxicillin",
       "name": "Amoxicillin",
-      "aliases": [],
+      "aliases": [
+        "amoxycillin"
+      ],
       "classes": [
         "penicillin",
         "beta-lactam"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "flucloxacillin",
       "name": "Flucloxacillin",
-      "aliases": [],
+      "aliases": [
+        "flucloxacillin sodium"
+      ],
       "classes": [
         "penicillin",
         "beta-lactam"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "penicillin-v",
       "name": "Phenoxymethylpenicillin",
       "aliases": [
-        "penicillin v"
+        "penicillin v",
+        "phenoxymethylpenicillin potassium"
       ],
       "classes": [
         "penicillin",
         "beta-lactam"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "sildenafil",
@@ -105,7 +122,8 @@
       ],
       "classes": [
         "pde5-inhibitor"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "glyceryl-trinitrate",
@@ -116,7 +134,8 @@
       ],
       "classes": [
         "nitrate"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "isosorbide-mononitrate",
@@ -124,29 +143,36 @@
       "aliases": [],
       "classes": [
         "nitrate"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "sertraline",
       "name": "Sertraline",
       "aliases": [
-        "zoloft"
+        "zoloft",
+        "sertraline hydrochloride"
       ],
       "classes": [
         "ssri",
-        "serotonergic"
-      ]
+        "serotonergic",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "fluoxetine",
       "name": "Fluoxetine",
       "aliases": [
-        "prozac"
+        "prozac",
+        "fluoxetine hydrochloride"
       ],
       "classes": [
         "ssri",
-        "serotonergic"
-      ]
+        "serotonergic",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "phenelzine",
@@ -156,7 +182,8 @@
       ],
       "classes": [
         "maoi"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "tranylcypromine",
@@ -166,7 +193,8 @@
       ],
       "classes": [
         "maoi"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "methotrexate",
@@ -175,27 +203,19 @@
       "classes": [
         "antimetabolite",
         "immunosuppressant"
-      ]
-    },
-    {
-      "id": "trimethoprim-sulfamethoxazole",
-      "name": "Trimethoprim/sulfamethoxazole",
-      "aliases": [
-        "co-trimoxazole",
-        "cotrimoxazole"
       ],
-      "classes": [
-        "antibiotic",
-        "folate-antagonist"
-      ]
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "metformin",
       "name": "Metformin",
-      "aliases": [],
+      "aliases": [
+        "metformin hydrochloride"
+      ],
       "classes": [
         "biguanide"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "atorvastatin",
@@ -205,7 +225,8 @@
       ],
       "classes": [
         "statin"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "amlodipine",
@@ -215,7 +236,8 @@
       ],
       "classes": [
         "calcium-channel-blocker"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "omeprazole",
@@ -225,18 +247,22 @@
       ],
       "classes": [
         "proton-pump-inhibitor"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "salbutamol",
       "name": "Salbutamol",
       "aliases": [
         "albuterol",
-        "ventolin"
+        "ventolin",
+        "salbutamol sulphate",
+        "salbutamol sulfate"
       ],
       "classes": [
         "short-acting-beta2-agonist"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     },
     {
       "id": "cetirizine",
@@ -246,7 +272,524 @@
       ],
       "classes": [
         "antihistamine"
-      ]
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "trimethoprim",
+      "name": "Trimethoprim",
+      "aliases": [],
+      "classes": [
+        "folate-antagonist"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "sulfamethoxazole",
+      "name": "Sulfamethoxazole",
+      "aliases": [
+        "sulphamethoxazole"
+      ],
+      "classes": [
+        "sulfonamide-antibiotic"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "lithium",
+      "name": "Lithium",
+      "aliases": [
+        "lithium carbonate"
+      ],
+      "classes": [
+        "mood-stabiliser"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "spironolactone",
+      "name": "Spironolactone",
+      "aliases": [],
+      "classes": [
+        "potassium-sparing-diuretic"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "simvastatin",
+      "name": "Simvastatin",
+      "aliases": [],
+      "classes": [
+        "statin"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "clarithromycin",
+      "name": "Clarithromycin",
+      "aliases": [],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "erythromycin",
+      "name": "Erythromycin",
+      "aliases": [],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "itraconazole",
+      "name": "Itraconazole",
+      "aliases": [],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ketoconazole",
+      "name": "Ketoconazole",
+      "aliases": [],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ritonavir",
+      "name": "Ritonavir",
+      "aliases": [],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ciclosporin",
+      "name": "Ciclosporin",
+      "aliases": [
+        "cyclosporine"
+      ],
+      "classes": [
+        "simvastatin-interacting-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "tramadol",
+      "name": "Tramadol",
+      "aliases": [
+        "tramadol hydrochloride"
+      ],
+      "classes": [
+        "high-risk-serotonergic-opioid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "pethidine",
+      "name": "Pethidine",
+      "aliases": [
+        "pethidine hydrochloride"
+      ],
+      "classes": [
+        "high-risk-serotonergic-opioid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "dextromethorphan",
+      "name": "Dextromethorphan",
+      "aliases": [
+        "dextromethorphan hydrobromide"
+      ],
+      "classes": [
+        "high-risk-serotonergic-opioid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "captopril",
+      "name": "Captopril",
+      "aliases": [],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "cilazapril",
+      "name": "Cilazapril",
+      "aliases": [],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "enalapril",
+      "name": "Enalapril",
+      "aliases": [
+        "enalapril maleate"
+      ],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "lisinopril",
+      "name": "Lisinopril",
+      "aliases": [],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "perindopril",
+      "name": "Perindopril",
+      "aliases": [
+        "perindopril arginine",
+        "perindopril erbumine"
+      ],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "quinapril",
+      "name": "Quinapril",
+      "aliases": [],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ramipril",
+      "name": "Ramipril",
+      "aliases": [],
+      "classes": [
+        "ace-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "candesartan",
+      "name": "Candesartan",
+      "aliases": [
+        "candesartan cilexetil"
+      ],
+      "classes": [
+        "arb"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "losartan",
+      "name": "Losartan",
+      "aliases": [
+        "losartan potassium"
+      ],
+      "classes": [
+        "arb"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "valsartan",
+      "name": "Valsartan",
+      "aliases": [],
+      "classes": [
+        "arb"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "irbesartan",
+      "name": "Irbesartan",
+      "aliases": [],
+      "classes": [
+        "arb"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "telmisartan",
+      "name": "Telmisartan",
+      "aliases": [],
+      "classes": [
+        "arb"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "hydrochlorothiazide",
+      "name": "Hydrochlorothiazide",
+      "aliases": [],
+      "classes": [
+        "thiazide-diuretic"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "bendroflumethiazide",
+      "name": "Bendroflumethiazide",
+      "aliases": [],
+      "classes": [
+        "thiazide-diuretic"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "citalopram",
+      "name": "Citalopram",
+      "aliases": [
+        "citalopram hydrobromide"
+      ],
+      "classes": [
+        "ssri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "escitalopram",
+      "name": "Escitalopram",
+      "aliases": [
+        "escitalopram oxalate"
+      ],
+      "classes": [
+        "ssri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "paroxetine",
+      "name": "Paroxetine",
+      "aliases": [
+        "paroxetine hydrochloride"
+      ],
+      "classes": [
+        "ssri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "fluvoxamine",
+      "name": "Fluvoxamine",
+      "aliases": [
+        "fluvoxamine maleate"
+      ],
+      "classes": [
+        "ssri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "venlafaxine",
+      "name": "Venlafaxine",
+      "aliases": [
+        "venlafaxine hydrochloride"
+      ],
+      "classes": [
+        "snri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "duloxetine",
+      "name": "Duloxetine",
+      "aliases": [
+        "duloxetine hydrochloride"
+      ],
+      "classes": [
+        "snri",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "amitriptyline",
+      "name": "Amitriptyline",
+      "aliases": [
+        "amitriptyline hydrochloride"
+      ],
+      "classes": [
+        "tca",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "clomipramine",
+      "name": "Clomipramine",
+      "aliases": [
+        "clomipramine hydrochloride"
+      ],
+      "classes": [
+        "tca",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "imipramine",
+      "name": "Imipramine",
+      "aliases": [
+        "imipramine hydrochloride"
+      ],
+      "classes": [
+        "tca",
+        "serotonergic-antidepressant"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "tadalafil",
+      "name": "Tadalafil",
+      "aliases": [],
+      "classes": [
+        "pde5-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "vardenafil",
+      "name": "Vardenafil",
+      "aliases": [],
+      "classes": [
+        "pde5-inhibitor"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "isosorbide-dinitrate",
+      "name": "Isosorbide dinitrate",
+      "aliases": [],
+      "classes": [
+        "nitrate"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "celecoxib",
+      "name": "Celecoxib",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "etoricoxib",
+      "name": "Etoricoxib",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ketoprofen",
+      "name": "Ketoprofen",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "indometacin",
+      "name": "Indometacin",
+      "aliases": [
+        "indomethacin"
+      ],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "mefenamic-acid",
+      "name": "Mefenamic acid",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "meloxicam",
+      "name": "Meloxicam",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "piroxicam",
+      "name": "Piroxicam",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "tenoxicam",
+      "name": "Tenoxicam",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "parecoxib",
+      "name": "Parecoxib",
+      "aliases": [],
+      "classes": [
+        "nsaid"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "ampicillin",
+      "name": "Ampicillin",
+      "aliases": [
+        "ampicillin sodium"
+      ],
+      "classes": [
+        "penicillin",
+        "beta-lactam"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
+    },
+    {
+      "id": "benzylpenicillin",
+      "name": "Benzylpenicillin",
+      "aliases": [
+        "benzylpenicillin sodium",
+        "benzylpenicillin potassium"
+      ],
+      "classes": [
+        "penicillin",
+        "beta-lactam"
+      ],
+      "classificationSource": "DoctorAI curated classification; limited to the classes used by the sourced rules."
     }
   ],
   "products": [
@@ -332,6 +875,33 @@
       ],
       "market": "international",
       "source": "RxNorm terminology mapping"
+    },
+    {
+      "name": "Co-trimoxazole",
+      "ingredients": [
+        "trimethoprim",
+        "sulfamethoxazole"
+      ],
+      "market": "NZ",
+      "source": "Medsafe methotrexate/trimethoprim interaction reminder, March 2022"
+    },
+    {
+      "name": "Cotrimoxazole",
+      "ingredients": [
+        "trimethoprim",
+        "sulfamethoxazole"
+      ],
+      "market": "NZ",
+      "source": "Medsafe methotrexate/trimethoprim interaction reminder, March 2022"
+    },
+    {
+      "name": "Trimethoprim/sulfamethoxazole",
+      "ingredients": [
+        "trimethoprim",
+        "sulfamethoxazole"
+      ],
+      "market": "NZ",
+      "source": "Medsafe methotrexate/trimethoprim interaction reminder, March 2022"
     }
   ],
   "interactionRules": [
@@ -389,15 +959,159 @@
         "ingredient": "methotrexate"
       },
       "right": {
-        "ingredient": "trimethoprim-sulfamethoxazole"
+        "ingredient": "trimethoprim"
       },
       "severity": "high",
-      "effect": "Concomitant trimethoprim/sulfamethoxazole has been reported to increase bone marrow suppression with methotrexate; clinical review is required.",
+      "effect": "Trimethoprim alone or in co-trimoxazole with methotrexate can cause severe bone marrow suppression. Prompt pharmacist/prescriber review is required.",
       "source": {
         "publisher": "Medsafe NZ",
         "url": "https://www.medsafe.govt.nz/profs/PUArticles/March2022/Bone-marrow-suppression-methotrexate-and-trimethoprim-or-co-trimoxazole.html"
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "lithium-nsaid",
+      "left": {
+        "ingredient": "lithium"
+      },
+      "right": {
+        "class": "nsaid"
+      },
+      "severity": "high",
+      "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "lithium-ace-inhibitor",
+      "left": {
+        "ingredient": "lithium"
+      },
+      "right": {
+        "class": "ace-inhibitor"
+      },
+      "severity": "high",
+      "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "lithium-arb",
+      "left": {
+        "ingredient": "lithium"
+      },
+      "right": {
+        "class": "arb"
+      },
+      "severity": "high",
+      "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "lithium-thiazide-diuretic",
+      "left": {
+        "ingredient": "lithium"
+      },
+      "right": {
+        "class": "thiazide-diuretic"
+      },
+      "severity": "high",
+      "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "spironolactone-ace-inhibitor",
+      "left": {
+        "ingredient": "spironolactone"
+      },
+      "right": {
+        "class": "ace-inhibitor"
+      },
+      "severity": "high",
+      "effect": "May cause severe hyperkalaemia, especially with renal impairment. Requires clinical review and potassium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "spironolactone-arb",
+      "left": {
+        "ingredient": "spironolactone"
+      },
+      "right": {
+        "class": "arb"
+      },
+      "severity": "high",
+      "effect": "May cause severe hyperkalaemia, especially with renal impairment. Requires clinical review and potassium/renal monitoring.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "simvastatin-interacting-inhibitor",
+      "left": {
+        "ingredient": "simvastatin"
+      },
+      "right": {
+        "class": "simvastatin-interacting-inhibitor"
+      },
+      "severity": "high",
+      "effect": "Can increase simvastatin exposure and cause serious muscle injury/rhabdomyolysis. Prompt pharmacist/prescriber review is required; route and formulation must be checked.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/December2014Simvastatin.htm"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "serotonergic-opioid-antidepressant",
+      "left": {
+        "class": "high-risk-serotonergic-opioid"
+      },
+      "right": {
+        "class": "serotonergic-antidepressant"
+      },
+      "severity": "high",
+      "effect": "Increased risk of serotonin syndrome. Requires pharmacist/prescriber review.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html"
+      },
+      "reviewed": "2026-10-01"
+    },
+    {
+      "id": "serotonergic-opioid-maoi",
+      "left": {
+        "class": "high-risk-serotonergic-opioid"
+      },
+      "right": {
+        "class": "maoi"
+      },
+      "severity": "high",
+      "effect": "Concomitant use is contraindicated because of serotonin syndrome risk. Prompt pharmacist/prescriber review is required.",
+      "source": {
+        "publisher": "Medsafe NZ",
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html"
+      },
+      "reviewed": "2026-10-01"
     }
   ],
   "allergyRules": [
@@ -441,7 +1155,7 @@
       "marketLimit": "U.S.-centric; not sufficient for complete NZ product coverage."
     }
   ],
-  "datasetReviewed": "2026-09-30",
+  "datasetReviewed": "2026-10-01",
   "contraindicationRules": [],
   "importSources": [
     {
