@@ -81,6 +81,10 @@
       "destination": "/health-hub.html"
     },
     {
+      "source": "/appointment-checklist",
+      "destination": "/appointment-checklist.html"
+    },
+    {
       "source": "/research",
       "destination": "/research.html"
     },

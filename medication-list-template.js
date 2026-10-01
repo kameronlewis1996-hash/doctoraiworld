@@ -15,6 +15,85 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('medicine-name-search');
+  const input = document.getElementById('medicine-name-query');
+  const status = document.getElementById('medicine-name-search-status');
+  const results = document.getElementById('medicine-name-search-results');
+  if (!form || !input || !status || !results) return;
+
+  let namesPromise;
+  const normalise = value => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+
+  async function loadNames() {
+    if (!namesPromise) {
+      namesPromise = fetch('/data/medication/nz-medicine-names.json?v=20261001', {
+        credentials: 'omit',
+        cache: 'force-cache'
+      }).then(response => {
+        if (!response.ok) throw new Error('Medicine names could not be loaded.');
+        return response.json();
+      }).then(data => {
+        if (!Array.isArray(data.names)) throw new Error('Medicine names are unavailable.');
+        return data.names.filter(name => typeof name === 'string' && name.length <= 180);
+      }).catch(error => {
+        namesPromise = null;
+        throw error;
+      });
+    }
+    return namesPromise;
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    results.replaceChildren();
+    const query = normalise(input.value);
+    if (query.length < 2) {
+      status.textContent = 'Enter at least two characters from the name on your package.';
+      input.focus();
+      return;
+    }
+
+    status.textContent = 'Searching the public name list stored on this site…';
+    try {
+      const names = await loadNames();
+      const matches = names.filter(name => normalise(name).includes(query));
+      matches.sort((a, b) => Number(!normalise(a).startsWith(query)) - Number(!normalise(b).startsWith(query)) || a.length - b.length || a.localeCompare(b));
+      const shown = matches.slice(0, 20);
+
+      shown.forEach(name => {
+        const item = document.createElement('li');
+        const text = document.createElement('span');
+        text.textContent = name;
+        const copy = document.createElement('button');
+        copy.type = 'button';
+        copy.className = 'medicine-name-copy';
+        copy.textContent = 'Copy name';
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(name);
+            status.textContent = 'Copied the name. Check it against your package before adding it to your list.';
+          } catch {
+            status.textContent = 'Select the matching name above and copy it to your list. Your search is not saved or sent.';
+          }
+        });
+        item.append(text, copy);
+        results.append(item);
+      });
+
+      if (matches.length === 0) {
+        status.textContent = 'No matching name was found in this Pharmac dataset. Try a different spelling or part of the name; a missing result does not prove a medicine is unlisted.';
+      } else if (matches.length > shown.length) {
+        status.textContent = `Showing the first ${shown.length} of ${matches.length} matches. Add more of the name to narrow the results.`;
+      } else {
+        status.textContent = `Found ${matches.length} matching ${matches.length === 1 ? 'name' : 'names'}. Check any result against the package label.`;
+      }
+    } catch (error) {
+      status.textContent = error.message || 'The public name list could not be loaded. You can still use the blank template.';
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
   const allowButton = document.getElementById('measurement-allow');
   const declineButton = document.getElementById('measurement-decline');
   const status = document.getElementById('measurement-status');

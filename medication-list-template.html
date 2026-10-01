@@ -6,10 +6,10 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f1f9ff">
   <title>Free Medication List Template for Appointments | DoctorAI</title>
-  <meta name="description" content="Use this free medication list template to record label details and questions for your next appointment. Keep it current and review it with your care team.">
+  <meta name="description" content="Use this free printable medication list template for appointments, with an optional private lookup of names in the New Zealand Pharmac schedules.">
   <link rel="canonical" href="https://www.doctoraiworld.com/medication-list-template">
   <meta property="og:title" content="Free Medication List Template | DoctorAI">
-  <meta property="og:description" content="A simple, printable template for organizing medicine details and questions before an appointment.">
+  <meta property="og:description" content="A printable medication list template with an optional private lookup of names in the New Zealand Pharmac schedules.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://www.doctoraiworld.com/medication-list-template">
   <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
@@ -44,7 +44,28 @@
           <button class="guide-button" id="download-csv" type="button">Download blank CSV</button>
         </div>
         <p class="guide-utility-note">The CSV contains column headings only. The template does not collect or include your medicine details. Optional page counts are separate and off until you allow them below.</p>
+        <p class="guide-utility-note">Preparing for more than medicines? Use our <a href="/appointment-checklist">free New Zealand doctor appointment checklist</a>.</p>
       </header>
+
+      <section class="guide-section guide-name-lookup" aria-labelledby="name-lookup-title">
+        <div class="guide-section-heading">
+          <div>
+            <p class="guide-eyebrow">Optional local lookup</p>
+            <h2 id="name-lookup-title">Look up a medicine name</h2>
+          </div>
+          <p>Search names from the New Zealand Pharmac schedules to help copy a name from your package onto your list.</p>
+        </div>
+        <form id="medicine-name-search" role="search" autocomplete="off" novalidate>
+          <label for="medicine-name-query">Name shown on the package or label</label>
+          <div class="medicine-name-search-row">
+            <input id="medicine-name-query" type="search" maxlength="120" spellcheck="false" placeholder="Type at least two characters">
+            <button class="guide-button" type="submit">Search names</button>
+          </div>
+        </form>
+        <p class="medicine-name-search-status" id="medicine-name-search-status" role="status" aria-live="polite">Your search is not saved or sent. The public name list is loaded from this site when you search.</p>
+        <ul class="medicine-name-search-results" id="medicine-name-search-results" aria-label="Matching medicine names"></ul>
+        <p class="medicine-name-source">Names adapted from Pharmac’s <a href="https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml" rel="noopener noreferrer">October 2026 Pharmaceutical Schedule</a> and <a href="https://schedule.pharmac.govt.nz/pub/HML/archive/2026/2026-10-01/HML_2026-10-01.xml" rel="noopener noreferrer">Hospital Medicines List</a> under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>. Pharmac does not endorse DoctorAI. This is a name lookup only: a result does not confirm the exact product, ingredients, availability, funding, suitability, or safety. A missing name does not prove that a medicine is not listed. Check the full name and strength against your package with a pharmacist or clinician.</p>
+      </section>
 
       <section class="guide-section" aria-labelledby="template-title">
         <div class="guide-section-heading">
@@ -127,6 +148,7 @@
     <nav aria-label="Footer navigation">
       <a href="/">Home</a>
       <a href="/health-hub">Health Hub</a>
+      <a href="/appointment-checklist">Doctor appointment checklist</a>
       <a href="/privacy">Privacy</a>
       <a href="/terms">Terms</a>
       <a href="mailto:support@doctoraiworld.com">Support</a>
