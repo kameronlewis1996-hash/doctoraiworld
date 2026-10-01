@@ -85,6 +85,10 @@
       "destination": "/appointment-checklist.html"
     },
     {
+      "source": "/doctor-visit-notes",
+      "destination": "/doctor-visit-notes.html"
+    },
+    {
       "source": "/research",
       "destination": "/research.html"
     },
