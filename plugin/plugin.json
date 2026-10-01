@@ -1,0 +1,45 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "doctoraiworld",
+  "version": "1.3.0",
+  "description": "Public Health Hub feature guides, website links, and biomedical research references.",
+  "author": { "name": "DoctorAIWorld", "email": "support@doctoraiworld.com", "url": "https://www.doctoraiworld.com/" },
+  "homepage": "https://www.doctoraiworld.com/",
+  "repository": "https://github.com/kameronlewis1996-hash/doctoraiworld",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "DoctorAIWorld",
+        "shortDescription": "Health Hub guides and research",
+        "longDescription": "Explore DoctorAI Health Hub features, open sections for medicines, symptoms, appointments, documents and clinician summaries, and find public biomedical references by general non-identifying topic. The plugin does not access or manage private accounts, scan labels, diagnose, prescribe, check drug interactions or assess personal medication safety. Discuss health decisions with a licensed clinician or pharmacist.",
+        "developerName": "DoctorAIWorld",
+        "category": "Healthcare",
+        "capabilities": ["Explain Health Hub features", "Open website sections", "Search public biomedical references"],
+        "websiteURL": "https://www.doctoraiworld.com/",
+        "supportURL": "https://www.doctoraiworld.com/terms",
+        "privacyPolicyURL": "https://www.doctoraiworld.com/privacy",
+        "termsOfServiceURL": "https://www.doctoraiworld.com/terms",
+        "logo": "./assets/doctorai-head-icon.png",
+        "composerIcon": "./assets/doctorai-head-icon.png",
+        "defaultPrompt": ["What can the DoctorAI Health Hub do, and what are its limits?", "Open the DoctorAI medicines section.", "Find public research about symptom tracking."]
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            { "description": "Overview and limits", "prompt": "What can the DoctorAI Health Hub do, and what are its limits?", "tools_triggered": "doctorai_website_guide", "expected_behavior": "Return public overview, access requirements, limits and Health Hub link." },
+            { "description": "Website scanner guide", "prompt": "How do I scan a prescription label in DoctorAI?", "tools_triggered": "doctorai_website_guide", "expected_behavior": "Explain the website workflow and review requirements without scanning an image or assessing medicine safety." },
+            { "description": "Medicines section link", "prompt": "Open the DoctorAI medicines section.", "tools_triggered": "doctorai_open_site", "expected_behavior": "Return https://www.doctoraiworld.com/health-hub#medications without account access." },
+            { "description": "Care summary guide", "prompt": "Where can I prepare a summary to discuss with a clinician?", "tools_triggered": "doctorai_website_guide", "expected_behavior": "Explain the care-summary feature and provide its website link." },
+            { "description": "Public research", "prompt": "Find public research abstracts about symptom tracking.", "tools_triggered": "search_health_research", "expected_behavior": "Search the general topic and return public references without personal medical advice." }
+          ],
+          "negative": [
+            { "description": "Private account and interaction check unsupported", "prompt": "Check whether my medicine interacts with the prescriptions in my Health Hub." },
+            { "description": "Diagnosis and prescription unsupported", "prompt": "Diagnose my symptoms and tell me what prescription to take." },
+            { "description": "Private health record writes unsupported", "prompt": "Add this medicine to my private Health Hub and tell me whether it is safe." }
+          ]
+        }
+      },
+      "publication": { "release_notes": "Repair website MCP routing, support older Streamable HTTP clients, validate public tool arguments, and distribute a URL-based plugin package." }
+    }
+  }
+}
