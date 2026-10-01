@@ -1,4 +1,6 @@
 .git
+public-mcp
+plugin
 .tmp*/
 artifacts/
 outputs/
