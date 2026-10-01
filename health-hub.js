@@ -3882,7 +3882,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     container.replaceChildren();
     const summary = document.createElement('p');
     summary.className = 'medication-db-summary ' + (result.status === 'no-known-alerts' ? 'is-incomplete' : 'is-incomplete');
-    if (result.status === 'red') summary.textContent = 'The limited DoctorAI database found one or more potential issues. Review every alert with a pharmacist or prescriber.';
+    if (['orange', 'yellow'].includes(result.status)) summary.textContent = 'Review the findings below with a pharmacist or prescriber. No result establishes safety.';
+    else if (result.status === 'red') summary.textContent = 'The limited DoctorAI database found one or more potential issues. Review every alert with a pharmacist or prescriber.';
     else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'The check is incomplete. One or more medicines were not matched, so clashes could not be assessed for them.';
     else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
     container.append(summary);
@@ -3899,14 +3900,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const article = document.createElement('article');
       article.className = 'safety-result-alert';
       const heading = document.createElement('b');
-      heading.textContent = String(alert.title || 'Medicine safety alert');
+      heading.textContent = String(alert.level || alert.severity || 'UNKNOWN').toUpperCase() + ' — ' + String(alert.title || 'Medicine safety alert');
       const copy = document.createElement('p');
       copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
       article.append(heading, copy);
+      const details = document.createElement('p');
+      details.textContent = [Array.isArray(alert.medications) ? alert.medications.join(' + ') : '', Array.isArray(alert.activeIngredients) ? 'Active ingredients: ' + alert.activeIngredients.join(', ') : '', alert.nextStep || 'Review with a pharmacist or prescriber.'].filter(Boolean).join(' · ');
+      article.append(details);
       if (alert.source?.publisher) {
         const source = document.createElement('small');
         source.textContent = 'Source: ' + String(alert.source.publisher);
         article.append(source);
+        if (/^https:\/\//i.test(String(alert.source.url || ''))) {
+          const link = document.createElement('a');
+          link.href = alert.source.url; link.textContent = 'View source'; link.target = '_blank'; link.rel = 'noopener noreferrer'; article.append(link);
+        }
       }
       container.append(article);
     });
@@ -3944,7 +3952,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const payload = {
-      medications: state.medications.map(item => String(item?.name || '').trim()).filter(Boolean),
+      medications: state.medications.map(item => String(item?.name || '').trim()),
       allergies: splitDetails(state.profile?.allergies || ''),
       conditions: splitDetails(state.profile?.conditions || '')
     };
