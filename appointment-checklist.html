@@ -39,11 +39,13 @@
         <p class="eyebrow">Free, printable Aotearoa resource</p>
         <h1>New Zealand doctor appointment checklist: what to bring</h1>
         <p class="intro">Use this fill-in checklist to get ready for a GP or other health care visit. Print it or save it as a PDF from your browser when you are ready.</p>
-        <div class="hero-actions" role="group" aria-label="Choose how to prepare for your visit">
+        <div class="hero-actions" role="group" aria-label="Checklist actions">
           <button class="button" id="print-checklist" type="button">Print this checklist</button>
+          <button class="button button-secondary" id="share-checklist" type="button">Share this free checklist</button>
           <a class="button button-secondary" href="/health-hub#appointments">Use the free Health Hub</a>
+          <input class="share-link" id="share-link" type="url" readonly autocomplete="off" hidden aria-label="Public link to this checklist">
         </div>
-        <p class="privacy-note">These fields are not sent to or saved by DoctorAI. Entries remain on this page until you clear them. If you use a shared device, clear them before leaving.</p>
+        <p class="privacy-note">These fields are not sent to or saved by DoctorAI. Entries remain on this page until you clear them. Sharing offers only the public checklist link; it does not include entries you typed. If you use a shared device, clear entries before leaving.<span id="share-status" class="share-status" role="status" aria-live="polite"></span></p>
         <noscript><p>You can print this page using your browser’s print command.</p></noscript>
       </header>
 
