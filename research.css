@@ -16,3 +16,6 @@
 .research-tab,.search-row button,.topic-grid button,.primary-discussion-button,.quiet-action{min-height:46px}
 @media(max-width:600px){.research-tab,.search-row button,.topic-grid button,.primary-discussion-button,.quiet-action{min-height:48px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+.research-method .research-method-cta{margin-top:14px;min-height:48px;background:var(--navy);border-color:var(--navy);color:#fff}
+.research-method .research-method-cta:hover{background:var(--blue-strong);border-color:var(--blue-strong)}
+@media(max-width:600px){.research-method .research-method-cta{width:100%}}
