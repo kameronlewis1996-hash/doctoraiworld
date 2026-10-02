@@ -5392,3 +5392,46 @@ body[data-hub-theme] #view-medications > .page-heading .secondary-button {
 .safety-result-references summary { color: var(--blue, #0b76c5); cursor: pointer; font-weight: 650; text-decoration: underline; text-underline-offset: 2px; }
 .safety-result-references ul { display: grid; gap: 5px; margin: 6px 0 0; padding-left: 18px; }
 .safety-result-references a { color: var(--blue, #0b76c5); overflow-wrap: anywhere; }
+
+/* Medication scan hero: one primary action, with the free and Pro paths close by. */
+.home-medication-action-group { width: 100%; display: grid; align-content: center; gap: 11px; }
+.home-medication-scan-cta {
+  width: 100%;
+  min-height: 100px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 17px;
+  border: 1px solid rgba(19, 102, 154, .2);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #08799a, #2767c7);
+  color: #fff;
+  box-shadow: 0 18px 36px rgba(23, 82, 132, .18);
+  text-align: left;
+}
+.home-medication-scan-cta:hover { background: linear-gradient(135deg, #086e8b, #205bb4); transform: translateY(-1px); }
+.home-medication-scan-cta:focus-visible { outline: 3px solid rgba(22, 121, 232, .34); outline-offset: 3px; }
+.home-medication-scan-icon { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.28); border-radius: 14px; background: rgba(255,255,255,.13); }
+.home-medication-scan-icon svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.home-medication-scan-copy { min-width: 0; display: grid; gap: 5px; }
+.home-medication-scan-copy b { font-size: 15px; line-height: 1.2; }
+.home-medication-scan-copy small { color: rgba(255,255,255,.88); font-size: 10px; font-weight: 650; line-height: 1.4; }
+.home-medication-scan-arrow { justify-self: end; font-size: 22px; }
+.home-medication-support { display: grid; gap: 7px; padding: 10px 12px; border: 1px solid rgba(121, 163, 192, .28); border-radius: 13px; background: rgba(255,255,255,.78); }
+.home-medication-support p { margin: 0; color: #526d82; font-size: 10px; line-height: 1.5; }
+.home-medication-support strong { color: #173550; }
+.home-medication-support a { color: #1768a9; font-weight: 750; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.home-medication-support a:hover { color: #0a4f84; }
+.home-check-coverage { margin: 0; color: #526d82; font-size: 10px; line-height: 1.5; }
+.home-briefing-link { display: inline-flex; align-items: center; gap: 7px; width: max-content; max-width: 100%; padding: 3px 0; border: 0; background: transparent; color: #1768a9; font-size: 10px; font-weight: 750; text-align: left; cursor: pointer; }
+.home-briefing-link:hover { color: #0a4f84; text-decoration: underline; text-underline-offset: 3px; }
+.home-briefing-link:focus-visible { outline: 3px solid rgba(22,121,232,.3); outline-offset: 3px; border-radius: 4px; }
+.home-briefing-icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 800px) {
+  .home-medication-action-group { gap: 9px; }
+  .home-medication-scan-cta { min-height: 88px; grid-template-columns: 40px minmax(0,1fr) 16px; gap: 10px; padding: 12px; border-radius: 16px; }
+  .home-medication-scan-icon { width: 38px; height: 38px; border-radius: 12px; }
+  .home-medication-scan-copy b { font-size: 13px; }
+  .home-medication-scan-copy small, .home-medication-support p, .home-check-coverage { font-size: 9px; }
+}

@@ -1208,7 +1208,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const status = concern
       ? { className: concern.severity === 'critical' ? 'status-danger' : 'status-caution', icon: concern.severity === 'critical' ? '!' : '⚠', label: concern.title, message: concern.message, detail: `${concern.source} · Confirm with a pharmacist or clinician.`, concern, alerts }
       : !state.medications.length
-        ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list to review saved details.', detail: 'DoctorAI does not check drug interactions or confirm medicines are safe together.' }
+        ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list before running the limited checks.', detail: 'They may flag selected known clashes, duplicate ingredients and recorded allergy matches. No alert does not mean safe to take.' }
         : { className: 'status-note', icon: 'i', label: 'No match in checked details', message: 'No same-name duplicate or saved allergy/adverse-reaction match was found.', detail: 'Drug interactions and other medicine risks were not checked. No matching alert is not a guarantee of safety. Confirm your complete list with a pharmacist or clinician.' };
     els.homePrescriptionAlert.className = `prescription-alert-status ${status.className}`;
     els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">${status.icon}</span><div><b>${escapeHTML(status.label)}</b><p>${escapeHTML(status.message)}</p><small>${escapeHTML(status.detail)}</small></div><button type="button" data-view="medications">View details <span aria-hidden="true">→</span></button>`;
