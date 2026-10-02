@@ -19,3 +19,10 @@
 .research-method .research-method-cta{margin-top:14px;min-height:48px;background:var(--navy);border-color:var(--navy);color:#fff}
 .research-method .research-method-cta:hover{background:var(--blue-strong);border-color:var(--blue-strong)}
 @media(max-width:600px){.research-method .research-method-cta{width:100%}}
+.research-share{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 14px;max-width:780px;margin-top:15px;padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.research-share-copy h3{margin:0;font-size:14px}
+.research-share-copy p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
+.research-share-button{min-height:46px;white-space:nowrap}
+.research-share .resource-share-link,.research-share .resource-share-status{grid-column:1/-1}
+.research-share .resource-share-status:empty{display:none}
+@media(max-width:600px){.research-share{grid-template-columns:1fr;padding:13px}.research-share-button{width:100%}}
