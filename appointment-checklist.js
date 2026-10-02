@@ -9,53 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (status) status.textContent = 'Entries cleared from this page.';
   });
 
-  const shareButton = document.getElementById('share-checklist');
-  const shareStatus = document.getElementById('share-status');
-  const shareLink = document.getElementById('share-link');
-  if (shareButton && shareStatus && shareLink) {
-    const publicURL = 'https://www.doctoraiworld.com/appointment-checklist';
-    const shareData = {
-      title: 'Free New Zealand doctor appointment checklist',
-      text: 'Share this fill-in checklist for preparing for a GP or other health care visit.',
-      url: publicURL
-    };
-
-    async function copyPublicLink() {
-      if (navigator.clipboard && window.isSecureContext) {
-        try {
-          await navigator.clipboard.writeText(publicURL);
-          shareStatus.textContent = 'Public checklist link copied. Entries you typed are not included.';
-          return;
-        } catch {
-          // Show a selectable link if the browser blocks clipboard access.
-        }
-      }
-
-      shareLink.hidden = false;
-      shareLink.value = publicURL;
-      shareLink.focus();
-      shareLink.select();
-      shareStatus.textContent = 'Copy this public checklist link to share it. Entries you typed are not included.';
-    }
-
-    shareButton.addEventListener('click', async () => {
-      if (typeof navigator.share === 'function') {
-        try {
-          await navigator.share(shareData);
-          shareStatus.textContent = 'The share menu closed. It was offered only the public checklist link.';
-          return;
-        } catch (error) {
-          if (error?.name === 'AbortError') {
-            shareStatus.textContent = 'Sharing was cancelled. Nothing was shared.';
-            return;
-          }
-        }
-      }
-
-      await copyPublicLink();
-    });
-  }
-
   const allowButton = document.getElementById('measurement-allow');
   const declineButton = document.getElementById('measurement-decline');
   const status = document.getElementById('measurement-status');

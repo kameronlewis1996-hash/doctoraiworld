@@ -1,0 +1,22 @@
+.resource-share-link {
+  flex: 1 1 100%;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid #b7ccdc;
+  border-radius: 8px;
+  background: #fff;
+  color: #18344d;
+  font: inherit;
+}
+.resource-share-link[hidden] { display: none !important; }
+.resource-share-link:focus-visible {
+  outline: 3px solid #0e679e;
+  outline-offset: 3px;
+}
+.resource-share-status {
+  display: block;
+  margin-top: 8px;
+  color: #18344d;
+  font-weight: 600;
+}
