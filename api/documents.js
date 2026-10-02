@@ -137,7 +137,10 @@ module.exports = async function handler(request, response) {
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
       const document = await core.readDocumentMetadata(account, id);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath).catch(() => {});
+      // Keep metadata until the encrypted Blob has been deleted successfully.
+      // If deletion fails, the caller gets an error and can retry without
+      // losing the only pointer to the stored file.
+      await del(document.blobPath);
       await core.deleteDocumentMetadata(account, id);
       return response.status(200).json({ ok: true, id });
     }

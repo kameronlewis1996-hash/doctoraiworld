@@ -101,6 +101,7 @@ module.exports = async function chat(req, res) {
 
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
+  if (body.consent !== true) return core.json(res, 400, { error: 'Confirm this one-time request before sending it to DoctorAI.' });
   const incoming = Array.isArray(body.messages) ? body.messages : [];
   const messages = incoming.slice(-12).map(item => {
     const role = item?.role === 'assistant' || item?.role === 'user' ? item.role : null;
@@ -122,7 +123,7 @@ module.exports = async function chat(req, res) {
   const responseStyle = responseStyles[responseLength];
   const instructions = `${safetyPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
   const wantsStream = body.stream === true;
-  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
+  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream, store: false };
   const fetchFallbackAnswer = async () => {
     const fallbackResponse = await requestProvider({ ...providerPayload, stream: false }, { retry: false });
     if (!fallbackResponse.ok) return '';

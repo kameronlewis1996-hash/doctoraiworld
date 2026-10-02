@@ -20,7 +20,15 @@ const json = (response, status, payload) => {
   noStore(response);
   return response.status(status).json(payload);
 };
-const secret = () => String(process.env.AUTH_SECRET || '');
+const previewStorageIsolated = () => process.env.VERCEL_ENV !== 'preview' || (
+  process.env.DOCTORAI_PREVIEW_STORAGE_ISOLATED === 'true' &&
+  Boolean(process.env.PREVIEW_AUTH_SECRET) &&
+  Boolean(process.env.PREVIEW_KV_REST_API_URL) &&
+  Boolean(process.env.PREVIEW_KV_REST_API_TOKEN)
+);
+const secret = () => String(process.env.VERCEL_ENV === 'preview'
+  ? (previewStorageIsolated() ? process.env.PREVIEW_AUTH_SECRET : '')
+  : process.env.AUTH_SECRET || '');
 const configured = () => Boolean(secret());
 const hash = value => crypto.createHash('sha256').update(String(value)).digest('base64url');
 const safeLogValue = value => String(value || '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
@@ -213,15 +221,21 @@ function clearEntitlementCookies(response) {
   response.setHeader('Set-Cookie', ENTITLEMENT_COOKIES.map(name => `${name}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`));
 }
 
-const storageConfigured = () => Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && configured());
-const redisUrl = () => String(process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const storageConfigured = () => Boolean(previewStorageIsolated() && storageUrl() && storageToken() && configured());
+const storageUrl = () => String(process.env.VERCEL_ENV === 'preview'
+  ? (previewStorageIsolated() ? process.env.PREVIEW_KV_REST_API_URL : '')
+  : process.env.KV_REST_API_URL || '');
+const storageToken = () => String(process.env.VERCEL_ENV === 'preview'
+  ? (previewStorageIsolated() ? process.env.PREVIEW_KV_REST_API_TOKEN : '')
+  : process.env.KV_REST_API_TOKEN || '');
+const redisUrl = () => storageUrl().replace(/\/$/, '');
 
 async function redis(path, options = {}) {
   if (!storageConfigured()) return { configured: false, result: null };
   const response = await fetch(`${redisUrl()}/${path}`, {
     ...options,
     headers: {
-      authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      authorization: `Bearer ${storageToken()}`,
       ...(options.headers || {})
     },
     signal: options.signal || AbortSignal.timeout(7000)

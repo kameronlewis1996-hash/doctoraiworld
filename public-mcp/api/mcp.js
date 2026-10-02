@@ -5,6 +5,15 @@ const PROTOCOL_VERSION = '2026-01-26';
 const SUPPORTED_PROTOCOLS = new Set([PROTOCOL_VERSION, '2025-11-25', '2025-06-18', '2025-03-26']);
 const MAX_BODY_BYTES = 32_000;
 const MAX_RESEARCH_RESULTS = 5;
+const PUBLIC_RESEARCH_TOPICS = [
+  'asthma', 'diabetes', 'blood pressure', 'migraine', 'sleep health', 'medication adherence',
+  'antibiotic resistance', 'drug interactions', 'pharmacovigilance', 'pain research',
+  'allergy research', 'heart health', 'kidney health', 'liver health', 'mental health',
+  'vaccination', 'cancer screening', 'women’s health', 'maternal health', 'health literacy',
+  'symptom tracking', 'clinical trial methods', 'nutrition research', 'physical activity and health',
+  'osteoporosis', 'chronic pain', 'heart failure', 'prescription safety'
+];
+const PUBLIC_RESEARCH_TOPIC_SET = new Set(PUBLIC_RESEARCH_TOPICS);
 
 const SITE_GUIDE = {
   overview: {
@@ -79,7 +88,7 @@ const SITE_GUIDE = {
   },
   doctorai_chat: {
     title: 'Ask DoctorAI',
-    summary: 'Use the website's sign-in-protected AI conversation for health organisation and general education.',
+    summary: "Use the website's sign-in-protected AI conversation for health organisation and general education.",
     destination: 'doctorai_chat',
     access: 'Requires sign-in. Users choose what they send and whether approved Health Memory is included.',
     limits: 'The website assistant does not diagnose, prescribe, confirm medicine combinations as safe, or replace a clinician.'
@@ -143,7 +152,7 @@ const TOOLS = [
   {
     name: 'doctorai_open_site',
     title: 'Open a DoctorAI website section',
-    description: 'Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available.',
+    description: "Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -179,6 +188,7 @@ const TOOLS = [
           type: 'string',
           minLength: 2,
           maxLength: 180,
+          enum: PUBLIC_RESEARCH_TOPICS,
           description: 'General, non-identifying biomedical research topic.'
         }
       },
@@ -262,11 +272,8 @@ function textResult(value, structuredContent) {
 
 function safeTopic(topic) {
   if (typeof topic !== 'string') throw new Error('Enter a general research topic.');
-  const trimmed = topic.trim();
-  if (trimmed.length < 2 || trimmed.length > 180) throw new Error('Enter a general research topic between 2 and 180 characters.');
-  if (/@|https?:\/\/|www\.|\b\d{7,}\b|\b(?:I|my|mine|me|patient|born|DOB)\b|\b\d{1,4}[-/]\d{1,2}[-/]\d{1,4}\b/i.test(trimmed)) {
-    throw new Error('This search only accepts general, non-identifying topics. Do not send personal health information, contact details, or URLs.');
-  }
+  const trimmed = topic.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  if (!PUBLIC_RESEARCH_TOPIC_SET.has(trimmed)) throw new Error('Choose one of the listed general research topics. Custom personal or narrative text is not accepted.');
   return trimmed;
 }
 

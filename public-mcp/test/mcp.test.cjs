@@ -82,7 +82,8 @@ test('rejects hidden arguments, inherited feature names, nonstrings and identify
       ['search_health_research', { topic: 12 }],
       ['search_health_research', { topic: 'my symptoms' }],
       ['search_health_research', { topic: 'person@example.test' }],
-      ['search_health_research', { topic: 'DOB 2000-01-02' }]
+      ['search_health_research', { topic: 'DOB 2000-01-02' }],
+      ['search_health_research', { topic: 'Jane Doe has asthma and takes methotrexate' }]
     ]) assert.equal((await call(name, args)).body.result.isError, true);
   } finally { global.fetch = original; }
 });

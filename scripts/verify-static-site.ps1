@@ -24,7 +24,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 foreach ($relative in $required) {
   $path = Join-Path $root $relative
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $failures.Add("Missing required file: $relative"); continue }
-  if ((Get-Item -LiteralPath $path).Length -le 0) { $failures.Add("Empty required file: $relative") }
+  if ((Get-Item -LiteralPath $path -Force).Length -le 0) { $failures.Add("Empty required file: $relative") }
 }
 
 $hubScriptPath = Join-Path $root 'health-hub.js'
@@ -86,7 +86,9 @@ $templateJs = Get-Content -Raw -LiteralPath (Join-Path $root 'medication-list-te
 if ($templateHtml -notmatch '<title>Free Medication List Template for Appointments \| DoctorAI</title>' -or $templateHtml -notmatch '<link rel="canonical" href="https://www\.doctoraiworld\.com/medication-list-template">' -or $templateHtml -notmatch '<h1>Medication list template for your next appointment</h1>') { $failures.Add('The medication-list resource must have a specific title, canonical URL, and descriptive H1') }
 if ($templateHtml -notmatch 'fda\.gov/consumers/consumer-updates/create-and-keep-medication-list-your-health' -or $templateHtml -notmatch 'medlineplus\.gov/ency/patientinstructions/000600\.htm') { $failures.Add('The medication-list resource must cite its FDA and MedlinePlus source guidance') }
 if ($templateHtml -notmatch 'does not verify medicine safety or check drug interactions' -or $templateHtml -notmatch 'Do not start, stop, or change a medicine based on this page') { $failures.Add('The medication-list resource must state product limits and avoid treatment directions') }
-if ($templateHtml -match '<form\b|<input\b|<textarea\b' -or $templateJs -notmatch 'window\.print\(\)') { $failures.Add('The printable medication-list resource must remain static and must not collect health information') }
+$nameSearchForm = [regex]::Match($templateHtml, '(?s)<form id="medicine-name-search" role="search"[^>]*>.*?</form>')
+$nameSearchInputs = [regex]::Matches($templateHtml, '<input\b[^>]*>')
+if (-not $nameSearchForm.Success -or $nameSearchInputs.Count -ne 1 -or $nameSearchInputs[0].Value -notmatch 'id="medicine-name-query"[^>]*type="search"' -or $templateHtml -match '<textarea\b' -or $templateJs -notmatch "fetch\('/data/medication/nz-medicine-names\.json\?v=20261001'" -or $templateJs -notmatch 'credentials:\s*''omit''' -or $templateJs -notmatch 'names\.filter\(name => normalise\(name\)\.includes\(query\)\)' -or $templateJs -notmatch 'window\.print\(\)') { $failures.Add('The medication-list resource must keep its sole medicine-name field as an optional local catalogue lookup; it must not collect list details') }
 $sitemapText = Get-Content -Raw -LiteralPath (Join-Path $root 'sitemap.xml')
 if ($sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/</loc>' -or $sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/medication-list-template</loc>') { $failures.Add('The sitemap must include the homepage and medication-list resource') }
 $homeHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
@@ -96,7 +98,7 @@ foreach ($relative in $htmlFiles) {
   $text = Get-Content -Raw -LiteralPath (Join-Path $root $relative)
   foreach ($match in [regex]::Matches($text, '(?:src|href)=["'']([^"''#?]+)')) {
     $reference = $match.Groups[1].Value
-    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template')) { continue }
+    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template','/appointment-checklist')) { continue }
     $target = Join-Path $root $reference.TrimStart('/')
     if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { $failures.Add("Broken local reference in ${relative}: $reference") }
   }
