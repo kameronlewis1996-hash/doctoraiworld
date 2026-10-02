@@ -62,7 +62,7 @@
     },
     {
       "source": "/",
-      "destination": "/index.html"
+      "destination": "/redesign-preview/home.html"
     },
     {
       "source": "/subscription",
@@ -78,7 +78,11 @@
     },
     {
       "source": "/health-hub",
-      "destination": "/health-hub.html"
+      "destination": "/redesign-preview/hub.html"
+    },
+    {
+      "source": "/medication-entry",
+      "destination": "/redesign-preview/medication-entry.html"
     },
     {
       "source": "/appointment-checklist",
