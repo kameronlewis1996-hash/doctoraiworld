@@ -92,3 +92,6 @@ button.dialog-secondary { background: #fff; text-align: left; cursor: pointer; }
 .renewal-note { margin: 12px 0; color: #496579; font-size: 13px; line-height: 1.55; }
 .checkout-continue { width: 100%; justify-content: center; }
 .checkout-continue:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+.plan-primary.preview-disabled:disabled { cursor: not-allowed; }
+.preview-pricing-note { color: #536449; font-size: 10px; font-weight: 700; line-height: 1.5; }
+.billing-note[data-preview-billing-note] { font-size: 10px; line-height: 1.6; }
