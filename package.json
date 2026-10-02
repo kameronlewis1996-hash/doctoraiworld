@@ -13,7 +13,16 @@
     "verify:server": "node scripts/verify-server-core.js",
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
-    "verify:medication-database": "node scripts/verify-medication-database.cjs"
+    "verify:medication-database": "node scripts/verify-medication-database.cjs",
+    "verify:medication-safety": "node scripts/verify-medication-safety.js",
+    "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
+    "verify:medication-review": "node scripts/verify-medication-review.cjs",
+    "verify:account-isolation": "node scripts/verify-account-isolation.cjs",
+    "verify:preview-isolation": "node scripts/verify-preview-isolation.cjs",
+    "verify:documents": "node scripts/verify-documents-delete.cjs",
+    "verify:chat-privacy": "node scripts/verify-chat-privacy.cjs",
+    "verify:pricing": "node scripts/verify-stripe-pricing.js",
+    "verify:public-mcp": "node --test public-mcp/test/mcp.test.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
