@@ -23,7 +23,7 @@ Parent holds `doctoraiworld-portal-draft-1.3.0-20261003.zip`, 208,055 bytes, SHA
 
 Library reference: `libfile_ef29e4f059a48191a741d1fb7f6568cb`, version 0, file `file_000000003fdc81f683d3f9170cca34c7`. Supported local materialisation failed, including the single authorised network retry. Bytes were not verified in this workspace. Do not bypass that failed transfer or build from a stale repository archive. Exact manifest/server configuration text and ZIP entry names have been requested from the parent for reconciliation; the parent retains the complete canonical archive.
 
-The repository manifest currently has a different package name, and its MCP file points to the website endpoint. Neither is an authority for replacing the canonical draft. Preserve the separately hosted public MCP endpoint. A finished upload must preserve all required assets and include the real accessible recording URL under `extensions.com.openai.review.demo_recording_url`. No ready-to-upload archive was produced here.
+The verified canonical archive has the correct package name (`app-6abad626f21081918f3a49e848c0e3cc`), version (`1.3.0`) and dedicated MCP URL (`https://doctoraiworld-public-mcp.vercel.app/api/mcp`). The repository copies of `plugin.json` and `mcp.json` were synced to those values in PR #35. The canonical archive itself needs no identity/endpoint edits. No recording URL is available yet; add the actual accessible URL under `extensions.com.openai.review.demo_recording_url` after recording. No ready-to-upload archive was produced here.
 
 ## Exact remaining steps
 
