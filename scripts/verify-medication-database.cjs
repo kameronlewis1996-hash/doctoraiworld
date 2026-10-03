@@ -19,8 +19,15 @@ expectRule(['ibuprofen', 'warfarin'], 'warfarin-nsaid');
 assert.equal(resolveMedication('Nurofen 200 mg').ingredients[0]?.id, 'ibuprofen');
 assert.equal(resolveMedication('acetaminophen').ingredients[0]?.id, 'paracetamol');
 assert.ok(review({ medications: ['Panadol', 'paracetamol'] }).alerts.some(alert => alert.type === 'duplicate-ingredient'));
-assert.ok(review({ medications: ['amoxicillin'], allergies: ['penicillin'] }).alerts.some(alert => alert.type === 'allergy'));
-assert.ok(review({ medications: ['ibuprofen'], allergies: ['NSAID'] }).alerts.some(alert => alert.type === 'allergy'));
+for (const [medications, allergies, ruleId] of [
+  [['amoxicillin'], ['penicillin'], 'penicillin-class'],
+  [['ibuprofen'], ['NSAID'], 'nsaid-class']
+]) {
+  const result = review({ medications, allergies });
+  assert.equal(result.alerts.some(alert => alert.type === 'allergy' && alert.ruleId === ruleId), false, `${ruleId} has no authoritative source URL, so it must not create a positive allergy finding`);
+  assert.ok(result.alerts.some(alert => alert.type === 'unknown' && alert.title === 'Unverified allergy rule' && alert.ruleId === ruleId && alert.source?.verified === false), `${ruleId} must remain visible as unverified`);
+}
+assert.ok(review({ medications: ['amoxicillin'], allergies: ['amoxicillin'] }).alerts.some(alert => alert.type === 'allergy' && alert.title === 'Recorded ingredient allergy needs review'));
 
 for (const name of ['Panadol Extra', 'Nurofen Cold & Flu', 'Panadol with caffeine']) {
   const match = resolveMedication(name);
@@ -77,7 +84,9 @@ assert.equal(resolveMedication('Douglas').status, 'unknown', 'Manufacturer name 
 assert.equal(review({medications: ['']}).coverage.unknown, 1);
 assert.equal(review({medications: ['']}).coverage.resolved, 0);
 assert.ok(review({medications: ['Trisul','TMP']}).alerts.some(a => a.type === 'duplicate-ingredient'));
-assert.ok(review({medications: ['Augmentin'],allergies: ['penicillin']}).alerts.some(a => a.type === 'allergy'));
+const augmentinAllergy = review({medications: ['Augmentin'],allergies: ['penicillin']});
+assert.equal(augmentinAllergy.alerts.some(a => a.type === 'allergy'), false);
+assert.ok(augmentinAllergy.alerts.some(a => a.type === 'unknown' && a.title === 'Unverified allergy rule' && a.ruleId === 'penicillin-class'));
 for (const [meds, rule] of [
   [['Methotrexate','TMP'],'methotrexate-cotrimoxazole'],
   [['Priadel','Ibuprofen'],'lithium-nsaid'],
@@ -93,15 +102,33 @@ for (const [meds, rule] of [
 console.log(`NZ catalogue verification passed: ${mapped} mapped product/formulations, combinations, ambiguous names, duplicates and 13 sourced interaction rules.`);
 
 const handler = require('../api/medication/safety.js');
+const core = require('../server-src/_lib/doctorai-core.cjs');
+const originalCore = Object.fromEntries(['identityFromRequest', 'storageConfigured', 'activeEntitlement', 'rateLimit'].map(key => [key, core[key]]));
 function call(method, body) {
   const result = {headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};
   return handler({method,body},result).then(() => result);
 }
 (async () => {
+  core.identityFromRequest = async () => null;
+  const valid = {consent:true,medications:['Marevan','Nurofen']};
+  assert.equal((await call('POST',valid)).statusCode,401);
+  core.identityFromRequest = async () => ({email:'audit@example.invalid',sub:'synthetic-audit'});
+  core.storageConfigured = () => false;
+  assert.equal((await call('POST',valid)).statusCode,503);
+  core.storageConfigured = () => true;
+  core.activeEntitlement = async () => null;
+  assert.equal((await call('POST',valid)).statusCode,403);
+  core.activeEntitlement = async () => ({tier:'pro'});
+  core.rateLimit = async () => ({allowed:false,retryAfter:60});
+  const limited = await call('POST',valid);
+  assert.equal(limited.statusCode,429);
+  assert.equal(limited.headers['Retry-After'],'60');
+  assert.equal(limited.body.alerts,undefined);
+  core.rateLimit = async () => ({allowed:true});
   for (const body of [null, 'null', '{', {}, [], {medications:[]}, {medications:['']}, {medications:[{}]}, {medications:Array(51).fill('Warfarin')}, {medications:['Warfarin'],allergies:'penicillin'}]) assert.equal((await call('POST',body)).statusCode,400);
   assert.equal((await call('GET',{})).statusCode,405);
-  const r = await call('POST',{medications:['Marevan','Nurofen']});
+  const r = await call('POST',{consent:true,medications:['Marevan','Nurofen']});
   assert.equal(r.statusCode,200);assert.equal(r.body.status,'red');assert.equal(r.headers['Cache-Control'],'no-store');
   assert.equal(r.body.coverage.completeForRequest,false);
-  console.log('Endpoint verification passed: malformed/blank/oversized lists rejected without partial checks, no-store, and sourced alerts.');
-})().catch(error => { console.error(error); process.exitCode=1; });
+  console.log('Endpoint verification passed: sign-in, secure storage, Pro and rate-limit gates; malformed/blank/oversized lists rejected without partial checks, no-store, and sourced alerts.');
+})().catch(error => { console.error(error); process.exitCode=1; }).finally(() => Object.assign(core,originalCore));

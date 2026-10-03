@@ -67,7 +67,7 @@ global.fetch = async (url, options) => {
         if (route) return await route(request, response);
         return response.status(409).json({ error: 'Disabled in synthetic preview. No external providers are called.' });
       }
-      let filename = url.pathname === '/health-hub' || url.pathname === '/' ? 'health-hub.html' : url.pathname.slice(1);
+      let filename = url.pathname === '/' ? 'index.html' : url.pathname === '/health-hub' ? 'health-hub.html' : url.pathname.slice(1);
       if (!path.extname(filename) && fs.existsSync(path.resolve(root, filename + '.html'))) filename += '.html';
       const file = path.resolve(root, filename);
       if (!file.startsWith(root + path.sep) || filename.startsWith('.') || /^(server-src|scripts|api|node_modules)\//.test(filename) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return response.status(404).end();

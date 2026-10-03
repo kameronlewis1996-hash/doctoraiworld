@@ -1,8 +1,14 @@
 (() => {
   'use strict';
 
+
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+  const previewPricingOnly = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.vercel.app');
+  if (previewPricingOnly) {
+    $('[data-live-pro-pricing]')?.setAttribute('hidden', '');
+    $('[data-preview-pro-pricing]')?.removeAttribute('hidden');
+  }
   const viewNames = ['today', 'ask', 'health', 'profile', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
   const viewLabels = { today: 'Today', ask: 'Ask DoctorAI', health: 'My Health', profile: 'Profile', symptoms: 'Symptom Diary', medications: 'Medications', appointments: 'Appointments', results: 'Results', timeline: 'Timeline', documents: 'Documents' };
   const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
@@ -961,9 +967,12 @@
       const medicationName = escapeHTML(medication.name || 'medication');
       const supply = savedSupplyAmount(medication);
       const supplyText = supply === null ? 'Remaining supply not recorded' : `Recorded remaining: ${escapeHTML(supply)}`;
+      const addedBy = medication.entrySource === 'scan' ? 'Added from label scan' : 'Entered manually';
+      const reviewedAt = medication.reviewedAgainstPackageAt ? new Date(medication.reviewedAgainstPackageAt) : null;
+      const reviewReceipt = reviewedAt && Number.isFinite(reviewedAt.getTime()) ? `Checked against package by you · ${escapeHTML(reviewedAt.toLocaleDateString('en-NZ'))}` : 'Package check not recorded';
       const supplyStatus = supply === null ? 'Supply not set' : supply === 0 ? 'Verify amount' : supply <= 14 ? 'Low supply' : 'Active';
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
-        <span class="medicine-icon">▣</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
+        <span class="medicine-icon">▣</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose || 'Strength not recorded')}</b><span>${escapeHTML(medication.frequency || 'Schedule not recorded')} · ${escapeHTML(medication.instructions || 'No label instructions recorded')}</span><small>${escapeHTML(medication.time || 'Time not recorded')} · ${supplyText}</small><small class="medication-review-receipt">${escapeHTML(addedBy)} · ${reviewReceipt}</small></div>
         <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
       </div>${safety}</article>`;
     }).join('') : '<div class="empty-state">No medications added yet. Your prescription reminders will appear here.</div>';
@@ -1061,9 +1070,9 @@
     return /^med-[A-Za-z0-9_-]{1,80}$/.test(id) ? id : `med-local-${index + 1}`;
   }
 
-  function buildDrugBankSafetyPayload() {
+  function buildDrugBankSafetyPayload(medicationRecords = state.medications) {
     const terms = medicationSafetyTerms();
-    const medications = state.medications.map((medication, index) => {
+    const medications = medicationRecords.map((medication, index) => {
       const activeIngredients = Array.isArray(medication?.activeIngredients) ? medication.activeIngredients : [];
       const ingredientNames = new Set(activeIngredients.map(value => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase()).filter(Boolean));
       const nzfProduct = medication?.nzfProductConfirmed === true ? validNzmtProduct(medication.nzfProduct) : null;
@@ -1400,6 +1409,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     if (!confirmManagedTransmission('briefing')) { output.classList.remove('loading'); output.textContent = 'AI briefing was not sent. Your saved overview is available above.'; return; }
+    const submit = output.closest('.today-ai-briefing')?.querySelector('[data-generate-today-briefing]');
+    if (submit?.disabled) return;
+    if (submit) submit.disabled = true;
+    output.classList.add('loading');
+    output.classList.remove('error');
+    output.textContent = 'Sending only the selected records for this request…';
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 45_000);
     try {
@@ -1408,7 +1423,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ managedActionConsent: activePersonId !== 'self', messages: [{ role: 'user', content: buildTodayIntelligencePrompt(medications, symptoms) }], responseLength: 'medium', stream: false }),
+        body: JSON.stringify({ consent: true, healthContextConsent: true, managedActionConsent: activePersonId !== 'self', messages: [{ role: 'user', content: buildTodayIntelligencePrompt(medications, symptoms) }], responseLength: 'medium', stream: false }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({}));
@@ -1427,6 +1442,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.textContent = error?.name === 'AbortError' ? 'The personalised briefing took too long. Close this window and try again.' : String(error?.message || 'The personalised briefing is unavailable right now.');
     } finally {
       window.clearTimeout(timeout);
+      if (submit) submit.disabled = false;
     }
   }
 
@@ -1528,7 +1544,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const status = concern
       ? { className: concern.severity === 'critical' ? 'status-danger' : 'status-caution', icon: concern.severity === 'critical' ? '!' : '⚠', label: concern.title, message: concern.message, detail: `${concern.source} · Confirm with a pharmacist or clinician.`, concern, alerts }
       : !state.medications.length
-        ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list to review saved details.', detail: 'DoctorAI does not check drug interactions or confirm medicines are safe together.' }
+        ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list before running the limited checks.', detail: 'They may flag selected known clashes, duplicate ingredients and recorded allergy matches. No alert does not mean safe to take.' }
         : { className: 'status-note', icon: 'i', label: 'No match in checked details', message: 'No same-name duplicate or saved allergy/adverse-reaction match was found.', detail: 'Drug interactions and other medicine risks were not checked. No matching alert is not a guarantee of safety. Confirm your complete list with a pharmacist or clinician.' };
     els.homePrescriptionAlert.className = `prescription-alert-status ${status.className}`;
     els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">${status.icon}</span><div><b>${escapeHTML(status.label)}</b><p>${escapeHTML(status.message)}</p><small>${escapeHTML(status.detail)}</small></div><button type="button" data-view="medications">View details <span aria-hidden="true">→</span></button>`;
@@ -1704,7 +1720,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderResults() {
     if (!els.resultList) return;
     if (!hasProAccess() && !state.documents.some(doc => doc.category === 'result')) {
-      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing.');
+      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro adds private uploads for supported files up to 2 MB each. Sending documents to other people is not available yet.');
       return;
     }
     const results = state.documents.filter(doc => doc.category === 'result');
@@ -1932,7 +1948,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderDocuments() {
     if (!els.documentsGrid) return;
     if (!hasProAccess() && !state.documents.length) {
-      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Upload and share prescriptions, lab reports, referrals, letters, imaging, scans and health photos only when you choose.');
+      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Upload supported PDF, image, Word or text files up to 2 MB each. Sending documents to other people is not available yet.');
       return;
     }
     const docs = state.documents.filter(doc => documentFilter === 'all' || doc.category === documentFilter);
@@ -2501,8 +2517,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const verifiedMedicationGuidance = verifiedMedicationEducationMarkup(currentMedications);
     const verifiedSymptomGuidance = verifiedSymptomEducationMarkup(recentSymptoms);
     const savedCount = currentMedications.length + recentSymptoms.length + profileDetails.length + (nextAppointment ? 1 : 0);
-    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the medicines and recent symptoms you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
-    void loadTodayIntelligence(currentMedications, recentSymptoms);
+    const medicationChoices = currentMedications.map((item, index) => {
+      const details = [item.name, item.dose, item.frequency, item.time ? formatTime(item.time) : '', item.instructions].filter(Boolean).join(' · ');
+      return `<label><input type="checkbox" data-briefing-medication value="${state.medications.indexOf(item)}"><span><b>${escapeHTML(oneLine(item.name, 100) || 'Saved medicine')}</b><small>${escapeHTML(details || 'No additional label details recorded')}</small></span></label>`;
+    }).join('');
+    const symptomChoices = recentSymptoms.map((item, index) => {
+      const severity = symptomSeverity(item.severity);
+      const details = [formatDate(item.date), symptomName(item), severity === null ? '' : `intensity ${severity}/10`, oneLine(item.triggers || item.context || item.notes, 160)].filter(Boolean).join(' · ');
+      return `<label><input type="checkbox" data-briefing-symptom value="${state.timeline.indexOf(item)}"><span><b>${escapeHTML(oneLine(symptomName(item), 100) || 'Saved symptom')}</b><small>${escapeHTML(details)}</small></span></label>`;
+    }).join('');
+    const briefingSection = `<section class="today-dashboard-section today-ai-briefing" aria-labelledby="today-ai-title"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3 id="today-ai-title">Personalised points to review</h3></div><span>AI assisted</span></div><p class="today-ai-consent-copy">Nothing is sent when this overview opens. Choose the individual records to include. The selected medicine names, label details and symptom notes are sent through DoctorAI to OpenAI for this request. DoctorAI requests <code>store:false</code>; OpenAI may still retain API content in abuse-monitoring logs for up to 30 days by default. <a href="/privacy" target="_blank" rel="noopener noreferrer">Read the privacy notice</a>.</p><fieldset class="today-ai-choices"><legend>Medicines</legend>${medicationChoices || '<p>No current medicines are available to select.</p>'}</fieldset><fieldset class="today-ai-choices"><legend>Recent symptom notes</legend>${symptomChoices || '<p>No symptom notes are available to select.</p>'}</fieldset><label class="today-ai-consent"><input type="checkbox" data-briefing-consent><span>I reviewed the selected records and agree to send them for this one-time AI briefing.</span></label><button type="button" class="primary-button" data-generate-today-briefing>Generate briefing</button><div id="today-ai-output" class="today-ai-output" role="status" aria-live="polite">Nothing has been sent. Select records above and confirm first.</div></section>`;
+
+    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}${briefingSection}<section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
+
   }
 
   function buildTodayPlanPrompt(values) {
@@ -2906,6 +2933,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const missing = Array.isArray(prefill.__missing) ? prefill.__missing.filter(Boolean) : [];
     const ingredientPrefill = Array.isArray(prefill.activeIngredients) ? prefill.activeIngredients.join('; ') : String(prefill.activeIngredients || '');
     const resolvedPrefill = Array.isArray(prefill.resolvedIngredients) ? prefill.resolvedIngredients.filter(item => /^DB\d{5,6}$/.test(String(item?.id || '')) && item?.name).map(item => ({ label: String(item.label || ''), id: String(item.id), name: String(item.name).slice(0, 160), casNumber: String(item.casNumber || '').slice(0, 40) })) : [];
+    const scanReviewRequired = Boolean(prefill.__scanned);
+    const reviewReceiptMarkup = `<label class="scan-review-confirm"><input type="checkbox" name="reviewedAgainstPackage" ${scanReviewRequired ? 'required' : ''}><span>I checked these details against the original package or prescription. Anything I could not read stays blank or unknown.${scanReviewRequired ? ' This confirmation is required before saving scan-derived details.' : ' Optional for manual entries.'}</span></label>`;
     const scanError = String(prefill.__scanError || '').trim();
     const scanNote = scanError
       ? `<div class="modal-help scan-result-note scan-result-error"><b>Scan not completed.</b><span>${escapeHTML(scanError)} You can enter the details below or try another photo.</span></div>`
@@ -2915,9 +2944,30 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
           ? '<div class="modal-help scan-result-note"><b>Package barcode found.</b><span>The code does not contain your personal dose or directions. Enter those only from your own label.</span></div>'
           : '';
     const editNote = editing ? `<div class="modal-help scan-result-note"><b>Update saved medication details.</b><span>Leave the refill field blank to keep its current value${savedRefill && savedRefill !== 'Not set' ? ` (${escapeHTML(savedRefill)})` : ''}. Check “Clear saved refill date” to remove it. Changes to the medicine name, strength, or ingredient list clear the product match and require you to confirm the medicine again.</span></div>` : '';
-    setModal('Add a medication', 'Medication manager', `${scanNote}<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned || prefill.__barcode)}"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="${escapeHTML(prefill.dose || '')}"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="${escapeHTML(prefill.time || '')}"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="${escapeHTML(prefill.endDate || '')}"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="${escapeHTML(prefill.supply ?? '')}"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="${escapeHTML(prefill.refill || '')}"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="${escapeHTML(prefill.prescriptionExpiry || '')}"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="${escapeHTML(prefill.repeats || '')}"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">${escapeHTML(prefill.instructions || '')}</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span>→</span></button></div></form>`);
+    setModal('Add a medication', 'Medication manager', `${scanNote}<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned || prefill.__barcode)}" data-scan-review-required="${scanReviewRequired}"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage${scanReviewRequired ? " (leave blank if unread)" : " *"}</span><input aria-required="${!scanReviewRequired}" name="dose" maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="${escapeHTML(prefill.dose || '')}"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="${escapeHTML(prefill.time || '')}"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="${escapeHTML(prefill.endDate || '')}"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="${escapeHTML(prefill.supply ?? '')}"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="${escapeHTML(prefill.refill || '')}"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="${escapeHTML(prefill.prescriptionExpiry || '')}"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="${escapeHTML(prefill.repeats || '')}"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">${escapeHTML(prefill.instructions || '')}</textarea></label></div>${reviewReceiptMarkup}<p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span>→</span></button></div></form>`);
     const medicationForm = document.querySelector('[data-modal-form="medication"]');
-    if (medicationForm) attachLocalMedicineSuggestions(medicationForm);
+    if (medicationForm) {
+      attachLocalMedicineSuggestions(medicationForm);
+      const receipt = medicationForm.elements.reviewedAgainstPackage;
+      medicationForm.addEventListener('input', event => {
+        if (event.target === receipt) return;
+        if (receipt) receipt.checked = false;
+        const fieldTag = event.target.closest('.modal-field')?.querySelector('[data-field-source]');
+        if (fieldTag) fieldTag.textContent = 'Edited by you';
+      });
+      if (scanReviewRequired) {
+        medicationForm.querySelectorAll('.modal-field').forEach(field => {
+          const input = field.querySelector('input, textarea, select');
+          if (!input || !['name', 'dose', 'frequency', 'instructions'].includes(input.name)) return;
+          const tag = document.createElement('small');
+          tag.dataset.fieldSource = '';
+          tag.className = 'medication-field-source';
+          const wasMissing = missing.some(value => String(value).toLowerCase().includes(input.name.toLowerCase()));
+          tag.textContent = wasMissing || !String(input.value || '').trim() ? 'Not read' : 'Copied from label';
+          field.querySelector('span')?.append(tag);
+        });
+      }
+    }
     if (medicationForm && editing) {
       els.modalTitle.textContent = 'Edit medication';
       medicationForm.dataset.editMedicationId = editId;
@@ -3462,6 +3512,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function closeMedicationScanner() {
     stopMedicationScannerCamera();
+    if (els.medicationCameraStage) els.medicationCameraStage.hidden = true;
     if (els.medicationScannerModal?.open) els.medicationScannerModal.close();
   }
 
@@ -3635,6 +3686,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     els.medicationScannerModal.showModal();
     if (els.medicationImageConsent) els.medicationImageConsent.checked = false;
+    if (els.medicationCameraStage) els.medicationCameraStage.hidden = true;
+    if (els.medicationCaptureButton) els.medicationCaptureButton.hidden = true;
+    medicationScannerStatus('Choose package barcode, label photo, or manual entry. The camera stays off unless you choose barcode scanning.');
+  }
+
+  async function startMedicationScannerCamera() {
+    if (!els.medicationScannerModal?.open || medicationScanBusy) return;
+    if (els.medicationCameraStage) els.medicationCameraStage.hidden = false;
     medicationScannerStatus('Checking camera and barcode support…', 'starting');
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
       medicationScannerStatus('Live camera scanning is unavailable here. Use a label photo instead.', 'error');
@@ -3977,7 +4036,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     try {
       if (activePersonId !== 'self' && (cloudSyncDirty || cloudSaveFailed) && !await saveCloudState()) throw new Error('Save this person’s latest changes before using chat.');
       const memory = approvedChatMemory();
-      const requestBody = { managedActionConsent: activePersonId !== 'self', messages: chatHistory.slice(-CHAT_MAX_MESSAGES), path: 'health-hub', responseLength: chatResponseLength, stream: true };
+      const requestBody = { consent: true, managedActionConsent: activePersonId !== 'self', messages: chatHistory.slice(-CHAT_MAX_MESSAGES), path: 'health-hub', responseLength: chatResponseLength, stream: true };
       if (memory.length) requestBody.memory = memory;
       const response = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestBody), signal: controller.signal });
       if (!response.ok) {
@@ -4285,7 +4344,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const existingMedication = existingIndex >= 0 ? state.medications[existingIndex] : null;
       const name = String(values.name || '').replace(/\s+/g, ' ').trim().slice(0, 120);
       const dose = String(values.dose || '').replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!name || !dose) { showToast('Add the medication name and strength exactly as shown on the label.'); (form.elements.name?.value ? form.elements.dose : form.elements.name)?.focus(); return; }
+      if (form.dataset.scanReviewRequired === 'true' && values.reviewedAgainstPackage !== 'on') { showToast('Check every scan result against the original package before saving.'); form.elements.reviewedAgainstPackage?.focus(); return; }
+      if (!name || (!dose && form.dataset.scanReviewRequired !== 'true')) { showToast('Add the medication name and strength exactly as shown on the label. Leave an unread scan field blank rather than guessing.'); (form.elements.name?.value ? form.elements.dose : form.elements.name)?.focus(); return; }
       const activeIngredients = [...new Set(String(values.activeIngredients || '').split(/[;,\n]/).map(item => item.replace(/\s+/g, ' ').trim().slice(0, 120)).filter(Boolean))];
       if (activeIngredients.length > 8) { showToast('Add no more than eight active ingredient names, separated by commas or semicolons.'); form.elements.activeIngredients?.focus(); return; }
       let nzfProduct = null;
@@ -4314,7 +4374,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const supplyAmount = supplyInput === '' ? null : Number(supplyInput);
       const supply = supplyAmount !== null && Number.isFinite(supplyAmount) && supplyAmount >= 0 ? Math.min(999999, supplyAmount) : null;
       const refill = values.refill ? formatDate(values.refill) : editingId && values.clearRefill !== 'on' ? String(existingMedication?.refill || 'Not set') : 'Not set';
-      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || `med-${Date.now()}`, name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && (ingredientsManuallyConfirmed || productIngredientsComplete), activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, nzfProduct: nzfProductConfirmed ? nzfProduct : null, nzfProductConfirmed, resolvedIngredients, frequency, instructions: String(values.instructions || 'Follow the prescription label').replace(/\s+/g, ' ').trim().slice(0, 500), time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
+      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || `med-${Date.now()}`, name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && (ingredientsManuallyConfirmed || productIngredientsComplete), activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, nzfProduct: nzfProductConfirmed ? nzfProduct : null, nzfProductConfirmed, resolvedIngredients, frequency, instructions: String(values.instructions || '').replace(/\s+/g, ' ').trim().slice(0, 500), entrySource: existingMedication?.entrySource || (form.dataset.scanReviewRequired === 'true' ? 'scan' : 'manual'), reviewedAgainstPackageAt: values.reviewedAgainstPackage === 'on' ? new Date().toISOString() : '', time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
       if (existingIndex >= 0) state.medications[existingIndex] = medicationRecord;
       else state.medications.push(medicationRecord);
       clearMedicationSafetyResults();
@@ -4397,6 +4457,47 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (postSaveToast) showToast(postSaveToast);
   }
 
+  function selectedSafetyMedications(panel, output) {
+    const signature = JSON.stringify(state.medications.map(item => [String(item?.id || ''), String(item?.name || ''), String(item?.startDate || ''), String(item?.endDate || '')]));
+    let picker = panel.querySelector('[data-safety-medication-selection]');
+    if (!picker || picker.dataset.signature !== signature) {
+      picker?.remove();
+      picker = document.createElement('section');
+      picker.className = 'safety-medication-selection';
+      picker.dataset.safetyMedicationSelection = '';
+      picker.dataset.signature = signature;
+      const today = new Date().toISOString().slice(0, 10);
+      const choices = state.medications.map((item, index) => {
+        const label = String(item?.name || 'Medicine without a name').trim();
+        const dates = [item?.startDate ? `starts ${item.startDate}` : '', item?.endDate ? `ends ${item.endDate}` : ''].filter(Boolean).join(' · ');
+        const status = item?.startDate && item.startDate > today ? 'Future start date' : item?.endDate && item.endDate < today ? 'End date passed · may still be relevant' : 'Current or dates not recorded';
+        return `<label><input type="checkbox" data-safety-medication-choice value="${index}"><span><b>${escapeHTML(label)}</b><small>${escapeHTML([status, dates].filter(Boolean).join(' · '))}</small></span></label>`;
+      }).join('');
+      picker.innerHTML = `<fieldset><legend>Choose medicines for this check</legend><p>Past and future records are included here so you can choose them yourself. DoctorAI does not infer washout periods or decide that an older medicine is irrelevant.</p>${choices}</fieldset>`;
+      const actions = panel.querySelector('.clash-actions');
+      if (actions) panel.insertBefore(picker, actions);
+      else panel.insertBefore(picker, output);
+      if (output) output.textContent = 'Review the current and historical medicine choices above. Nothing has been sent.';
+      return null;
+    }
+    const selected = [...picker.querySelectorAll('[data-safety-medication-choice]:checked')]
+      .map(input => state.medications[Number(input.value)])
+      .filter(Boolean);
+    if (!selected.length) {
+      if (output) output.textContent = 'Select at least one medicine for this check. Nothing has been sent.';
+      return null;
+    }
+    if (selected.length > 30) {
+      if (output) output.textContent = 'Choose no more than 30 medicines for one check. No partial list was sent.';
+      return null;
+    }
+    return selected;
+  }
+
+  function clearSafetyMedicationSelection(panel) {
+    panel?.querySelectorAll?.('[data-safety-medication-choice]')?.forEach(input => { input.checked = false; });
+  }
+
   function renderLocalMedicationDatabaseResult(container, result) {
     container.replaceChildren();
     const summary = document.createElement('p');
@@ -4435,6 +4536,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const source = document.createElement('small');
         source.textContent = 'Source: ' + String(alert.source.publisher);
         article.append(source);
+        try {
+          const url = new URL(String(alert.source.url || ''));
+          if (url.protocol === 'https:' && !url.username && !url.password) {
+            const link = document.createElement('a');
+            link.href = url.toString();
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Open source';
+            article.append(link);
+          }
+        } catch {}
+        if (alert.source.verified === false) {
+          const unverified = document.createElement('small');
+          unverified.textContent = 'Source not verified';
+          article.append(unverified);
+        }
       }
       container.append(article);
     });
@@ -4446,6 +4563,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function runLocalMedicationSafetyCheck(button) {
     const personContext = capturePersonContext();
+    if (button.disabled) return;
     const panel = button.closest('.clash-panel');
     const output = panel?.querySelector('[data-local-medication-db-result]');
     const consent = panel?.querySelector('[data-local-medication-db-consent]');
@@ -4463,17 +4581,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.textContent = 'Add at least one medication before checking the saved list.';
       return;
     }
-    if (state.medications.length > 30) {
-      output.textContent = 'This check supports up to 30 saved medicines at a time. No partial list was sent.';
-      return;
-    }
+    const selectedMedications = selectedSafetyMedications(panel, output);
+    if (!selectedMedications) return;
     if (consent?.checked !== true) {
       output.textContent = 'Review the DoctorAI local database notice and check its consent box before this one-time request.';
       consent?.focus();
       return;
     }
     const payload = {
-      medications: state.medications.map(item => String(item?.name || '').trim()),
+      consent: true,
+      medications: selectedMedications.map(item => String(item?.name || '').trim()),
       allergies: splitDetails(state.profile?.allergies || ''),
       conditions: splitDetails(state.profile?.conditions || '')
     };
@@ -4503,6 +4620,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.append(message);
     } finally {
       if (consent) consent.checked = false;
+      clearSafetyMedicationSelection(panel);
       button.disabled = false;
     }
   }
@@ -4526,16 +4644,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.textContent = 'Add at least one medication before checking the saved list.';
       return;
     }
-    if (state.medications.length > 30) {
-      output.textContent = 'This check supports up to 30 saved medicines at a time. No partial list was sent.';
-      return;
-    }
+    const selectedMedications = selectedSafetyMedications(panel, output);
+    if (!selectedMedications) return;
     if (consent?.checked !== true) {
       output.textContent = 'Review the data-sharing notice and check its consent box before running this one-time query.';
       consent?.focus();
       return;
     }
-    const productIds = state.medications.map(medication => {
+    const productIds = selectedMedications.map(medication => {
       const product = medication?.nzfProductConfirmed === true ? validNzmtProduct(medication.nzfProduct) : null;
       return product?.ingredientsComplete === true ? product.id : '';
     });
@@ -4567,6 +4683,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.append(message);
     } finally {
       if (consent) consent.checked = false;
+      clearSafetyMedicationSelection(panel);
       button.disabled = false;
     }
   }
@@ -4590,17 +4707,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.textContent = 'Add at least one medication before checking the saved list.';
       return;
     }
-    if (state.medications.length > 30) {
-      output.textContent = 'This check supports up to 30 saved medicines at a time. No partial list was sent.';
-      return;
-    }
+    const selectedMedications = selectedSafetyMedications(panel, output);
+    if (!selectedMedications) return;
     const terms = medicationSafetyTerms();
     if (['allergies', 'conditions', 'symptoms'].some(group => terms.reviewed[group] !== true)) {
       output.textContent = 'Review each allergy, condition, and symptom group before running this check. No health-risk terms were sent.';
       openMedicationSafetyProfileModal();
       return;
     }
-    const payload = buildDrugBankSafetyPayload();
+    const payload = buildDrugBankSafetyPayload(selectedMedications);
     if (!payload.medications.some(medication => medication.ingredientIds.length)) {
       output.textContent = 'No saved medicine has a confirmed DrugBank active-ingredient match. Edit the medicine, confirm each active ingredient from its label or NZ catalogue entry, and select its exact database ingredient match.';
       return;
@@ -4634,12 +4749,44 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.append(message);
     } finally {
       if (consent) consent.checked = false;
+      clearSafetyMedicationSelection(panel);
       button.disabled = false;
     }
   }
 
   async function handleClick(event) {
     if (blockPersonTransitionEvent(event)) return;
+    if (event.target.closest('.skip-link[href="#main-content"]')) {
+      event.preventDefault();
+      document.getElementById('main-content')?.focus();
+      return;
+    }
+    const generateBriefing = event.target.closest('[data-generate-today-briefing]');
+    if (generateBriefing) {
+      event.preventDefault();
+      const panel = generateBriefing.closest('.today-ai-briefing');
+      const output = panel?.querySelector('#today-ai-output');
+      const consent = panel?.querySelector('[data-briefing-consent]');
+      if (!panel || !output) return;
+      if (consent?.checked !== true) {
+        output.textContent = 'Review the sharing notice and confirm before sending selected records.';
+        consent?.focus();
+        return;
+      }
+      const medications = [...panel.querySelectorAll('[data-briefing-medication]:checked')]
+        .map(input => state.medications[Number(input.value)]).filter(Boolean);
+      const symptoms = [...panel.querySelectorAll('[data-briefing-symptom]:checked')]
+        .map(input => state.timeline[Number(input.value)]).filter(Boolean);
+      if (!medications.length && !symptoms.length) {
+        output.textContent = 'Select at least one medicine or symptom note. Nothing has been sent.';
+        return;
+      }
+      await loadTodayIntelligence(medications, symptoms);
+      if (consent) consent.checked = false;
+      panel.querySelectorAll('[data-briefing-medication], [data-briefing-symptom]').forEach(input => { input.checked = false; });
+      return;
+    }
+
     const recoveryExport = event.target.closest('[data-export-cache]');
     if (recoveryExport) { event.preventDefault(); exportCacheRecovery(recoveryExport.dataset.exportCache); return; }
     const recoveryReview = event.target.closest('[data-review-cache]');
@@ -4717,6 +4864,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }
     if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); await openMedicationScanner(); return; }
     if (event.target.closest('[data-close-medication-scanner]')) { event.preventDefault(); closeMedicationScanner(); return; }
+    if (event.target.closest('[data-medication-barcode]')) { event.preventDefault(); await startMedicationScannerCamera(); return; }
     if (event.target.closest('[data-medication-capture]')) { event.preventDefault(); await medicationPhotoCaptured(); return; }
     if (event.target.closest('[data-medication-photo]')) {
       event.preventDefault();
@@ -4763,7 +4911,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (shareTarget) {
       event.preventDefault();
       if (!hasProAccess()) { window.location.href = '/subscription#plans'; return; }
-      showToast('Secure sharing will ask for a recipient and permission before sending.');
+      showToast('Document sharing is not available yet.');
       return;
     }
     const chatAction = event.target.closest('[data-chat-action]');

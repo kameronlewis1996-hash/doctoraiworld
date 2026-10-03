@@ -37,7 +37,7 @@ async function call(handler, account, profileId, body, extraHeaders = {}) {
     await core.saveHealthState(owner, { profile: { allergies: `${name}-allergy` }, medications: [{ name: `${name}-medicine` }], memoryEnabled: true, memoryDetails: [`Approved ${name}-allergy`, `Approved ${name}-medicine`] }, id);
   }
   await core.saveHealthState(owner, { memoryEnabled: true, memoryDetails: ['Owner-allergy', 'Owner-medicine'] });
-  const question = { managedActionConsent: true, messages: [{ role: 'user', content: 'Help organise a question for a pharmacist.' }], memory: ['Owner-allergy', 'Other-profile-allergy'] };
+  const question = { consent: true, managedActionConsent: true, messages: [{ role: 'user', content: 'Help organise a question for a pharmacist.' }], memory: ['Owner-allergy', 'Other-profile-allergy'] };
   for (let i = 0; i < ids.length; i++) {
     const response = await call(chat, owner, ids[i], { ...question, stream: i === 1 });
     assert.equal(response.statusCode, 200);

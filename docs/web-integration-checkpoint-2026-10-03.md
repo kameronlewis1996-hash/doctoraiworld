@@ -1,0 +1,37 @@
+# Web integration checkpoint — 2026-10-03
+
+Paused at the user's request to reduce usage. This is a local work-in-progress checkpoint, not a release-ready candidate. No branch was pushed, draft PR created, Preview deployed, or production merged in this pass. No Android files were changed.
+
+## Sources and reconciliation
+
+- Production/main: `5a4ad6041d5d24806c0125279614325d1329a5e1`.
+- Family draft PR33: `53a597e41ce2b7e25f1ba84ce75404691ef6aab8`; base of this branch.
+- Earlier redesign/scanner/medicine draft PR22: `b5b4b6b653370490ac6ef4bd64208e804e6be9e9`; deliberately integrated after reviewing conflicts.
+- Branch: `codex/web-accessibility-integration-20261003`.
+
+Preserved the PR33 core, opaque account-bound self cache, scoped health/profile handlers and document deletion handler. Rejected obsolete email-hash account caches from PR22. Retained child AI/OCR restrictions, adult consent, revision/CAS guards, quarantine/recovery, storage consent and scoped deletion. Published Privacy and Terms remain the production versions; caregiver policy and complimentary Pro remain draft. Preview billing is disabled.
+
+Integrated explicit record-selection/consent for medicine checks and briefings, scanner review, accurate document messaging, public-MCP quote fixes and targeted checks. Added a final blue/cyan visual layer, larger text and controls, responsive cards and manual-entry CTA. Fixed a real keyboard issue: the skip link now focuses main content without triggering the view router. Updated service-worker asset versions and exact inline CSP hashes.
+
+## Verification already performed
+
+The initial aggregate run passed 18 checks and found obsolete fixtures in profiles, managed AI, person-switch and document deletion checks. Those four fixtures were updated to the integrated consent/context contracts, and all four reruns passed. The obsolete PR22 account-isolation script was removed in favor of the stronger PR33 account-cache checks. Detailed first-run results, including failures, remain in `/workspace/doctorai-web-evidence/integration-first-tests.json`.
+
+The portable static verifier passed 11 pages, 201 local references, exact inline CSP hashes, versioned offline assets and privacy/provider invariants. Browser automation used synthetic local handlers with provider/storage mocks; it performed no paid provider calls. An agent-browser CDP content/error check passed. No real patient records were used.
+
+The latest focused browser run passed: skip-link focus; named manual-entry dialog; Escape/focus restoration; required name/strength validation and focus; one manual medicine save; appointment save; notes save/reload; no AI request when opening overview or withholding consent; one request on double activation; consent reset after completion. It then stopped on one axe color-contrast rule in the briefing dialog:
+
+- `div:nth-child(3) > dt`: 4.45:1 (`#62798b` on `#fbfdff`, 10px).
+- Two list `<small>` labels: 4.16:1 (`#6b7f8c` on white, 12px).
+
+Failure detail: `/workspace/doctorai-web-evidence/final/web-verification-failure.json`. The remaining browser assertions have not run to completion. Do not claim WCAG conformance or release readiness.
+
+## Evidence and boundaries
+
+Before/after screenshots and local audit JSON: `/workspace/doctorai-web-evidence`. Existing `after-integrated-*` captures precede the latest scanner-label color and skip-link fixes; refresh only the relevant captures in a future focused pass. No Library upload was attempted or confirmed. Original branches and detached audit worktrees remain intact.
+
+Live page text was reviewed through the web tool. Direct browser access to `www.doctoraiworld.com` was blocked by the environment proxy (CONNECT 403 / tunnel failure); baseline browser captures therefore use the exact production source locally. Auth/KV/Blob Preview isolation is not configured or owner-approved. Deployed sign-in, real storage, camera hardware, Android and end-to-end external-provider behavior are unverified. No credentials/resources, billing, legal publication or production settings were changed.
+
+## Focused next step
+
+Fix only the briefing dialog contrast, run the focused browser check, inspect the result, and decide the next single priority with the parent. Refresh current evidence and recheck affected privacy/consent behavior before publishing a draft PR or Preview. Native Android work remains owned by its separate thread; this branch has no native changes.

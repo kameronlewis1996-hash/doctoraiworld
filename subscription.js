@@ -16,6 +16,7 @@
   const termsConfirm = document.querySelector('#checkout-terms-confirm');
   const renewalNote = document.querySelector('#checkout-renewal-note');
   const originalSubscribeLabel = subscribeButton?.innerHTML || 'Start Pro subscription <span>→</span>';
+  const previewPricingOnly = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.vercel.app');
   let currentCheckoutSessionId = null;
   let selectedBillingPlan = 'monthly';
   let planPricing = null;
@@ -28,11 +29,12 @@
   accessPanel.innerHTML = '<b>Have a DoctorAI Pro access code?</b><p>Sign in with Google first, then enter your complimentary access code. It will be linked to your DoctorAI account.</p><form><input required autocomplete="one-time-code" placeholder="Access code" aria-label="DoctorAI Pro access code"><button>Activate Pro</button></form><small aria-live="polite"></small>';
   const planSection = document.querySelector('#plans');
   if (planSection) planSection.parentNode.insertBefore(accessPanel, planSection);
+  if (previewPricingOnly) accessPanel.hidden = true;
   accessPanel.querySelector('form').addEventListener('submit', async event => {
-    event.preventDefault(); const note = accessPanel.querySelector('small'); const code = accessPanel.querySelector('input').value.trim() || accessCodeFromLink; note.textContent = 'Checking code…';
+    event.preventDefault(); if (previewPricingOnly) return; const note = accessPanel.querySelector('small'); const code = accessPanel.querySelector('input').value.trim() || accessCodeFromLink; note.textContent = 'Checking code…';
     try { const response = await fetch('/api/staff/redeem-pro', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Code could not be accepted.'); note.textContent = 'DoctorAI Pro is active for 30 days. Return to the Health Hub to use Pro features.'; } catch (error) { note.textContent = error instanceof Error ? error.message : 'Code could not be accepted.'; }
   });
-  if (accessCodeFromLink) {
+  if (accessCodeFromLink && !previewPricingOnly) {
     accessPanel.querySelector('input').value = accessCodeFromLink;
     accessPanel.querySelector('input').defaultValue = accessCodeFromLink;
     if (checkoutCodeForm) {
@@ -45,6 +47,11 @@
 
   const planIsAvailable = plan => Boolean(planPricing?.[plan]?.available);
   const syncPlanControls = () => {
+    if (previewPricingOnly) {
+      if (subscribeButton) subscribeButton.disabled = true;
+      if (confirmCheckoutButton) confirmCheckoutButton.disabled = true;
+      return;
+    }
     const available = planIsAvailable(selectedBillingPlan);
     if (subscribeButton) subscribeButton.disabled = !available;
     if (confirmCheckoutButton) confirmCheckoutButton.disabled = !(available && termsConfirm?.checked);
@@ -93,6 +100,49 @@
     syncPlanControls();
   };
 
+  const setPreviewUnavailable = () => {
+    planPricing = {};
+    const annualToggle = toggleButtons.find(button => button.dataset.plan === 'annual');
+    const monthlyToggle = toggleButtons.find(button => button.dataset.plan === 'monthly');
+    if (annualToggle) annualToggle.hidden = true;
+    if (monthlyToggle) {
+      monthlyToggle.textContent = 'Monthly';
+      monthlyToggle.classList.add('active');
+      monthlyToggle.setAttribute('aria-pressed', 'true');
+      monthlyToggle.disabled = true;
+      monthlyToggle.setAttribute('aria-disabled', 'true');
+    }
+    if (price) price.textContent = 'Preview';
+    if (period) period.textContent = 'billing disabled';
+    if (equivalent) equivalent.textContent = 'Review the current live plan before subscribing. Billing is disabled in this preview.';
+    const previewNote = document.querySelector('[data-preview-pricing-note]');
+    if (previewNote) previewNote.hidden = false;
+    const liveBillingNote = document.querySelector('[data-live-billing-note]');
+    const previewBillingNote = document.querySelector('[data-preview-billing-note]');
+    if (liveBillingNote) liveBillingNote.hidden = true;
+    if (previewBillingNote) previewBillingNote.hidden = false;
+    if (selectedPlan) selectedPlan.textContent = 'Preview · billing disabled';
+    if (renewalNote) renewalNote.textContent = 'This is an integrated preview. No charge will be made; checkout and billing management are disabled.';
+    if (subscribeButton) {
+      subscribeButton.disabled = true;
+      subscribeButton.setAttribute('aria-disabled', 'true');
+      subscribeButton.classList.add('preview-disabled');
+      subscribeButton.textContent = 'Checkout unavailable in preview';
+    }
+    if (confirmCheckoutButton) {
+      confirmCheckoutButton.disabled = true;
+      confirmCheckoutButton.setAttribute('aria-disabled', 'true');
+    }
+    if (termsConfirm) termsConfirm.disabled = true;
+    manageBillingButtons.forEach(button => {
+      button.disabled = true;
+      button.setAttribute('aria-disabled', 'true');
+      button.hidden = true;
+    });
+    checkoutCodeForm?.closest('.checkout-code-box')?.setAttribute('hidden', '');
+    setCheckoutStatus('This preview does not connect to checkout, billing management or account activation.');
+  };
+
   const loadPlanPricing = async () => {
     try {
       const response = await fetch('/api/stripe/plans', { headers: { accept: 'application/json' }, cache: 'no-store' });
@@ -130,10 +180,12 @@
   };
 
   const openCheckoutDialog = () => {
+    if (previewPricingOnly) return;
     if (dialog && !dialog.open) dialog.showModal();
   };
 
   const activateCode = async (form, status) => {
+    if (previewPricingOnly) return false;
     const inputs = [...form.querySelectorAll('input')];
     const code = (form.querySelector('[placeholder="Complimentary access code"]') || inputs.at(-1))?.value.trim() || accessCodeFromLink;
     if (status) { status.textContent = 'Checking code…'; status.dataset.tone = ''; }
@@ -150,6 +202,7 @@
   };
 
   const startCheckout = async () => {
+    if (previewPricingOnly) return;
     if (!subscribeButton || !planIsAvailable(selectedBillingPlan)) return;
     subscribeButton.disabled = true;
     subscribeButton.innerHTML = 'Connecting to Stripe…';
@@ -173,6 +226,7 @@
   };
 
   const openBillingPortal = async button => {
+    if (previewPricingOnly) return;
     if (!button) return;
     button.disabled = true;
     const originalLabel = button.innerHTML;
@@ -196,6 +250,7 @@
   };
 
   const verifySuccessfulCheckout = async () => {
+    if (previewPricingOnly) return;
     const query = new URLSearchParams(window.location.search);
     const outcome = query.get('checkout');
     const sessionId = query.get('session_id');
@@ -244,6 +299,9 @@
   checkoutCodeForm?.addEventListener('submit', async event => { event.preventDefault(); await activateCode(checkoutCodeForm, checkoutCodeStatus); });
   document.querySelector('[data-close-dialog]')?.addEventListener('click', () => dialog?.close());
   dialog?.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
-  loadPlanPricing();
-  verifySuccessfulCheckout();
+  if (previewPricingOnly) setPreviewUnavailable();
+  else {
+    loadPlanPricing();
+    verifySuccessfulCheckout();
+  }
 })();

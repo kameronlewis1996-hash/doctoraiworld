@@ -1,0 +1,45 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check:js
+      - run: pnpm run verify:scan
+      - run: pnpm run verify:nzf
+      - run: pnpm run verify:server
+      - run: pnpm run verify:medication-database
+      - run: pnpm run verify:medication-safety
+      - run: pnpm run verify:local-medication-ui
+      - run: pnpm run verify:medication-review
+      - run: pnpm run verify:preview-isolation
+      - run: pnpm run verify:documents
+      - run: pnpm run verify:chat-privacy
+      - run: pnpm run verify:pricing
+      - run: pnpm run verify:public-mcp
+      - run: pnpm run verify:profiles
+      - run: pnpm run verify:person-switch
+      - run: pnpm run verify:managed-ai
+      - run: pnpm run verify:health-concurrency
+      - run: pnpm run verify:managed-client-guards
+      - run: pnpm run verify:self-cache
+      - run: pnpm run verify:self-cache-consent
+      - run: pnpm run verify:self-cache-deletion
+      - run: pnpm run verify:lifetime-draft
+      - run: pnpm run verify:static

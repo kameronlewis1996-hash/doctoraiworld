@@ -63,8 +63,8 @@ async function call(handler, account, method, body, profileId, query = {}) {
   assert.equal((await call(chat, other, 'POST', { messages: [] }, cedar)).statusCode, 404);
   assert.equal((await call(medication, other, 'POST', {}, cedar, { action: 'scan' })).statusCode, 404);
   assert.equal((await call(medication, owner, 'POST', {}, cedar, { action: 'safety-check' })).statusCode, 409, 'External checks remain unavailable for managed profiles.');
-  assert.equal((await call(safety, other, 'POST', { medications: ['synthetic'] }, cedar)).statusCode, 404);
-  assert.equal((await call(safety, owner, 'POST', { medications: ['synthetic'] }, cedar)).statusCode, 200);
+  assert.equal((await call(safety, other, 'POST', { consent: true, medications: ['synthetic'] }, cedar)).statusCode, 404);
+  assert.equal((await call(safety, owner, 'POST', { consent: true, medications: ['synthetic'] }, cedar)).statusCode, 200);
   assert.equal((await call(profiles, owner, 'PATCH', { id: cedar, name: 'Cedar Updated', relationship: '' })).statusCode, 200);
   assert.equal((await call(profiles, owner, 'PATCH', { id: cedar, archived: true })).statusCode, 200);
   assert.equal((await call(health, owner, 'PUT', { state: syntheticState('Blocked') }, cedar)).statusCode, 409);

@@ -1,0 +1,73 @@
+/* Integrated web reading and interaction layer. Blue/cyan remains the shared palette. */
+:root { --release-ink: #14344e; --release-muted: #405d73; --release-blue: #075bb3; --release-line: #b9cfdf; }
+html { scroll-padding-block: 100px; }
+body { font-size: 16px; line-height: 1.6; }
+body :is(button, input, select, textarea) { font: inherit; }
+body :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid #075bb3; outline-offset: 3px; }
+body :is(button, a, input, select, textarea, summary) { scroll-margin-block: 100px; }
+body :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { min-width: 0; border-color: #718b9f; }
+body :is(input[type="checkbox"], input[type="radio"]) { width: 24px; height: 24px; min-height: 24px; flex: 0 0 24px; accent-color: var(--release-blue); }
+body :is(.primary-button, .secondary-button, .quiet-button, .text-button, .danger-button, .upload-button, .home-briefing-link) { min-height: 48px; font-size: 16px; }
+body :is(.modal-help, .modal-field > span, .scan-review-confirm, .managed-person-confirmation, .signin-disclaimer, .chat-disclaimer, .medication-db-consent, .medication-local-db-consent, .today-ai-consent-copy, .today-ai-consent, .today-ai-record-choice) { font-size: 14px; line-height: 1.65; color: var(--release-muted); }
+body :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+body .modal-form-grid > * { min-width: 0; }
+body .modal-actions { flex-wrap: wrap; gap: 12px; }
+body :is(.modal-help, .modal-form, .privacy-copy, .family-person-copy, .home-medication-support, .home-check-coverage) { overflow-wrap: anywhere; }
+body #hub-shell :is(.page-subtitle, .empty-state, .empty-inline, .profile-shortcuts-intro, .safety-note p) { font-size: 16px; line-height: 1.65; color: var(--release-muted); }
+body #hub-shell :is(.nav-item, .category-tab, .filter-tabs button, .document-filters button, .profile-shortcut-copy b, .profile-shortcut-add b) { font-size: 16px; line-height: 1.4; }
+body #hub-shell :is(.card-kicker, .eyebrow, .timeline-note, .profile-shortcut-copy small, .profile-trust-card p, .profile-shortcuts-edit-note, .family-intro, .family-status, .family-person-copy small, .active-person-status, .home-check-coverage) { font-size: 14px; line-height: 1.6; color: var(--release-muted); }
+body #hub-shell :is(.hub-footer, .hub-footer button, .hub-footer a, .upgrade-card b, .memory-mini b, .account-link b, .rail-link, .privacy-badge) { font-size: 14px !important; }
+body #hub-shell .active-person-bar { background: #edf8fc; border-color: var(--release-line); border-radius: 16px; }
+body #hub-shell .active-person-bar label { font-size: 14px; }
+body #hub-shell .active-person-bar select { min-height: 48px; font-size: 16px; border-color: #718b9f; }
+body #hub-shell .family-pro-tag { color: #344777; background: #ecf2ff; font-size: 12px; }
+body #hub-shell .family-support-note { font-size: 14px; color: var(--release-muted); }
+body #hub-shell .page-heading h1 { font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.03em; }
+body #hub-shell #view-today .colour-hero-live { padding: 24px !important; background: #f5fbff !important; box-shadow: none !important; border-radius: 20px !important; gap: 24px !important; }
+body #hub-shell #view-today .hub-hero-intro { display: grid !important; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+body #hub-shell #view-today #today-title { font-size: clamp(34px, 4vw, 46px) !important; line-height: 1.15 !important; }
+body #hub-shell #view-today .hub-hero-greeting { font-size: 16px !important; color: var(--release-muted) !important; }
+body #hub-shell #view-today .hub-hero-subtitle { display: block !important; font-size: 16px !important; color: var(--release-muted) !important; line-height: 1.65 !important; }
+body #hub-shell .home-medication-action-group { display: grid; gap: 14px; min-width: 0; }
+body #hub-shell .home-medication-manual-cta { width: 100%; justify-content: space-between; padding: 14px 18px; background: #075bb3; color: #fff; }
+body #hub-shell .home-medication-scan-cta { min-width: 0; min-height: 64px; padding: 14px 16px; background: #fff; color: #075bb3; border: 1px solid #718b9f; box-shadow: none; }
+body #hub-shell .home-medication-scan-copy b { font-size: 16px; line-height: 1.4; color: #075bb3 !important; }
+body #hub-shell :is(.home-medication-scan-icon, .home-medication-scan-arrow) { color: #075bb3 !important; }
+body #hub-shell .home-medication-scan-copy small { font-size: 14px; line-height: 1.5; color: var(--release-muted); }
+body #hub-shell .home-medication-support { font-size: 14px; line-height: 1.6; color: var(--release-muted); }
+body #hub-shell .home-check-coverage { margin: 0; }
+body #hub-shell .home-briefing-link { justify-self: start; color: #075bb3; }
+body #hub-shell .home-medication-support a { text-underline-offset: 3px; }
+body #hub-shell #view-today .colour-orbit { gap: 14px !important; }
+body #hub-shell #view-today .orbit-action { min-height: 116px !important; padding: 18px !important; gap: 10px !important; background: #fff !important; border-color: var(--release-line) !important; box-shadow: none !important; }
+body #hub-shell #view-today .orbit-action b { font-size: 16px !important; line-height: 1.4 !important; }
+body #hub-shell #view-today .orbit-action small { display: none !important; }
+body #hub-shell #view-today .care-visit-card { padding: 22px; background: #eaf6fc; border-color: var(--release-line); }
+body #hub-shell #view-today .care-visit-card p { font-size: 16px; color: var(--release-muted); }
+body #hub-shell #view-today .care-visit-card button { min-height: 48px; font-size: 16px; background: #fff; border: 1px solid #718b9f; }
+body #hub-shell .care-emergency { font-size: 14px !important; }
+body .landing-header nav a { min-width: 44px; text-align: center; font-size: 16px; }
+body :is(.landing-meta, .landing-note, .landing-kicker) { font-size: 14px; }
+body .landing-intro h1 { line-height: 1.15; letter-spacing: -.035em; }
+body .landing-control a, body .landing-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+body.doctorai-public-page :is(.plan-description, .feature-card p, .billing-note, .setup-note, .paper-card p) { font-size: 16px; line-height: 1.65; }
+body.doctorai-public-page .doctorai-site-nav a { min-height: 44px; }
+@media (max-width: 760px) {
+  body #hub-shell #view-today .hub-hero-intro { grid-template-columns: 1fr; gap: 22px; }
+  body #hub-shell #view-today .colour-hero-live { padding: 20px 16px !important; border-radius: 18px !important; }
+  body #hub-shell #view-today .orbit-action { min-height: 100px !important; padding: 16px !important; }
+  body #hub-shell .page-heading { flex-wrap: wrap; gap: 18px; }
+  body #hub-shell .page-heading-actions { flex-wrap: wrap; }
+  body #hub-shell .hub-footer { flex-wrap: wrap; }
+  body .modal-actions button { flex: 1 1 120px; }
+}
+@media (max-width: 380px) {
+  body #hub-shell #view-today .colour-orbit { grid-template-columns: 1fr !important; }
+  body #hub-shell #view-today .orbit-action { min-height: 72px !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; }
+  body #hub-shell .modal-form-grid { grid-template-columns: 1fr; }
+  body #hub-shell .modal-field.full { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body *, body *::before, body *::after { animation: none !important; transition: none !important; }
+}

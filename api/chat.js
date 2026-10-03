@@ -101,6 +101,7 @@ module.exports = async function chat(req, res) {
   let body = {};
   try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
   if (!body || Array.isArray(body) || typeof body !== 'object') return core.json(res, 400, { error: 'Invalid chat request.' });
+  if (body.consent !== true) return core.json(res, 400, { error: 'Confirm this one-time request before sending it to DoctorAI.' });
   if (profile && body.managedActionConsent !== true) return core.json(res, 400, { error: 'Review the selected person’s AI disclosure and confirm authority and consent for this individual request.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {

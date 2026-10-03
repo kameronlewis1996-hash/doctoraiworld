@@ -94,6 +94,7 @@ function harness({ fail = false, dirty = false } = {}) {
     const delayed = harness(); const body = deferred(); const headers = deferred();
     const c = delayed.context; c.activePersonId = 'self'; c[resultKey] = null;
     c.state.medications = [{ nzfProductConfirmed: true, nzfProduct: {} }];
+    c.selectedSafetyMedications = () => c.state.medications;
     c.validNzmtProduct = () => ({ id: '1234567', ingredientsComplete: true });
     c.medicationSafetyTerms = () => ({ reviewed: { allergies: true, conditions: true, symptoms: true } });
     c.buildDrugBankSafetyPayload = () => ({ medications: [{ ingredientIds: ['DB00001'] }] });
