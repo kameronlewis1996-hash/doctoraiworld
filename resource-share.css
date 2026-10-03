@@ -20,3 +20,18 @@
   color: #18344d;
   font-weight: 600;
 }
+.resource-share-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 320px);
+  min-height: 48px;
+  padding: 0 20px;
+  border: 2px solid #153452;
+  border-radius: 12px;
+  background: #fff;
+  color: #153452;
+  font: 800 15px Arial, sans-serif;
+  cursor: pointer;
+}
