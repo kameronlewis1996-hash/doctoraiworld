@@ -35,3 +35,4 @@
   font: 800 15px Arial, sans-serif;
   cursor: pointer;
 }
+body.doctorai-public-page .resource-share-button { min-height: 48px; }
