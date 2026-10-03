@@ -19,7 +19,8 @@ let started = false;
   const config = JSON.parse((await docker('inspect', name)).stdout)[0];
   console.log(JSON.stringify({ networkMode: config.HostConfig.NetworkMode, readonlyRootfs: config.HostConfig.ReadonlyRootfs, publishedPorts: Object.keys(config.NetworkSettings.Ports || {}), hostMounts: config.Mounts.filter(m => m.Type === 'bind').length, persistentHealthStorage: false }));
   const exitCode = await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['scripts/verify-health-concurrency.cjs'], { cwd: process.cwd(), env: { ...process.env, DOCTORAI_REDIS_TEST_CONTAINER: name }, stdio: 'inherit' });
+    const script = (process.env.DOCTORAI_REDIS_TEST_SCRIPT === 'access-programmes' || process.argv.includes('--access-programmes')) ? 'scripts/verify-access-programmes.cjs' : 'scripts/verify-health-concurrency.cjs';
+    const child = spawn(process.execPath, [script], { cwd: process.cwd(), env: { ...process.env, DOCTORAI_REDIS_TEST_CONTAINER: name }, stdio: 'inherit' });
     child.on('error', reject); child.on('exit', resolve);
   });
   if (exitCode !== 0) throw new Error('Real Redis concurrency verification failed.');

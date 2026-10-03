@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Supported Pro planning — DoctorAI</title>
+    <meta
+      name="description"
+      content="Review DoctorAI supported-access planning and application availability."
+    />
+    <link rel="icon" href="/doctorai-app-icon.png" />
+    <link rel="stylesheet" href="/access-pages.css?v=1" />
+  </head>
+  <body data-access-page="support">
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header>
+      <a href="/" aria-label="DoctorAI home"
+        ><img src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI"
+      /></a>
+      <nav aria-label="Primary">
+        <a href="/health-hub">Health hub</a
+        ><a href="/subscription">Free and Pro</a
+        ><a href="/care-access">Caregiver access</a>
+      </nav>
+    </header>
+    <main id="main">
+      <h1>Supported Pro, with a sustainable plan</h1>
+      <p>
+        We are preparing lifetime complimentary Pro for disabled adults on their
+        own accounts and eligible families. It would require manual eligibility
+        review, with no payment method, automatic approval or marketing consent.
+        Approval would remain valid while DoctorAI operates, without routine
+        proof renewal.
+      </p>
+      <p class="notice" id="support-status" role="status">
+        Applications are closed while eligibility, funding, private review and
+        retention decisions are pending. Do not send proof through email, AI
+        chat or health-document uploads.
+      </p>
+      <section aria-labelledby="application-heading">
+        <h2 id="application-heading">Your application</h2>
+        <p>
+          Sign in from the <a href="/health-hub">health hub</a> to review your
+          own application status. Pro is not required to apply when intake
+          opens.
+        </p>
+        <p id="application-result" role="status"></p>
+        <details>
+          <summary>Review the planned minimal application</summary>
+          <form id="support-form" aria-describedby="support-help support-error">
+            <fieldset id="support-fields" disabled>
+              <legend>Eligibility confirmation</legend>
+              <label for="support-kind"
+                >Application for<select id="support-kind" name="kind" required>
+                  <option value="disabled_adult_self">
+                    My own account as a disabled adult
+                  </option>
+                  <option value="eligible_family">
+                    An eligible family I support
+                  </option>
+                </select></label
+              ><label class="check"
+                ><input
+                  name="eligibilityConfirmed"
+                  type="checkbox"
+                  required
+                /><span
+                  >I meet the published programme criteria once they are
+                  approved.</span
+                ></label
+              ><label class="check" id="family-authority-label" hidden
+                ><input name="authorityConfirmed" type="checkbox" /><span
+                  >I have the required permission or legal authority for this
+                  family arrangement. Disability alone does not establish
+                  inability to consent.</span
+                ></label
+              ><label for="referral-reference"
+                >Approved referral reference (optional)<input
+                  id="referral-reference"
+                  name="referralReference"
+                  maxlength="80"
+                  pattern="[A-Za-z0-9_-]{4,80}"
+                  aria-describedby="support-help"
+              /></label>
+              <p id="support-help">
+                Use only a reference from the approved review channel. No
+                diagnosis, medical history, child name, date of birth or file is
+                requested here. If evidence is needed, its private reviewer and
+                deletion deadline must be approved first.
+              </p>
+              <button class="primary" type="submit">
+                Submit for manual review
+              </button>
+            </fieldset>
+            <p id="support-error" role="alert" tabindex="-1"></p>
+          </form>
+        </details>
+      </section>
+      <section aria-labelledby="funding-heading">
+        <h2 id="funding-heading">Funded places and usage</h2>
+        <p>
+          New places would open only within a funded allocation. AI requests,
+          label scans, stored documents and review time need explicit allowances
+          and cost review. Closing future intake or reducing new allocations
+          must not erase existing approved lifetime grants.
+        </p>
+        <p>
+          Actual provider usage, storage and review time can be counted
+          separately. Cost reporting needs approved rates and invoices; no cost
+          savings or waived subscription value are presented as cash
+          contributions.
+        </p>
+        <p>
+          Approval would not automatically cancel an existing paid subscription.
+          Any billing change would need your explicit instruction.
+        </p>
+      </section>
+      <section aria-labelledby="contribution-heading">
+        <h2 id="contribution-heading">Future contribution goal</h2>
+        <p>
+          The planning goal is to contribute 5% of cash profit. It is not an
+          active donation scheme or a claimed charity partnership. The financial
+          year, approved cash-profit definition, payout timing and recipient are
+          undecided.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Reporting fields awaiting verified records
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col">Current reporting status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Complimentary accounts</th>
+                <td>
+                  Tracked separately once grants are approved; never cash
+                  donated
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Cash committed</th>
+                <td>Not configured; no total claimed</td>
+              </tr>
+              <tr>
+                <th scope="row">Cash distributed</th>
+                <td>Not configured; no total claimed</td>
+              </tr>
+              <tr>
+                <th scope="row">Administration costs</th>
+                <td>Awaiting approved records and accounting basis</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="support-review" aria-labelledby="review-heading" hidden>
+        <h2 id="review-heading">Authorised manual review</h2>
+        <p>
+          Only the existing authorised programme reviewer can see this queue.
+          The server verifies access for every decision. No new administrator
+          access is created.
+        </p>
+        <p id="review-status" role="status"></p>
+        <div id="review-queue"></div>
+        <form id="review-form">
+          <fieldset id="review-fields" disabled>
+            <legend>Record a review decision</legend>
+            <label for="review-application"
+              >Application<select
+                id="review-application"
+                name="applicationId"
+                required
+              ></select></label
+            ><label for="review-outcome"
+              >Outcome<select id="review-outcome" name="outcome">
+                <option value="more_information">
+                  More information through approved channel
+                </option>
+                <option value="declined">Declined</option>
+                <option value="approved">Approved</option>
+              </select></label
+            ><label for="review-reference"
+              >Minimal decision reference<input
+                id="review-reference"
+                name="reviewReference"
+                required
+                pattern="[A-Za-z0-9_-]{4,80}"
+                maxlength="80" /></label
+            ><label for="review-minutes"
+              >Review time in minutes<input
+                id="review-minutes"
+                name="reviewMinutes"
+                type="number"
+                min="0"
+                required /></label
+            ><label class="check"
+              ><input name="verificationComplete" type="checkbox" /><span
+                >Eligibility and authority have been verified through the
+                approved private channel.</span
+              ></label
+            ><button class="primary" type="submit">Record decision</button>
+          </fieldset>
+          <p id="review-error" role="alert" tabindex="-1"></p>
+        </form>
+      </section>
+    </main>
+    <footer>
+      <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
+      <a href="/health-hub">Return to health hub</a>
+    </footer>
+    <script src="/access-pages.js?v=1"></script>
+  </body>
+</html>

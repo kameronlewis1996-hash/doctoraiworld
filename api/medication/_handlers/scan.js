@@ -94,6 +94,7 @@ module.exports = async function handler(request, response) {
   }
 
   try {
+    const reservation = await require('../../../server-src/_lib/supported-usage.cjs').reserve(request, account, 'scan');
     const upstream = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
@@ -117,6 +118,7 @@ module.exports = async function handler(request, response) {
       return json(response, 422, { error: 'This image could not be processed. Try a clearer label photo or enter the details manually.' });
     }
 
+    await require('../../../server-src/_lib/supported-usage.cjs').complete(account, reservation, result?.usage).catch(() => {});
     const parts = outputContent(result);
     const refusal = parts.some(part => part?.type === 'refusal' || part?.refusal);
     if (refusal) {
@@ -158,6 +160,7 @@ module.exports = async function handler(request, response) {
     const needsReview = ['name', 'dose'].filter(key => !scanned[key]);
     return json(response, 200, { profileId: profile?.id || 'self', medication: scanned, review: { required: true, missing: needsReview, message: needsReview.length ? 'Some required label details were not clear enough to fill. Please enter and review them manually.' : 'Review every extracted field against the medicine box or prescription before saving.' } });
   } catch (error) {
+    if (error.status) return json(response, error.status, { error: error.message });
     const timeout = error?.name === 'TimeoutError' || error?.name === 'AbortError';
     core.reportError(timeout ? 'medication_scan_timeout' : 'medication_scan_failed', { route: '/api/medication/scan', provider: 'openai', name: error?.name, operation: timeout ? 'timeout' : 'parse_or_transport' });
     return json(response, timeout ? 504 : 502, { error: timeout ? 'The scan took too long. Please try again with a closer label photo.' : 'The image could not be read. You can enter the details manually.' });

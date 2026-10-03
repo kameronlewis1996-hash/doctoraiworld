@@ -115,6 +115,14 @@
     {
       "source": "/privacy",
       "destination": "/privacy.html"
+    },
+    {
+      "source": "/care-access",
+      "destination": "/care-access.html"
+    },
+    {
+      "source": "/supported-access",
+      "destination": "/supported-access.html"
     }
   ],
   "headers": [

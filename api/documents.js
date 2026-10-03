@@ -120,7 +120,10 @@ module.exports = async function handler(request, response) {
         updatedAt: now,
         blobPath: `doctorai-private/${core.accountKey(account)}/${profileId ? `${profileId}/` : ''}${id}.enc`
       };
-      await put(document.blobPath, core.sealBuffer(bytes), {
+      const encrypted = core.sealBuffer(bytes);
+      document.storageBytes = encrypted.length;
+      const quotaReserved = await require('../server-src/_lib/supported-usage.cjs').reserveStorage(request, account, document, encrypted.length, entitlement);
+      await put(document.blobPath, encrypted, {
         token: core.documentStorageToken(),
         access: 'private',
         addRandomSuffix: false,
@@ -129,7 +132,7 @@ module.exports = async function handler(request, response) {
       try {
         await core.saveDocumentMetadata(account, document, profileId);
       } catch (error) {
-        await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
+        await del(document.blobPath, { token: core.documentStorageToken() }).then(async () => { if (quotaReserved) await require('../server-src/_lib/supported-usage.cjs').releaseStorage(account, id); }).catch(() => {});
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
@@ -145,6 +148,7 @@ module.exports = async function handler(request, response) {
       // this document's references; do not expose a general health-state write.
       const cleaned = await core.removeDocumentHealthReferences(account, document, profileId);
       await core.deleteDocumentMetadata(account, id, profileId);
+      await require('../server-src/_lib/supported-usage.cjs').releaseStorage(account, id);
       return response.status(200).json({ ok: true, id, ...cleaned });
     }
 

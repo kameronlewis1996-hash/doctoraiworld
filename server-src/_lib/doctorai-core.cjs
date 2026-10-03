@@ -324,6 +324,44 @@ async function hvals(namespace, account) {
   return Array.isArray(raw.result) ? raw.result : [];
 }
 
+// Server-only encrypted records and one Redis transaction for decisions that
+// must change several records together (access revocation and separate grants).
+async function readPrivateRecord(namespace, account, field) {
+  const raw = await hget(namespace, account, field);
+  if (raw !== null && typeof raw !== 'string') throw new Error('Private record is invalid.');
+  const value = raw ? unseal(raw) : null;
+  if (raw && !value) throw new Error('Private record cannot be opened.');
+  return { raw, value };
+}
+async function readPrivateGlobalRecord(key, field) {
+  const result = await redis(`hget/${encodeURIComponent(key)}/${encodeURIComponent(field)}`);
+  const raw = result.result ?? null;
+  if (raw !== null && typeof raw !== 'string') throw new Error('Private record is invalid.');
+  const value = raw ? unseal(raw) : null;
+  if (raw && !value) throw new Error('Private record cannot be opened.');
+  return { raw, value };
+}
+const privateRecordsCasLua = `-- doctorai-private-records-cas-v1
+for i=1,#KEYS do
+  local offset = (i-1)*4
+  if (redis.call('HGET', KEYS[i], ARGV[offset+1]) or '') ~= ARGV[offset+2] then return 0 end
+end
+for i=1,#KEYS do
+  local offset = (i-1)*4
+  if ARGV[offset+3] == 'set' then redis.call('HSET', KEYS[i], ARGV[offset+1], ARGV[offset+4]) end
+  if ARGV[offset+3] == 'delete' then redis.call('HDEL', KEYS[i], ARGV[offset+1]) end
+end
+return 1`;
+async function commitPrivateRecords(records) {
+  if (!storageConfigured()) throw new Error('Private storage is unavailable.');
+  if (!Array.isArray(records) || !records.length || records.length > 12) throw new Error('Invalid private transaction.');
+  const keys = records.map(entry => entry.globalKey || decodeURIComponent(userHashKey(entry.namespace, entry.account)));
+  const args = records.flatMap(entry => [entry.field, entry.raw || '', entry.checkOnly ? 'check' : entry.value === null ? 'delete' : 'set', entry.checkOnly || entry.value === null ? '' : seal(entry.value)]);
+  const result = await redis('', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(['EVAL', privateRecordsCasLua, keys.length, ...keys, ...args]) });
+  if (![0, 1].includes(Number(result.result))) throw new Error('Private transaction failed.');
+  return Number(result.result) === 1;
+}
+
 const healthField = profileId => profileId ? `managed-health:${profileId}` : 'health-state';
 const documentsNamespace = profileId => profileId ? `documents:${profileId}` : 'documents';
 
@@ -477,6 +515,10 @@ async function activeEntitlement(request, account) {
   // a cancelled subscription.
   if (storageConfigured()) {
     if (stored?.tier === 'pro' && Number(stored.exp) > nowSeconds() && !stored.revokedAt) return stored;
+    const complimentary = await readPrivateRecord('accounts', account, 'complimentary-pro').catch(() => null);
+    if (complimentary?.value?.tier === 'pro' && Number(complimentary.value.exp) > nowSeconds() && !complimentary.value.revokedAt) return complimentary.value;
+    const lifetime = await readPrivateRecord('accounts', account, 'lifetime-pro').catch(() => null);
+    if (lifetime?.value?.tier === 'pro' && lifetime.value.lifetime === true && lifetime.value.source === 'supported-access' && lifetime.value.accountKey === accountKey(account) && !lifetime.value.revokedAt) return lifetime.value;
     return null;
   }
   // Pro access must always be backed by a durable server record. A signed
@@ -525,21 +567,24 @@ async function listAuditEntries(limit = 100) {
 
 async function revokeFreeGrant(account, actor) {
   if (!storageConfigured()) return { found: false, revoked: false };
-  const grant = await readFreeGrant(account);
-  if (!grant) return { found: false, revoked: false };
-  const revoked = {
-    ...grant,
-    revokedAt: new Date().toISOString(),
-    revokedBy: normaliseEmail(actor?.email),
-    actor: normaliseEmail(actor?.email) || 'staff-admin'
-  };
-  await recordFreeGrant(account, revoked);
-  const entitlement = await readStoredEntitlement(account);
-  // Revoking a complimentary grant must never downgrade a separate paid plan.
-  if (entitlement && ['promotional-code', 'staff-grant'].includes(String(entitlement.source))) {
-    await hset('accounts', account, 'entitlement', seal({ tier: 'free', source: 'staff-revoked', email: normaliseEmail(account.email), revokedAt: revoked.revokedAt, updatedAt: Date.now() }));
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const grant = await readPrivateGlobalRecord('doctorai:free-pro:grants', accountKey(account));
+    if (!grant.value) return { found: false, revoked: false };
+    const revoked = { ...grant.value, revokedAt: grant.value.revokedAt || new Date().toISOString(), revokedBy: normaliseEmail(actor?.email), actor: normaliseEmail(actor?.email) || 'staff-admin' };
+    const legacy = await readPrivateRecord('accounts', account, 'entitlement');
+    const complimentary = await readPrivateRecord('accounts', account, 'complimentary-pro');
+    const shortGrant = value => ['promotional-code', 'staff-grant'].includes(String(value?.source));
+    const records = [
+      { globalKey: 'doctorai:free-pro:grants', field: accountKey(account), raw: grant.raw, value: revoked },
+      { namespace: 'accounts', account, field: 'entitlement', raw: legacy.raw, checkOnly: !shortGrant(legacy.value), value: { ...legacy.value, tier: 'free', revokedAt: revoked.revokedAt, updatedAt: Date.now() } },
+      { namespace: 'accounts', account, field: 'complimentary-pro', raw: complimentary.raw, checkOnly: !shortGrant(complimentary.value), value: { ...complimentary.value, revokedAt: revoked.revokedAt } },
+      { globalKey: 'doctorai:audit', field: crypto.randomUUID(), raw: null, value: { type: 'free-pro-revoked', at: revoked.revokedAt, actor: revoked.actor, accountEmail: normaliseEmail(account.email) } }
+    ];
+    // Revocation and entitlement changes commit together. Neither separate paid
+    // subscriptions nor supported lifetime grants are downgraded.
+    if (await commitPrivateRecords(records)) return { found: true, revoked: true };
   }
-  return { found: true, revoked: true };
+  throw profileError(409, 'The grant changed. Retry revocation.');
 }
 
 function memoryRateLimit(request, scope, maximum, windowMs) {
@@ -611,6 +656,10 @@ module.exports = {
   validProfileId,
   validateOwnerContext,
   activeEntitlement,
+  readPrivateRecord,
+  readPrivateGlobalRecord,
+  commitPrivateRecords,
+  verifySignedToken: readSigned,
   activateSession,
   clearEntitlementCookies,
   clearSession,

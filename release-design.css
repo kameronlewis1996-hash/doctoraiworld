@@ -71,3 +71,55 @@ body.doctorai-public-page .doctorai-site-nav a { min-height: 44px; }
   html { scroll-behavior: auto; }
   body *, body *::before, body *::after { animation: none !important; transition: none !important; }
 }
+
+/* Shared dialog components: independent field rows and readable controls. */
+body .modal-form .modal-field :is(input:not([type="checkbox"]), select, textarea) { font-size: 16px; line-height: 1.5; }
+body .modal-form .modal-field input:not([type="checkbox"]), body .modal-form .modal-field select { height: 48px; }
+body :is(.modal-field > small, .modal-field > p, .modal-help, .medication-field-source, .nzf-search-consent, .scan-review-confirm, .dialog-status) { font-size: 14px; line-height: 1.6; color: #405d73; }
+body :is(.medication-essential-fields, .medication-optional-details, .medication-provider-details) { min-width: 0; margin: 0 0 20px; padding: 16px; border: 1px solid #718b9f; border-radius: 12px; }
+body .medication-essential-fields legend { padding-inline: 6px; font-size: 18px; font-weight: 700; }
+body :is(.medication-optional-details, .medication-provider-details, .privacy-retention-details) > summary { min-height: 48px; display: list-item; align-content: center; cursor: pointer; font-size: 16px; font-weight: 700; color: #14344e; }
+body :is(.medication-optional-details, .medication-provider-details)[open] > summary { margin-bottom: 16px; }
+body .form-error { color: #8b2028; font-size: 16px; font-weight: 600; }
+body .form-error:empty { margin: 0; }
+body [aria-invalid="true"] { border: 2px solid #8b2028; }
+body .privacy-modal .privacy-copy :is(p, button, a) { font-size: 16px; line-height: 1.6; }
+body .privacy-modal .privacy-copy section { margin-bottom: 24px; }
+body .privacy-modal .privacy-actions :is(button, a) { min-height: 48px; max-width: 100%; padding: 12px 16px; }
+body .privacy-modal .privacy-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 12px; align-items: start; }
+body .privacy-delete-section { padding: 16px; background: #fff8f7; border: 1px solid #9d4145; border-radius: 12px; }
+body #privacy-storage-state, body #last-synced { font-size: 16px; line-height: 1.6; color: #405d73; }
+body .today-dashboard-summary { background: #075bb3; }
+body .today-dashboard-summary :is(p, h3, span) { color: #fff; }
+body .care-summary-form { font-size: 16px; }
+body :is(.care-summary-form, .care-summary-review) :is(p, legend, label, small) { font-size: 16px; line-height: 1.6; }
+body #care-summary-reviewed:focus { outline: 3px solid #075bb3; outline-offset: 3px; }
+@media (max-width: 480px) {
+  body .privacy-modal .privacy-actions > button { flex: 1 1 100%; }
+  body .medication-essential-fields { padding: 12px; }
+}
+
+body .pricing-market-field { display: grid; gap: 8px; margin-bottom: 12px; font-size: 16px; font-weight: 700; }
+body #pricing-market { min-height: 48px; font-size: 16px; }
+body #pricing-market-help { font-size: 16px; line-height: 1.6; color: #405d73; }
+body .comparison-table { display: table; width: 100%; table-layout: fixed; border-collapse: collapse; }
+body .comparison-table .comparison-row { display: table-row; }
+body .comparison-table :is(th, td) { display: table-cell; padding: 16px 12px; font-size: 16px; line-height: 1.5; vertical-align: top; text-align: left; overflow-wrap: anywhere; border-bottom: 1px solid #b9cfdf; }
+body .comparison-table th:first-child { width: 50%; }
+body .checkout-dialog :is(p, label, input, button, small, a) { font-size: 16px; line-height: 1.6; }
+body .checkout-dialog { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+body .checkout-dialog :is(button, input:not([type="checkbox"]), .dialog-secondary) { min-height: 48px; }
+body .plan-secondary { min-height: 48px; margin-block: 12px; padding: 12px; font-size: 16px; }
+body .programme-planning-link { padding: 24px; font-size: 16px; line-height: 1.6; }
+body :is(.managed-person-confirmation, .managed-action-consent, .modal-field label, .modal-field small) { font-size: 16px; line-height: 1.6; }
+
+body .checkout-confirm { min-height: 48px; align-items: center; }
+body .checkout-confirm input[type="checkbox"] { width: 24px; height: 24px; min-height: 24px; }
+
+body .home-more-tools { border: 1px solid #718b9f; border-radius: 16px; background: #fff; padding: 12px; min-width: 0; }
+body .home-more-tools > summary { min-height: 48px; padding: 12px; font-size: 18px; line-height: 1.5; color: #173451; cursor: pointer; }
+body .home-more-tools > summary span { display: block; font-size: 16px; font-weight: 400; color: #405d73; }
+
+body .home-check-details { color: #405d73; font-size: 16px; line-height: 1.6; }
+body .home-check-details summary { min-height: 48px; padding-block: 12px; cursor: pointer; }
+body .home-check-details li { margin-block: 8px; }

@@ -32,3 +32,12 @@ Once finished, tell the parent only that the branch-scoped settings are configur
 
 - [Vercel Blob usage and pricing](https://vercel.com/docs/vercel-blob/usage-and-pricing): Hobby has included limits and blocks additional use instead of charging overage. Private stores use the same storage/operation pricing as public stores. Separate stores still share the team's allowance; creating a store counts as an advanced operation.
 - [Upstash Redis pricing](https://upstash.com/pricing/redis): Free is a distinct plan; entering a credit card upgrades a database to paid usage. Do not choose paid usage for this handoff.
+
+
+## Superseding parent setup evidence (2026-10-03)
+
+Owner approval for zero-charge isolated test setup was already given. The parent can continue read/provision/binding work through its supported Vercel cloud-browser UI; the absence of CLI or connector provisioning actions is not an access-denied finding and does not require the owner to perform the whole setup. Owner-only steps are secure token/secret entry and interactive authentication/challenges. No raw secret should appear in chat, logs or screenshots.
+
+The parent created a physically separate private `doctorai-preview-test` Blob store, Preview-only and 0B, with its test-store ID; its token binding is still absent. Existing Redis is shared with production and is unsuitable for the isolated Preview. An additional free database was unavailable in the inspected UI; the offered paid option is not authorised. Do not provision it or change a plan. The test OAuth client remains unresolved.
+
+Production provider secrets could not be replaced by empty Preview values in the UI. This branch now implements an explicit Preview provider guard in 12 routes and reports AI/subscriptions unavailable in auth config. Six DrugBank/NZF approval/display flags were disabled by the parent for this branch. Guard and storage isolation are complementary: no inherited paid provider may be invoked and no shared production storage may be used. Once free isolated KV, dedicated auth and Blob bindings are available, perform owner-approved synthetic signed-in QA; do not grant real entitlements, invite real recipients, collect proof or enable programme/cash features. All such new activation remains disabled in Preview.

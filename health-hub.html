@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=69">
+  <link rel="stylesheet" href="/health-hub.css?v=70">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="/care-design.css?v=7">
   <link rel="stylesheet" href="/accessibility.css?v=9">
   <link rel="stylesheet" href="/managed-profiles.css?v=3">
-  <link rel="stylesheet" href="/release-design.css?v=1">
+  <link rel="stylesheet" href="/release-design.css?v=2">
 </head>
 <body data-hub-theme="today" data-subscription="free">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -139,14 +139,15 @@
                   <p data-live-pro-pricing><strong>Pro:</strong> <a href="/subscription#plans">See the current plan details and confirm the price before checkout</a>.</p>
                   <p data-preview-pro-pricing hidden><strong>Pro:</strong> <a href="/subscription#plans">Review the available tools</a>. Billing is disabled in this preview.</p>
                 </div>
-                <p class="home-check-coverage" id="home-check-coverage">Local checks can flag selected known medicine clashes, duplicate ingredients and recorded allergy matches. Partial or unmatched items stay unknown; no alert does not mean medicines are safe to take.</p>
+                <p class="home-check-coverage" id="home-check-coverage">Limited checks can miss risks. Unmatched items, unavailable checks and no alerts never mean a medicine is safe to take.</p><details class="home-check-details"><summary>How matching and checks work</summary><ol><li>A label scan extracts text for your review.</li><li>Our medicine database matches reviewed names and ingredients.</li><li>Local checks cover selected duplicate ingredients, recorded allergy matches and known interactions.</li><li>Licensed external checks run only when approved and available.</li></ol></details>
                 <button type="button" class="home-briefing-link" data-open-today-plan aria-haspopup="dialog">
                   <span class="home-briefing-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/><path d="M18.5 3v3M20 4.5h-3"/></svg></span>
-                  Open my health briefing <span aria-hidden="true">→</span>
+                  Daily health overview <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
-            <section class="care-visit-card" aria-labelledby="care-visit-title"><div><p class="care-kicker">Since my last visit</p><h2 id="care-visit-title">Walk in with your story ready</h2><p>Your recent notes, main concern and questions. One brief you review before sharing.</p><button type="button" data-open-summary>Build my visit brief <span aria-hidden="true">→</span></button></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5 3 3 5-5"/></svg></section>
+            <section class="care-visit-card" aria-labelledby="care-visit-title"><div><p class="care-kicker">Since my last visit</p><h2 id="care-visit-title">Walk in with your story ready</h2><p>Your recent notes, main concern and questions. One brief you review before sharing.</p><button type="button" data-open-summary>Create appointment summary <span aria-hidden="true">→</span></button></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5 3 3 5-5"/></svg></section>
+            <details class="home-more-tools"><summary>More health tools <span>Symptoms, appointments, documents and results</span></summary>
             <div class="colour-orbit" id="quick-access-orbit" role="group" aria-label="Quick access to DoctorAI features">
               <div class="colour-orbit-ring colour-ring-one"></div>
               <div class="colour-orbit-ring colour-ring-two"></div>
@@ -162,6 +163,7 @@
               <button class="orbit-action orbit-action-research" type="button" data-open-personal-overview data-orbit-action data-orbit-tone="yellow"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M5 4.5h14v15H5z"/><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5ZM8 8h8M8 12h8M8 16h5"/></svg></span><b>My overview</b><small>Open one rundown of your important saved information</small></button>
               <p class="orbit-instruction" id="orbit-instruction"><span aria-hidden="true">‹</span> Swipe to explore <span aria-hidden="true">›</span></p>
             </div>
+            </details>
           </section>
 
           <section class="care-pattern-card" aria-labelledby="care-pattern-heading"><div><p class="care-kicker">Your observations</p><h2 id="care-pattern-heading">Patterns to explore</h2><p id="care-pattern-copy">Log symptoms and what was happening around them. Repeated observations can help you prepare questions.</p><small>An observation is not a confirmed cause.</small></div><button type="button" data-view="symptoms">Review your log <span aria-hidden="true">→</span></button></section>
@@ -281,7 +283,7 @@
             <p class="family-intro">Manage separate profiles for adults with permission or authority, and children you parent or legally guard. Add a name and optional relationship. Each person's records stay separate. Child profiles support manual records; AI and label scans await privacy/provider review.</p>
             <div id="family-status" class="family-status" role="status" aria-live="polite"></div>
             <div id="family-list" class="family-list"></div>
-            <p class="family-support-note">Caregiver support · Planned <button class="quiet-button" type="button" data-family-support-info>Lifetime Pro request details</button></p>
+            <p><a class="secondary-button" href="/care-access">Review caregiver access</a> <a class="secondary-button" href="/supported-access">Supported Pro plans and requests</a></p><p class="family-support-note">Caregiver support · Planned <button class="quiet-button" type="button" data-family-support-info>Lifetime Pro request details</button></p>
           </section>
           <section class="panel-card profile-shortcuts-card" aria-labelledby="profile-shortcuts-title">
             <div class="card-heading"><div><p class="card-kicker">Make it yours</p><h2 id="profile-shortcuts-title">Personal shortcuts</h2></div><button type="button" class="quiet-button" data-profile-edit-shortcuts aria-pressed="false">Edit shortcuts</button></div>
@@ -417,9 +419,15 @@
     </div>
   </dialog>
   <dialog class="google-signin-modal" id="google-signin-modal" aria-labelledby="google-signin-title"><div class="modal-header"><div><p class="eyebrow">Secure account access</p><h2 id="google-signin-title">Sign in to DoctorAI</h2></div><button class="icon-button" type="button" data-close-google-signin aria-label="Close Google sign-in">×</button></div><div class="google-signin-copy"><div id="google-signin-button" class="google-signin-button-host"></div><button type="button" class="google-signin-fallback" data-google-start><span class="google-g-mark"><img src="google-g-logo.svg" alt="" class="google-mark"></span><span>Continue with Google</span><span>→</span></button><p id="google-signin-status" class="signin-status">Loading secure Google sign-in…</p><p class="signin-disclaimer">DoctorAI uses Google only to identify your private workspace. Health information is never made public by signing in.</p></div></dialog>
-  <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy, clearly</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy information">×</button></div><div class="privacy-copy"><div class="privacy-highlight"><span>♢</span><p><b>Your health information belongs to you.</b> You choose whether this browser keeps self records for your verified account between visits. Unsigned-in entries stay in this session and can be exported. Managed profiles use separate encrypted account storage.</p></div><section id="self-cache-recovery" hidden></section><h3>DoctorAI can organise and explain</h3><p>It is not a doctor, does not diagnose, and should not be used to start, stop or change prescribed treatment. Health Memory is optional and you can edit or delete saved details.</p><h3>Urgent or emergency situations</h3><p>Contact your local emergency service or an appropriate crisis service now. Do not wait for an AI response.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep data on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><button type="button" class="secondary-button" data-export-health>Export my hub data</button><button type="button" class="danger-button" data-delete-health>Delete my hub data</button><button type="button" class="secondary-button" data-close-privacy>Close</button><a href="/privacy" class="text-button">Read privacy notice <span>→</span></a><a href="/terms" class="text-button">Read terms</a></div></div></dialog>
+  <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy controls</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy controls">×</button></div><div class="privacy-copy">
+    <section aria-labelledby="privacy-storage-title"><h3 id="privacy-storage-title">Where your records are kept</h3><p id="privacy-storage-state" role="status"></p><p>Your browser choice applies to your own records. Managed profiles use separate encrypted account storage and are never kept in the persistent browser health cache.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep my self records in this browser</button><button type="button" class="secondary-button" data-device-storage-session>Use session-only browser memory</button></div><details class="privacy-retention-details"><summary>Storage and retention details</summary><p>Browser health copies are not encrypted. Signed-in account records are encrypted in account storage. Session-only prevents new persistent browser health writes; it does not erase an older device or recovery copy. Account sync can still save signed-in records. Unsigned-in entries stay in this tab and can be exported before closing it.</p><p>Unlinked older device copies are kept for your review and export; they are not automatically assigned to an account. Deletion may need a retry if account storage, files or device cleanup fails.</p></details><section id="self-cache-recovery" hidden></section></section>
+    <section aria-labelledby="privacy-export-title"><h3 id="privacy-export-title">Export the selected person's records</h3><p>Download a copy to your device. Check whose records are selected and keep the downloaded file private.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-export-health>Export my hub data</button></div></section>
+    <section class="privacy-delete-section" aria-labelledby="privacy-delete-title"><h3 id="privacy-delete-title">Delete the selected person's records</h3><p>This requires a separate confirmation. Cancel keeps the records. Completed deletion clears only the selected account/profile records; an exported file on your device is a separate copy.</p><div class="privacy-actions"><button type="button" class="danger-button" data-delete-health>Delete my hub data</button></div></section>
+    <p data-dialog-status role="status" aria-live="polite"></p><div class="privacy-actions privacy-close-actions"><button type="button" class="primary-button" data-close-privacy>Close privacy controls</button><a href="/privacy" class="text-button">Read privacy notice</a><a href="/terms" class="text-button">Read terms</a></div>
+    <details class="privacy-retention-details"><summary>Health and emergency limitations</summary><p>DoctorAI helps organise information. It does not diagnose or tell you to start, stop or change prescribed treatment. For an emergency, contact your local emergency service.</p></details>
+  </div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="self-cache.js?v=2"></script>
-  <script src="health-hub.js?v=68"></script>
+  <script src="health-hub.js?v=69"></script>
 </body>
 </html>

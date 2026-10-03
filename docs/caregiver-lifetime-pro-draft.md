@@ -1,4 +1,8 @@
-# DRAFT — lifetime complimentary Pro for caregivers
+# Current implementation note (2026-10-03)
+
+The accepted later brief expands planning to disabled adults on their own accounts and eligible families. Deployed-but-closed web foundations now include minimal account-bound intake, existing server-authorised manual review, atomic funded capacity, a separate lifetime entitlement and usage/storage counts. The original child-caregiver pure model below remains as a regression fixture, not the only implementation. See [current scope, gates, tests and rollback](web-access-foundations-2026-10-03.md). Evidence intake, child/control transfers and live activation remain disabled. No real grant was made.
+
+# DRAFT — supported lifetime complimentary Pro
 
 The owner requested lifetime complimentary Pro, after proof, for parents or legal guardians of children with disabilities. Lifetime means no annual renewal and no expiry when the child turns 18. No household cap or narrower disability category has been inferred.
 

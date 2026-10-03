@@ -42,4 +42,6 @@ jobs:
       - run: pnpm run verify:self-cache-consent
       - run: pnpm run verify:self-cache-deletion
       - run: pnpm run verify:lifetime-draft
+      - run: pnpm run verify:preview-providers
+      - run: pnpm run verify:access-programmes
       - run: pnpm run verify:static

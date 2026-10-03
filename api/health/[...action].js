@@ -2,7 +2,10 @@
 const core = require('../../server-src/_lib/doctorai-core.cjs');
 const handlers = {
   state: () => require('../../server-src/health/state.js'),
-  profiles: () => require('../../server-src/health/profiles.js')
+  profiles: () => require('../../server-src/health/profiles.js'),
+  'supported-access': () => require('../../server-src/health/supported-access.js'),
+  'care-access': () => require('../../server-src/health/care-access.js'),
+  'shared-state': () => require('../../server-src/health/shared-state.js')
 };
 module.exports = async function healthAction(request, response) {
   const raw = request.query?.action;

@@ -59,3 +59,8 @@ Readiness now recognizes the existing scoped-record-loaded and session-only stor
 Final affected checks: JavaScript syntax (85 files), static checks (11 pages/201 references/CSP/offline versions), Preview isolation and diff whitespace. Protected PR33 core/cache/health/document handlers remain byte-identical. Published Privacy and Terms remain byte-identical to production. The shell cache is now v111 and the Hub stylesheet v69. No native Android changes. No production merge.
 
 An owner-authorized isolated Preview setup is now permitted, but this workspace cannot provision or bind it through the connected tools: no storage/environment write actions, no Vercel CLI/token/session. No remote credentials/resources were created. See `docs/isolated-preview-owner-handoff.md` for the exact Preview branch bindings, free-tier constraints, test OAuth origin, disabled paid providers and required durable synthetic Pro seed. Signed-in deployed QA and policy approval remain release blockers.
+
+
+## Later accessibility and access foundation pass
+
+The original `658e012` checkpoint remains preserved. The accepted expanded brief and implementation supersede its provider/setup limits; see [current scope and exact limits](web-access-foundations-2026-10-03.md). Inherited providers are now explicitly blocked on Preview. Parent-supported cloud-browser provisioning remains possible within zero-charge authorisation; physically separate KV, Blob token binding and test OAuth are still missing. New pricing, invitations, evidence, grants, policies and production activation were not performed.

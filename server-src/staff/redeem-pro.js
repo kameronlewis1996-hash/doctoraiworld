@@ -1,8 +1,7 @@
 const crypto = require('node:crypto');
 const core = require('../_lib/doctorai-core.cjs');
 
-const sign = value => crypto.createHmac('sha256', process.env.AUTH_SECRET || '').update(value).digest('base64url');
-const configuredCode = () => String(process.env.DOCTORAI_FREE_PRO_CODE || '').trim().toUpperCase();
+const configuredCode = () => String(process.env.VERCEL_ENV === 'preview' ? process.env.PREVIEW_DOCTORAI_FREE_PRO_CODE || '' : process.env.DOCTORAI_FREE_PRO_CODE || '').trim().toUpperCase();
 const json = core.json;
 
 module.exports = async function redeemPro(request, response) {
@@ -20,17 +19,15 @@ module.exports = async function redeemPro(request, response) {
   if (!limit.allowed) { response.setHeader('Retry-After', String(limit.retryAfter)); return json(response, 429, { error: 'Too many code attempts. Please try again later.' }); }
 
   const code = String(body.code || '').trim();
+  if (code.length > 4096) return json(response, 400, { error: 'The access code is too long.' });
   const expected = configuredCode();
-  if (!expected) return json(response, 503, { error: 'Complimentary Pro access is not configured yet.' });
   const promotionalCode = code.toUpperCase();
-  const matchesPromotion = promotionalCode.length === expected.length && crypto.timingSafeEqual(Buffer.from(promotionalCode), Buffer.from(expected));
+  const matchesPromotion = Boolean(expected) && Buffer.byteLength(promotionalCode) === Buffer.byteLength(expected) && crypto.timingSafeEqual(Buffer.from(promotionalCode), Buffer.from(expected));
   let grant = null;
   if (!matchesPromotion) {
     try {
-      const separator = code.lastIndexOf('.');
-      const payload = code.slice(0, separator); const signature = code.slice(separator + 1); const calculated = sign(payload);
-      if (separator > 0 && signature.length === calculated.length && crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(calculated))) {
-        const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+      const parsed = core.verifySignedToken(code);
+      if (parsed) {
         const accountEmail = String(account.email).trim().toLowerCase();
         if (parsed.tier === 'pro' && parsed.source === 'staff-grant' && String(parsed.email).trim().toLowerCase() === accountEmail && Number(parsed.exp) > Math.floor(Date.now() / 1000)) grant = parsed;
       }
@@ -38,20 +35,21 @@ module.exports = async function redeemPro(request, response) {
   }
   if (!matchesPromotion && !grant) return json(response, 400, { error: 'This Pro access code is invalid or has expired.' });
 
-  const existing = await core.readStoredEntitlement(account);
-  if (existing && Number(existing.exp) > core.nowSeconds()) {
+  const existing = await core.activeEntitlement(request, account);
+  if (existing) {
     return json(response, 409, { error: 'This account already has active DoctorAI Pro access.' });
   }
 
   let storedGrant = null;
+  const grantSnapshot = await core.readPrivateGlobalRecord('doctorai:free-pro:grants', core.accountKey(account));
   if (grant) {
-    storedGrant = await core.readFreeGrant(account);
+    storedGrant = grantSnapshot.value;
     const tokenHash = crypto.createHash('sha256').update(code).digest('base64url');
     if (!storedGrant || storedGrant.revokedAt || storedGrant.tokenHash !== tokenHash || storedGrant.redeemedAt || Number(storedGrant.exp) !== Number(grant.exp)) {
       return json(response, 400, { error: 'This staff Pro access code is invalid, already used, or has been revoked.' });
     }
   } else {
-    const previousPromotion = await core.readFreeGrant(account);
+    const previousPromotion = grantSnapshot.value;
     if (previousPromotion?.source === 'promotional-code' && previousPromotion.redeemedAt) {
       return json(response, 409, { error: 'This account has already used its complimentary Pro month.' });
     }
@@ -70,8 +68,18 @@ module.exports = async function redeemPro(request, response) {
     exp,
     actor: source === 'staff-grant' ? (storedGrant?.issuedBy || 'staff-grant') : 'self'
   };
-  await core.saveEntitlement(account, { tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true });
-  await core.recordFreeGrant(account, entry);
+  const stored = await core.readPrivateRecord('accounts', account, 'complimentary-pro');
+  // The existing global grant key is retained; compare its exact encrypted
+  // snapshot together with the new independent entitlement in one transaction.
+  const redemption = await core.readPrivateRecord('accounts', account, 'complimentary-redemption');
+  if (redemption.value?.tokenHash === crypto.createHash('sha256').update(code).digest('base64url') || (!grant && redemption.value?.promotionUsed)) return json(response, 409, { error: 'This account has already used this complimentary access code.' });
+  const saved = await core.commitPrivateRecords([
+    { namespace: 'accounts', account, field: 'complimentary-pro', raw: stored.raw, value: { tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true } },
+    { namespace: 'accounts', account, field: 'complimentary-redemption', raw: redemption.raw, value: { ...redemption.value, tokenHash: crypto.createHash('sha256').update(code).digest('base64url'), promotionUsed: !grant || Boolean(redemption.value?.promotionUsed), redeemedAt: entry.redeemedAt } },
+    { globalKey: 'doctorai:free-pro:grants', field: core.accountKey(account), raw: grantSnapshot.raw, value: entry },
+    { globalKey: 'doctorai:audit', field: crypto.randomUUID(), raw: null, value: { type: 'free-pro-redeemed', at: entry.redeemedAt, actor: entry.actor, accountEmail: entry.email, expiresAt: entry.expiresAt } }
+  ]);
+  if (!saved) return json(response, 409, { error: 'Complimentary access changed. Reload before trying again.' });
   core.setEntitlementCookie(response, { tier: 'pro', source, email: entry.email, exp }, 'doctorai_free_pro');
   return json(response, 200, { active: true, expiresAt: exp, email: entry.email });
 };

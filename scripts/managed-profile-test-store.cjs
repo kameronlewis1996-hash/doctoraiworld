@@ -19,7 +19,21 @@ function installTestStore({ redisCommand = null } = {}) {
     const [command, key, field] = url.pathname.slice(1).split('/').map(decodeURIComponent);
     calls.push({ command, key, field });
     if (command === '') {
-      const [operation, script, keyCount, hashKey, healthField, expected, next] = JSON.parse(options.body);
+      const transaction = JSON.parse(options.body);
+      const [operation, script, keyCount, hashKey, healthField, expected, next] = transaction;
+      if (script.includes('doctorai-private-records-cas-v1')) {
+        assert.equal(operation, 'EVAL');
+        const keys = transaction.slice(3, 3 + keyCount), args = transaction.slice(3 + keyCount);
+        if (controls.beforeCas) await controls.beforeCas({ privateTransaction: true, keys, args });
+        if (redisCommand) {
+          const result = await redisCommand(transaction);
+          casMetrics.calls++; if (result === 0) casMetrics.conflicts++; else if (result === 1) casMetrics.commits++;
+          return { ok: true, json: async () => ({ result }) };
+        }
+        const result = keys.every((k, i) => (hashes.get(k)?.get(args[i * 4]) || '') === args[i * 4 + 1]) ? 1 : 0;
+        if (result) keys.forEach((k, i) => { const h = hashes.get(k) || new Map(); hashes.set(k, h); if (args[i * 4 + 2] === 'set') h.set(args[i * 4], args[i * 4 + 3]); if (args[i * 4 + 2] === 'delete') h.delete(args[i * 4]); });
+        return { ok: true, json: async () => ({ result }) };
+      }
       assert.equal(operation, 'EVAL'); assert.equal(keyCount, 1);
       assert.match(script, /doctorai-health-cas-v1/);
       if (controls.beforeCas) await controls.beforeCas({ hashKey, field: healthField, expected, next });

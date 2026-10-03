@@ -21,6 +21,12 @@
   let selectedBillingPlan = 'monthly';
   let planPricing = null;
   const initialQuery = new URLSearchParams(window.location.search);
+  const marketSelect = document.querySelector('#pricing-market');
+  let selectedMarket = ['NZ', 'INTL'].includes(initialQuery.get('region')) ? initialQuery.get('region') : previewPricingOnly ? 'NZ' : '';
+  let pricingLoadTicket = 0;
+  let checkoutBusy = false;
+  let checkoutAttemptId = crypto.randomUUID();
+  if (marketSelect) marketSelect.value = selectedMarket;
   const accessCodeFromLink = initialQuery.get('access_code') || '';
   const requestedBillingPlan = initialQuery.get('plan') === 'annual' ? 'annual' : 'monthly';
 
@@ -56,7 +62,7 @@
     if (subscribeButton) subscribeButton.disabled = !available;
     if (confirmCheckoutButton) confirmCheckoutButton.disabled = !(available && termsConfirm?.checked);
   };
-  const formatUsd = amount => `US$${(Number(amount) / 100).toFixed(2)}`;
+  const formatUsd = amount => `${selectedMarket === 'NZ' ? 'NZ$' : 'US$'}${(Number(amount) / 100).toFixed(2)}`;
   const setPlan = plan => {
     const selected = plan === 'annual' ? 'annual' : 'monthly';
     if (!planIsAvailable(selected)) return false;
@@ -91,9 +97,9 @@
   const setPricingUnavailable = () => {
     planPricing = {};
     toggleButtons.forEach(button => { button.disabled = true; button.setAttribute('aria-disabled', 'true'); });
-    if (price) price.textContent = 'Unavailable';
+    if (price) price.textContent = selectedMarket === 'NZ' ? 'NZ$6.99' : 'Unavailable';
     if (period) period.textContent = 'for now';
-    if (equivalent) equivalent.textContent = 'Subscription pricing is temporarily unavailable. The Free plan is still available.';
+    if (equivalent) equivalent.textContent = selectedMarket === 'NZ' ? 'Intended monthly price. New NZ checkout is unavailable until its Stripe price is verified. Annual pricing is undecided.' : 'Subscription pricing is temporarily unavailable. The Free plan is still available.';
     if (selectedPlan) selectedPlan.textContent = 'Subscription pricing unavailable';
     if (renewalNote) renewalNote.textContent = 'Checkout cannot start until a valid Stripe subscription price is available.';
     setCheckoutStatus('Subscription pricing is temporarily unavailable. Please try again later.', 'error');
@@ -112,16 +118,16 @@
       monthlyToggle.disabled = true;
       monthlyToggle.setAttribute('aria-disabled', 'true');
     }
-    if (price) price.textContent = 'Preview';
+    if (price) price.textContent = selectedMarket === 'NZ' ? 'NZ$6.99' : 'Preview';
     if (period) period.textContent = 'billing disabled';
-    if (equivalent) equivalent.textContent = 'Review the current live plan before subscribing. Billing is disabled in this preview.';
+    if (equivalent) equivalent.textContent = selectedMarket === 'NZ' ? 'Intended New Zealand monthly price. Annual pricing is undecided. Checkout is disabled in this preview.' : 'Other-region prices are unchanged and must be verified against Stripe. Checkout is disabled in this preview.';
     const previewNote = document.querySelector('[data-preview-pricing-note]');
     if (previewNote) previewNote.hidden = false;
     const liveBillingNote = document.querySelector('[data-live-billing-note]');
     const previewBillingNote = document.querySelector('[data-preview-billing-note]');
     if (liveBillingNote) liveBillingNote.hidden = true;
     if (previewBillingNote) previewBillingNote.hidden = false;
-    if (selectedPlan) selectedPlan.textContent = 'Preview · billing disabled';
+    if (selectedPlan) selectedPlan.textContent = selectedMarket === 'NZ' ? 'Intended NZ$6.99 / month; checkout disabled' : 'Preview · billing disabled';
     if (renewalNote) renewalNote.textContent = 'This is an integrated preview. No charge will be made; checkout and billing management are disabled.';
     if (subscribeButton) {
       subscribeButton.disabled = true;
@@ -144,17 +150,22 @@
   };
 
   const loadPlanPricing = async () => {
+    const ticket = ++pricingLoadTicket; planPricing = {}; syncPlanControls();
     try {
-      const response = await fetch('/api/stripe/plans', { headers: { accept: 'application/json' }, cache: 'no-store' });
+      const response = await fetch('/api/stripe/plans' + (selectedMarket ? '?region=' + selectedMarket : ''), { headers: { accept: 'application/json' }, cache: 'no-store' });
       const payload = await response.json().catch(() => ({}));
+      if (ticket !== pricingLoadTicket) return;
       if (!response.ok) throw new Error('Pricing service unavailable.');
+      if (!['NZ', 'INTL'].includes(payload.market)) throw new Error('Pricing market unavailable.');
+      selectedMarket = payload.market; if (marketSelect) marketSelect.value = selectedMarket;
       const raw = payload.plans || {};
       planPricing = {};
       for (const [name, interval] of [['monthly', 'month'], ['annual', 'year']]) {
         const item = raw[name];
         planPricing[name] = item?.available === true
           && Number.isSafeInteger(item.amount) && item.amount > 0
-          && item.currency === 'USD' && item.interval === interval
+          && item.currency === (selectedMarket === 'NZ' ? 'NZD' : 'USD') && item.interval === interval
+          && (selectedMarket !== 'NZ' || name !== 'monthly' || item.amount === 699)
           ? { available: true, amount: item.amount, currency: item.currency, interval }
           : { available: false, interval };
       }
@@ -180,7 +191,6 @@
   };
 
   const openCheckoutDialog = () => {
-    if (previewPricingOnly) return;
     if (dialog && !dialog.open) dialog.showModal();
   };
 
@@ -202,8 +212,9 @@
   };
 
   const startCheckout = async () => {
-    if (previewPricingOnly) return;
+    if (previewPricingOnly || checkoutBusy) return;
     if (!subscribeButton || !planIsAvailable(selectedBillingPlan)) return;
+    checkoutBusy = true; if (marketSelect) marketSelect.disabled = true;
     subscribeButton.disabled = true;
     subscribeButton.innerHTML = 'Connecting to Stripe…';
     setCheckoutStatus('Preparing your secure Stripe checkout…');
@@ -211,7 +222,7 @@
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ plan: selectedBillingPlan })
+        body: JSON.stringify({ plan: selectedBillingPlan, region: selectedMarket, checkoutAttemptId })
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.url) throw new Error(payload.error || 'Stripe checkout is not available yet.');
@@ -220,6 +231,7 @@
       setCheckoutStatus(error.message || 'Stripe checkout is not available yet.', 'error');
       openCheckoutDialog();
     } finally {
+      checkoutBusy = false; if (marketSelect) marketSelect.disabled = false;
       subscribeButton.innerHTML = originalSubscribeLabel;
       syncPlanControls();
     }
@@ -282,7 +294,9 @@
     }
   };
 
-  toggleButtons.forEach(button => button.addEventListener('click', () => setPlan(button.dataset.plan)));
+  toggleButtons.forEach(button => button.addEventListener('click', () => { checkoutAttemptId = crypto.randomUUID(); setPlan(button.dataset.plan); }));
+  document.querySelector('[data-review-checkout]')?.addEventListener('click', openCheckoutDialog);
+  marketSelect?.addEventListener('change', () => { if (checkoutBusy) return; selectedMarket = marketSelect.value; checkoutAttemptId = crypto.randomUUID(); if (previewPricingOnly) setPreviewUnavailable(); else loadPlanPricing(); });
   subscribeButton?.addEventListener('click', () => {
     if (!planIsAvailable(selectedBillingPlan)) return;
     setCheckoutStatus('Review the plan details, then continue to secure checkout.');

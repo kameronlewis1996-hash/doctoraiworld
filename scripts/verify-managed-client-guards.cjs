@@ -6,7 +6,7 @@ const source = fs.readFileSync('health-hub.js', 'utf8');
 const between = (start, end) => { const a = source.indexOf(start), b = source.indexOf(end, a); if (a < 0 || b < 0) throw new Error('UI fixture boundaries missing'); return source.slice(a, b); };
 const notices = []; let confirm = false; let requests = 0;
 const context = vm.createContext({ activePersonId: 'river', personName: () => 'River', window: { confirm: text => { notices.push(text); return confirm; } },
-  capturePersonContext: () => ({}), managedReadOnly: () => false, managedAiUnavailable: () => false, unavailableAiMessage: () => 'Child AI is unavailable', selfRecoveryActive: false, activePersonId: 'river', chatBusy: false, medicationScanBusy: false, MAX_SCAN_DATA_URL: 1000,
+  capturePersonContext: () => ({}), hasProAccess: () => true, managedReadOnly: () => false, managedAiUnavailable: () => false, unavailableAiMessage: () => 'Child AI is unavailable', selfRecoveryActive: false, activePersonId: 'river', chatBusy: false, medicationScanBusy: false, MAX_SCAN_DATA_URL: 1000,
   authUser: { name: 'Synthetic owner' }, showToast() {}, fetch: async () => { requests++; throw new Error('No request should be sent after declining.'); },
   els: { chatInput: { value: 'Synthetic question' } }, $: () => ({ classList: { remove() {} } }) });
 vm.runInContext(between('  function confirmManagedTransmission(', '  async function submitPersonForm('), context);

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caregiver access — DoctorAI</title>
+    <meta
+      name="description"
+      content="Review explicit caregiver permissions and access availability."
+    />
+    <link rel="icon" href="/doctorai-app-icon.png" />
+    <link rel="stylesheet" href="/access-pages.css?v=1" />
+  </head>
+  <body data-access-page="care">
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header>
+      <a href="/" aria-label="DoctorAI home"
+        ><img src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI"
+      /></a>
+      <nav aria-label="Primary">
+        <a href="/health-hub">Health hub</a
+        ><a href="/subscription">Free and Pro</a
+        ><a href="/supported-access">Supported Pro</a>
+      </nav>
+    </header>
+    <main id="main">
+      <h1>Caregiver access, with your permission</h1>
+      <p>
+        You remain in control of your own account. A viewer can read and export
+        the record groups you select. An editor can also make manual changes to
+        those groups. Shared access does not include AI, label scanning,
+        documents, billing or permission management.
+      </p>
+      <p id="care-status" class="notice" role="status">
+        Invitations are disabled pending consent policy and signed-in
+        verification. Sign in from the health hub to review access. Never share
+        your password.
+      </p>
+      <section aria-labelledby="own-access-heading">
+        <h2 id="own-access-heading">Who can access my records?</h2>
+        <div id="care-own-list"><p>No access list has been loaded.</p></div>
+        <details>
+          <summary>Review invitation settings</summary>
+          <form id="invite-form">
+            <fieldset id="invite-fields" disabled>
+              <legend>Invite an adult to your own records</legend>
+              <label for="care-email"
+                >Their Google account email<input
+                  id="care-email"
+                  name="recipientEmail"
+                  type="email"
+                  autocomplete="off"
+                  required
+                  maxlength="254" /></label
+              ><label for="care-role"
+                >Permission<select id="care-role" name="role">
+                  <option value="viewer">View and export</option>
+                  <option value="editor">View, export and edit manually</option>
+                </select></label
+              >
+              <fieldset>
+                <legend>Record groups to share</legend>
+                <label class="check"
+                  ><input
+                    name="scope"
+                    value="medications"
+                    type="checkbox"
+                  /><span>Medication list</span></label
+                ><label class="check"
+                  ><input
+                    name="scope"
+                    value="appointments"
+                    type="checkbox"
+                  /><span>Appointments</span></label
+                ><label class="check"
+                  ><input name="scope" value="notes" type="checkbox" /><span
+                    >Health notes and note entries</span
+                  ></label
+                >
+              </fieldset>
+              <label class="check"
+                ><input name="adultSelfConsent" type="checkbox" required /><span
+                  >I am an adult and choose to share these records from my own
+                  account. A person who can read them can also retain a copy;
+                  revoking access cannot erase copies they exported.</span
+                ></label
+              ><button class="primary" type="submit">
+                Create private invitation link
+              </button>
+            </fieldset>
+            <p id="invite-error" role="alert" tabindex="-1"></p>
+            <p id="invitation-result" role="status"></p>
+          </form>
+        </details>
+      </section>
+      <section
+        id="invitation-review"
+        aria-labelledby="invitation-heading"
+        hidden
+      >
+        <h2 id="invitation-heading">Review your invitation</h2>
+        <p id="invitation-permissions" role="status"></p>
+        <form id="accept-form">
+          <label class="check"
+            ><input name="permissionAccepted" type="checkbox" required /><span
+              >I understand the listed permissions and accept this caregiver
+              arrangement.</span
+            ></label
+          ><button class="primary" type="submit" id="accept-button" disabled>
+            Accept invitation
+          </button>
+          <p id="accept-error" role="alert" tabindex="-1"></p>
+        </form>
+      </section>
+      <section aria-labelledby="incoming-heading">
+        <h2 id="incoming-heading">Records shared with me</h2>
+        <div id="care-incoming">
+          <p>No authorised shared records have been loaded.</p>
+        </div>
+        <div id="shared-records" hidden>
+          <h3 tabindex="-1" id="shared-title">Selected shared records</h3>
+          <p id="shared-permission"></p>
+          <div id="shared-content"></div>
+          <div class="actions">
+            <button type="button" id="shared-export">
+              Export authorised records</button
+            ><button type="button" id="shared-close">
+              Close shared records
+            </button>
+          </div>
+          <form id="shared-notes-form" hidden>
+            <label for="shared-notes"
+              >Health notes<textarea
+                id="shared-notes"
+                name="notes"
+                rows="5"
+                maxlength="10000"
+              ></textarea></label
+            ><button class="primary" type="submit">
+              Save authorised notes
+            </button>
+            <p id="shared-error" role="alert" tabindex="-1"></p>
+          </form>
+          <form id="shared-medications-form" hidden>
+            <h3>Manual medication entries</h3>
+            <p>
+              Copy details from the label. Edited names or strengths lose
+              previous ingredient confirmations and need review; no change here
+              establishes medicine safety.
+            </p>
+            <div id="shared-medications-edit"></div>
+            <div class="actions">
+              <button type="button" data-add-shared-entry="medications">
+                Add medication entry</button
+              ><button class="primary" type="submit">
+                Save authorised medication entries
+              </button>
+            </div>
+            <p id="shared-medications-error" role="alert" tabindex="-1"></p>
+          </form>
+          <form id="shared-appointments-form" hidden>
+            <h3>Manual appointments</h3>
+            <div id="shared-appointments-edit"></div>
+            <div class="actions">
+              <button type="button" data-add-shared-entry="appointments">
+                Add appointment entry</button
+              ><button class="primary" type="submit">
+                Save authorised appointments
+              </button>
+            </div>
+            <p id="shared-appointments-error" role="alert" tabindex="-1"></p>
+          </form>
+          <p id="shared-status" role="status"></p>
+        </div>
+      </section>
+      <section aria-labelledby="authority-heading">
+        <h2 id="authority-heading">Children and changing authority</h2>
+        <p>
+          Existing parent or guardian profiles keep separate manual records.
+          Child AI, OCR and caregiver invitations remain unavailable. An adult’s
+          disability does not establish another person’s decision-making
+          authority.
+        </p>
+        <p>
+          When a child reaches adulthood or permission changes, the arrangement
+          needs verified adult consent and an authority review. No automatic
+          transfer, age threshold or continued guardian authority is assumed
+          here. The server supports a pending review that freezes shared access;
+          completing a transfer remains disabled until policy and migration
+          checks are approved.
+        </p>
+        <p>
+          Use the
+          <a href="/health-hub#health">Family &amp; loved ones controls</a> to
+          review, archive, export or delete records you currently manage.
+          Archiving keeps records.
+        </p>
+      </section>
+    </main>
+    <footer>
+      <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
+      <a href="/health-hub">Return to health hub</a>
+    </footer>
+    <script src="/access-pages.js?v=1"></script>
+  </body>
+</html>

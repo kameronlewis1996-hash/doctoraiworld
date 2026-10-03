@@ -36,7 +36,12 @@
     "verify:pricing": "node scripts/verify-stripe-pricing.js",
     "verify:public-mcp": "node --test public-mcp/test/mcp.test.cjs",
     "verify:static:powershell": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
-    "verify:web": "node scripts/verify-web-accessibility.cjs"
+    "verify:web": "node scripts/verify-web-accessibility.cjs",
+    "verify:preview-providers": "node scripts/verify-preview-providers.cjs",
+    "verify:access-programmes": "node scripts/verify-access-programmes.cjs",
+    "verify:access-programmes:redis": "node scripts/verify-health-concurrency-redis.cjs --access-programmes",
+    "verify:shared-dialogs": "node scripts/verify-shared-dialogs.cjs",
+    "verify:access-pages": "node scripts/verify-access-pages.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

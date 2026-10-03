@@ -9,7 +9,10 @@ const core = require('../server-src/_lib/doctorai-core.cjs');
 const root = path.resolve(__dirname, '..');
 const owner = core.createSession({ sub: 'demo-owner', email: 'demo-owner@example.invalid', name: 'Demo Owner' });
 const other = core.createSession({ sub: 'demo-other', email: 'demo-other@example.invalid', name: 'Other Demo' });
+const reviewer = core.createSession({ sub:'synthetic-programme-reviewer', email:'kameronlewis1996@gmail.com', name:'Synthetic reviewer' });
 const routes = { '/api/health/state': require('../server-src/health/state.js'), '/api/health/profiles': require('../server-src/health/profiles.js'), '/api/documents': require('../api/documents.js'), '/api/medication/safety': require('../api/medication/safety.js'), '/api/chat': require('../api/chat.js'), '/api/medication/scan': require('../api/medication/[...action].js') };
+Object.assign(routes, { '/api/health/supported-access': require('../server-src/health/supported-access.js'), '/api/staff/supported-access': require('../server-src/staff/supported-access.js'), '/api/health/care-access': require('../server-src/health/care-access.js'), '/api/health/shared-state': require('../server-src/health/shared-state.js') });
+if (process.env.PROFILE_PREVIEW_ACCESS_TEST === '1') Object.assign(process.env, { DOCTORAI_CARE_SHARING_ENABLED:'true', DOCTORAI_ADULT_SHARING_POLICY_APPROVED:'true', DOCTORAI_CARE_SIGNED_IN_QA_APPROVED:'true', DOCTORAI_SUPPORT_INTAKE_ENABLED:'true', DOCTORAI_SUPPORT_FUNDED_PLACES:'2', DOCTORAI_SUPPORT_APPLICATION_RETENTION_DAYS:'30', DOCTORAI_SUPPORT_AI_REQUESTS_PER_MONTH:'2', DOCTORAI_SUPPORT_SCANS_PER_MONTH:'1', DOCTORAI_SUPPORT_STORED_BYTES:'10000', DOCTORAI_SUPPORT_REVIEW_MINUTES:'30', DOCTORAI_SUPPORT_POLICY_VERSION:'synthetic-v1', DOCTORAI_SUPPORT_ELIGIBILITY_APPROVED:'true', DOCTORAI_SUPPORT_REVIEW_CHANNEL_APPROVED:'true', DOCTORAI_SUPPORT_SIGNED_IN_QA_APPROVED:'true' });
 const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 let delayMs = 0;
 let getDelayMs = 0;
@@ -31,6 +34,7 @@ global.fetch = async (url, options) => {
 };
 (async () => {
   await core.activateSession(owner); await core.activateSession(other);
+  if (process.env.PROFILE_PREVIEW_ACCESS_TEST === '1') await core.activateSession(reviewer);
   await core.saveEntitlement(owner, { tier: 'pro', exp: core.nowSeconds() + 3600, source: 'synthetic' });
   await core.saveHealthState(owner, { profile: { name: 'Self Demo', allergies: 'Self-only allergy' }, medications: [{ id: 'self-med', name: 'Self medicine', dose: 'Synthetic', frequency: 'Once a day' }], appointments: [], providers: [], timeline: [], documents: [], measurements: [], tasks: [], memoryDetails: [] });
   const server = http.createServer(async (request, response) => {
@@ -40,7 +44,7 @@ global.fetch = async (url, options) => {
       response.json = value => { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(value)); };
       response.send = value => response.end(value);
       if (url.pathname === '/__test/plan') { await core.saveEntitlement(owner, { tier: url.searchParams.get('tier') === 'free' ? 'free' : 'pro', exp: core.nowSeconds() + 3600 }); return response.json({ synthetic: true }); }
-      if (url.pathname === '/__test/account') { const account = url.searchParams.get('other') === '1' ? other : owner; response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(account)}; Path=/; HttpOnly; SameSite=Lax`); return response.json({ synthetic: true }); }
+      if (url.pathname === '/__test/account') { const account = url.searchParams.get('reviewer')==='1'&&process.env.PROFILE_PREVIEW_ACCESS_TEST==='1'?reviewer:url.searchParams.get('other') === '1' ? other : owner; response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(account)}; Path=/; HttpOnly; SameSite=Lax`); return response.json({ synthetic: true }); }
       if (url.pathname === '/__test/auth') { autoSignIn = url.searchParams.get('auto') !== '0'; failAuth = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
       if (url.pathname === '/__test/writes') return response.json({ synthetic: true, writes: healthWrites });
       if (url.pathname === '/__test/latency') { delayMs = Math.min(3000, Number(url.searchParams.get('ms')) || 0); getDelayMs = Math.min(3000, Number(url.searchParams.get('getMs')) || 0); providerDelayMs = Math.min(3000, Number(url.searchParams.get('providerMs')) || 0); failSave = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
@@ -55,7 +59,7 @@ global.fetch = async (url, options) => {
           return response.json({ authenticated: Boolean(account), user: account ? { accountId: core.accountKey(account), name: account.name, email: account.email, sub: account.sub } : null });
         }
         if (url.pathname === '/api/auth/config') return response.json({ configured: false });
-        if (url.pathname === '/api/stripe/entitlement') { const account = await core.identityFromRequest(request); const entitlement = await core.activeEntitlement(request, account); return response.json({ active: Boolean(entitlement), tier: entitlement ? 'pro' : 'free', expiresAt: entitlement?.exp }); }
+        if (url.pathname === '/api/stripe/entitlement') { const account = await core.identityFromRequest(request); const entitlement = await core.activeEntitlement(request, account); return response.json({ active: Boolean(entitlement), tier: entitlement ? 'pro' : 'free', expiresAt: entitlement?.exp, lifetime: entitlement?.lifetime === true, source: entitlement?.source }); }
         if (url.pathname === '/api/health/state' && request.method === 'PUT') {
           const account = await core.identityFromRequest(request);
           healthWrites.push({ ownerId: account ? core.accountKey(account) : null, profileId: request.query.profileId || request.headers['x-doctorai-profile'] || 'self', state: request.body.state });
