@@ -33,6 +33,7 @@ async function authorize(request, response) {
 }
 
 module.exports = async function handler(request, response) {
+  if (require('../../../server-src/_lib/preview-provider-guard.cjs').blockPreview(response, 'medication')) return;
   if (request.method !== 'POST') return json(response, 405, { error: 'Method not allowed.' });
   const account = await authorize(request, response);
   if (!account) return;

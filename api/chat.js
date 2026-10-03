@@ -23,18 +23,20 @@ function responseText(payload) {
 const PROVIDER_TIMEOUT_MS = 25_000;
 const isRetryableStatus = status => status === 408 || status === 409 || status === 429 || status >= 500;
 
-async function requestProvider(payload, { retry = true } = {}) {
+async function requestProvider(payload, { retry = true, request, account } = {}) {
   let attempt = 0;
   while (true) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
     try {
+      const reservation = await require('../server-src/_lib/supported-usage.cjs').reserve(request, account, 'ai');
       const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
+      response.doctoraiUsageReservation = reservation;
       if (retry && attempt === 0 && isRetryableStatus(response.status)) {
         await response.arrayBuffer().catch(() => {});
         attempt += 1;
@@ -89,18 +91,28 @@ async function consumeSSE(body, onEvent) {
 }
 
 module.exports = async function chat(req, res) {
+  if (require('../server-src/_lib/preview-provider-guard.cjs').blockPreview(res, 'ai')) return;
   if (req.method !== 'POST') return core.json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account) return core.json(res, 401, { error: 'Please sign in with Google before using DoctorAI chat.' });
+  let profile;
+  try { profile = await core.resolveProfileScope(req, account, { write: true }); }
+  catch (error) { return core.json(res, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  if (profile && profile.authorityBasis !== 'adult_permission_or_authority') return core.json(res, 409, { code: 'managed_child_ai_unavailable', error: 'AI is unavailable for child or unreviewed profiles pending child-focused privacy/provider assessment and approved action notices. Manual records remain available.' });
+  res.setHeader('X-DoctorAI-Profile', profile?.id || 'self');
   if (!process.env.OPENAI_API_KEY) return core.json(res, 503, { error: 'DoctorAI chat is not configured yet.' });
+  let body = {};
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
+  if (!body || Array.isArray(body) || typeof body !== 'object') return core.json(res, 400, { error: 'Invalid chat request.' });
+  if (body.consent !== true) return core.json(res, 400, { error: 'Confirm this one-time request before sending it to DoctorAI.' });
+  if (body.purpose === 'daily-overview' && !await core.activeEntitlement(req, account)) return core.json(res, 403, { error: 'AI enhancements to the daily overview require DoctorAI Pro. Manual appointment summaries remain available with Free.' });
+  if (profile && body.managedActionConsent !== true) return core.json(res, 400, { error: 'Review the selected person’s AI disclosure and confirm authority and consent for this individual request.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfter));
     return core.json(res, 429, { error: 'You have sent several messages quickly. Please wait a minute and try again.' });
   }
 
-  let body = {};
-  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
   const incoming = Array.isArray(body.messages) ? body.messages : [];
   const messages = incoming.slice(-12).map(item => {
     const role = item?.role === 'assistant' || item?.role === 'user' ? item.role : null;
@@ -110,7 +122,16 @@ module.exports = async function chat(req, res) {
   if (!messages.length || messages[messages.length - 1].role !== 'user') return core.json(res, 400, { error: 'Please enter a question.' });
 
   let memoryLength = 0;
-  const memory = Array.isArray(body.memory) ? body.memory.slice(0, 6).map(value => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 240)).filter(value => {
+  // Managed saved context is authoritative: never accept a stale tab's owner
+  // memory or another person's memory supplied in the request body.
+  let memorySource = body.memory;
+  if (profile) {
+    try {
+      const record = await core.readHealthState(account, profile.id);
+      memorySource = record?.state?.memoryEnabled === true ? record.state.memoryDetails : [];
+    } catch { return core.json(res, 503, { error: 'This person’s approved Health Memory could not be loaded safely.' }); }
+  }
+  const memory = Array.isArray(memorySource) ? memorySource.slice(0, 6).map(value => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 240)).filter(value => {
     if (!value || memoryLength + value.length > 1400) return false;
     memoryLength += value.length;
     return true;
@@ -120,17 +141,20 @@ module.exports = async function chat(req, res) {
     : '';
   const responseLength = Object.hasOwn(responseStyles, body.responseLength) ? body.responseLength : 'medium';
   const responseStyle = responseStyles[responseLength];
-  const instructions = `${safetyPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
+  const subjectPrompt = profile ? '\n\nThe account owner is managing another person’s selected profile. The health subject is that selected person. Do not infer or combine information about the account owner or other profiles.' : '';
+  const instructions = `${safetyPrompt}${subjectPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
   const wantsStream = body.stream === true;
-  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
+  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', store: false, instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
   const fetchFallbackAnswer = async () => {
-    const fallbackResponse = await requestProvider({ ...providerPayload, stream: false }, { retry: false });
+    const fallbackResponse = await requestProvider({ ...providerPayload, stream: false }, { retry: false, request: req, account });
     if (!fallbackResponse.ok) return '';
-    return responseText(await fallbackResponse.json().catch(() => ({})));
+    const fallbackPayload = await fallbackResponse.json().catch(() => ({}));
+    await require('../server-src/_lib/supported-usage.cjs').complete(account, fallbackResponse.doctoraiUsageReservation, fallbackPayload.usage).catch(() => {});
+    return responseText(fallbackPayload);
   };
 
   try {
-    const response = await requestProvider(providerPayload);
+    const response = await requestProvider(providerPayload, { request: req, account });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       core.reportError('chat_provider_error', { route: '/api/chat', provider: 'openai', status: response.status, type: payload?.error?.type, code: payload?.error?.code });
@@ -149,6 +173,7 @@ module.exports = async function chat(req, res) {
       let answer = '';
       let completedAnswer = '';
       let streamFailure = false;
+      let providerUsage;
       const processEvent = block => {
         const data = block.split('\n').filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n');
         if (!data || data === '[DONE]') return;
@@ -166,6 +191,7 @@ module.exports = async function chat(req, res) {
           }
         } else if (event.type === 'response.completed') {
           completedAnswer = responseText(event.response);
+          providerUsage = event.response?.usage;
         } else if (event.type === 'error' || event.type === 'response.failed') {
           streamFailure = true;
           core.reportError('chat_stream_provider_error', { route: '/api/chat', provider: 'openai', type: event.type, code: event.code });
@@ -180,6 +206,7 @@ module.exports = async function chat(req, res) {
       } catch {
         streamFailure = true;
       }
+      await require('../server-src/_lib/supported-usage.cjs').complete(account, response.doctoraiUsageReservation, providerUsage).catch(() => {});
       if (streamFailure || !answer.trim()) {
         try {
           const fallbackAnswer = await fetchFallbackAnswer();
@@ -195,6 +222,7 @@ module.exports = async function chat(req, res) {
     }
 
     const payload = await response.json().catch(() => ({}));
+    await require('../server-src/_lib/supported-usage.cjs').complete(account, response.doctoraiUsageReservation, payload.usage).catch(() => {});
     const answer = responseText(payload);
     if (!answer) return core.json(res, 502, { error: 'DoctorAI could not finish the answer. Please try again.' });
     if (wantsStream) {
@@ -209,6 +237,7 @@ module.exports = async function chat(req, res) {
     }
     return core.json(res, 200, { answer: String(answer).slice(0, 6000) });
   } catch (error) {
+    if (error.status) return core.json(res, error.status, { error: error.message });
     core.reportError('chat_request_failed', { route: '/api/chat', provider: 'openai', name: error?.name });
     return core.json(res, 502, { error: 'DoctorAI could not answer right now.' });
   }

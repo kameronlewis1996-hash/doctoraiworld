@@ -1,12 +1,14 @@
+const crypto = require('node:crypto');
 const Stripe = require('stripe');
 const core = require('../_lib/doctorai-core.cjs');
-const { plans, keyMode, environmentModeMatches, isValidPlanPrice } = require('./plan-catalog.cjs');
+const { marketForRequest, plansForMarket, keyMode, environmentModeMatches, isValidPlanPrice } = require('./plan-catalog.cjs');
 
 const appUrl = () => String(process.env.NEXT_PUBLIC_APP_URL || 'https://www.doctoraiworld.com').replace(/\/$/, '');
 
 const json = core.json;
 
 module.exports = async function createCheckoutSession(req, res) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(res, 'payments')) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account?.email) return json(res, 401, { error: 'Please sign in with Google before starting a Pro subscription.' });
@@ -28,13 +30,18 @@ module.exports = async function createCheckoutSession(req, res) {
   const plan = body.plan === 'monthly' ? 'monthly' : body.plan === 'annual' ? 'annual' : null;
   if (!plan) return json(res, 400, { error: 'Choose an annual or monthly Pro plan.' });
 
-  const priceId = process.env[plans[plan].env];
+  const market = marketForRequest(req, body.region);
+  if (!market) return json(res, 400, { error: 'Choose a valid pricing market.' });
+  const definition = plansForMarket(market)[plan];
+  if (market === 'NZ' && definition.amount === null) return json(res, 503, { error: 'New Zealand annual pricing has not been decided. Choose monthly instead.' });
+  if (body.checkoutAttemptId !== undefined && (typeof body.checkoutAttemptId !== 'string' || !/^[A-Za-z0-9_-]{8,100}$/.test(body.checkoutAttemptId))) return json(res, 400, { error: 'Reopen the checkout review before trying again.' });
+  const priceId = process.env[definition.env];
   if (!priceId) return json(res, 503, { error: 'DoctorAI Pro pricing is not configured yet.' });
 
   try {
     const stripe = new Stripe(secretKey);
     const configuredPrice = await stripe.prices.retrieve(priceId);
-    const priceMatchesSite = isValidPlanPrice(configuredPrice, plan, keyMode(secretKey));
+    const priceMatchesSite = isValidPlanPrice(configuredPrice, plan, keyMode(secretKey), market);
 
     if (!priceMatchesSite) {
       core.reportError('stripe_checkout_price_mismatch', { route: '/api/stripe/create-checkout-session', plan });
@@ -45,15 +52,15 @@ module.exports = async function createCheckoutSession(req, res) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      success_url: `${appUrl()}/subscription?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl()}/subscription?checkout=cancelled&plan=${plan}`,
+      success_url: `${appUrl()}/subscription?checkout=success&session_id={CHECKOUT_SESSION_ID}&region=${market}`,
+      cancel_url: `${appUrl()}/subscription?checkout=cancelled&plan=${plan}&region=${market}`,
       billing_address_collection: 'auto',
       locale: 'auto',
       customer_email: account.email,
       client_reference_id: account.sub || account.email,
       metadata: {
         product: 'doctorai_pro',
-        plan,
+        plan, region: market,
         account_email: account.email,
         account_sub: account.sub || '',
         version: '1'
@@ -61,13 +68,13 @@ module.exports = async function createCheckoutSession(req, res) {
       subscription_data: {
         metadata: {
           product: 'doctorai_pro',
-          plan,
+          plan, region: market,
           account_email: account.email,
           account_sub: account.sub || '',
           version: '1'
         }
       }
-    });
+    }, { idempotencyKey: 'doctorai-checkout-' + crypto.createHash('sha256').update([core.accountKey(account), priceId, body.checkoutAttemptId || Math.floor(core.nowSeconds() / 600)].join(':')).digest('hex') });
 
     return json(res, 200, { url: session.url });
   } catch (error) {

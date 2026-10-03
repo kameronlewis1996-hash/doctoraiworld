@@ -10,13 +10,45 @@
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
     "verify:nzf": "node scripts/verify-nzf-fhir.js",
+    "verify:profiles": "node scripts/verify-managed-profiles.cjs",
+    "verify:person-switch": "node scripts/verify-person-switch.cjs",
+    "verify:preview-isolation": "node scripts/verify-preview-isolation.cjs",
+    "verify:managed-ai": "node scripts/verify-managed-ai.cjs",
+    "verify:health-concurrency": "node scripts/verify-health-concurrency.cjs",
+    "verify:health-concurrency:redis": "node scripts/verify-health-concurrency-redis.cjs",
+    "verify:lifetime-draft": "node scripts/verify-lifetime-pro-draft.cjs",
+    "verify:managed-client-guards": "node scripts/verify-managed-client-guards.cjs",
+    "verify:self-cache": "node scripts/verify-self-cache.cjs",
+    "verify:self-cache-consent": "node scripts/verify-self-cache-consent.cjs",
+    "verify:self-cache-deletion": "node scripts/verify-self-cache-deletion.cjs",
+    "verify:self-cache-consent:browser": "node scripts/verify-self-cache-consent-browser.cjs",
+    "verify:self-cache:browser": "node scripts/verify-self-cache-browser.cjs",
+    "preview:profiles": "node scripts/preview-managed-profiles.cjs",
     "verify:server": "node scripts/verify-server-core.js",
-    "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
+    "verify:static": "node scripts/verify-static-site.cjs",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
-    "verify:medication-database": "node scripts/verify-medication-database.cjs"
+    "verify:medication-database": "node scripts/verify-medication-database.cjs",
+    "verify:medication-safety": "node scripts/verify-medication-safety.js",
+    "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
+    "verify:medication-review": "node scripts/verify-medication-review.cjs",
+    "verify:documents": "node scripts/verify-documents-delete.cjs",
+    "verify:chat-privacy": "node scripts/verify-chat-privacy.cjs",
+    "verify:pricing": "node scripts/verify-stripe-pricing.js",
+    "verify:public-mcp": "node --test public-mcp/test/mcp.test.cjs",
+    "verify:static:powershell": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
+    "verify:web": "node scripts/verify-web-accessibility.cjs",
+    "verify:preview-providers": "node scripts/verify-preview-providers.cjs",
+    "verify:access-programmes": "node scripts/verify-access-programmes.cjs",
+    "verify:access-programmes:redis": "node scripts/verify-health-concurrency-redis.cjs --access-programmes",
+    "verify:shared-dialogs": "node scripts/verify-shared-dialogs.cjs",
+    "verify:access-pages": "node scripts/verify-access-pages.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
     "stripe": "^18.5.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "playwright": "1.63.0"
   }
 }

@@ -1,0 +1,81 @@
+'use strict';
+// Requires an already-running scripts/preview-managed-profiles.cjs on localhost
+// and an installed agent-browser/Chromium. Only synthetic test routes are used.
+const assert = require('node:assert/strict');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
+const run = promisify(execFile);
+const browser = process.env.DOCTORAI_BROWSER_BIN || 'agent-browser';
+const port = Number(process.env.PROFILE_PREVIEW_PORT) || 4181;
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid local test port.');
+const origin = `http://127.0.0.1:${port}`;
+const checks = [];
+const check = (value, label) => { assert.ok(value, label); checks.push(label); };
+async function command(args, input) {
+  const task = run(browser, [...args, '--json'], { timeout: 35000, maxBuffer: 1048576 });
+  if (input !== undefined) task.child.stdin.end(input);
+  const output = JSON.parse((await task).stdout.trim());
+  if (!output.success) throw new Error(output.error || 'Browser command failed.');
+  return output.data;
+}
+async function evaluate(fn, arg) { return (await command(['eval', '--stdin'], `(${fn.toString()})(${JSON.stringify(arg ?? null)})`)).result; }
+async function reload() { await command(['reload']); await evaluate(async () => { for (let i = 0; i < 120; i++) { if (document.getElementById('last-synced').textContent.includes('Private data synced') || document.querySelector('.profile-trigger-name').textContent === 'Sign in') return; await new Promise(r => setTimeout(r, 50)); } throw new Error('Session/health did not resolve.'); }); }
+const snapshot = async () => evaluate(async () => ({ auth: await (await fetch('/api/auth/google')).json(), health: await (await fetch('/api/health/state')).json(), writes: (await (await fetch('/__test/writes')).json()).writes, storage: Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)])), text: document.body.textContent, sync: document.getElementById('last-synced').textContent }));
+(async () => {
+  await command(['open', origin + '/health-hub#profile']);
+  await evaluate(async () => { const fixture = await (await fetch('/__test/writes')).json(); if (fixture.synthetic !== true) throw new Error('Not a synthetic fixture.'); await fetch('/__test/account'); await fetch('/__test/auth?auto=0'); localStorage.setItem('doctorai-health-hub-device-storage-consent', 'yes'); localStorage.setItem('doctorai-health-hub-profile', '{ "notes": "Unknown legacy note", "allergies": "Unknown legacy allergy" }'); localStorage.setItem('doctorai-health-hub-medications', ' [ { "id": "legacy-med", "name": "Unknown legacy medicine" } ] '); localStorage.setItem('doctorai-health-hub-updated-at', '9999999999999'); });
+  await reload(); let a = await snapshot(); const ownerA = a.auth.user.accountId;
+  const legacy = Object.fromEntries(Object.entries(a.storage).filter(([key]) => ['profile', 'medications', 'updated-at'].some(field => key === 'doctorai-health-hub-' + field)));
+  const keyA = `doctorai-health-hub-self-v2:${ownerA}:record`; const canonicalA = a.storage[keyA]; const beforeWrites = a.writes.length;
+  check(JSON.parse(canonicalA).state.medications[0].name === 'Self medicine', 'Verified A reload uses only A self record');
+  check(!a.text.includes('Unknown legacy'), 'Unowned legacy health never renders at boot');
+  await evaluate(async () => { await fetch('/__test/account?other=1'); }); await reload(); let b = await snapshot(); const ownerB = b.auth.user.accountId;
+  check(ownerB !== ownerA && b.health.state === null, 'Full A to B reload resolves separate server owner and empty B');
+  check(!b.text.includes('Self medicine') && !b.text.includes('Unknown legacy'), 'B UI contains neither A nor unowned health values');
+  check(b.writes.length === beforeWrites, 'A to B reload sends no self-health PUT');
+  check(b.storage[keyA] === canonicalA && Object.entries(legacy).every(([key, bytes]) => b.storage[key] === bytes), 'A cache and all legacy bytes survive B reload unchanged');
+  await evaluate(async () => { document.querySelector('[data-view="health"]').click(); document.querySelector('[data-modal="health"]').click(); const f = document.querySelector('[data-modal-form="health"]'); f.elements.notes.value = 'Synthetic B-only note'; f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await new Promise(r => setTimeout(r, 1400)); });
+  b = await snapshot();
+  check(b.health.state.profile.notes === 'Synthetic B-only note' && b.health.state.medications.length === 0, 'New B manual record saves only B data');
+  check(b.storage[keyA] === canonicalA && JSON.parse(b.storage[`doctorai-health-hub-self-v2:${ownerB}:record`]).ownerId === ownerB, 'New B cache has verified B owner without changing A');
+  await evaluate(async () => { await fetch('/__test/account'); }); await reload(); a = await snapshot();
+  check(a.health.state.medications[0].name === 'Self medicine' && !a.text.includes('Synthetic B-only note'), 'Full B to A reload restores A without B health');
+  await evaluate(async () => { await fetch('/api/auth/google', { method: 'DELETE' }); }); await reload(); const out = await snapshot();
+  check(!out.auth.authenticated && !out.text.includes('Self medicine') && !out.text.includes('Unknown legacy') && !out.text.includes('Synthetic B-only note'), 'Signed-out full reload starts with blank health');
+  check(out.storage[keyA] === canonicalA, 'Sign-out preserves A versioned cache');
+  await evaluate(async () => { await fetch('/__test/account'); await fetch('/__test/auth?auto=0&fail=1'); }); await reload(); const failed = await snapshot();
+  check(!failed.auth.authenticated && !failed.text.includes('Self medicine') && !failed.text.includes('Unknown legacy'), 'Failed authentication does not hydrate account or legacy cache');
+  await evaluate(async () => { await fetch('/__test/auth?auto=0'); }); await reload();
+  const original = await snapshot(); const writesBeforeRecovery = original.writes.length;
+  const openReview = async () => evaluate(() => { document.querySelector('[data-show-privacy]').click(); document.querySelector('[data-review-cache="legacy"]').click(); return document.getElementById('modal-body').textContent; });
+  let text = await openReview();
+  check(text.includes('Demo Owner') && text.includes('my own health information') && text.includes('Unknown legacy medicine'), 'Recovery review names account, displays fields and requires own-record assertion');
+  await evaluate(() => document.querySelector('#quick-modal [data-close-modal]').click());
+  check((await snapshot()).writes.length === writesBeforeRecovery, 'Cancel recovery makes no server write');
+  await openReview(); await evaluate(() => { const f = document.querySelector('[data-modal-form="self-cache-recovery"]'); f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
+  check((await snapshot()).writes.length === writesBeforeRecovery, 'Unchecked crafted recovery submit cannot upload');
+  await evaluate(async () => { const f = document.querySelector('[data-modal-form="self-cache-recovery"]'); f.elements.confirmOwnRecords.checked = true; f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await new Promise(r => setTimeout(r, 1200)); });
+  const paused = await snapshot(); const recoveryKey = `doctorai-health-hub-self-v2:${ownerA}:recovery`; const draft = JSON.parse(paused.storage[recoveryKey]);
+  check(paused.writes.length === writesBeforeRecovery && paused.health.state.medications[0].name === 'Self medicine', 'Reviewed recovery stays paused with no auto-sync');
+  check(draft.pendingRecovery === true && draft.state.medications[0].name === 'Unknown legacy medicine' && draft.beforeState.medications[0].name === 'Self medicine' && draft.state.memoryEnabled === false, 'Paused recovery retains prior A snapshot and disables approved memory');
+  check(paused.storage[keyA] === original.storage[keyA] && Object.entries(legacy).every(([key, bytes]) => paused.storage[key] === bytes), 'Paused recovery leaves canonical A cache and legacy bytes unchanged');
+  const ai = await evaluate(() => ({ chat: document.getElementById('chat-send').disabled, scan: document.getElementById('medication-scan').disabled }));
+  check(ai.chat && ai.scan, 'Paused recovery disables AI/chat and label scan controls');
+  const exported = await evaluate(async () => { const create = URL.createObjectURL, click = HTMLAnchorElement.prototype.click; let blob; URL.createObjectURL = value => { blob = value; return 'blob:synthetic-export'; }; HTMLAnchorElement.prototype.click = () => {}; document.querySelector('[data-export-cache="legacy"]').click(); const value = JSON.parse(await blob.text()); URL.createObjectURL = create; HTMLAnchorElement.prototype.click = click; return value; });
+  check(Object.entries(legacy).every(([key, bytes]) => exported.rawEntries[key] === bytes), 'Explicit local export contains exact unowned legacy bytes');
+  await evaluate(async () => { await fetch('/__test/account?other=1'); }); await reload(); b = await snapshot();
+  check(b.health.state.profile.notes === 'Synthetic B-only note' && !b.text.includes('Unknown legacy') && !b.text.includes('Self medicine'), 'A recovery cannot leak after full reload into B');
+  check(b.storage[recoveryKey] === paused.storage[recoveryKey], 'B leaves A paused recovery untouched');
+  await evaluate(async () => { await fetch('/__test/account'); }); await reload();
+  check(!(await snapshot()).text.includes('Unknown legacy medicine'), 'Pending recovery does not auto-apply on A reload');
+  await evaluate(() => { document.querySelector('[data-show-privacy]').click(); document.querySelector('[data-review-cache="draft"]').click(); const f = document.querySelector('[data-modal-form="self-cache-recovery"]'); f.elements.confirmOwnRecords.checked = true; f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
+  await evaluate(async () => { document.querySelector('[data-return-account-records]').click(); await new Promise(r => setTimeout(r, 500)); });
+  check((await snapshot()).health.state.medications[0].name === 'Self medicine', 'Return to account records keeps server state and preserves paused draft');
+  await evaluate(() => { document.querySelector('[data-review-cache="draft"]').click(); const f = document.querySelector('[data-modal-form="self-cache-recovery"]'); f.elements.confirmOwnRecords.checked = true; f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
+  await evaluate(async () => { window.confirm = () => true; document.querySelector('[data-save-reviewed-cache]').click(); await new Promise(r => setTimeout(r, 500)); });
+  const saved = await snapshot();
+  check(saved.health.state.medications[0].name === 'Unknown legacy medicine' && saved.writes.length === writesBeforeRecovery + 1, 'Only explicit reviewed-save writes recovered state to named A');
+  check(JSON.parse(saved.storage[recoveryKey]).pendingRecovery === false && JSON.parse(saved.storage[recoveryKey]).beforeState.medications[0].name === 'Self medicine', 'Completed recovery retains prior account snapshot for export');
+  check(Object.entries(legacy).every(([key, bytes]) => saved.storage[key] === bytes), 'All legacy bytes remain unchanged after explicit save');
+  console.log(JSON.stringify({ synthetic: true, checksPassed: checks.length, checks, realAiCalls: 0, externalStorageCalls: 0, authenticatedDeployment: false }, null, 2));
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -23,12 +23,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="subscription.css?v=7">
+  <link rel="stylesheet" href="subscription.css?v=9">
   <link rel="stylesheet" href="/site-shell.css?v=2">
   <script defer src="/site-shell.js?v=3"></script>
   <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
   <link rel="stylesheet" href="/accessibility.css?v=6">
   <script defer src="/feature-icons.js?v=1"></script>
+  <link rel="stylesheet" href="/release-design.css?v=2">
 </head>
 <body class="doctorai-public-page" data-subscription="free">
   <div class="pro-shell">
@@ -45,7 +46,7 @@
         <div class="hero-copy">
           <p class="eyebrow">DOCTORAI PRO</p>
           <h1>Your health story,<br><em>always ready.</em></h1>
-          <p class="hero-lead">Turn scattered documents, health photos, medication details, appointments and measurements into one private, organised care pack you can understand and use.</p>
+          <p class="hero-lead">Keep your health details, medication list, appointments and measurements together, then review them when you prepare for a care conversation.</p>
           <div class="hero-actions"><a class="primary-cta" href="#plans">See Pro plans <span>→</span></a><a class="secondary-cta" href="#what-you-get">Explore what’s included</a></div>
           <div class="trust-line"><span>✦</span> Private by default <i></i><span>⌁</span> You control what is saved <i></i><span>♢</span> Not medical care</div>
         </div>
@@ -59,45 +60,47 @@
       </section>
 
       <section class="section-block" id="what-you-get">
-        <div class="section-heading"><p class="eyebrow">PAY FOR LESS HEALTH ADMIN</p><h2>More useful when life gets complicated.</h2><p>DoctorAI Pro earns its place when you need to remember, explain, prepare or share — without searching through five different places.</p></div>
+        <div class="section-heading"><p class="eyebrow">WHAT PRO ADDS</p><h2>Extra tools for health admin.</h2><p>Free includes manual tracking and health education chat. Pro adds medicine label capture, supported file uploads and a limited set of DoctorAI medicine rules.</p></div>
         <div class="feature-grid">
-          <article class="feature-card featured"><span class="feature-icon blue">✦</span><p class="feature-kicker">THE HERO FEATURE</p><h3>Your Care Pack</h3><p>Upload a letter or result and DoctorAI organises the useful details into a clear timeline, follow-ups, questions and next steps.</p><a href="#plans">See Pro plans <span>→</span></a></article>
-          <article class="feature-card"><span class="feature-icon purple">◷</span><p class="feature-kicker">BEFORE EVERY VISIT</p><h3>Appointment preparation</h3><p>Get a concise summary of the information you have approved, plus thoughtful questions to take to a professional.</p></article>
-          <article class="feature-card"><span class="feature-icon orange">▤</span><p class="feature-kicker">ALL HEALTH-RELATED FILES</p><h3>Private file library</h3><p>Pro-only uploads and sharing for prescriptions, lab reports, referrals, discharge letters, imaging, scans and health photos — with AI organisation when you ask for it.</p></article>
-          <article class="feature-card"><span class="feature-icon green">⌁</span><p class="feature-kicker">OVER TIME</p><h3>Trends with context</h3><p>Bring measurements, symptoms and medication changes together so patterns are easier to discuss with your care team.</p></article>
+          <article class="feature-card featured"><span class="feature-icon blue">▣</span><p class="feature-kicker">MEDICINE ENTRY</p><h3>Photo or barcode capture</h3><p>Capture label details, review every field against the original, and leave anything unread blank. A scan does not check medicine safety.</p><a href="#plans">Compare plans <span>→</span></a></article>
+          <article class="feature-card"><span class="feature-icon purple">▤</span><p class="feature-kicker">SUPPORTED FILES</p><h3>Private file library</h3><p>Upload supported PDF, image, Word or text files to your signed-in account. The maximum size is 2 MB per file.</p></article>
+          <article class="feature-card"><span class="feature-icon orange">!</span><p class="feature-kicker">LIMITED MEDICINE RULES</p><h3>Possible issues to review</h3><p>DoctorAI can flag a small set of known medicine and recorded-allergy issues. The database is incomplete; no alert does not mean safe.</p></article>
         </div>
       </section>
 
       <section class="plans-section" id="plans">
-        <div class="section-heading centered"><p class="eyebrow">CHOOSE YOUR LEVEL OF SUPPORT</p><h2>Start with the basics.<br><em>Upgrade when it matters.</em></h2><p>Your core health information stays yours. Pro adds the organisation and preparation that save time.</p></div>
-          <div class="plan-toggle" role="group" aria-label="Choose billing frequency"><button type="button" data-plan="monthly" disabled aria-pressed="false">Monthly</button><button type="button" data-plan="annual" disabled aria-pressed="false">Annual <span data-annual-savings></span></button></div>
+        <div class="section-heading centered"><p class="eyebrow">FREE OR PRO</p><h2>Choose the tools you need.</h2><p>Free is available without a subscription. Pro is for medicine label capture, private file uploads and limited medicine rules.</p></div>
+          <label class="pricing-market-field" for="pricing-market">Pricing market<select id="pricing-market" aria-describedby="pricing-market-help"><option value="">Detect market</option><option value="NZ">New Zealand (NZD)</option><option value="INTL">Other regions (USD)</option></select></label><p id="pricing-market-help">New Zealand monthly pricing is intended to be NZ$6.99. Annual pricing needs a separate decision. Existing subscribers and other regions are unchanged.</p><div class="plan-toggle" role="group" aria-label="Choose billing frequency"><button type="button" data-plan="monthly" disabled aria-pressed="false">Monthly</button><button type="button" data-plan="annual" disabled aria-pressed="false">Annual <span data-annual-savings></span></button></div>
         <div class="plans-grid">
-          <article class="plan-card free-plan"><div class="plan-label">ESSENTIAL</div><h3>DoctorAI Free</h3><p class="plan-description">A calm starting point for organising your health.</p><div class="plan-price"><b>Free</b><span>forever</span></div><a class="plan-secondary" href="/health-hub#today">Use the free Hub <span>→</span></a><ul><li>Today dashboard</li><li>Manual health profile and timeline</li><li>Basic medication and appointment tracking</li><li>No file or photo uploads, sharing or extraction</li><li>Safety-led AI conversations</li></ul></article>
-          <article class="plan-card pro-plan"><span class="best-value">BEST VALUE</span><div class="plan-label">DOCTORAI PRO</div><h3>Always-ready care</h3><p class="plan-description">The private health admin layer that stays useful over time.</p><div class="plan-price"><b data-price aria-live="polite">Loading price...</b><span data-period>checking Stripe</span></div><p class="monthly-equivalent" data-equivalent>Pricing is loaded from Stripe before checkout.</p><button class="plan-primary" type="button" data-subscribe disabled>Start Pro subscription <span>→</span></button><ul><li><strong>Everything in Free, plus:</strong></li><li>Prescription photo or barcode scanning with review before saving</li><li>Possible same-name duplicate or saved-profile prompts; not drug-interaction checking</li><li>All health-related files and photos, securely organised</li><li>Permission-based sharing for documents, results and care packs</li><li>Care Packs for appointments and follow-ups</li><li>Approved Health Memory and contextual conversations</li><li>Trends and future integrations</li></ul></article>
+          <article class="plan-card free-plan"><div class="plan-label">ESSENTIAL</div><h3>DoctorAI Free</h3><p class="plan-description">Manual tools for everyday health organisation.</p><div class="plan-price"><b>Free</b></div><a class="plan-secondary" href="/health-hub#today">Open the free Hub <span>→</span></a><ul><li>Today dashboard</li><li>Manual health profile, medication and appointment tracking</li><li>Typed measurements and personal trends</li><li>Health education chat; review what you choose to share</li><li>No file uploads, label scanning or medication database checks</li></ul></article>
+          <article class="plan-card pro-plan"><div class="plan-label">DOCTORAI PRO</div><h3>More tools for health admin</h3><p class="plan-description">Add label capture, private file uploads and a limited medicine database.</p><div class="plan-price"><b data-price aria-live="polite">Loading price...</b><span data-period>checking Stripe</span></div><p class="monthly-equivalent" data-equivalent>Pricing is loaded from Stripe before checkout.</p><p class="monthly-equivalent preview-pricing-note" data-preview-pricing-note hidden>Preview only · billing disabled.</p><button class="plan-primary" type="button" data-subscribe disabled>Start Pro subscription <span>→</span></button><button type="button" class="plan-secondary" data-review-checkout>Review price and features</button><ul><li><strong>Everything in Free, plus:</strong></li><li>Medicine label photo or barcode capture; you review details before saving</li><li>Private uploads for supported PDF, image, Word and text files, up to 2 MB each</li><li>DoctorAI local rules for a small set of possible medicine issues</li><li>No comprehensive interaction check, safety clearance or document sharing</li></ul></article>
         </div>
-        <p class="billing-note"><span>♢</span> The selected price is charged at the displayed frequency and renews automatically until cancelled. Manage or cancel through Stripe billing management. Founding-member subscriptions are for adults aged 18 or older. DoctorAI does not diagnose, prescribe or replace professional care.</p>
+        <p class="billing-note" data-live-billing-note><span>♢</span> The selected live price is charged at the displayed frequency and renews automatically until cancelled. Manage or cancel through Stripe billing management. Founding-member subscriptions are for adults aged 18 or older. DoctorAI does not diagnose, prescribe or replace professional care.</p>
+        <p class="billing-note" data-preview-billing-note hidden><span>♢</span> No charge can be made here. Review the current live plan before subscribing. Checkout and billing management are disabled in the preview.</p>
         <div class="subscription-actions"><button class="plan-secondary" type="button" data-manage-billing>Manage or cancel subscription</button><span>Questions? <a href="mailto:support@doctoraiworld.com?subject=DoctorAI%20Pro%20billing">Contact support</a></span></div>
       </section>
 
       <section class="comparison-section" id="compare">
-        <div class="section-heading"><p class="eyebrow">A BETTER REASON TO RETURN</p><h2>Pro pays for itself when it saves one stressful hour.</h2></div>
-        <div class="comparison-table" role="table" aria-label="DoctorAI Free and Pro comparison">
-          <div class="comparison-row comparison-head" role="row"><span role="columnheader">DoctorAI feature</span><b role="columnheader">Free</b><b role="columnheader">Pro</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Organise your health information</span><span role="cell">Manual</span><b role="cell">Automatic</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Medical document library</span><span role="cell">Limited</span><b role="cell">Unlimited + organised</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Files and health photos</span><span role="cell">Not included</span><b role="cell">All related files + secure sharing</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Appointment preparation</span><span role="cell">—</span><b role="cell">Care Pack included</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Health Memory</span><span role="cell">Basic</span><b role="cell">Approved context</b></div>
-          <div class="comparison-row" role="row"><span role="cell">Share a clinician-ready summary</span><span role="cell">—</span><b role="cell">Included</b></div>
-        </div>
+        <div class="section-heading"><p class="eyebrow">FEATURE COMPARISON</p><h2>See what each plan includes.</h2></div>
+        <table class="comparison-table"><caption class="sr-only">DoctorAI Free and Pro features</caption><thead><tr class="comparison-row comparison-head"><th scope="col">DoctorAI feature</th><th scope="col">Free</th><th scope="col">Pro</th></tr></thead><tbody>
+<tr class="comparison-row"><th scope="row">Own profile, medication and appointment tracking</th><td>Manual entry</td><td>Manual entry</td></tr>
+<tr class="comparison-row"><th scope="row">Manual appointment summary: select notes, add questions, review, copy and print</th><td>Included</td><td>Included</td></tr>
+<tr class="comparison-row"><th scope="row">Typed measurements and trends</th><td>Included</td><td>Included</td></tr>
+<tr class="comparison-row"><th scope="row">Medicine label photo or barcode capture</th><td>Not included</td><td>Review extracted text before saving</td></tr>
+<tr class="comparison-row"><th scope="row">Local name and ingredient matching</th><td>Name suggestions</td><td>Name suggestions and confirmed ingredient matching</td></tr>
+<tr class="comparison-row"><th scope="row">DoctorAI local duplicate-ingredient, allergy and selected interaction checks</th><td>Not included</td><td>Limited coverage; no alert does not prove safety</td></tr>
+<tr class="comparison-row"><th scope="row">Private uploads for supported files</th><td>Not included</td><td>Up to 2 MB per file</td></tr>
+<tr class="comparison-row"><th scope="row">Daily AI health overview</th><td>Not included</td><td>Selected records, configuration and one-time consent required</td></tr>
+<tr class="comparison-row"><th scope="row">External medicine-provider checks</th><td>Not included</td><td>Only when licensed, configured and consented; may be unavailable</td></tr>
+</tbody></table>
       </section>
 
       <section class="pro-safety"><span>✦</span><div><b>Built around trust.</b><p>Your information stays under your control. AI explanations are for education and organisation only — they do not replace a qualified healthcare professional.</p></div><a href="/health-hub#today">Open the Hub <span>→</span></a></section>
     </main>
-    <footer class="pro-footer"><span>© DoctorAI</span><span>AI health organisation &amp; education · Not medical care</span><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer>
+    <p class="programme-planning-link"><a href="/supported-access">Supported access programme planning</a> · Applications remain closed until scope and funding are approved.</p><footer class="pro-footer"><span>© DoctorAI</span><span>AI health organisation &amp; education · Not medical care</span><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer>
   </div>
 
   <dialog class="checkout-dialog" id="checkout-dialog" aria-labelledby="checkout-title"><div class="dialog-head"><div><p class="eyebrow">DOCTORAI PRO</p><h2 id="checkout-title">Review your subscription.</h2></div><button type="button" class="dialog-close" data-close-dialog aria-label="Close">×</button></div><div class="dialog-copy"><p>DoctorAI uses Stripe for subscription billing. Card details stay with Stripe, and no health information is sent to the payment provider.</p><div class="selected-plan"><b id="selected-plan-price">Loading current Stripe price...</b><span>DoctorAI Pro</span></div><p class="renewal-note" id="checkout-renewal-note">Confirm the exact amount and renewal frequency above before continuing.</p><label class="checkout-confirm"><input id="checkout-terms-confirm" type="checkbox"><span>I confirm I am 18 or older and agree to the <a href="/terms" target="_blank" rel="noopener">Terms</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Notice</a>.</span></label><section class="checkout-code-box" aria-labelledby="checkout-code-title"><b id="checkout-code-title">Have a complimentary DoctorAI access code?</b><p>Sign in with Google, then enter a code issued directly by DoctorAI. Stripe promotion codes are entered later on Stripe's secure checkout page.</p><form id="checkout-code-form"><div class="checkout-code-row"><input id="checkout-access-code" required autocomplete="one-time-code" placeholder="Complimentary access code" aria-label="Complimentary DoctorAI access code"><button type="submit">Activate</button></div></form><small id="checkout-code-status" role="status" aria-live="polite"></small></section><p class="setup-note" id="checkout-status" role="status" aria-live="polite">Review the plan details, then continue to secure checkout.</p><button class="plan-primary checkout-continue" type="button" data-confirm-checkout disabled>Continue to Stripe checkout <span>→</span></button><a class="dialog-secondary" href="mailto:support@doctoraiworld.com?subject=DoctorAI%20Pro%20billing">Contact DoctorAI billing <span>→</span></a><button type="button" class="dialog-secondary" data-manage-billing>Manage Pro billing <span>→</span></button></div></dialog>
-  <script src="subscription.js?v=11"></script>
+  <script src="subscription.js?v=14"></script>
 </body>
 </html>

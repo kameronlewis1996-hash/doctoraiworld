@@ -48,3 +48,6 @@ api/stripe/create-portal-session.js
 api/stripe/entitlement.js
 api/stripe/verify-checkout-session.js
 api/stripe/webhook.js
+
+# Review evidence is kept in GitHub, not served by the website.
+docs/

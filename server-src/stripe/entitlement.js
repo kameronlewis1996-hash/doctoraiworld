@@ -12,7 +12,8 @@ module.exports = async function entitlement(req, res) {
       tier: 'pro',
       plan: entitlement.plan || null,
       source: entitlement.source || 'stripe',
-      expiresAt: Number(entitlement.exp),
+      expiresAt: entitlement.lifetime === true ? null : Number(entitlement.exp),
+      lifetime: entitlement.lifetime === true,
       renewalDate: entitlement.renewalDate || null,
       cancelAtPeriodEnd: Boolean(entitlement.cancelAtPeriodEnd)
     });

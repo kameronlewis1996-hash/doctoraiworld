@@ -5,7 +5,7 @@ const core = require('../server-src/_lib/doctorai-core.cjs');
 const catalog = require('../server-src/stripe/plan-catalog.cjs');
 const plansHandler = require('../server-src/stripe/public-plans.js');
 
-const envNames = ['STRIPE_SECRET_KEY', 'STRIPE_PRO_MONTHLY_PRICE_ID', 'STRIPE_PRO_ANNUAL_PRICE_ID', 'VERCEL_ENV'];
+const envNames = ['STRIPE_SECRET_KEY', 'STRIPE_PRO_MONTHLY_PRICE_ID', 'STRIPE_PRO_ANNUAL_PRICE_ID', 'STRIPE_PRO_NZ_MONTHLY_PRICE_ID', 'STRIPE_PRO_NZ_ANNUAL_PRICE_ID', 'STRIPE_PRO_NZ_ANNUAL_AMOUNT', 'STRIPE_PRO_NZ_ANNUAL_APPROVED', 'VERCEL_ENV'];
 const originalEnv = Object.fromEntries(envNames.map(name => [name, process.env[name]]));
 const originalReportError = core.reportError;
 const originalIdentity = core.identityFromRequest;
@@ -36,13 +36,15 @@ class FakeStripe {
     this.prices = { retrieve: async id => {
       if (id === 'price_monthly_test') return stripePrices.monthly;
       if (id === 'price_annual_test') return stripePrices.annual;
+      if (id === 'price_nz_monthly_test') return stripePrices.nzMonthly;
       const error = new Error('Missing test price');
       error.type = 'StripeInvalidRequestError';
       error.code = 'resource_missing';
       throw error;
     } };
-    this.checkout = { sessions: { create: async options => {
+    this.checkout = { sessions: { create: async (options, requestOptions) => {
       FakeStripe.checkoutOptions = options;
+      FakeStripe.requestOptions = requestOptions;
       return { url: 'https://checkout.stripe.test/session' };
     } } };
   }
@@ -63,7 +65,7 @@ async function run() {
   const logged = [];
   core.reportError = (name, details) => logged.push({ name, details });
   process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
-  process.env.VERCEL_ENV = 'preview';
+  process.env.VERCEL_ENV = 'development';
   process.env.STRIPE_PRO_MONTHLY_PRICE_ID = 'price_monthly_test';
   process.env.STRIPE_PRO_ANNUAL_PRICE_ID = 'price_annual_test';
   const handler = plansHandler.createHandler(FakeStripe);
@@ -87,6 +89,39 @@ async function run() {
   assert.equal(checkout.body.url, 'https://checkout.stripe.test/session');
   assert.equal(FakeStripe.checkoutOptions.line_items[0].price, 'price_monthly_test');
 
+  process.env.STRIPE_PRO_NZ_MONTHLY_PRICE_ID = 'price_nz_monthly_test';
+  delete process.env.STRIPE_PRO_NZ_ANNUAL_APPROVED;
+  stripePrices.nzMonthly = { ...stripePrices.monthly, unit_amount: 699, currency: 'nzd' };
+  const nzPlans = responseRecorder();
+  await handler({ method: 'GET', headers: { 'x-vercel-ip-country': 'NZ' } }, nzPlans);
+  assert.deepEqual(nzPlans.body.plans.monthly, { available: true, amount: 699, currency: 'NZD', interval: 'month' });
+  assert.equal(nzPlans.body.plans.annual.available, false);
+  assert.equal(nzPlans.body.annualDecisionPending, true);
+  const nzRequest = { method: 'POST', body: { plan: 'monthly', region: 'NZ', checkoutAttemptId: 'synthetic-attempt-123' }, headers: {}, socket: {} };
+  const nzCheckout = responseRecorder();
+  await checkoutHandler(nzRequest, nzCheckout);
+  assert.equal(nzCheckout.statusCode, 200);
+  assert.equal(FakeStripe.checkoutOptions.line_items[0].price, 'price_nz_monthly_test');
+  assert.equal(FakeStripe.checkoutOptions.metadata.region, 'NZ');
+  const repeatKey = FakeStripe.requestOptions.idempotencyKey;
+  await checkoutHandler(nzRequest, responseRecorder());
+  assert.equal(FakeStripe.requestOptions.idempotencyKey, repeatKey, 'Double activation has the same Stripe idempotency key.');
+  for (const change of [{ unit_amount: 999 }, { currency: 'usd' }, { recurring: { interval: 'year', interval_count: 1 } }]) {
+    const correct = stripePrices.nzMonthly;
+    stripePrices.nzMonthly = { ...correct, ...change };
+    FakeStripe.checkoutOptions = null;
+    const refused = responseRecorder();
+    await checkoutHandler(nzRequest, refused);
+    assert.equal(refused.statusCode, 503);
+    assert.equal(FakeStripe.checkoutOptions, null);
+    stripePrices.nzMonthly = correct;
+  }
+  const noAnnual = responseRecorder();
+  await checkoutHandler({ ...nzRequest, body: { plan: 'annual', region: 'NZ' } }, noAnnual);
+  assert.equal(noAnnual.statusCode, 503, 'NZ annual checkout stays closed without an approved amount.');
+  assert.equal(catalog.marketForRequest({ query: { region: 'invalid' } }), null);
+  assert.equal(catalog.plansForMarket('INTL').monthly.env, 'STRIPE_PRO_MONTHLY_PRICE_ID', 'Other regions retain their price configuration.');
+
   stripePrices.monthly = { ...stripePrices.monthly, livemode: true };
   const modeMismatch = responseRecorder();
   await handler({ method: 'GET' }, modeMismatch);
@@ -95,7 +130,7 @@ async function run() {
   const rejectedCheckout = responseRecorder();
   await checkoutHandler({ method: 'POST', body: { plan: 'monthly' }, headers: {}, socket: {} }, rejectedCheckout);
   assert.equal(rejectedCheckout.statusCode, 503, 'Checkout must reject a live Price ID when test credentials are configured.');
-  assert.equal(FakeStripe.checkoutOptions.line_items[0].price, 'price_monthly_test');
+  assert.equal(FakeStripe.checkoutOptions, null);
 
   delete process.env.STRIPE_PRO_ANNUAL_PRICE_ID;
   const missingAnnual = responseRecorder();
@@ -113,6 +148,7 @@ async function run() {
   assert.equal(noKey.statusCode, 503);
 
   process.env.STRIPE_SECRET_KEY = 'sk_live_fake';
+  process.env.VERCEL_ENV = 'preview';
   const unsafePreview = responseRecorder();
   await handler({ method: 'GET' }, unsafePreview);
   assert.equal(unsafePreview.statusCode, 503, 'Preview must not enable live billing credentials.');

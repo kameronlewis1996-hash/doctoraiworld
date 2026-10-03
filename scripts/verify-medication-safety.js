@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const drugBank = require('../api/medication/_lib/drugbank.cjs');
+const localSafety = require('../server-src/medication/safety-engine.cjs');
 
 const original = {
   authorize: drugBank.authorize,
@@ -39,6 +40,27 @@ function verifyProviderConfigurationGate() {
       if (previous[name] === undefined) delete process.env[name];
       else process.env[name] = previous[name];
     });
+  }
+}
+
+function verifyAllergyNegationAndRuleProvenance() {
+  const positive = localSafety.review({ medications: ['amoxicillin'], allergies: ['amoxicillin allergy'] });
+  assert.ok(positive.alerts.some(alert => alert.type === 'allergy' && /matches the recorded allergy/i.test(alert.message)), 'An exact positive ingredient allergy must remain visible.');
+
+  for (const note of ['no penicillin allergy', "doesn't have an amoxicillin allergy", 'not allergic to amoxicillin']) {
+    const negative = localSafety.review({ medications: ['amoxicillin'], allergies: [note] });
+    assert.equal(negative.alerts.some(alert => alert.type === 'allergy'), false, `Negative note must not become a positive alert: ${note}`);
+    assert.ok(negative.alerts.some(alert => alert.title === 'Allergy note needs review' && alert.severity === 'unknown'), 'Negative wording remains unknown until a person reviews it.');
+    assert.equal(negative.coverage.completeForRequest, false, 'An ambiguous allergy note cannot produce a complete result.');
+  }
+
+  const compound = localSafety.review({ medications: ['amoxicillin'], allergies: ['penicillin and peanut allergies'] });
+  assert.equal(compound.alerts.some(alert => alert.type === 'allergy'), false, 'A compound class phrase must not be promoted into an unverified positive clinical rule.');
+  assert.ok(compound.alerts.some(alert => alert.title === 'Unverified allergy rule' && alert.source?.verified === false), 'A matching rule without an authoritative URL must be clearly marked unverified.');
+
+  for (const note of ['penicillinase allergy', 'nonpenicillin allergy']) {
+    const boundary = localSafety.review({ medications: ['amoxicillin'], allergies: [note] });
+    assert.equal(boundary.alerts.some(alert => alert.title === 'Unverified allergy rule' || alert.title === 'Recorded allergy needs review'), false, `Token boundary must prevent a false match for: ${note}`);
   }
 }
 
@@ -207,6 +229,7 @@ function verifySavedMedicationEditFlow() {
 }
 
 async function run() {
+  verifyAllergyNegationAndRuleProvenance();
   verifyProviderConfigurationGate();
   verifyExactProductIngredientCount();
   verifyIncompleteCatalogueNeedsLabelReview();

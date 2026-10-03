@@ -5,6 +5,7 @@ const sign = value => crypto.createHmac('sha256', process.env.AUTH_SECRET || '')
 const json = core.json;
 
 module.exports = async function grantPro(request, response) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(response, 'email')) return;
   const session = await core.identityFromRequest(request);
   if (!core.isAdmin(session)) return json(response, 403, { error: 'Staff admin access is required.' });
   if (request.method !== 'POST') return json(response, 405, { error: 'Method not allowed.' });

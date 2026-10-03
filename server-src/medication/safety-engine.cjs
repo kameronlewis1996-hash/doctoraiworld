@@ -42,11 +42,28 @@ function resolveMedication(name) {
   return { name, ingredients: [...new Set(product.ingredients)].map(id => ingredients.get(id)), status: 'resolved', matched: candidates.length === 1 ? product.name : name, identityOnly: true, source: product.schedules ? { publisher: 'Pharmac Pharmaceutical Schedule', effectiveDate: nz.sources[0].effectiveDate } : { publisher: 'DoctorAI curated terminology' } };
 }
 const matchesSide = (ingredient, side = {}) => side.ingredient ? ingredient.id === side.ingredient : side.class ? ingredient.classes.includes(side.class) : false;
-const sourceFor = rule => rule.source || { publisher: 'DoctorAI medication database' };
+function sourceFor(rule) {
+  const source = rule?.source && typeof rule.source === 'object' ? rule.source : {};
+  let url = '';
+  try {
+    const parsed = new URL(String(source.url || ''));
+    if (parsed.protocol === 'https:' && !parsed.username && !parsed.password) url = parsed.toString();
+  } catch {}
+  return { publisher: String(source.publisher || 'DoctorAI medication database').slice(0, 160), ...(url ? { url } : { verified: false }) };
+}
+const isAmbiguousAllergyNote = value => {
+  const text = norm(value);
+  return /\b(?:no|not|never|without|den(?:y|ies|ied)|negative|unsure|uncertain|unknown|maybe|possible)\b/i.test(text) || /\b(?:don|doesn|didn) t\b/i.test(text);
+};
+const containsWholeTerm = (text, term) => {
+  const haystack = ` ${norm(text)} `;
+  const needle = ` ${norm(term)} `;
+  return needle.length > 2 && haystack.includes(needle);
+};
 function directAllergyMatch(ingredient, allergy) {
   const allergyTerm = norm(allergy).replace(/\b(allergy|allergic|reaction|hypersensitivity|anaphylaxis|rash)\b/g, ' ').replace(/\s+/g, ' ').trim();
   if (!allergyTerm) return false;
-  return ingredientTerms(ingredient).some(term => allergyTerm === term || allergyTerm.includes(term));
+  return ingredientTerms(ingredient).some(term => containsWholeTerm(allergyTerm, term));
 }
 function conditionMatches(rule, conditions) {
   const terms = (rule.conditionTerms || []).map(norm).filter(Boolean);
@@ -67,11 +84,22 @@ function review({ medications = [], allergies = [], conditions = [] } = {}) {
       }
     }
   }
-  const allergyText = allergies.map(norm).filter(Boolean);
+  const ambiguousAllergies = allergies.filter(isAmbiguousAllergyNote);
+  const allergyText = allergies.filter(allergy => !isAmbiguousAllergyNote(allergy)).map(norm).filter(Boolean);
+  if (ambiguousAllergies.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Allergy note needs review', message: `These notes include negative or uncertain wording and were not treated as a confirmed allergy or as confirmation that no allergy exists: ${ambiguousAllergies.join('; ')}. Review the wording with a pharmacist or clinician.`, source: { publisher: 'User-entered note', verified: false } });
   for (const medication of resolved) for (const ingredient of medication.ingredients) {
-    const exactAllergy = allergies.find(allergy => directAllergyMatch(ingredient, allergy));
+    const exactAllergy = allergies.find(allergy => !isAmbiguousAllergyNote(allergy) && directAllergyMatch(ingredient, allergy));
     if (exactAllergy) alerts.push({ type: 'allergy', severity: 'high', title: 'Recorded ingredient allergy needs review', message: `${medication.name} resolves to ${ingredient.name}, which matches the recorded allergy “${exactAllergy}”. Do not rely on DoctorAI alone; confirm with a pharmacist or prescriber.`, source: { publisher: 'DoctorAI ingredient resolution' } });
-    for (const rule of db.allergyRules || []) if (ingredient.classes.includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id });
+    for (const rule of db.allergyRules || []) {
+      const applicable = ingredient.classes.includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => containsWholeTerm(allergy, term)));
+      if (!applicable) continue;
+      const source = sourceFor(rule);
+      if (!source.url) {
+        alerts.push({ type: 'unknown', severity: 'unknown', title: 'Unverified allergy rule', message: `${medication.name} matches the ingredient class in an internal allergy rule, but the rule has no authoritative source link and was not used to make a positive allergy finding. Ask a pharmacist or prescriber to verify it.`, source: { ...source, verified: false }, ruleId: rule.id });
+        continue;
+      }
+      alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source, ruleId: rule.id });
+    }
   }
   const conditionText = conditions.map(norm).filter(Boolean);
   for (const medication of resolved) for (const ingredient of medication.ingredients) for (const rule of db.contraindicationRules || []) if (matchesSide(ingredient, rule.medicine) && conditionMatches(rule, conditionText)) alerts.push({ type: 'contraindication', severity: rule.severity, title: 'Condition and medicine need review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id });

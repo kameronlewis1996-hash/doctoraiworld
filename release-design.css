@@ -1,0 +1,125 @@
+/* Integrated web reading and interaction layer. Blue/cyan remains the shared palette. */
+:root { --release-ink: #14344e; --release-muted: #405d73; --release-blue: #075bb3; --release-line: #b9cfdf; }
+html { scroll-padding-block: 100px; }
+body { font-size: 16px; line-height: 1.6; }
+body :is(button, input, select, textarea) { font: inherit; }
+body :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid #075bb3; outline-offset: 3px; }
+body :is(button, a, input, select, textarea, summary) { scroll-margin-block: 100px; }
+body :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { min-width: 0; border-color: #718b9f; }
+body :is(input[type="checkbox"], input[type="radio"]) { width: 24px; height: 24px; min-height: 24px; flex: 0 0 24px; accent-color: var(--release-blue); }
+body :is(.primary-button, .secondary-button, .quiet-button, .text-button, .danger-button, .upload-button, .home-briefing-link) { min-height: 48px; font-size: 16px; }
+body :is(.modal-help, .modal-field > span, .scan-review-confirm, .managed-person-confirmation, .signin-disclaimer, .chat-disclaimer, .medication-db-consent, .medication-local-db-consent, .today-ai-consent-copy, .today-ai-consent, .today-ai-record-choice) { font-size: 14px; line-height: 1.65; color: var(--release-muted); }
+body :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+body .modal-form-grid > * { min-width: 0; }
+body .modal-actions { flex-wrap: wrap; gap: 12px; }
+body :is(.modal-help, .modal-form, .privacy-copy, .family-person-copy, .home-medication-support, .home-check-coverage) { overflow-wrap: anywhere; }
+body #hub-shell :is(.page-subtitle, .empty-state, .empty-inline, .profile-shortcuts-intro, .safety-note p) { font-size: 16px; line-height: 1.65; color: var(--release-muted); }
+body #hub-shell :is(.nav-item, .category-tab, .filter-tabs button, .document-filters button, .profile-shortcut-copy b, .profile-shortcut-add b) { font-size: 16px; line-height: 1.4; }
+body #hub-shell :is(.card-kicker, .eyebrow, .timeline-note, .profile-shortcut-copy small, .profile-trust-card p, .profile-shortcuts-edit-note, .family-intro, .family-status, .family-person-copy small, .active-person-status, .home-check-coverage) { font-size: 14px; line-height: 1.6; color: var(--release-muted); }
+body #hub-shell :is(.hub-footer, .hub-footer button, .hub-footer a, .upgrade-card b, .memory-mini b, .account-link b, .rail-link, .privacy-badge) { font-size: 14px !important; }
+body #hub-shell .active-person-bar { background: #edf8fc; border-color: var(--release-line); border-radius: 16px; }
+body #hub-shell .active-person-bar label { font-size: 14px; }
+body #hub-shell .active-person-bar select { min-height: 48px; font-size: 16px; border-color: #718b9f; }
+body #hub-shell .family-pro-tag { color: #344777; background: #ecf2ff; font-size: 12px; }
+body #hub-shell .family-support-note { font-size: 14px; color: var(--release-muted); }
+body #hub-shell .page-heading h1 { font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.03em; }
+body #hub-shell #view-today .colour-hero-live { padding: 24px !important; background: #f5fbff !important; box-shadow: none !important; border-radius: 20px !important; gap: 24px !important; }
+body #hub-shell #view-today .hub-hero-intro { display: grid !important; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+body #hub-shell #view-today #today-title { font-size: clamp(34px, 4vw, 46px) !important; line-height: 1.15 !important; }
+body #hub-shell #view-today .hub-hero-greeting { font-size: 16px !important; color: var(--release-muted) !important; }
+body #hub-shell #view-today .hub-hero-subtitle { display: block !important; font-size: 16px !important; color: var(--release-muted) !important; line-height: 1.65 !important; }
+body #hub-shell .home-medication-action-group { display: grid; gap: 14px; min-width: 0; }
+body #hub-shell .home-medication-manual-cta { width: 100%; justify-content: space-between; padding: 14px 18px; background: #075bb3; color: #fff; }
+body #hub-shell .home-medication-scan-cta { min-width: 0; min-height: 64px; padding: 14px 16px; background: #fff; color: #075bb3; border: 1px solid #718b9f; box-shadow: none; }
+body #hub-shell .home-medication-scan-copy b { font-size: 16px; line-height: 1.4; color: #075bb3 !important; }
+body #hub-shell :is(.home-medication-scan-icon, .home-medication-scan-arrow) { color: #075bb3 !important; }
+body #hub-shell .home-medication-scan-copy small { font-size: 14px; line-height: 1.5; color: var(--release-muted); }
+body #hub-shell .home-medication-support { font-size: 14px; line-height: 1.6; color: var(--release-muted); }
+body #hub-shell .home-check-coverage { margin: 0; }
+body #hub-shell .home-briefing-link { justify-self: start; color: #075bb3; }
+body #hub-shell .home-medication-support a { text-underline-offset: 3px; }
+body #hub-shell #view-today .colour-orbit { gap: 14px !important; }
+body #hub-shell #view-today .orbit-action { min-height: 116px !important; padding: 18px !important; gap: 10px !important; background: #fff !important; border-color: var(--release-line) !important; box-shadow: none !important; }
+body #hub-shell #view-today .orbit-action b { font-size: 16px !important; line-height: 1.4 !important; }
+body #hub-shell #view-today .orbit-action small { display: none !important; }
+body #hub-shell #view-today .care-visit-card { padding: 22px; background: #eaf6fc; border-color: var(--release-line); }
+body #hub-shell #view-today .care-visit-card p { font-size: 16px; color: var(--release-muted); }
+body #hub-shell #view-today .care-visit-card button { min-height: 48px; font-size: 16px; background: #fff; border: 1px solid #718b9f; }
+body #hub-shell .care-emergency { font-size: 14px !important; }
+body .landing-header nav a { min-width: 44px; text-align: center; font-size: 16px; }
+body :is(.landing-meta, .landing-note, .landing-kicker) { font-size: 14px; }
+body .landing-intro h1 { line-height: 1.15; letter-spacing: -.035em; }
+body .landing-control a, body .landing-footer a { display: inline-flex; align-items: center; min-height: 44px; }
+body.doctorai-public-page :is(.plan-description, .feature-card p, .billing-note, .setup-note, .paper-card p) { font-size: 16px; line-height: 1.65; }
+body.doctorai-public-page .doctorai-site-nav a { min-height: 44px; }
+@media (max-width: 760px) {
+  body #hub-shell #view-today .hub-hero-intro { grid-template-columns: 1fr; gap: 22px; }
+  body #hub-shell #view-today .colour-hero-live { padding: 20px 16px !important; border-radius: 18px !important; }
+  body #hub-shell #view-today .orbit-action { min-height: 100px !important; padding: 16px !important; }
+  body #hub-shell .page-heading { flex-wrap: wrap; gap: 18px; }
+  body #hub-shell .page-heading-actions { flex-wrap: wrap; }
+  body #hub-shell .hub-footer { flex-wrap: wrap; }
+  body .modal-actions button { flex: 1 1 120px; }
+}
+@media (max-width: 380px) {
+  body #hub-shell #view-today .colour-orbit { grid-template-columns: 1fr !important; }
+  body #hub-shell #view-today .orbit-action { min-height: 72px !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; }
+  body #hub-shell .modal-form-grid { grid-template-columns: 1fr; }
+  body #hub-shell .modal-field.full { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body *, body *::before, body *::after { animation: none !important; transition: none !important; }
+}
+
+/* Shared dialog components: independent field rows and readable controls. */
+body .modal-form .modal-field :is(input:not([type="checkbox"]), select, textarea) { font-size: 16px; line-height: 1.5; }
+body .modal-form .modal-field input:not([type="checkbox"]), body .modal-form .modal-field select { height: 48px; }
+body :is(.modal-field > small, .modal-field > p, .modal-help, .medication-field-source, .nzf-search-consent, .scan-review-confirm, .dialog-status) { font-size: 14px; line-height: 1.6; color: #405d73; }
+body :is(.medication-essential-fields, .medication-optional-details, .medication-provider-details) { min-width: 0; margin: 0 0 20px; padding: 16px; border: 1px solid #718b9f; border-radius: 12px; }
+body .medication-essential-fields legend { padding-inline: 6px; font-size: 18px; font-weight: 700; }
+body :is(.medication-optional-details, .medication-provider-details, .privacy-retention-details) > summary { min-height: 48px; display: list-item; align-content: center; cursor: pointer; font-size: 16px; font-weight: 700; color: #14344e; }
+body :is(.medication-optional-details, .medication-provider-details)[open] > summary { margin-bottom: 16px; }
+body .form-error { color: #8b2028; font-size: 16px; font-weight: 600; }
+body .form-error:empty { margin: 0; }
+body [aria-invalid="true"] { border: 2px solid #8b2028; }
+body .privacy-modal .privacy-copy :is(p, button, a) { font-size: 16px; line-height: 1.6; }
+body .privacy-modal .privacy-copy section { margin-bottom: 24px; }
+body .privacy-modal .privacy-actions :is(button, a) { min-height: 48px; max-width: 100%; padding: 12px 16px; }
+body .privacy-modal .privacy-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 12px; align-items: start; }
+body .privacy-delete-section { padding: 16px; background: #fff8f7; border: 1px solid #9d4145; border-radius: 12px; }
+body #privacy-storage-state, body #last-synced { font-size: 16px; line-height: 1.6; color: #405d73; }
+body .today-dashboard-summary { background: #075bb3; }
+body .today-dashboard-summary :is(p, h3, span) { color: #fff; }
+body .care-summary-form { font-size: 16px; }
+body :is(.care-summary-form, .care-summary-review) :is(p, legend, label, small) { font-size: 16px; line-height: 1.6; }
+body #care-summary-reviewed:focus { outline: 3px solid #075bb3; outline-offset: 3px; }
+@media (max-width: 480px) {
+  body .privacy-modal .privacy-actions > button { flex: 1 1 100%; }
+  body .medication-essential-fields { padding: 12px; }
+}
+
+body .pricing-market-field { display: grid; gap: 8px; margin-bottom: 12px; font-size: 16px; font-weight: 700; }
+body #pricing-market { min-height: 48px; font-size: 16px; }
+body #pricing-market-help { font-size: 16px; line-height: 1.6; color: #405d73; }
+body .comparison-table { display: table; width: 100%; table-layout: fixed; border-collapse: collapse; }
+body .comparison-table .comparison-row { display: table-row; }
+body .comparison-table :is(th, td) { display: table-cell; padding: 16px 12px; font-size: 16px; line-height: 1.5; vertical-align: top; text-align: left; overflow-wrap: anywhere; border-bottom: 1px solid #b9cfdf; }
+body .comparison-table th:first-child { width: 50%; }
+body .checkout-dialog :is(p, label, input, button, small, a) { font-size: 16px; line-height: 1.6; }
+body .checkout-dialog { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+body .checkout-dialog :is(button, input:not([type="checkbox"]), .dialog-secondary) { min-height: 48px; }
+body .plan-secondary { min-height: 48px; margin-block: 12px; padding: 12px; font-size: 16px; }
+body .programme-planning-link { padding: 24px; font-size: 16px; line-height: 1.6; }
+body :is(.managed-person-confirmation, .managed-action-consent, .modal-field label, .modal-field small) { font-size: 16px; line-height: 1.6; }
+
+body .checkout-confirm { min-height: 48px; align-items: center; }
+body .checkout-confirm input[type="checkbox"] { width: 24px; height: 24px; min-height: 24px; }
+
+body .home-more-tools { border: 1px solid #718b9f; border-radius: 16px; background: #fff; padding: 12px; min-width: 0; }
+body .home-more-tools > summary { min-height: 48px; padding: 12px; font-size: 18px; line-height: 1.5; color: #173451; cursor: pointer; }
+body .home-more-tools > summary span { display: block; font-size: 16px; font-weight: 400; color: #405d73; }
+
+body .home-check-details { color: #405d73; font-size: 16px; line-height: 1.6; }
+body .home-check-details summary { min-height: 48px; padding-block: 12px; cursor: pointer; }
+body .home-check-details li { margin-block: 8px; }
