@@ -52,7 +52,7 @@ test('curated feature results comply with their closed output schema', async () 
     assert.ok(res.structuredContent.url.startsWith('https://www.doctoraiworld.com/health-hub#'));
   }
 });
-test('five positive reviewer tool flows return public content', async () => {
+test('five reviewer tool scenarios return public content (research mocked)', async () => {
   for (const feature of ['overview', 'prescription_scan', 'care_summary']) {
     assert.ok(!(await call('doctorai_website_guide', { feature })).body.result.isError);
   }
@@ -66,7 +66,8 @@ test('five positive reviewer tool flows return public content', async () => {
   try { assert.equal((await call('search_health_research', { topic: 'symptom tracking' })).body.result.structuredContent.results.length, 1); }
   finally { global.fetch = original; }
 });
-test('negative reviewer boundaries reject account reads, diagnosis, and health writes', async () => {
+// This checks the server allowlist, not ChatGPT's conversation-level refusals.
+test('rejects unregistered account-read, diagnosis, and health-write tool names', async () => {
   for (const name of ['check_private_medications', 'diagnose_and_prescribe', 'add_health_record']) {
     assert.equal((await call(name, {})).body.result.isError, true);
   }
@@ -80,6 +81,7 @@ test('rejects hidden arguments, inherited feature names, nonstrings and identify
       ['doctorai_open_site', { destination: 'plans' }],
       ['doctorai_website_guide', { feature: 'overview', patient: 'example' }],
       ['search_health_research', { topic: 12 }],
+      ['search_health_research', { topic: 'symptom tracking', limit: 5 }],
       ['search_health_research', { topic: 'my symptoms' }],
       ['search_health_research', { topic: 'person@example.test' }],
       ['search_health_research', { topic: 'DOB 2000-01-02' }]

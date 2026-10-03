@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "doctoraiworld",
+  "name": "app-6abad626f21081918f3a49e848c0e3cc",
   "version": "1.3.0",
   "description": "Public Health Hub feature guides, website links, and biomedical research references.",
   "author": { "name": "DoctorAIWorld", "email": "support@doctoraiworld.com", "url": "https://www.doctoraiworld.com/" },
