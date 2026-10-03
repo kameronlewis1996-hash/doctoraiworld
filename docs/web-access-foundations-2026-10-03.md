@@ -45,7 +45,7 @@ Automated axe results and sampled flows do not establish full WCAG conformance. 
 
 Existing paid `entitlement`, health `health-state`/`managed-health:*`, profiles, documents, self-cache owner binding and recovery schemas stay readable. New records are lazy: `care-access-v1`, `care-inbox-v1`, `complimentary-pro`, `complimentary-redemption`, `lifetime-pro`, supported usage/storage counters, `doctorai:supported-access:v1`, and `doctorai:contribution-planning:v1`. No live data migration or token creation was run. Staff redemption moves new short grants to the independent field; existing legacy short grants are still resolved and revoked safely.
 
-PWA shell is v112 with current versioned assets. API responses are no-store and excluded from service-worker caches. New functions use existing catch-all routes; no additional top-level Vercel function or paid resource was added.
+PWA shell is v113 with current versioned assets. API responses are no-store and excluded from service-worker caches. New functions use existing catch-all routes; no additional top-level Vercel function or paid resource was added.
 
 The guard-only rollback anchor is `1326d6ded8b064376dc56e83585ec3c146696176`. Before any real new grant or invitation exists, roll back the UI/foundations to this anchor, preserving the Preview provider guard. Rolling Preview back to unguarded `658e012` would restore the inherited-provider risk. After future grant activation, retain the independent entitlement resolver and durable grants during any UI rollback; deploying an older resolver would hide lifetime access. Do not delete grants or repricing existing subscribers as rollback steps. Policy/funding flags can close future intake without revoking existing grants.
 
