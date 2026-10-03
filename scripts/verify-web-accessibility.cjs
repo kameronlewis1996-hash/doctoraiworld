@@ -21,7 +21,7 @@ const axe = async (page, label) => {
   audits.push({ label, violations: result.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.map(n => ({ target: n.target, summary: n.failureSummary })) })), incompleteRules: result.incomplete.map(v => v.id) });
   assert.equal(result.violations.length, 0, label + ': axe violations ' + result.violations.map(v => v.id).join(', '));
 };
-const ready = page => page.waitForFunction(() => document.querySelector('#last-synced')?.textContent.includes('Private data synced'));
+const ready = page => page.waitForFunction(() => { const status = document.querySelector('#last-synced')?.textContent || ''; return status === 'Private data synced' || status.endsWith(' · private records loaded') || status === 'Device storage off · session only'; });
 const goto = async (page, view = '') => { await page.goto(origin + '/health-hub' + (view ? '#' + view : '')); await ready(page); };
 const json = (page, url, options) => page.evaluate(async ({ url, options }) => (await fetch(url, options)).json(), { url, options });
 (async () => {
@@ -32,6 +32,7 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
   });
   browser = await chromium.launch({ executablePath: process.env.DOCTORAI_CHROMIUM || undefined, args: ['--no-sandbox'], env: { ...process.env, XDG_CONFIG_HOME: '/tmp/doctorai-qa-config', XDG_CACHE_HOME: '/tmp/doctorai-qa-cache' } });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  context.setDefaultTimeout(5000);
   const page = await context.newPage();
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   page.on('pageerror', error => errors.push(error.message));
@@ -64,6 +65,7 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
     console.log(JSON.stringify({ checksPassed: checks.length, axeStates: audits.length, javascriptErrors: errors, evidence: output, paidCalls: 0 }, null, 2));
     return;
   }
+  if (!process.argv.includes('--remaining')) {
   await page.locator('.skip-link').focus(); await page.keyboard.press('Enter');
   check(await page.locator('#main-content').evaluate(e => e === document.activeElement), 'Skip link moves keyboard focus to main content');
   await page.locator('.home-medication-manual-cta').click();
@@ -95,7 +97,7 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
   await page.locator('#view-health [data-modal="health"]').first().click();
   await page.locator('[data-modal-form="health"] [name="notes"]').fill('Synthetic private note for self');
   await page.locator('[data-modal-form="health"] [type="submit"]').click(); await page.waitForTimeout(1200);
-  check((await json(page, '/api/health/state')).state.profile.notes === 'Synthetic private note for self', 'Health notes save and reload for the verified owner');
+  check((await json(page, '/api/health/state')).state.profile.notes === 'Synthetic private note for self', 'Health notes save for the verified owner');
   await goto(page);
   const chatBefore = requests.filter(item => item.path === '/api/chat').length;
   await page.locator('.home-briefing-link').click();
@@ -134,8 +136,9 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
   check(!await page.locator('#view-health').textContent().then(text => text.includes('Synthetic private note for self')), 'Switching people clears the self note from the displayed record');
   await page.locator('#active-person-select').selectOption('self');
   await page.waitForFunction(() => document.getElementById('active-person-select').value === 'self' && !document.getElementById('active-person-select').disabled);
+  }
   await goto(page, 'medications');
-  await page.locator('#category-bar [data-view="appointments"]').click();
+  await page.locator('.sidebar .nav-item[data-view="appointments"]').click();
   await page.goBack();
   check(await page.locator('#view-medications').isVisible(), 'Browser Back restores the prior Hub view');
   for (const width of [1440, 768, 390, 320]) {
