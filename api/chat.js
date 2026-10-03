@@ -92,6 +92,7 @@ module.exports = async function chat(req, res) {
   if (req.method !== 'POST') return core.json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account) return core.json(res, 401, { error: 'Please sign in with Google before using DoctorAI chat.' });
+  if (await core.rejectUnsupportedManagedAction(req, res, account)) return;
   if (!process.env.OPENAI_API_KEY) return core.json(res, 503, { error: 'DoctorAI chat is not configured yet.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {

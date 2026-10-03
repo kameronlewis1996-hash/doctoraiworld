@@ -1,4 +1,4 @@
-const core = require('../../server-src/_lib/doctorai-core.cjs');
+const core = require('../_lib/doctorai-core.cjs');
 
 module.exports = async function handler(request, response) {
   core.noStore(response);
@@ -15,24 +15,27 @@ module.exports = async function handler(request, response) {
     return response.status(429).json({ error: 'Too many account updates. Please try again shortly.' });
   }
   try {
+    const profile = await core.resolveProfileScope(request, account, { write: request.method === 'PUT' });
+    const profileId = profile?.id || null;
     if (request.method === 'GET') {
-      const record = await core.readHealthState(account);
-      return response.status(200).json({ configured: true, updatedAt: record?.updatedAt || null, state: record?.state || null });
+      const record = await core.readHealthState(account, profileId);
+      return response.status(200).json({ configured: true, profileId: profileId || 'self', updatedAt: record?.updatedAt || null, state: record?.state || null });
     }
     if (request.method === 'PUT') {
       let body = request.body || {};
       try { body = typeof body === 'string' ? JSON.parse(body) : body; } catch { return response.status(400).json({ error: 'Invalid private health data request.' }); }
       const state = body?.state;
       if (!core.validHealthState(state)) return response.status(400).json({ error: 'The health update was not valid.' });
-      await core.saveHealthState(account, state);
+      await core.saveHealthState(account, state, profileId);
       return response.status(200).json({ ok: true, updatedAt: Date.now() });
     }
     if (request.method === 'DELETE') {
-      await core.deleteHealthState(account);
+      await core.deleteHealthState(account, profileId);
       return response.status(200).json({ ok: true, deleted: true });
     }
     return response.status(405).json({ error: 'Method not allowed.' });
-  } catch {
+  } catch (error) {
+    if (error.status) return response.status(error.status).json({ error: error.message });
     return response.status(503).json({ error: 'Secure shared health storage is temporarily unavailable.' });
   }
 }

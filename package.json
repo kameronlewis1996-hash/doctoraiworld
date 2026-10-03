@@ -10,6 +10,8 @@
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
     "verify:nzf": "node scripts/verify-nzf-fhir.js",
+    "verify:profiles": "node scripts/verify-managed-profiles.cjs",
+    "preview:profiles": "node scripts/preview-managed-profiles.cjs",
     "verify:server": "node scripts/verify-server-core.js",
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",

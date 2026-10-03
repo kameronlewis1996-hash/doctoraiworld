@@ -6,6 +6,12 @@
   const viewNames = ['today', 'ask', 'health', 'profile', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
   const viewLabels = { today: 'Today', ask: 'Ask DoctorAI', health: 'My Health', profile: 'Profile', symptoms: 'Symptom Diary', medications: 'Medications', appointments: 'Appointments', results: 'Results', timeline: 'Timeline', documents: 'Documents' };
   const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
+  let activePersonId = 'self';
+  let personEpoch = 0;
+  let browserSelfOwner = '';
+  let currentSelfOwner = '';
+  const selfSessionStates = new Map();
+  const personAlertAcks = new Set();
   const storagePrefix = 'doctorai-health-hub-';
   const storageConsentKey = storagePrefix + 'device-storage-consent';
   let deviceStorageChoice = '';
@@ -20,7 +26,7 @@
     } catch { return fallback; }
   };
   const write = (key, value) => {
-    if (!localStorageAllowed) return;
+    if (!localStorageAllowed || (!['profile-shortcuts'].includes(key) && (activePersonId !== 'self' || (browserSelfOwner && browserSelfOwner !== currentSelfOwner)))) return;
     try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {}
   };
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -360,6 +366,191 @@
   const serialiseHealthState = () => ({
     medications: clone(state.medications), appointments: clone(state.appointments), providers: clone(state.providers), timeline: clone(state.timeline), documents: clone(state.documents), measurements: clone(state.measurements), tasks: clone(state.tasks), profile: clone(state.profile), memoryEnabled: Boolean(state.memoryEnabled), memoryDetails: clone(state.memoryDetails)
   });
+  let managedProfiles = [];
+  let managedProfilesStatus = '';
+  let personSwitchBusy = false;
+  let personManagementBusy = false;
+  let personOperations = 0;
+  let selfStateSnapshot = null;
+  let cloudSaveFailed = false;
+  const activeManagedPerson = () => managedProfiles.find(person => person.id === activePersonId);
+  const managedReadOnly = () => activePersonId !== 'self' && (!hasProAccess() || Boolean(activeManagedPerson()?.archivedAt));
+  const personName = () => activePersonId === 'self' ? 'Myself' : activeManagedPerson()?.name || 'Managed profile';
+  const personDocumentUrl = id => `/api/documents?id=${encodeURIComponent(id)}${activePersonId === 'self' ? '' : `&profileId=${encodeURIComponent(activePersonId)}`}`;
+  const personMutationSelector = '[data-modal], [data-add-menu], [data-edit-medication], [data-delete-medication], [data-edit-symptom], [data-delete-symptom], [data-delete-appointment], [data-edit-provider], [data-med-toggle], [data-med-missed], [data-task-toggle], [data-file-action], [data-medication-safety-profile]';
+  const unsupportedPersonSelector = '[data-open-medication-scanner], [data-chat-prompt], [data-explain-result], [data-explain-document], [data-share-document], [data-run-medication-safety-check], [data-run-ingredient-safety-check], [data-search-safety-term], [data-medication-match-ingredients], [data-nzf-product-search]';
+
+  // This wrapper is local to the hub. Every record request carries the selected
+  // person explicitly; the server independently validates session and ownership.
+  async function fetch(input, options = {}) {
+    const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+    const scoped = url.origin === location.origin && /^\/api\/(health\/state|documents|chat|medication\/)/.test(url.pathname);
+    const epoch = personEpoch;
+    if (scoped) {
+      const headers = new Headers(options.headers);
+      headers.set('x-doctorai-profile', activePersonId);
+      if (authUser?.accountId) headers.set('x-doctorai-account', authUser.accountId);
+      options = { ...options, headers, cache: 'no-store' };
+      if (activePersonId !== 'self' && (/^\/api\/chat/.test(url.pathname) || (/^\/api\/medication\//.test(url.pathname) && url.pathname !== '/api/medication/safety'))) {
+        throw new Error('AI and external scanning are unavailable for managed profiles. Use manual entry and local guidance.');
+      }
+    }
+    const response = await window.fetch(input, options);
+    if (scoped && epoch !== personEpoch) throw new Error('The active person changed. Please try again.');
+    return response;
+  }
+
+  function protectPersonOperation(operation) {
+    return async function (...args) {
+      personOperations += 1;
+      try { return await operation(...args); }
+      finally { personOperations -= 1; }
+    };
+  }
+
+  function renderManagedProfiles() {
+    const list = $('#family-list');
+    const status = $('#family-status');
+    const bar = $('#active-person-bar');
+    const select = $('#active-person-select');
+    if (!list || !status || !bar || !select) return;
+    bar.hidden = !authUser;
+    const selfLabel = `Myself${authUser?.name ? ` · ${authUser.name}` : ''}`;
+    select.innerHTML = `<option value="self">${escapeHTML(selfLabel)}</option>` + managedProfiles.map(person => `<option value="${escapeHTML(person.id)}">${escapeHTML(person.name)}${person.archivedAt ? ' · archived' : ''}</option>`).join('');
+    select.value = activePersonId;
+    select.disabled = personSwitchBusy;
+    $('#active-person-status').textContent = activePersonId === 'self' ? 'Your own records' : `${personName()} · ${managedReadOnly() ? 'Read only · view, export or delete records' : 'Managed by you · separate records'}`;
+    status.textContent = managedProfilesStatus || (!authUser ? 'Sign in to manage profiles securely. Family profiles are included with Pro.' : !hasProAccess() ? 'Pro adds new profiles and record editing. Existing profiles remain available to view, export or delete.' : 'Private profiles managed by you.');
+    const row = person => `<article class="family-person ${activePersonId === person.id ? 'is-active' : ''}"><div class="family-person-copy"><b>${escapeHTML(person.name)}</b><small>${escapeHTML(person.relationship || 'Loved one')} · ${person.archivedAt ? 'Archived · records kept' : activePersonId === person.id ? 'Active profile' : 'Separate health records'}</small></div><div class="family-person-actions"><button class="secondary-button" type="button" data-switch-person="${escapeHTML(person.id)}">${activePersonId === person.id ? 'Viewing' : 'View records'}</button>${person.archivedAt ? `<button class="quiet-button" type="button" data-restore-person="${escapeHTML(person.id)}" ${!hasProAccess() ? 'disabled' : ''}>Restore</button>` : `<button class="quiet-button" type="button" data-edit-person="${escapeHTML(person.id)}" ${!hasProAccess() ? 'disabled' : ''}>Edit</button><button class="quiet-button" type="button" data-archive-person="${escapeHTML(person.id)}">Archive</button>`}</div></article>`;
+    const archived = managedProfiles.filter(person => person.archivedAt);
+    list.innerHTML = managedProfiles.filter(person => !person.archivedAt).map(row).join('') + (archived.length ? `<details class="family-archived"><summary>Archived profiles (${archived.length})</summary><div class="family-list">${archived.map(row).join('')}</div></details>` : '');
+    if (authUser && hasProAccess() && !managedProfiles.length && !managedProfilesStatus) list.innerHTML = '<p class="family-intro">Add your first person to start a separate health record.</p>';
+    $$('[data-export-health]').forEach(button => { button.textContent = `Export ${personName()}'s records`; });
+    $$('[data-delete-health]').forEach(button => { button.textContent = `Delete ${personName()}'s records`; });
+    const add = $('[data-add-person]');
+    add.textContent = hasProAccess() ? '＋ Add person' : 'Explore Pro →';
+    add.disabled = personManagementBusy;
+    if (activePersonId !== 'self') {
+      if (els.todayGreeting) els.todayGreeting.textContent = `Health hub for ${personName()}`;
+      if ($('#today-welcome')) $('#today-welcome').textContent = `You are managing ${personName()}'s separate health records.`;
+    }
+    $$(personMutationSelector).forEach(control => {
+      if ('disabled' in control) {
+        if (managedReadOnly()) { if (!control.disabled) control.dataset.personDisabled = 'true'; control.disabled = true; }
+        else if (control.dataset.personDisabled) { control.disabled = false; delete control.dataset.personDisabled; }
+      }
+    });
+    $$(unsupportedPersonSelector + ', #medication-scan, #chat-input, #chat-send, #result-upload, #document-upload, #document-upload-inline, #memory-toggle, #health-memory-toggle').forEach(control => {
+      const disabled = activePersonId !== 'self' && (control.matches(unsupportedPersonSelector + ', #medication-scan, #chat-input, #chat-send, #memory-toggle, #health-memory-toggle') || managedReadOnly());
+      if (disabled) { if (!control.disabled) control.dataset.scopeDisabled = 'true'; control.disabled = true; }
+      else if (control.dataset.scopeDisabled) { control.disabled = false; delete control.dataset.scopeDisabled; }
+    });
+    if (activePersonId !== 'self') setChatStatus('AI chat and OCR scans are unavailable for managed profiles. Manual records and local medication guidance are available.', false);
+  }
+
+  async function loadManagedProfiles() {
+    if (!authUser) { managedProfiles = []; renderManagedProfiles(); return; }
+    const epoch = personEpoch;
+    try {
+      const response = await window.fetch('/api/health/profiles', { headers: { accept: 'application/json', 'x-doctorai-account': authUser.accountId }, cache: 'no-store' });
+      const payload = await response.json();
+      if (epoch !== personEpoch) return;
+      if (!response.ok) throw new Error(payload.error || 'Secure family profiles are unavailable.');
+      managedProfiles = payload.profiles || [];
+      managedProfilesStatus = '';
+    } catch (error) { if (epoch === personEpoch) managedProfilesStatus = error.message; }
+    renderManagedProfiles();
+  }
+
+  async function switchManagedPerson(id) {
+    if (id === activePersonId || personSwitchBusy) return;
+    if (personOperations || personManagementBusy || cloudSyncBusy || medicationScanBusy || chatBusy) { showToast('An action is still finishing. Wait a moment before switching people.'); renderManagedProfiles(); return; }
+    if (id !== 'self' && !managedProfiles.some(person => person.id === id)) return;
+    personSwitchBusy = true;
+    renderManagedProfiles();
+    window.clearTimeout(cloudSyncTimer);
+    try {
+      if (els.modal.open && els.modalBody.querySelector('form') && !window.confirm('Discard this unfinished form and switch people? Saved records are kept.')) return;
+      if (cloudSyncDirty || cloudSaveFailed) {
+        if (!await saveCloudState() && !window.confirm(`Private save failed for ${personName()}. Discard unsaved changes and switch? Saved records are kept; choose Cancel to retry or export your changes.`)) throw new Error('Switch cancelled. Current changes are kept.');
+      }
+      const url = `/api/health/state${id === 'self' ? '' : `?profileId=${encodeURIComponent(id)}`}`;
+      const response = await window.fetch(url, { cache: 'no-store', headers: { accept: 'application/json', 'x-doctorai-account': authUser.accountId } });
+      const payload = await response.json();
+      if (!response.ok || payload.profileId !== id) throw new Error(payload.error || 'Records could not be loaded safely.');
+      if (activePersonId === 'self') selfStateSnapshot = serialiseHealthState();
+      closeModal(); closePrivacy(); closeMedicationScanner(); closeProfile();
+      closeMedicationSafetyAlert(false);
+      clearTimeout(medicationAlertTimer); medicationAlertFingerprint = '';
+      clearChat({ confirm: false, notify: false });
+      els.modalBody.replaceChildren(); careSummaryDraft = null;
+      $$('input[type="file"]').forEach(input => { input.value = ''; });
+      activePersonId = id; personEpoch += 1;
+      cloudSyncRevision += 1; cloudSyncDirty = false; cloudSaveFailed = false;
+      localStateUpdatedAt = Number(payload.updatedAt) || 0;
+      cloudSyncEnabled = true;
+      applyCloudState(payload.state || (id === 'self' ? selfStateSnapshot : {}));
+      // A new managed person starts with a blank record, never the self snapshot.
+      documentFilter = 'all'; timelineFilter = 'all';
+      renderAll();
+      if (id === 'self') renderAccountIdentity();
+      setSyncStatus(`${personName()} · private records loaded`);
+      showToast(`Now viewing ${personName()}`);
+    } catch (error) { showToast(error.message); }
+    finally { personSwitchBusy = false; renderManagedProfiles(); }
+  }
+
+  function renderAccountIdentity() {
+    if (els.todayGreeting) els.todayGreeting.textContent = authUser?.name ? `Welcome, ${authUser.name.split(/\s+/)[0]}.` : 'Welcome to DoctorAI.';
+    if ($('#today-welcome')) $('#today-welcome').textContent = 'Your health stays in your hands.';
+  }
+
+  function openPersonModal(id = null) {
+    if (!authUser) { openGoogleSignIn(); return; }
+    if (!hasProAccess()) { location.href = '/subscription#plans'; return; }
+    const person = id ? managedProfiles.find(item => item.id === id) : null;
+    const creationId = crypto.randomUUID();
+    setModal(person ? 'Edit person' : 'Add a loved one', 'Family & loved ones', `<form class="modal-form" data-modal-form="managed-person"><input type="hidden" name="id" value="${escapeHTML(person?.id || '')}"><input type="hidden" name="creationId" value="${creationId}"><div class="modal-form-grid"><label class="modal-field full"><span>Name *</span><input name="name" required maxlength="80" autocomplete="off" value="${escapeHTML(person?.name || '')}"></label><label class="modal-field full"><span>Relationship (optional)</span><input name="relationship" maxlength="60" autocomplete="off" placeholder="e.g. Parent, partner, friend" value="${escapeHTML(person?.relationship || '')}"></label></div><p class="modal-help">You manage this private profile from your account. Their health records stay separate from yours. Archiving keeps their records.</p><p data-person-form-error role="alert"></p><div class="modal-actions"><button class="secondary-button" type="button" data-close-modal>Cancel</button><button class="primary-button" type="submit">${person ? 'Save changes' : 'Add person'}</button></div></form>`);
+  }
+
+  async function submitPersonForm(form) {
+    if (personManagementBusy) return;
+    const data = Object.fromEntries(new FormData(form));
+    const body = data.id ? { id: data.id, name: data.name, relationship: data.relationship } : { creationId: data.creationId, name: data.name, relationship: data.relationship };
+    personManagementBusy = true;
+    form.querySelector('button[type="submit"]').disabled = true;
+    try {
+      const response = await window.fetch('/api/health/profiles', { method: data.id ? 'PATCH' : 'POST', headers: { 'content-type': 'application/json', 'x-doctorai-account': authUser.accountId }, body: JSON.stringify(body) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Profile could not be saved.');
+      managedProfiles = managedProfiles.filter(person => person.id !== payload.profile.id).concat(payload.profile).sort((a, b) => a.createdAt - b.createdAt);
+      managedProfilesStatus = '';
+      closeModal(); showToast(data.id ? 'Person updated.' : 'Separate profile added. Choose View records to start.');
+    } catch (error) { if (form.isConnected) form.querySelector('[data-person-form-error]').textContent = error.message; }
+    finally { personManagementBusy = false; if (form.isConnected) form.querySelector('button[type="submit"]').disabled = false; renderManagedProfiles(); }
+  }
+
+  function confirmPersonArchive(id) {
+    const person = managedProfiles.find(item => item.id === id);
+    if (!person) return;
+    setModal('Archive profile?', 'Family & loved ones', `<p class="modal-help">Archive ${escapeHTML(person.name)}? Their records will stay available to view and export. Pro can restore the profile for editing.</p><div class="modal-actions"><button class="secondary-button" type="button" data-close-modal>Cancel</button><button class="primary-button" type="button" data-confirm-archive-person="${escapeHTML(id)}">Archive profile</button></div>`);
+  }
+
+  async function setPersonArchived(id, archived) {
+    if (personManagementBusy || personSwitchBusy) return;
+    if (activePersonId === id && archived) { await switchManagedPerson('self'); if (activePersonId !== 'self') return; }
+    personManagementBusy = true;
+    try {
+      const response = await window.fetch('/api/health/profiles', { method: 'PATCH', headers: { 'content-type': 'application/json', 'x-doctorai-account': authUser.accountId }, body: JSON.stringify({ id, archived }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Profile could not be updated.');
+      managedProfiles = managedProfiles.map(person => person.id === id ? payload.profile : person);
+      closeModal(); showToast(archived ? 'Profile archived. Records kept.' : 'Profile restored.');
+    } catch (error) { showToast(error.message); }
+    finally { personManagementBusy = false; renderManagedProfiles(); }
+  }
+
+
   const hasHealthState = value => Boolean(value?.medications?.length || value?.appointments?.length || value?.providers?.length || value?.timeline?.length || value?.documents?.length || value?.measurements?.length || value?.tasks?.length || value?.memoryDetails?.length || Object.values(value?.profile || {}).some(Boolean));
 
   function applyCloudState(value) {
@@ -386,14 +577,14 @@
   }
   function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; }
   function queueCloudSave() {
-    if (!authUser || !cloudSyncEnabled) return;
+    if (!authUser || !cloudSyncEnabled || managedReadOnly() || personSwitchBusy) return;
     cloudSyncDirty = true;
     cloudSyncRevision += 1;
     window.clearTimeout(cloudSyncTimer);
     cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 900);
   }
   async function saveCloudState() {
-    if (!authUser || !cloudSyncEnabled) return;
+    if (!authUser || !cloudSyncEnabled || managedReadOnly()) return false;
     if (cloudSyncBusy) { cloudSyncDirty = true; return; }
     const revision = cloudSyncRevision;
     const stateToSave = serialiseHealthState();
@@ -411,10 +602,12 @@
         write('updated-at', localStateUpdatedAt);
         setSyncStatus('Private data synced');
       }
-    } catch { setSyncStatus(deviceStorageStatus()); }
+      cloudSaveFailed = false;
+      return true;
+    } catch { cloudSaveFailed = true; cloudSyncDirty = true; setSyncStatus('Private save failed · retry before switching'); return false; }
     finally {
       cloudSyncBusy = false;
-      if (cloudSyncDirty && authUser && cloudSyncEnabled) {
+      if (cloudSyncDirty && !cloudSaveFailed && authUser && cloudSyncEnabled) {
         window.clearTimeout(cloudSyncTimer);
         cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 0);
       }
@@ -1078,6 +1271,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function loadTodayIntelligence(medications, symptoms) {
     const output = $('#today-ai-output');
     if (!output) return;
+    if (activePersonId !== 'self') { output.classList.remove('loading'); output.textContent = 'AI briefings are unavailable for managed profiles. Review this person’s saved records above.'; return; }
     if (!authUser) {
       output.classList.remove('loading');
       output.innerHTML = '<p>Sign in to generate an AI briefing from the health information you chose to save.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
@@ -1152,7 +1346,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderTodayOverview() {
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    const displayName = String(authUser?.name || state.profile.name || '').trim().split(/\s+/)[0];
+    const displayName = String(activePersonId === 'self' ? authUser?.name || state.profile.name || '' : personName()).trim().split(/\s+/)[0];
     if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}${displayName ? `, ${displayName}` : ''}.`;
     const tracked = state.medications.filter(item => item.status === 'taken').length;
     if (els.medOverview) els.medOverview.textContent = state.medications.length ? `${tracked} of ${state.medications.length} taken` : 'No medicines logged';
@@ -1227,6 +1421,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function medicationAlertAcknowledged(fingerprint) {
+    if (activePersonId !== 'self') return personAlertAcks.has(activePersonId + ':' + fingerprint);
     try { return sessionStorage.getItem('doctorai-medication-alert-ack-v1') === fingerprint; } catch { return false; }
   }
 
@@ -1249,7 +1444,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function closeMedicationSafetyAlert(acknowledge = true) {
     clearTimeout(medicationAlertTimer);
-    if (acknowledge && medicationAlertFingerprint) {
+    if (acknowledge && medicationAlertFingerprint && activePersonId !== 'self') personAlertAcks.add(activePersonId + ':' + medicationAlertFingerprint);
+    if (acknowledge && medicationAlertFingerprint && activePersonId === 'self') {
       try { sessionStorage.setItem('doctorai-medication-alert-ack-v1', medicationAlertFingerprint); } catch {}
     } else if (!acknowledge) medicationAlertFingerprint = '';
     if (els.medicationAlertModal?.open) els.medicationAlertModal.close();
@@ -1381,7 +1577,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderResults() {
     if (!els.resultList) return;
-    if (!hasProAccess()) {
+    if (!hasProAccess() && !state.documents.some(doc => doc.category === 'result')) {
       els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing.');
       return;
     }
@@ -1609,7 +1805,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderDocuments() {
     if (!els.documentsGrid) return;
-    if (!hasProAccess()) {
+    if (!hasProAccess() && !state.documents.length) {
       els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Upload and share prescriptions, lab reports, referrals, letters, imaging, scans and health photos only when you choose.');
       return;
     }
@@ -1670,9 +1866,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     renderAppointments();
     renderMeasurement(trendRange);
     renderProControls();
+    renderManagedProfiles();
   }
 
   function setMemory(enabled) {
+    if (activePersonId !== 'self') { renderProfile(); showToast('AI memory is unavailable for managed profiles.'); return; }
     state.memoryEnabled = Boolean(enabled);
     saveState();
     renderProfile();
@@ -1725,7 +1923,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderAccountSession(user) {
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
-    if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
+    if (previousEmail && previousEmail !== nextEmail) {
+      selfSessionStates.set(previousEmail, activePersonId === 'self' ? serialiseHealthState() : selfStateSnapshot || {});
+      currentSelfOwner = nextEmail;
+      personEpoch += 1;
+      clearChat({ confirm: false, notify: false });
+      if (activePersonId !== 'self') {
+        activePersonId = 'self';
+        closeModal(); closeMedicationScanner(); closePrivacy();
+      }
+      managedProfiles = []; managedProfilesStatus = '';
+      cloudSyncDirty = false; cloudSaveFailed = false;
+      window.clearTimeout(cloudSyncTimer);
+      subscriptionTier = 'free';
+      applyCloudState({});
+    }
+    currentSelfOwner = nextEmail;
+    if (nextEmail && !browserSelfOwner) browserSelfOwner = nextEmail;
+    if (!previousEmail && nextEmail && selfSessionStates.has(nextEmail)) applyCloudState(selfSessionStates.get(nextEmail));
     authUser = user || null;
     const signedIn = Boolean(authUser);
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
@@ -1764,8 +1979,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       accountAction.toggleAttribute('data-google-signin', !signedIn);
       accountAction.innerHTML = signedIn ? 'Sign out <span>→</span>' : 'Sign in with Google <span>→</span>';
     }
-    if (signedIn) loadCloudState().catch(() => {});
+    if (signedIn) { loadCloudState().catch(() => {}); loadManagedProfiles().catch(() => {}); }
     else setSyncStatus(deviceStorageStatus());
+    renderAll();
   }
   function renderEntitlementStatus() {
     const title = $('#drawer-pro-status');
@@ -1773,7 +1989,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!title || !copy) return;
     const expiry = entitlementExpiresAt ? new Date(Number(entitlementExpiresAt) * 1000) : null;
     const remaining = expiry ? expiry.getTime() - Date.now() : 0;
-    if (!expiry || !Number.isFinite(expiry.getTime()) || remaining <= 0) { title.textContent = 'Free plan'; copy.textContent = 'No active Pro access'; return; }
+    if (!expiry || !Number.isFinite(expiry.getTime()) || remaining <= 0) { title.textContent = 'Free plan'; copy.textContent = 'No active Pro access'; if (hasProAccess() && expiry) { subscriptionTier = 'free'; renderAll(); } return; }
     const totalMinutes = Math.max(1, Math.ceil(remaining / 60000));
     const days = Math.floor(totalMinutes / 1440);
     const hours = Math.floor((totalMinutes % 1440) / 60);
@@ -1808,11 +2024,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         renderAll();
         showToast('DoctorAI Pro is active on this device.');
       } else { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); }
-      renderEntitlementStatus();
+      renderAll(); renderEntitlementStatus();
       if (!entitlementTimer) entitlementTimer = window.setInterval(renderEntitlementStatus, 60000);
     } catch {} finally { entitlementReady = true; }
   }
   async function signOut() {
+    if (personOperations || personSwitchBusy || personManagementBusy) { showToast('An action is finishing. Wait a moment before signing out.'); return; }
+    if ((cloudSyncDirty || cloudSaveFailed) && !await saveCloudState() && !window.confirm('Private save failed. Sign out and discard unsaved changes? Choose Cancel to export or retry first. Saved server records are kept.')) return;
     try { await fetch('/api/auth/google', { method: 'DELETE' }); } catch {}
     renderAccountSession(null);
     closeProfile();
@@ -1856,6 +2074,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     setGoogleSigninStatus('Continue with Google to open your private DoctorAI workspace.');
   }
   async function handleGoogleCredential(response) {
+    if (personOperations || personSwitchBusy || personManagementBusy) { setGoogleSigninStatus('Wait for the current action to finish before changing accounts.'); return; }
     if (!response?.credential) {
       setGoogleSigninStatus('Google sign-in was cancelled. No health information was changed.');
       return;
@@ -3019,6 +3238,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function medicationScanAccess() {
+    if (activePersonId !== 'self') { showToast('OCR and camera scans are unavailable for managed profiles. Use manual entry.'); return false; }
     if (!accountSessionReady) await loadAccountSession();
     if (!entitlementReady) await loadEntitlement();
     if (!authUser) {
@@ -3152,6 +3372,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function medicationScannerTick(timestamp) {
+    const epoch = personEpoch;
     if (!medicationScannerActive || !medicationScannerDetector || !els.medicationScannerVideo) return;
     if (timestamp - medicationScannerLastDetection < 250 || els.medicationScannerVideo.readyState < 2) {
       medicationScannerFrame = requestAnimationFrame(medicationScannerTick);
@@ -3160,6 +3381,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     medicationScannerLastDetection = timestamp;
     try {
       const matches = await medicationScannerDetector.detect(els.medicationScannerVideo);
+      if (epoch !== personEpoch || !medicationScannerActive) return;
       const found = Array.isArray(matches) && matches.find(match => String(match?.rawValue || '').trim());
       if (found) { await medicationBarcodeDetected(found.rawValue); return; }
     } catch {
@@ -3484,6 +3706,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function sendChat(message, { retry = false } = {}) {
+    if (activePersonId !== 'self') { showToast('AI chat is unavailable for managed profiles.'); return; }
     const text = String(message ?? els.chatInput.value).trim();
     if (!text || chatBusy) return;
     if (!authUser) {
@@ -3598,6 +3821,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   const formatFileSize = bytes => bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
   async function addDocument(file) {
+    if (managedReadOnly()) { showToast('This profile is read only. Existing files remain available.'); return; }
     if (!file) return;
     if (!hasProAccess()) {
       showToast('File and photo uploads are only available with DoctorAI Pro.');
@@ -3653,6 +3877,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function exportHealthData() {
     const payload = {
+      subject: { profileId: activePersonId, name: activePersonId === 'self' ? state.profile.name || authUser?.name || 'Myself' : personName() },
       exportedAt: new Date().toISOString(),
       notice: 'This export contains the health information you saved in DoctorAI. It does not include document files; download those individually from Documents.',
       data: serialiseHealthState()
@@ -3661,7 +3886,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `doctorai-health-export-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `doctorai-${activePersonId === 'self' ? 'self' : personName().replace(/[^a-z0-9]/gi, '-').slice(0, 60)}-health-export-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.append(link); link.click(); link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Your private hub data export has downloaded.');
@@ -3670,7 +3895,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function deleteHealthData() {
     if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
-    if (!window.confirm('Delete all health hub data, including saved medications, symptom diary entries, appointments, measurements, timeline entries and documents? This cannot be undone.')) return;
+    if (!window.confirm(`Delete health records for ${personName()}, including medications, symptoms, appointments, measurements, notes and documents? This cannot be undone. Other profiles are kept.`)) return;
     deleteHealthData.busy = true;
     window.clearTimeout(cloudSyncTimer);
     const syncWasEnabled = cloudSyncEnabled;
@@ -3721,6 +3946,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const form = event.target.closest('[data-modal-form]');
     if (!form) return;
     event.preventDefault();
+    if (form.dataset.modalForm === 'managed-person') { submitPersonForm(form); return; }
+    if (managedReadOnly() && !['symptom-guidance'].includes(form.dataset.modalForm)) { showToast('This profile is read only. You can view, export or delete existing records.'); return; }
     const values = Object.fromEntries(new FormData(form).entries());
     if (form.dataset.modalForm === 'today-checkin') { createTodayPlan(form, values); return; }
     const today = new Date().toISOString().slice(0, 10);
@@ -4117,6 +4344,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    const personAction = event.target.closest('[data-switch-person], [data-add-person], [data-edit-person], [data-archive-person], [data-confirm-archive-person], [data-restore-person]');
+    if (personAction) {
+      event.preventDefault();
+      if (personAction.hasAttribute('data-switch-person')) await switchManagedPerson(personAction.dataset.switchPerson);
+      else if (personAction.hasAttribute('data-add-person')) openPersonModal();
+      else if (personAction.hasAttribute('data-edit-person')) openPersonModal(personAction.dataset.editPerson);
+      else if (personAction.hasAttribute('data-archive-person')) confirmPersonArchive(personAction.dataset.archivePerson);
+      else if (personAction.hasAttribute('data-confirm-archive-person')) await setPersonArchived(personAction.dataset.confirmArchivePerson, true);
+      else await setPersonArchived(personAction.dataset.restorePerson, false);
+      return;
+    }
+    if (personSwitchBusy && event.target.closest(personMutationSelector + ', [data-delete-document], [data-delete-health]')) { event.preventDefault(); return; }
+    if (managedReadOnly() && event.target.closest(personMutationSelector)) { event.preventDefault(); showToast('This profile is read only. View, export or delete existing records.'); return; }
+    if (activePersonId !== 'self' && event.target.closest(unsupportedPersonSelector)) { event.preventDefault(); showToast('This action is unavailable for managed profiles. Use manual records and local guidance.'); return; }
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }
     if (event.target.closest('[data-device-storage-session]')) { event.preventDefault(); setDeviceStorage(false); return; }
     const mobileMenu = event.target.closest('[data-mobile-menu]');
@@ -4438,14 +4679,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const id = documentView.dataset.documentView;
       const document = state.documents.find(item => item.id === id);
       if (!document) { showToast('This document is not available in your private library.'); return; }
-      window.open(`/api/documents?id=${encodeURIComponent(id)}`, '_blank', 'noopener');
+      window.open(personDocumentUrl(id), '_blank', 'noopener');
       return;
     }
     const documentDownload = event.target.closest('[data-document-download]');
     if (documentDownload) {
       event.preventDefault();
       const id = documentDownload.dataset.documentDownload;
-      window.location.href = `/api/documents?id=${encodeURIComponent(id)}&download=1`;
+      window.location.href = `${personDocumentUrl(id)}&download=1`;
       return;
     }
     const documentDelete = event.target.closest('[data-delete-document]');
@@ -4662,7 +4903,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   els.privacyModal.addEventListener('click', event => { if (event.target === els.privacyModal) closePrivacy(); });
   els.googleSigninModal?.addEventListener('click', event => { if (event.target === els.googleSigninModal) closeGoogleSignIn(); });
   window.addEventListener('hashchange', () => {
-    closeMedicationScanner();
+    closeMedicationScanner(); closeModal();
     const hash = location.hash.slice(1);
     if (hash === 'privacy') { showView('today', false); openPrivacy(); return; }
     if (hash === 'summary') { showView('today', false); openCareSummary(); return; }
@@ -4677,6 +4918,31 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   });
   window.addEventListener('pagehide', stopMedicationScannerCamera);
   window.addEventListener('load', configureGoogleSignIn);
+
+  // Switches wait for all originating person actions to finish, including file
+  // decoding, camera startup, cloud saves and response parsing. No late callback
+  // can populate another person's forms or records.
+  const guardedPersonOperations = { saveCloudState, loadCloudState, loadTodayIntelligence, searchMedicationSafetyTerm, searchNzfProducts, searchMedicationIngredients, medicationScanAccess, submitMedicationScan, medicationBarcodeDetected, medicationPhotoCaptured, openMedicationScanner, scanMedicationPhoto, sendChat, addDocument, deleteDocument, deleteHealthData, runLocalMedicationSafetyCheck, runMedicationSafetyCheck, runIngredientSafetyCheck };
+  saveCloudState = protectPersonOperation(guardedPersonOperations.saveCloudState);
+  loadCloudState = protectPersonOperation(guardedPersonOperations.loadCloudState);
+  loadTodayIntelligence = protectPersonOperation(guardedPersonOperations.loadTodayIntelligence);
+  searchMedicationSafetyTerm = protectPersonOperation(guardedPersonOperations.searchMedicationSafetyTerm);
+  searchNzfProducts = protectPersonOperation(guardedPersonOperations.searchNzfProducts);
+  searchMedicationIngredients = protectPersonOperation(guardedPersonOperations.searchMedicationIngredients);
+  medicationScanAccess = protectPersonOperation(guardedPersonOperations.medicationScanAccess);
+  submitMedicationScan = protectPersonOperation(guardedPersonOperations.submitMedicationScan);
+  medicationBarcodeDetected = protectPersonOperation(guardedPersonOperations.medicationBarcodeDetected);
+  medicationPhotoCaptured = protectPersonOperation(guardedPersonOperations.medicationPhotoCaptured);
+  openMedicationScanner = protectPersonOperation(guardedPersonOperations.openMedicationScanner);
+  scanMedicationPhoto = protectPersonOperation(guardedPersonOperations.scanMedicationPhoto);
+  sendChat = protectPersonOperation(guardedPersonOperations.sendChat);
+  addDocument = protectPersonOperation(guardedPersonOperations.addDocument);
+  deleteDocument = protectPersonOperation(guardedPersonOperations.deleteDocument);
+  deleteHealthData = protectPersonOperation(guardedPersonOperations.deleteHealthData);
+  runLocalMedicationSafetyCheck = protectPersonOperation(guardedPersonOperations.runLocalMedicationSafetyCheck);
+  runMedicationSafetyCheck = protectPersonOperation(guardedPersonOperations.runMedicationSafetyCheck);
+  runIngredientSafetyCheck = protectPersonOperation(guardedPersonOperations.runIngredientSafetyCheck);
+  $('#active-person-select')?.addEventListener('change', event => switchManagedPerson(event.target.value));
 
   const initialView = location.hash.slice(1);
   const termsQuery = new URLSearchParams(location.search).get('terms') === '1';

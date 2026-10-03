@@ -75,13 +75,15 @@ module.exports = async function handler(request, response) {
   if (!requireDocumentStorage(response)) return;
 
   try {
+    const profile = await core.resolveProfileScope(request, account, { write: request.method === 'POST' });
+    const profileId = profile?.id || null;
     if (request.method === 'GET') {
       const id = String(request.query?.id || '').trim();
       if (!id) {
-        const documents = await core.listDocumentMetadata(account);
+        const documents = await core.listDocumentMetadata(account, profileId);
         return response.status(200).json({ documents: documents.map(serialiseMetadata) });
       }
-      const document = await core.readDocumentMetadata(account, id);
+      const document = await core.readDocumentMetadata(account, id, profileId);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
       const stored = await get(document.blobPath, { access: 'private', useCache: false });
       if (!stored?.stream) return response.status(404).json({ error: 'This private document could not be found.' });
@@ -116,7 +118,7 @@ module.exports = async function handler(request, response) {
         size: bytes.length,
         createdAt: now,
         updatedAt: now,
-        blobPath: `doctorai-private/${core.accountKey(account)}/${id}.enc`
+        blobPath: `doctorai-private/${core.accountKey(account)}/${profileId ? `${profileId}/` : ''}${id}.enc`
       };
       await put(document.blobPath, core.sealBuffer(bytes), {
         access: 'private',
@@ -124,7 +126,7 @@ module.exports = async function handler(request, response) {
         contentType: 'application/octet-stream'
       });
       try {
-        await core.saveDocumentMetadata(account, document);
+        await core.saveDocumentMetadata(account, document, profileId);
       } catch (error) {
         await del(document.blobPath).catch(() => {});
         throw error;
@@ -135,15 +137,16 @@ module.exports = async function handler(request, response) {
     if (request.method === 'DELETE') {
       const id = String(request.query?.id || request.body?.id || '').trim();
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
-      const document = await core.readDocumentMetadata(account, id);
+      const document = await core.readDocumentMetadata(account, id, profileId);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
       await del(document.blobPath).catch(() => {});
-      await core.deleteDocumentMetadata(account, id);
+      await core.deleteDocumentMetadata(account, id, profileId);
       return response.status(200).json({ ok: true, id });
     }
 
     return response.status(405).json({ error: 'Method not allowed.' });
   } catch (error) {
+    if (error.status) return response.status(error.status).json({ error: error.message });
     const message = error instanceof Error ? error.message : 'Secure document storage is unavailable right now.';
     const isUserInputError = /supported|smaller than|Choose a file/.test(message);
     return response.status(isUserInputError ? 400 : 503).json({ error: isUserInputError ? message : 'Secure document storage is unavailable right now.' });

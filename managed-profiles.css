@@ -1,0 +1,30 @@
+.active-person-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 24px 0; padding: 14px 18px; border: 1px solid #d9e9ef; border-radius: 18px; background: #f2fafc; color: #173550; }
+.active-person-bar label { display: grid; gap: 4px; flex: 1; min-width: 0; font-size: 12px; font-weight: 600; }
+.active-person-bar select { width: 100%; max-width: 350px; min-height: 44px; border: 1px solid #cddfe7; border-radius: 10px; padding: 8px 12px; background: white; color: #173550; font: inherit; font-size: 15px; }
+.active-person-status { max-width: 48%; font-size: 12px; line-height: 1.5; }
+.family-card { margin: 20px 0 24px; padding: 24px; border: 1px solid #d9e9ef; border-radius: 24px; background: #fff; }
+.family-card h2 { font-size: 23px; letter-spacing: -.03em; }
+.family-intro, .family-status { color: #617687; font-size: 14px; line-height: 1.6; }
+.family-list { display: grid; gap: 12px; margin-top: 16px; }
+.family-person { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border: 1px solid #dfebf0; border-radius: 16px; background: #fbfdfe; }
+.family-person.is-active { border-color: #6ab8c9; background: #f0fafc; }
+.family-person-copy { display: grid; gap: 5px; min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
+.family-person-copy b { color: #173550; font-size: 16px; }
+.family-person-copy small { color: #627a8b; font-size: 12px; }
+.family-person-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.family-person-actions button { min-height: 44px; }
+.family-archived { margin-top: 18px; }
+.family-archived summary { padding: 10px 0; color: #47677b; cursor: pointer; }
+.family-status[role="alert"] { color: #974641; }
+.family-card .card-heading { flex-wrap: wrap; gap: 12px; }
+.family-pro-tag { display: inline-block; padding: 3px 8px; margin-left: 5px; border-radius: 8px; background: #e9e4fa; color: #6755a6; font-size: 11px; vertical-align: middle; }
+.person-readonly-note { padding: 12px; border-radius: 12px; background: #fff8eb; color: #71572b; }
+@media (max-width: 600px) {
+  .active-person-bar { align-items: stretch; flex-direction: column; gap: 8px; padding: 12px 14px; margin: 10px 10px 0; }
+  .active-person-bar select, .active-person-status { max-width: none; }
+  .family-person { padding: 14px; }
+  .family-person-actions { width: 100%; }
+  .family-person-actions button { flex: 1; }
+  .family-card { padding: 18px; scroll-margin-bottom: 100px; }
+  .family-card h2 { font-size: 19px; }
+}

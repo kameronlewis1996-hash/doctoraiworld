@@ -307,43 +307,97 @@ async function hvals(namespace, account) {
   return Array.isArray(raw.result) ? raw.result : [];
 }
 
-async function saveHealthState(account, state) {
+const healthField = profileId => profileId ? `managed-health:${profileId}` : 'health-state';
+const documentsNamespace = profileId => profileId ? `documents:${profileId}` : 'documents';
+
+async function saveHealthState(account, state, profileId = null) {
   if (!storageConfigured()) return false;
-  return hset('accounts', account, 'health-state', seal({ v: 1, updatedAt: Date.now(), state }));
+  return hset('accounts', account, healthField(profileId), seal({ v: 1, updatedAt: Date.now(), state }));
 }
 
-async function readHealthState(account) {
-  const raw = await hget('accounts', account, 'health-state');
+async function readHealthState(account, profileId = null) {
+  const raw = await hget('accounts', account, healthField(profileId));
   const stored = raw && typeof raw === 'object' && raw.value ? raw.value : raw;
   const record = stored ? unseal(stored) : null;
   return record?.v === 1 && record.state ? record : null;
 }
 
-async function deleteHealthState(account) {
-  return hdel('accounts', account, 'health-state');
+async function deleteHealthState(account, profileId = null) {
+  return hdel('accounts', account, healthField(profileId));
 }
 
-async function saveDocumentMetadata(account, document) {
+async function saveDocumentMetadata(account, document, profileId = null) {
   if (!storageConfigured()) return false;
-  return hset('documents', account, document.id, seal(document));
+  return hset(documentsNamespace(profileId), account, document.id, seal(document));
 }
 
-async function readDocumentMetadata(account, id) {
-  const raw = await hget('documents', account, id);
+async function readDocumentMetadata(account, id, profileId = null) {
+  const raw = await hget(documentsNamespace(profileId), account, id);
   const stored = raw && typeof raw === 'object' && raw.value ? raw.value : raw;
   return stored ? unseal(stored) : null;
 }
 
-async function listDocumentMetadata(account) {
-  const values = await hvals('documents', account);
+async function listDocumentMetadata(account, profileId = null) {
+  const values = await hvals(documentsNamespace(profileId), account);
   return values
     .map(value => unseal(typeof value === 'object' && value.value ? value.value : value))
     .filter(Boolean)
     .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 }
 
-async function deleteDocumentMetadata(account, id) {
-  return hdel('documents', account, id);
+async function deleteDocumentMetadata(account, id, profileId = null) {
+  return hdel(documentsNamespace(profileId), account, id);
+}
+
+const validProfileId = value => typeof value === 'string' && /^person-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value);
+const profileError = (status, message) => Object.assign(new Error(message), { status });
+function validateOwnerContext(request, account) {
+  const expected = request.headers?.['x-doctorai-account'];
+  if (expected !== undefined && (typeof expected !== 'string' || expected !== accountKey(account))) throw profileError(409, 'The signed-in account changed. Reload before using health records.');
+}
+async function readManagedProfile(account, id) {
+  if (!validProfileId(id)) throw profileError(400, 'Choose a valid managed profile.');
+  const raw = await hget('profiles', account, id);
+  const profile = raw ? unseal(raw.value || raw) : null;
+  if (!profile || profile.id !== id || profile.ownerKey !== accountKey(account)) throw profileError(404, 'Managed profile not found.');
+  return profile;
+}
+async function listManagedProfiles(account) {
+  return (await hvals('profiles', account)).map(value => unseal(value?.value || value))
+    .filter(profile => profile && validProfileId(profile.id) && profile.ownerKey === accountKey(account))
+    .sort((a, b) => a.createdAt - b.createdAt);
+}
+async function createManagedProfile(account, profile) {
+  // A stable creation ID plus HSETNX makes concurrent retries idempotent.
+  const raw = await redis(`hsetnx/${userHashKey('profiles', account)}/${encodeURIComponent(profile.id)}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(seal({ ...profile, ownerKey: accountKey(account) }))
+  });
+  if (![0, 1].includes(Number(raw.result))) throw new Error('Profile could not be saved.');
+  return readManagedProfile(account, profile.id);
+}
+async function saveManagedProfile(account, profile) {
+  return hset('profiles', account, profile.id, seal({ ...profile, ownerKey: accountKey(account) }));
+}
+async function resolveProfileScope(request, account, { write = false } = {}) {
+  validateOwnerContext(request, account);
+  const header = request.headers?.['x-doctorai-profile'];
+  const query = request.query?.profileId;
+  if ((header !== undefined && typeof header !== 'string') || (query !== undefined && typeof query !== 'string') ||
+      (header !== undefined && query !== undefined && header !== query)) throw profileError(400, 'Profile selection is invalid.');
+  const id = header ?? query;
+  if (id === undefined || id === 'self') return null;
+  const profile = await readManagedProfile(account, id);
+  if (write && profile.archivedAt) throw profileError(409, 'Restore this profile before adding or editing records.');
+  if (write && !await activeEntitlement(request, account)) throw profileError(403, 'DoctorAI Pro is required to add or edit managed records. Existing records remain available to read, export or delete.');
+  return profile;
+}
+async function rejectUnsupportedManagedAction(request, response, account) {
+  try {
+    if (!await resolveProfileScope(request, account)) return false;
+    json(response, 409, { error: 'AI and external medication scanning are unavailable for managed profiles. Use manual records and local medication guidance.', code: 'managed_action_unavailable' });
+  } catch (error) { json(response, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  return true;
 }
 
 async function saveEntitlement(account, entitlement) {
@@ -481,16 +535,24 @@ function isAdmin(account) {
 
 function validHealthState(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const allowed = ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memoryEnabled', 'memoryDetails'];
+  const allowed = ['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memoryEnabled', 'memoryDetails'];
   if (Object.keys(value).some(key => !allowed.includes(key))) return false;
   const serialized = JSON.stringify(value);
   if (serialized.length > 240000) return false;
-  return ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
+  return ['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || (typeof value.profile === 'object' && !Array.isArray(value.profile)));
 }
 
 module.exports = {
   ADMIN_EMAILS,
   accountKey,
+  createManagedProfile,
+  listManagedProfiles,
+  readManagedProfile,
+  saveManagedProfile,
+  resolveProfileScope,
+  rejectUnsupportedManagedAction,
+  validProfileId,
+  validateOwnerContext,
   activeEntitlement,
   activateSession,
   clearEntitlementCookies,

@@ -9,6 +9,12 @@ const handlers = {
 };
 
 module.exports = async function medicationAction(request, response) {
+  if (request.headers?.['x-doctorai-profile'] !== undefined || request.query?.profileId !== undefined) {
+    const core = require('../../server-src/_lib/doctorai-core.cjs');
+    const account = await core.identityFromRequest(request);
+    if (!account) return core.json(response, 401, { error: 'Sign in to access a managed profile.' });
+    if (await core.rejectUnsupportedManagedAction(request, response, account)) return;
+  }
   const raw = request.query?.action;
   const fromPath = String(request.url || '').split('?')[0].split('/').filter(Boolean).pop();
   const action = Array.isArray(raw) ? (raw.length === 1 ? raw[0] : '') : String(raw || fromPath || '').split('/')[0];
