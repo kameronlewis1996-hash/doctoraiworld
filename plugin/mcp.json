@@ -3,7 +3,7 @@
   "mcpServers": {
     "doctoraiworld": {
       "type": "streamable-http",
-      "url": "https://www.doctoraiworld.com/api/mcp"
+      "url": "https://doctoraiworld-public-mcp.vercel.app/api/mcp"
     }
   }
 }
