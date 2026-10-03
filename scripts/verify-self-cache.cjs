@@ -37,7 +37,7 @@ assert.equal(cache.preserve(ownerB, { ownerId: ownerB, profileId: 'self', state:
 assert.equal(entries.get(`doctorai-health-hub-self-v2:${ownerB}:preserved`), corruptBackup, 'Invalid earlier backup is never overwritten.');
 
 function storageContext(owner = '') {
-  const c = vm.createContext({ localStorage: storage, window: { DoctorAISelfCache: api }, currentSelfOwner: owner, activePersonId: 'self', localStorageAllowed: true, deviceStorageChoice: 'yes', selfRecoveryActive: false, recoveryBaseRevision: null, recoveryBeforeState: null, cacheWritesBlocked: false, cacheLocalDirty: true, recoverySessionDrafts: new Map(), localStateUpdatedAt: 100, cloudRecordRevision: revision, serialiseHealthState: () => state('A'), storagePrefix: 'doctorai-health-hub-' });
+  const c = vm.createContext({ localStorage: storage, window: { DoctorAISelfCache: api }, currentSelfOwner: owner, activePersonId: 'self', localStorageAllowed: true, deviceStorageChoice: 'yes', selfRecoveryActive: false, recoveryBaseRevision: null, recoveryBeforeState: null, cacheWritesBlocked: false, cacheLocalDirty: true, recoverySessionDrafts: new Map(), preservedSelfSessionCopies: new Map(), localStateUpdatedAt: 100, cloudRecordRevision: revision, serialiseHealthState: () => state('A'), storagePrefix: 'doctorai-health-hub-' });
   vm.runInContext(between('  const selfCache = ', '  const clone = value =>'), c);
   vm.runInContext('globalThis.read = read; globalThis.write = write;', c);
   return c;
@@ -84,7 +84,7 @@ const deferred = () => { let resolve; const promise = new Promise(done => { reso
   assert.equal(load.displayed.profile.notes, 'B note');
 
   const preserved = []; let uploads = 0;
-  Object.assign(load, { currentSelfOwner: ownerB, cloudLoadEpoch: 0, selfCacheCandidate: { ownerId: ownerB, profileId: 'self', state: state('B unsynced'), revision, updatedAt: 9999999999999, dirty: true }, cacheLocalDirty: false, selfCache: { preserve(owner, record) { preserved.push(record); return true; } }, persistSelfCache() {}, queueCloudSave() { uploads++; }, fetch: async () => ({ ok: true, json: async () => ({ state: state('B server'), revision: 'S'.repeat(43), updatedAt: 100 }) }) });
+  Object.assign(load, { currentSelfOwner: ownerB, cloudLoadEpoch: 0, selfCacheCandidate: { ownerId: ownerB, profileId: 'self', state: state('B unsynced'), revision, updatedAt: 9999999999999, dirty: true }, cacheLocalDirty: false, preserveSelfCopy(owner, record) { preserved.push(record); return { preserved: true, durable: true, storageRequested: true }; }, window: { clearTimeout() {} }, cloudSyncTimer: null, persistSelfCache() {}, queueCloudSave() { uploads++; }, fetch: async () => ({ ok: true, json: async () => ({ state: state('B server'), revision: 'S'.repeat(43), updatedAt: 100 }) }) });
   await load.loadCloudState();
   assert.equal(uploads, 0, 'Timestamp-newer owned cache does not auto-upload at boot.');
   assert.equal(load.displayed.profile.notes, 'B server note');

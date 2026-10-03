@@ -62,8 +62,18 @@
       if (!copies.some(value => JSON.stringify(value) === JSON.stringify(entry))) copies.push(entry);
       try { storage.setItem(`${prefix}self-v2:${owner}:preserved`, JSON.stringify({ v: 2, ownerId: owner, copies })); return true; } catch { return false; }
     };
-    // No remove/migrate API: old bytes and other owners' envelopes stay intact.
-    return { read, write, legacy, preserved, preserve };
+    // Called only after explicit, owner-scoped health deletion succeeds.
+    // Never enumerate storage or touch another owner/unlinked legacy bytes.
+    const clearOwner = owner => {
+      if (!validOwner(owner)) return false;
+      let complete = true;
+      for (const kind of ['record', 'recovery', 'preserved']) {
+        const target = `${prefix}self-v2:${owner}:${kind}`;
+        try { storage.removeItem(target); if (storage.getItem(target) !== null) complete = false; } catch { complete = false; }
+      }
+      return complete;
+    };
+    return { read, write, legacy, preserved, preserve, clearOwner };
   }
   return { create, validOwner, validState };
 });

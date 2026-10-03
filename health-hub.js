@@ -20,6 +20,7 @@
   let cloudLoadEpoch = 0;
   let pendingCacheRecoveryReview = null;
   const recoverySessionDrafts = new Map();
+  const preservedSelfSessionCopies = new Map();
   let currentSelfOwner = '';
   const selfSessionStates = new Map();
   const personAlertAcks = new Set();
@@ -29,26 +30,50 @@
   let localStorageAllowed = false;
   try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; } catch {}
 
-  const selfCache = window.DoctorAISelfCache.create({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) });
+  const selfCache = window.DoctorAISelfCache.create({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value), removeItem: key => localStorage.removeItem(key) });
   const preferenceKeys = new Set(['profile-shortcuts', 'chat-response-length']);
   const read = (key, fallback) => {
     // Health starts blank until a server session confirms the opaque owner ID.
     if (!preferenceKeys.has(key) || deviceStorageChoice === 'session') return fallback;
     try { const value = localStorage.getItem(storagePrefix + key); return value ? JSON.parse(value) : fallback; } catch { return fallback; }
   };
+  const canPersistSelfHealth = () => localStorageAllowed && deviceStorageChoice === 'yes';
+  function preservedSelfCopies(owner) {
+    if (!window.DoctorAISelfCache.validOwner(owner)) return [];
+    const copies = selfCache.preserved(owner);
+    for (const value of preservedSelfSessionCopies.get(owner) || []) {
+      if (!copies.some(copy => JSON.stringify(copy) === JSON.stringify(value))) copies.push(JSON.parse(JSON.stringify(value)));
+    }
+    return copies;
+  }
+  function preserveSelfCopy(owner, record) {
+    const storageRequested = canPersistSelfHealth();
+    let memory = false; let durable = false;
+    try {
+      if (!window.DoctorAISelfCache.validOwner(owner) || record?.ownerId !== owner || record.profileId !== 'self' || !window.DoctorAISelfCache.validState(record.state) || !(record.revision === null || window.DoctorAISelfCache.validOwner(record.revision))) return { preserved: false, durable, storageRequested };
+      const entry = JSON.parse(JSON.stringify(record));
+      const copies = [...(preservedSelfSessionCopies.get(owner) || [])];
+      if (!copies.some(value => JSON.stringify(value) === JSON.stringify(entry))) copies.push(entry);
+      preservedSelfSessionCopies.set(owner, copies); memory = true;
+    } catch {}
+    if (storageRequested) { try { durable = selfCache.preserve(owner, record); } catch {} }
+    return { preserved: memory || durable, durable, storageRequested };
+  }
   function persistSelfCache() {
     if (activePersonId !== 'self' || !window.DoctorAISelfCache.validOwner(currentSelfOwner)) return false;
     if (selfRecoveryActive) recoverySessionDrafts.set(currentSelfOwner, { state: serialiseHealthState(), beforeState: recoveryBeforeState || {}, revision: recoveryBaseRevision, pendingRecovery: true });
-    if (!localStorageAllowed || cacheWritesBlocked) return false;
-    return selfCache.write(currentSelfOwner, serialiseHealthState(), selfRecoveryActive
+    if (!canPersistSelfHealth() || cacheWritesBlocked) return false;
+    const saved = selfCache.write(currentSelfOwner, serialiseHealthState(), selfRecoveryActive
       ? { kind: 'recovery', revision: recoveryBaseRevision, updatedAt: localStateUpdatedAt, beforeState: recoveryBeforeState || {}, pendingRecovery: true }
       : { revision: cloudRecordRevision, updatedAt: localStateUpdatedAt, dirty: cacheLocalDirty });
+    if (!saved) cacheWritesBlocked = true;
+    return saved;
   }
   const write = (key, value) => {
+    // Paused drafts also track session-only edits in memory.
+    if (key === 'updated-at') { persistSelfCache(); return; }
     if (!localStorageAllowed) return;
     if (preferenceKeys.has(key)) { try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {} return; }
-    // A complete health snapshot is stored once, after its edit timestamp.
-    if (key === 'updated-at') persistSelfCache();
   };
   const clone = value => JSON.parse(JSON.stringify(value));
   const emptyProfile = { name: '', bloodType: '', allergies: '', conditions: '', notes: '', medicationSafetyTerms: { allergies: [], conditions: [], symptoms: [], unmatched: [], reviewed: { allergies: false, conditions: false, symptoms: false } } };
@@ -700,18 +725,26 @@
         throw new Error(payload.error || 'Private data could not be loaded.');
       }
       const localBeforeLoad = activePersonId === 'self' && (cacheLocalDirty || cloudSyncRevision !== startingRevision) ? { v: 2, ownerId: currentSelfOwner, profileId: 'self', kind: 'record', state: serialiseHealthState(), revision: cloudRecordRevision, updatedAt: localStateUpdatedAt, dirty: true } : null;
-      cloudRecordRevision = payload.revision || null;
-      if (activePersonId === 'self') selfCloudReady = true;
       const cloudState = payload.state; const cloudUpdatedAt = Number(payload.updatedAt || 0);
       if (activePersonId === 'self' && (selfCacheCandidate || localBeforeLoad)) {
-        const candidate = localBeforeLoad || selfCacheCandidate; selfCacheCandidate = null;
+        const candidate = localBeforeLoad || selfCacheCandidate;
         if (candidate.dirty) {
-          cacheWritesBlocked = !selfCache.preserve(currentSelfOwner, candidate);
+          const saved = preserveSelfCopy(currentSelfOwner, candidate);
+          cacheWritesBlocked = saved.storageRequested && !saved.durable;
+          if (!saved.preserved) {
+            selfCacheCandidate = candidate; selfCloudReady = false;
+            renderAll(); setSyncStatus('Current edits kept · export before closing; preservation is unavailable'); return;
+          }
+          selfCacheCandidate = null; cloudRecordRevision = payload.revision || null; selfCloudReady = true;
+          window.clearTimeout(cloudSyncTimer); cloudSyncDirty = false;
           applyCloudState(cloudState || {}); cacheLocalDirty = false; localStateUpdatedAt = cloudUpdatedAt;
           if (!cacheWritesBlocked) persistSelfCache();
-          renderAll(); setSyncStatus('Device changes preserved · review or export in Privacy before saving'); return;
+          renderAll(); setSyncStatus(saved.durable ? 'Device changes preserved · review or export in Privacy before saving' : saved.storageRequested ? 'Device backup unavailable · unsaved changes kept in memory; export before closing' : 'Session changes kept in memory · review or export before closing'); return;
         }
+        selfCacheCandidate = null;
       }
+      cloudRecordRevision = payload.revision || null;
+      if (activePersonId === 'self') selfCloudReady = true;
       // Startup never uploads a cache on the basis of its timestamp. Local
       // unsynced copies are retained for deliberate named-account recovery.
       applyCloudState(cloudState || {}); cacheLocalDirty = false; localStateUpdatedAt = cloudUpdatedAt; persistSelfCache(); renderAll();
@@ -1990,6 +2023,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   function recoveryDraft() {
     if (!authUser || currentSelfOwner !== authUser.accountId) return null;
+    if (activePersonId === 'self' && selfRecoveryActive) return { state: serialiseHealthState(), beforeState: recoveryBeforeState || {}, revision: recoveryBaseRevision, pendingRecovery: true };
     return recoverySessionDrafts.get(currentSelfOwner) || selfCache.read(currentSelfOwner, 'recovery');
   }
   function recoverySource(source) {
@@ -1997,19 +2031,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (source === 'guest') return guestRecoveryState ? { state: guestRecoveryState, recoverable: true } : null;
     if (!authUser || currentSelfOwner !== authUser.accountId) return null;
     if (source === 'draft') { const value = recoveryDraft(); return value ? { ...value, recoverable: true } : null; }
-    if (/^device:[0-9]+$/.test(source)) { const value = selfCache.preserved(currentSelfOwner)[Number(source.split(':')[1])]; return value ? { ...value, recoverable: true } : null; }
+    if (/^device:[0-9]+$/.test(source)) { const value = preservedSelfCopies(currentSelfOwner)[Number(source.split(':')[1])]; return value ? { ...value, recoverable: true } : null; }
     return null;
   }
   function renderCacheRecovery() {
     const section = $('#self-cache-recovery'); if (!section) return;
-    const legacy = selfCache.legacy(); const copies = authUser ? selfCache.preserved(currentSelfOwner) : [];
+    const legacy = selfCache.legacy(); const copies = authUser ? preservedSelfCopies(currentSelfOwner) : [];
     const draft = recoveryDraft(); const hasDraft = draft?.pendingRecovery;
     section.hidden = !legacy.exists && !copies.length && !guestRecoveryState && !draft;
     const row = (label, source) => `<p>${escapeHTML(label)}</p><div class="modal-actions"><button class="secondary-button" type="button" data-export-cache="${source}">Export this device copy</button><button class="secondary-button" type="button" data-review-cache="${source}" ${authUser && activePersonId === 'self' ? '' : 'disabled'}>Review for Myself · ${escapeHTML(authUser?.name || 'sign in first')}</button></div>`;
-    section.innerHTML = '<h3>Recover older device data</h3><p>Older unowned entries are kept separate. They are never loaded or uploaded automatically, and account deletion does not remove this quarantine. Export them if unsure who they belong to. Recovery is for your own self profile; keep other people’s records separate.</p>'
+    section.innerHTML = '<h3>Recover older device data</h3><p>Session-only copies must be exported before closing. Device copies require your storage choice. Older unowned entries are kept separate. They are never loaded or uploaded automatically, and account deletion does not remove this quarantine. Export them if unsure who they belong to. Recovery is for your own self profile; keep other people’s records separate.</p>'
       + (legacy.exists ? row('Unlinked entries from an earlier version', 'legacy') : '')
       + (guestRecoveryState ? row('Unsigned-in entries from this session', 'guest') : '')
-      + copies.map((value, index) => row(`Preserved device copy ${index + 1} for this account`, `device:${index}`)).join('')
+      + copies.map((value, index) => row(`Preserved copy ${index + 1} for this account`, `device:${index}`)).join('')
       + (draft ? `<p>${hasDraft ? 'A recovery draft is preserved for this account. It does not sync automatically.' : 'A completed recovery and its prior account snapshot are kept for export.'}</p><div class="modal-actions"><button class="secondary-button" type="button" data-export-cache="draft">Export recovery and prior snapshot</button>${hasDraft && !selfRecoveryActive ? '<button class="secondary-button" type="button" data-review-cache="draft">Continue reviewed recovery</button>' : ''}</div>` : '')
       + (selfRecoveryActive && activePersonId === 'self' ? '<p><b>Recovery draft · sync and AI paused.</b> Manual edits stay in this draft.</p><div class="modal-actions"><button class="primary-button" type="button" data-save-reviewed-cache>Save reviewed recovery to this account</button><button class="secondary-button" type="button" data-return-account-records>Return to saved account records</button></div>' : '');
   }
@@ -2033,8 +2067,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!review || form.elements.confirmOwnRecords?.checked !== true || !authUser || review.ownerId !== currentSelfOwner || currentSelfOwner !== authUser.accountId || review.epoch !== personEpoch || activePersonId !== 'self' || !selfCloudReady || personOperations || personSwitchBusy || cloudSyncBusy) { showToast('Recovery was not applied. Review it again under the intended account.'); return; }
     const previousDraft = recoveryDraft();
     if (previousDraft) {
-      const saved = selfCache.preserve(currentSelfOwner, { ...previousDraft, ownerId: currentSelfOwner, profileId: 'self' });
-      if (localStorageAllowed && !saved) { showToast('Export the existing recovery first; this browser could not preserve it safely.'); return; }
+      const saved = preserveSelfCopy(currentSelfOwner, { ...previousDraft, ownerId: currentSelfOwner, profileId: 'self' });
+      if (!saved.preserved) { showToast('Existing recovery kept. Export it first; this session could not preserve it safely.'); return; }
+      if (saved.storageRequested && !saved.durable) cacheWritesBlocked = true;
     }
     const beforeState = review.value.beforeState || serialiseHealthState();
     const baseRevision = review.value.pendingRecovery ? review.value.revision : cloudRecordRevision;
@@ -2042,8 +2077,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     window.clearTimeout(cloudSyncTimer); cloudSyncDirty = false; cloudSaveFailed = false; cloudSyncRevision += 1;
     selfRecoveryActive = true; recoveryBeforeState = clone(beforeState); recoveryBaseRevision = baseRevision;
     applyCloudState({ ...clone(review.value.state), memoryEnabled: false }); cacheLocalDirty = true; localStateUpdatedAt = Date.now();
-    persistSelfCache(); renderAll(); setSyncStatus('Recovery draft · account sync and AI paused'); openPrivacy();
-    showToast('Reviewed device copy recovered as a paused draft. Nothing was uploaded.');
+    const durable = persistSelfCache(); renderAll();
+    setSyncStatus(durable ? 'Recovery draft · account sync and AI paused' : canPersistSelfHealth() ? 'Recovery draft · device backup unavailable; export before closing · sync and AI paused' : 'Session recovery draft · export before closing · sync and AI paused'); openPrivacy();
+    showToast(durable ? 'Reviewed copy recovered as a paused draft. Nothing was uploaded.' : 'Recovery stays only in this session. Export before closing. Nothing was uploaded.');
   }
   async function saveReviewedRecovery() {
     if (!selfRecoveryActive || !authUser || currentSelfOwner !== authUser.accountId || activePersonId !== 'self' || !selfCloudReady || personOperations || personSwitchBusy || cloudSyncBusy) return;
@@ -2055,7 +2091,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (revision !== cloudSyncRevision || cloudSyncDirty) { persistSelfCache(); showToast('Some edits changed while saving. Review and explicitly save the remaining draft again.'); return; }
     const complete = { state: serialiseHealthState(), beforeState: recoveryBeforeState || {}, revision: cloudRecordRevision, pendingRecovery: false };
     recoverySessionDrafts.set(currentSelfOwner, complete);
-    if (localStorageAllowed) selfCache.write(currentSelfOwner, complete.state, { ...complete, kind: 'recovery', updatedAt: localStateUpdatedAt });
+    if (canPersistSelfHealth() && !cacheWritesBlocked) selfCache.write(currentSelfOwner, complete.state, { ...complete, kind: 'recovery', updatedAt: localStateUpdatedAt });
     selfRecoveryActive = false; cacheLocalDirty = false; recoveryBeforeState = null; recoveryBaseRevision = null;
     persistSelfCache(); renderAll(); renderCacheRecovery(); setSyncStatus('Reviewed recovery saved to this account');
   }
@@ -4122,9 +4158,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function deleteHealthData() {
     if (activePersonId === 'self' && selfRecoveryActive) { showToast('Return to saved account records or finish this reviewed recovery before changing private documents or deleting account data.'); return; }
+    if (activePersonId === 'self' && authUser && (authUser.accountId !== currentSelfOwner || !window.DoctorAISelfCache.validOwner(currentSelfOwner))) { showToast('Verify the intended signed-in account before deleting self records.'); return; }
     if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
-    if (!window.confirm(`Delete health records for ${personName()}, including medications, symptoms, appointments, measurements, notes and documents? This cannot be undone. Other profiles are kept.`)) return;
+    const personContext = capturePersonContext();
+    const deletionOwner = activePersonId === 'self' && authUser?.accountId === currentSelfOwner && window.DoctorAISelfCache.validOwner(currentSelfOwner) ? currentSelfOwner : '';
+    const scopeNotice = deletionOwner ? ' This also removes this account’s self browser cache, preserved copies and recovery drafts in this browser, even if device storage is now off. Other accounts and unlinked legacy/session copies are kept.' : ' Other profiles, accounts and unlinked legacy copies are kept.';
+    if (!window.confirm(`Delete health records for ${personName()}, including medications, symptoms, appointments, measurements, notes and documents? This cannot be undone.${scopeNotice}`)) return;
     deleteHealthData.busy = true;
     window.clearTimeout(cloudSyncTimer);
     const syncWasEnabled = cloudSyncEnabled;
@@ -4156,19 +4196,33 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       } catch { cloudDeletionFailed = true; }
     }
     deleteHealthData.busy = false;
+    if (!personContextIsCurrent(personContext)) return;
     if (cloudDeletionFailed) {
       setSyncStatus('Deletion incomplete — retry in Privacy controls');
       showToast('Deletion could not finish. Some cloud files may already be removed. Your local record is kept; retry from Privacy controls when connected. Sync is paused until you reload.');
       return;
     }
+    let deviceCleanupComplete = true;
+    if (deletionOwner) {
+      deviceCleanupComplete = selfCache.clearOwner(deletionOwner);
+      selfSessionStates.delete(deletionOwner); preservedSelfSessionCopies.delete(deletionOwner); recoverySessionDrafts.delete(deletionOwner);
+      selfCacheCandidate = null; selfStateSnapshot = null; pendingCacheRecoveryReview = null;
+      selfRecoveryActive = false; recoveryBeforeState = null; recoveryBaseRevision = null;
+      cacheLocalDirty = false; cacheWritesBlocked = !deviceCleanupComplete;
+    }
+    cloudLoadEpoch += 1; personEpoch += 1;
     state.medications = []; state.appointments = []; state.providers = []; state.timeline = []; state.documents = []; state.measurements = []; state.tasks = []; state.profile = clone(emptyProfile); state.memoryEnabled = false; state.memoryDetails = [];
-    write('medications', []); write('appointments', []); write('providers', []); write('timeline', []); write('documents', []); write('measurements', []); write('tasks', []); write('profile', state.profile); write('memory-enabled', false); write('memory-details', []); write('updated-at', Date.now());
+    localStateUpdatedAt = 0; cloudRecordRevision = null;
+    closeModal(); closeMedicationScanner(); careSummaryDraft = null;
     clearChat({ confirm: false, notify: false });
-    cloudSyncEnabled = syncWasEnabled;
-    cloudRecordRevision = null;
-    renderAll(); closePrivacy();
-    setSyncStatus('Health data deleted');
-    showToast(authUser && selfCache.legacy().exists ? 'Selected account records deleted. Older unowned device entries are preserved separately in Privacy recovery.' : authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
+    cloudSyncEnabled = deviceCleanupComplete && syncWasEnabled;
+    renderAll(); renderCacheRecovery();
+    if (!deviceCleanupComplete) {
+      setSyncStatus('Account records deleted · device cleanup incomplete; retry in Privacy');
+      showToast('Account health records were deleted, but this browser could not remove every account cache or recovery copy. Deletion is incomplete; enable browser storage access and retry Privacy deletion. Unlinked legacy and other accounts are kept.'); return;
+    }
+    closePrivacy(); setSyncStatus('Selected health data deleted');
+    showToast(deletionOwner ? 'Self account records, this browser’s account caches and recovery drafts deleted. Unlinked legacy/session copies and other accounts are kept.' : authUser ? 'Selected person’s health records deleted. Other profiles, account caches and unlinked copies are kept.' : 'Current health entries deleted from this session. Account records and unlinked legacy copies are kept.');
   }
 
   function handleModalSubmit(event) {
