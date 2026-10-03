@@ -89,6 +89,7 @@ async function consumeSSE(body, onEvent) {
 }
 
 module.exports = async function chat(req, res) {
+  if (require('../server-src/_lib/preview-provider-guard.cjs').blockPreview(res, 'ai')) return;
   if (req.method !== 'POST') return core.json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account) return core.json(res, 401, { error: 'Please sign in with Google before using DoctorAI chat.' });

@@ -56,6 +56,7 @@ function validDate(value) {
 }
 
 module.exports = async function handler(request, response) {
+  if (require('../../../server-src/_lib/preview-provider-guard.cjs').blockPreview(response, 'ai')) return;
   if (request.method !== 'POST') return json(response, 405, { error: 'Method not allowed.' });
   const contentLength = Number(request.headers?.['content-length'] || 0);
   if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) return json(response, 413, { error: 'That image is too large to scan. Try a closer photo or choose a smaller image.' });

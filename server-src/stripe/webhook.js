@@ -35,6 +35,7 @@ async function recordEntitlementEvent(event, stripe) {
 }
 
 async function stripeWebhook(req, res) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(res, 'payments')) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(503).json({ error: 'Stripe webhook is not configured yet.' });

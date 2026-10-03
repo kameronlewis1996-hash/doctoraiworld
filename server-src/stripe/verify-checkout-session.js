@@ -4,6 +4,7 @@ const core = require('../_lib/doctorai-core.cjs');
 const json = core.json;
 
 module.exports = async function verifyCheckoutSession(req, res) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(res, 'payments')) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account?.email) return json(res, 401, { error: 'Please sign in with Google to confirm your Pro subscription.' });

@@ -6,6 +6,7 @@ const appUrl = () => String(process.env.NEXT_PUBLIC_APP_URL || 'https://www.doct
 const json = core.json;
 
 module.exports = async function createPortalSession(req, res) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(res, 'payments')) return;
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account?.email) return json(res, 401, { error: 'Please sign in with Google before managing Pro billing.' });

@@ -63,7 +63,7 @@ async function run() {
   const logged = [];
   core.reportError = (name, details) => logged.push({ name, details });
   process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
-  process.env.VERCEL_ENV = 'preview';
+  process.env.VERCEL_ENV = 'development';
   process.env.STRIPE_PRO_MONTHLY_PRICE_ID = 'price_monthly_test';
   process.env.STRIPE_PRO_ANNUAL_PRICE_ID = 'price_annual_test';
   const handler = plansHandler.createHandler(FakeStripe);
@@ -113,6 +113,7 @@ async function run() {
   assert.equal(noKey.statusCode, 503);
 
   process.env.STRIPE_SECRET_KEY = 'sk_live_fake';
+  process.env.VERCEL_ENV = 'preview';
   const unsafePreview = responseRecorder();
   await handler({ method: 'GET' }, unsafePreview);
   assert.equal(unsafePreview.statusCode, 503, 'Preview must not enable live billing credentials.');

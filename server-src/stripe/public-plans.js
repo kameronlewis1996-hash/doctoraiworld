@@ -6,6 +6,7 @@ const { plans, keyMode, environmentModeMatches, isValidPlanPrice } = require('./
 
 function createHandler(StripeClient = Stripe) {
   return async function publicPlans(request, response) {
+  if (require('../_lib/preview-provider-guard.cjs').blockPreview(response, 'payments')) return;
     if (request.method !== 'GET') {
       response.setHeader('Allow', 'GET');
       return core.json(response, 405, { error: 'Method not allowed.' });

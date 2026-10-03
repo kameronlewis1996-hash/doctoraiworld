@@ -91,6 +91,7 @@ async function mapLimit(items, limit, callback) {
 }
 
 module.exports = async function handler(request, response) {
+  if (require('../../../server-src/_lib/preview-provider-guard.cjs').blockPreview(response, 'medication')) return;
   if (request.method !== 'POST') return drugBank.json(response, 405, { error: 'Method not allowed.' });
   const account = await drugBank.authorize(request, response, 'medication-db-check', 6);
   if (!account) return;
