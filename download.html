@@ -24,6 +24,7 @@
   <script defer src="/site-shell.js?v=3"></script>
   <link rel="stylesheet" href="/accessibility.css?v=6">
   <link rel="stylesheet" href="/release-design.css?v=2">
+  <link rel="stylesheet" href="/resource-share.css?v=1">
 </head>
 <body class="doctorai-public-page">
   <main class="shell">
@@ -34,10 +35,13 @@
     <div class="app-actions">
       <button class="install" type="button" data-install-app>Install web app</button>
       <a class="hub-link" href="/health-hub">Open the free Health Hub</a>
+      <button class="resource-share-button" type="button" data-share-resource data-share-title="Open the free DoctorAI Health Hub" data-share-text="Open the free DoctorAI Health Hub in your browser.">Share this free Health Hub</button>
+      <p class="resource-share-status" data-share-status role="status" aria-live="polite">Sharing offers only this public page link and a fixed description.</p>
+      <input class="resource-share-link" data-share-link type="text" aria-label="Public download page link to share" readonly hidden>
     </div>
     <div class="stores"><div class="badge"><span class="badge-logo" aria-hidden="true"></span><span><b>App Store</b><small>COMING SOON</small></span></div><div class="badge"><span class="badge-logo" aria-hidden="true">▶</span><span><b>Google Play</b><small>COMING SOON</small></span></div></div>
     <p class="note">This permanent page will point to the latest approved release. Website and web-app updates arrive automatically; native app changes require a new store release.</p>
     <a class="back" href="/health-hub">← Back to DoctorAI</a>
-  </main><script src="/pwa.js?v=15"></script>
+  </main><script src="/resource-share.js?v=1"></script><script src="/pwa.js?v=15"></script>
 </body>
 </html>
