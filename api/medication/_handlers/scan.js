@@ -62,6 +62,11 @@ module.exports = async function handler(request, response) {
   const account = await core.identityFromRequest(request);
   if (!account) return json(response, 401, { error: 'Sign in before scanning a medicine label.' });
   if (!core.storageConfigured()) return json(response, 503, { error: 'Secure account access is temporarily unavailable. Please try again shortly.' });
+  let profile;
+  try { profile = await core.resolveProfileScope(request, account, { write: true }); }
+  catch (error) { return json(response, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  if (profile && profile.authorityBasis !== 'adult_permission_or_authority') return json(response, 409, { code: 'managed_child_ai_unavailable', error: 'AI label scanning is unavailable for child or unreviewed profiles pending child-focused privacy/provider assessment and approved action notices. Enter medicines manually.' });
+  response.setHeader('X-DoctorAI-Profile', profile?.id || 'self');
   const access = await core.activeEntitlement(request, account);
   if (!access) return json(response, 403, { error: 'Medication image scanning is a DoctorAI Pro feature.' });
 
@@ -75,7 +80,9 @@ module.exports = async function handler(request, response) {
   } catch {
     return json(response, 400, { error: 'Invalid image scan request.' });
   }
+  if (!body || Array.isArray(body) || typeof body !== 'object') return json(response, 400, { error: 'Invalid image scan request.' });
   if (body.consent !== true) return json(response, 400, { error: 'Confirm that you want to send this medicine-label image to OpenAI for text extraction.' });
+  if (profile && body.managedActionConsent !== true) return json(response, 400, { error: 'Review the selected person’s photo disclosure and confirm authority and consent for this individual scan.' });
   const image = String(body.image || '');
   if (!decodedImage(image)) return json(response, 400, { error: 'Use a clear JPG, PNG or WEBP image small enough to send securely.' });
 
@@ -148,7 +155,7 @@ module.exports = async function handler(request, response) {
       repeats: field('repeats', 30)
     };
     const needsReview = ['name', 'dose'].filter(key => !scanned[key]);
-    return json(response, 200, { medication: scanned, review: { required: true, missing: needsReview, message: needsReview.length ? 'Some required label details were not clear enough to fill. Please enter and review them manually.' : 'Review every extracted field against the medicine box or prescription before saving.' } });
+    return json(response, 200, { profileId: profile?.id || 'self', medication: scanned, review: { required: true, missing: needsReview, message: needsReview.length ? 'Some required label details were not clear enough to fill. Please enter and review them manually.' : 'Review every extracted field against the medicine box or prescription before saving.' } });
   } catch (error) {
     const timeout = error?.name === 'TimeoutError' || error?.name === 'AbortError';
     core.reportError(timeout ? 'medication_scan_timeout' : 'medication_scan_failed', { route: '/api/medication/scan', provider: 'openai', name: error?.name, operation: timeout ? 'timeout' : 'parse_or_transport' });

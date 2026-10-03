@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $required = @(
-  'index.html', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
+  'index.html', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'self-cache.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
   'medication-list-template.html', 'medication-list-template.css', 'medication-list-template.js',
   'subscription.html', 'subscription.css', 'subscription.js',
   'terms.html', 'staff.html', 'staff-grants.js',
@@ -10,7 +10,7 @@ $required = @(
   'google-g-logo.svg', 'vercel.json',
   '.env.example', 'scripts/csp-hashes.js', 'scripts/check-js.js', 'scripts/verify-server-core.js', 'scripts/verify-medication-safety.js', 'scripts/verify-medication-scan.js', 'scripts/verify-nzf-fhir.js',
   'api/chat.js', 'api/auth/config.js', 'api/auth/google.js', 'api/auth/mobile.js', 'scripts/verify-stripe-pricing.js',
-  'api/health/state.js', 'api/documents.js', 'api/medication/[...action].js',
+  'api/health/[...action].js', 'server-src/health/state.js', 'server-src/health/profiles.js', 'api/documents.js', 'api/medication/[...action].js',
   'api/medication/_handlers/ingredient-search.js', 'api/medication/_handlers/nzf-interactions.js',
   'api/medication/_handlers/nzf-product-search.js', 'api/medication/_handlers/safety-check.js',
   'api/medication/_handlers/scan.js', 'api/medication/_lib/nzf-fhir.cjs', 'api/medication/_lib/drugbank.cjs', 'api/research.js',
@@ -24,7 +24,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 foreach ($relative in $required) {
   $path = Join-Path $root $relative
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $failures.Add("Missing required file: $relative"); continue }
-  if ((Get-Item -LiteralPath $path).Length -le 0) { $failures.Add("Empty required file: $relative") }
+  if ((Get-Item -Force -LiteralPath $path).Length -le 0) { $failures.Add("Empty required file: $relative") }
 }
 
 $hubScriptPath = Join-Path $root 'health-hub.js'
@@ -33,10 +33,10 @@ $hubHtmlPath = Join-Path $root 'health-hub.html'
 $hubScriptText = Get-Content -Raw -LiteralPath $hubScriptPath
 $hubStyleText = Get-Content -Raw -LiteralPath $hubStylePath
 $hubHtmlText = Get-Content -Raw -LiteralPath $hubHtmlPath
-if ((Get-Item -LiteralPath $hubScriptPath).Length -eq 65536 -or $hubScriptText -notmatch '\}\)\(\);\s*$') { $failures.Add('health-hub.js is truncated or missing its executable ending') }
-if ((Get-Item -LiteralPath $hubStylePath).Length -lt 120000 -or $hubStyleText -notmatch '#view-today \.prescription-alert-home' -or $hubStyleText -notmatch '\.mobile-bottom-nav') { $failures.Add('health-hub.css is incomplete or missing the verified home/mobile layout') }
+if ((Get-Item -Force -LiteralPath $hubScriptPath).Length -eq 65536 -or $hubScriptText -notmatch '\}\)\(\);\s*$') { $failures.Add('health-hub.js is truncated or missing its executable ending') }
+if ((Get-Item -Force -LiteralPath $hubStylePath).Length -lt 120000 -or $hubStyleText -notmatch '#view-today \.prescription-alert-home' -or $hubStyleText -notmatch '\.mobile-bottom-nav') { $failures.Add('health-hub.css is incomplete or missing the verified home/mobile layout') }
 if ($hubHtmlText -notmatch 'data-view-panel="symptoms"' -or $hubHtmlText -notmatch 'data-modal="symptom"') { $failures.Add('The Symptom Diary view or add action is missing') }
-if ($hubHtmlText -notmatch 'health-hub\.js\?v=62' -or $hubScriptText -notmatch 'data-scan-attempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'Confirm the exact product and ingredient matches') { $failures.Add('Saving a scanned medication must lead people to the saved-list safety panel without running a check automatically') }
+if ($hubHtmlText -notmatch 'health-hub\.js\?v=67' -or $hubScriptText -notmatch 'data-scan-attempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'Confirm the exact product and ingredient matches') { $failures.Add('Saving a scanned medication must lead people to the saved-list safety panel without running a check automatically') }
 if ($hubHtmlText -notmatch 'health-hub\.css\?v=67' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
 if ($hubScriptText -notmatch "source:\s*'symptom-diary'" -or $hubScriptText -notmatch 'data-modal-form="symptom"' -or $hubScriptText -match 'state\.symptoms') { $failures.Add('Symptom Diary must use the canonical timeline store with working form handling') }
 if ($hubScriptText -notmatch 'Intensity \(optional\)' -or $hubScriptText -notmatch 'Not recorded / not sure' -or $hubScriptText -notmatch 'Date \*' -or $hubScriptText -notmatch 'date > localToday') { $failures.Add('Symptom Diary must offer an honest optional intensity value, require a date, and reject future dates') }
@@ -64,7 +64,7 @@ $drugBankText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_
 if ($drugBankText -notmatch 'DRUGBANK_NZ_INGREDIENT_SCOPE_APPROVED' -or $drugBankText -notmatch 'DRUGBANK_SAFETY_CRITICAL_USE_APPROVED') { $failures.Add('DrugBank checks must remain disabled without explicit consumer-use and NZ ingredient-scope approvals') }
 $medicationScanApiText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_handlers/scan.js')
 if ($medicationScanApiText -notmatch 'body\.consent\s*!==\s*true' -or $medicationScanApiText -notmatch 'store:\s*false' -or $medicationScanApiText -notmatch "type:\s*'json_schema'" -or $medicationScanApiText -notmatch 'AbortSignal\.timeout' -or $medicationScanApiText -notmatch 'MAX_IMAGE_DATA_URL') { $failures.Add('Medication scan API is missing explicit image consent or structured, no-store, bounded processing') }
-if ($workerText -notmatch "doctorai-shell-v106" -or $workerText -notmatch "welcome\.css\?v=2" -or $workerText -notmatch "health-hub\.css\?v=67" -or $workerText -notmatch "health-hub\.js\?v=62" -or $workerText -notmatch "subscription\.css\?v=7" -or $workerText -notmatch "subscription\.js\?v=11" -or $workerText -notmatch "accessibility\.css\?v=9" -or $workerText -notmatch "care-design\.css\?v=7" -or $workerText -notmatch "site-shell\.css\?v=2" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
+if ($workerText -notmatch "doctorai-shell-v109" -or $workerText -notmatch "welcome\.css\?v=2" -or $workerText -notmatch "health-hub\.css\?v=67" -or $workerText -notmatch "health-hub\.js\?v=67" -or $workerText -notmatch "self-cache\.js\?v=2" -or $workerText -notmatch "subscription\.css\?v=7" -or $workerText -notmatch "subscription\.js\?v=11" -or $workerText -notmatch "accessibility\.css\?v=9" -or $workerText -notmatch "care-design\.css\?v=7" -or $workerText -notmatch "site-shell\.css\?v=2" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
 
 $subscriptionScriptText = Get-Content -Raw -LiteralPath (Join-Path $root 'subscription.js')
 $stripeDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/stripe/[...action].js')
