@@ -20,7 +20,21 @@ const json = (response, status, payload) => {
   noStore(response);
   return response.status(status).json(payload);
 };
-const secret = () => String(process.env.AUTH_SECRET || '');
+const isPreview = () => process.env.VERCEL_ENV === 'preview';
+// Preview must never silently inherit production account/session/storage keys.
+// These values must be explicitly configured for a separate test environment.
+const previewValue = key => {
+  const value = String(process.env[`PREVIEW_${key}`] || '').trim();
+  const inherited = String(process.env[key] || '').trim();
+  if (key === 'KV_REST_API_URL') {
+    try {
+      const target = new URL(value);
+      if (target.protocol !== 'https:' || (inherited && target.origin === new URL(inherited).origin)) return '';
+    } catch { return ''; }
+  }
+  return value && value !== inherited ? value : '';
+};
+const secret = () => isPreview() ? previewValue('AUTH_SECRET') : String(process.env.AUTH_SECRET || '');
 const configured = () => Boolean(secret());
 const hash = value => crypto.createHash('sha256').update(String(value)).digest('base64url');
 const safeLogValue = value => String(value || '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
@@ -213,15 +227,18 @@ function clearEntitlementCookies(response) {
   response.setHeader('Set-Cookie', ENTITLEMENT_COOKIES.map(name => `${name}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`));
 }
 
-const storageConfigured = () => Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && configured());
-const redisUrl = () => String(process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const redisUrl = () => String(isPreview() ? previewValue('KV_REST_API_URL') : process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const redisToken = () => isPreview() ? previewValue('KV_REST_API_TOKEN') : String(process.env.KV_REST_API_TOKEN || '');
+const storageConfigured = () => Boolean(redisUrl() && redisToken() && configured());
+const documentStorageToken = () => isPreview() ? previewValue('BLOB_READ_WRITE_TOKEN') : String(process.env.BLOB_READ_WRITE_TOKEN || '');
+const documentStorageConfigured = () => storageConfigured() && Boolean(documentStorageToken());
 
 async function redis(path, options = {}) {
   if (!storageConfigured()) return { configured: false, result: null };
   const response = await fetch(`${redisUrl()}/${path}`, {
     ...options,
     headers: {
-      authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      authorization: `Bearer ${redisToken()}`,
       ...(options.headers || {})
     },
     signal: options.signal || AbortSignal.timeout(7000)
@@ -395,7 +412,7 @@ async function resolveProfileScope(request, account, { write = false } = {}) {
 async function rejectUnsupportedManagedAction(request, response, account) {
   try {
     if (!await resolveProfileScope(request, account)) return false;
-    json(response, 409, { error: 'AI and external medication scanning are unavailable for managed profiles. Use manual records and local medication guidance.', code: 'managed_action_unavailable' });
+    json(response, 409, { error: 'External medication checks and catalogue searches are unavailable for managed profiles. Use local medication guidance.', code: 'managed_action_unavailable' });
   } catch (error) { json(response, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
   return true;
 }
@@ -562,6 +579,8 @@ module.exports = {
   createSession,
   deleteDocumentMetadata,
   deleteHealthState,
+  documentStorageConfigured,
+  documentStorageToken,
   entitlementFromCookies,
   hdel,
   hget,

@@ -17,7 +17,7 @@ const allowedTypes = new Set([
 ]);
 const safeCategory = value => ['prescription', 'result', 'referral', 'discharge', 'specialist', 'certificate', 'imaging', 'letter', 'other'].includes(value) ? value : 'other';
 const safeName = value => String(value || 'health-document').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 140) || 'health-document';
-const storageReady = () => core.storageConfigured() && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const storageReady = () => core.documentStorageConfigured();
 const noCache = response => core.noStore(response);
 
 async function requireIdentity(request, response) {
@@ -85,7 +85,7 @@ module.exports = async function handler(request, response) {
       }
       const document = await core.readDocumentMetadata(account, id, profileId);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      const stored = await get(document.blobPath, { access: 'private', useCache: false });
+      const stored = await get(document.blobPath, { access: 'private', useCache: false, token: core.documentStorageToken() });
       if (!stored?.stream) return response.status(404).json({ error: 'This private document could not be found.' });
       const encrypted = Buffer.from(await new Response(stored.stream).arrayBuffer());
       const bytes = core.unsealBuffer(encrypted);
@@ -121,6 +121,7 @@ module.exports = async function handler(request, response) {
         blobPath: `doctorai-private/${core.accountKey(account)}/${profileId ? `${profileId}/` : ''}${id}.enc`
       };
       await put(document.blobPath, core.sealBuffer(bytes), {
+        token: core.documentStorageToken(),
         access: 'private',
         addRandomSuffix: false,
         contentType: 'application/octet-stream'
@@ -128,7 +129,7 @@ module.exports = async function handler(request, response) {
       try {
         await core.saveDocumentMetadata(account, document, profileId);
       } catch (error) {
-        await del(document.blobPath).catch(() => {});
+        await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
@@ -139,7 +140,16 @@ module.exports = async function handler(request, response) {
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
       const document = await core.readDocumentMetadata(account, id, profileId);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath).catch(() => {});
+      await del(document.blobPath, { token: core.documentStorageToken() });
+      // Deletion is owner-authorized even after downgrade/archive. Only remove
+      // this document's references; do not expose a general health-state write.
+      const record = await core.readHealthState(account, profileId);
+      if (record?.state) {
+        const state = record.state;
+        state.documents = (state.documents || []).filter(item => item.id !== id);
+        state.timeline = (state.timeline || []).filter(item => !(item.source === 'document' && (item.documentId === id || (!item.documentId && item.description === document.name))));
+        await core.saveHealthState(account, state, profileId);
+      }
       await core.deleteDocumentMetadata(account, id, profileId);
       return response.status(200).json({ ok: true, id });
     }

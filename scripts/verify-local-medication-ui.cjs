@@ -16,7 +16,7 @@ const panel = {querySelector:s=>s.includes('consent')?consent:output};
 const button = {closest:()=>panel,disabled:false};
 const state = {medications:[{name:'Marevan',dose:'private dose',notes:'private note'},{name:'Nurofen'}],profile:{allergies:'penicillin',conditions:'kidney disease',symptoms:'private symptom'}};
 let sent;let signIns=0;let pro=true;
-const context = vm.createContext({document:{createElement:tag=>new Element(tag),createTextNode:t=>({textContent:t})},state,authUser:{id:'synthetic-test-user'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns+=1;},splitDetails:s=>s.split(';').filter(Boolean),fetch:async(url,options)=>{
+const context = vm.createContext({capturePersonContext:()=>({}),personContextIsCurrent:()=>true,document:{createElement:tag=>new Element(tag),createTextNode:t=>({textContent:t})},state,authUser:{id:'synthetic-test-user'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns+=1;},splitDetails:s=>s.split(';').filter(Boolean),fetch:async(url,options)=>{
   assert.equal(url,'/api/medication/safety');assert.equal(options.credentials,'same-origin');
   sent=JSON.parse(options.body);
   const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};

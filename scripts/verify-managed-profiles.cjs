@@ -52,8 +52,9 @@ async function call(handler, account, method, body, profileId, query = {}) {
     assert.equal((await call(documents, owner, 'GET', null, id, { id: docId })).body.toString(), 'synthetic');
   }
   const selfDocs = (await call(documents, owner, 'GET')).body.documents;
-  assert.equal((await call(chat, owner, 'POST', { messages: [] }, cedar)).statusCode, 409);
-  assert.equal((await call(medication, owner, 'POST', {}, cedar, { action: 'scan' })).statusCode, 409);
+  assert.equal((await call(chat, other, 'POST', { messages: [] }, cedar)).statusCode, 404);
+  assert.equal((await call(medication, other, 'POST', {}, cedar, { action: 'scan' })).statusCode, 404);
+  assert.equal((await call(medication, owner, 'POST', {}, cedar, { action: 'safety-check' })).statusCode, 409, 'External checks remain unavailable for managed profiles.');
   assert.equal((await call(safety, other, 'POST', { medications: ['synthetic'] }, cedar)).statusCode, 404);
   assert.equal((await call(safety, owner, 'POST', { medications: ['synthetic'] }, cedar)).statusCode, 200);
   assert.equal((await call(profiles, owner, 'PATCH', { id: cedar, name: 'Cedar Updated', relationship: '' })).statusCode, 200);
@@ -77,7 +78,19 @@ async function call(handler, account, method, body, profileId, query = {}) {
   assert.equal((await call(profiles, owner, 'PATCH', { id: cedar, archived: true })).statusCode, 200);
   assert.equal((await call(profiles, owner, 'PATCH', { id: cedar, archived: false })).statusCode, 403);
   const cedarDoc = (await call(documents, owner, 'GET', null, cedar)).body.documents[0];
+  // Archived + Free deletion is deliberately allowed, but general writes stay
+  // gated. Seed references as the existing Pro upload flow would have saved.
+  const deletionState = syntheticState('Cedar');
+  deletionState.documents = [{ id: cedarDoc.id, title: cedarDoc.name }, { id: 'keep-document', title: 'Keep' }];
+  deletionState.timeline.push({ source: 'document', documentId: cedarDoc.id, description: cedarDoc.name }, { source: 'document', description: cedarDoc.name }, { source: 'document', documentId: 'keep-document', description: 'Keep' });
+  await core.saveHealthState(owner, deletionState, cedar);
   assert.equal((await call(documents, owner, 'DELETE', null, cedar, { id: cedarDoc.id })).statusCode, 200);
+  const reloaded = (await call(health, owner, 'GET', null, cedar)).body.state;
+  assert.deepEqual(reloaded.documents, [{ id: 'keep-document', title: 'Keep' }], 'Deleted document must stay absent after scoped reload.');
+  assert.deepEqual(reloaded.timeline, [deletionState.timeline[0], { source: 'document', documentId: 'keep-document', description: 'Keep' }], 'Remove identified and legacy upload references, preserving unrelated timeline.');
+  assert.equal((await call(documents, owner, 'GET', null, cedar)).body.documents.length, 0);
+  assert.deepEqual(reloaded.profile, deletionState.profile, 'Deletion cannot rewrite arbitrary health fields.');
+  assert.equal((await call(health, owner, 'PUT', { state: syntheticState('Blocked') }, cedar)).statusCode, 409);
   assert.equal((await call(health, owner, 'DELETE', null, cedar)).statusCode, 200);
   assert.deepEqual((await call(health, owner, 'GET', null, river)).body.state, syntheticState('River'));
   assert.deepEqual((await call(health, owner, 'GET')).body.state, syntheticState('Self'));
@@ -85,5 +98,5 @@ async function call(handler, account, method, body, profileId, query = {}) {
   await core.revokeSession(owner);
   assert.equal((await call(health, owner, 'GET', null, river)).statusCode, 401);
   assert.ok([...store.hashes.values()].flatMap(hash => [...hash.values()]).every(value => !JSON.stringify(value).includes('Cedar allergy')), 'Persisted data must be encrypted.');
-  console.log('Managed profile verification passed: real session signing/encryption with mocked storage; ownership, two-person/self isolation, documents, atomic retries, archive/restore, Free/expired/revoked gates, no paid calls.');
+  console.log('Managed profile verification passed: real session signing/encryption with mocked storage; ownership, two-person/self isolation, documents, durable read-only deletion cleanup, atomic retries, archive/restore, Free/expired/revoked gates, no paid calls.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

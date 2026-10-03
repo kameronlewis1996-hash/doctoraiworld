@@ -9,10 +9,23 @@ const core = require('../server-src/_lib/doctorai-core.cjs');
 const root = path.resolve(__dirname, '..');
 const owner = core.createSession({ sub: 'demo-owner', email: 'demo-owner@example.invalid', name: 'Demo Owner' });
 const other = core.createSession({ sub: 'demo-other', email: 'demo-other@example.invalid', name: 'Other Demo' });
-const routes = { '/api/health/state': require('../server-src/health/state.js'), '/api/health/profiles': require('../server-src/health/profiles.js'), '/api/documents': require('../api/documents.js'), '/api/medication/safety': require('../api/medication/safety.js') };
+const routes = { '/api/health/state': require('../server-src/health/state.js'), '/api/health/profiles': require('../server-src/health/profiles.js'), '/api/documents': require('../api/documents.js'), '/api/medication/safety': require('../api/medication/safety.js'), '/api/chat': require('../api/chat.js'), '/api/medication/scan': require('../api/medication/[...action].js') };
 const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 let delayMs = 0;
+let getDelayMs = 0;
+let providerDelayMs = 0;
 let failSave = false;
+// Use real handlers with synthetic provider output. All other outbound calls
+// still go through the in-memory store's strict origin guard.
+const syntheticStorageFetch = global.fetch;
+process.env.OPENAI_API_KEY = 'synthetic-mocked-key-only';
+global.fetch = async (url, options) => {
+  if (String(url) !== 'https://api.openai.com/v1/responses') return syntheticStorageFetch(url, options);
+  if (providerDelayMs) await new Promise(resolve => setTimeout(resolve, providerDelayMs));
+  const request = JSON.parse(options.body);
+  const answer = request.text ? JSON.stringify({ name: 'Synthetic label medicine', dose: '10 mg', frequency: 'Once daily', instructions: 'Synthetic label directions' }) : 'Synthetic educational response. This preview made no AI call.';
+  return new Response(JSON.stringify({ status: 'completed', output: [{ content: [{ type: 'output_text', text: answer }] }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+};
 (async () => {
   await core.activateSession(owner); await core.activateSession(other);
   await core.saveEntitlement(owner, { tier: 'pro', exp: core.nowSeconds() + 3600, source: 'synthetic' });
@@ -25,7 +38,7 @@ let failSave = false;
       response.send = value => response.end(value);
       if (url.pathname === '/__test/plan') { await core.saveEntitlement(owner, { tier: url.searchParams.get('tier') === 'free' ? 'free' : 'pro', exp: core.nowSeconds() + 3600 }); return response.json({ synthetic: true }); }
       if (url.pathname === '/__test/account') { const account = url.searchParams.get('other') === '1' ? other : owner; response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(account)}; Path=/; HttpOnly; SameSite=Lax`); return response.json({ synthetic: true }); }
-      if (url.pathname === '/__test/latency') { delayMs = Math.min(3000, Number(url.searchParams.get('ms')) || 0); failSave = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
+      if (url.pathname === '/__test/latency') { delayMs = Math.min(3000, Number(url.searchParams.get('ms')) || 0); getDelayMs = Math.min(3000, Number(url.searchParams.get('getMs')) || 0); providerDelayMs = Math.min(3000, Number(url.searchParams.get('providerMs')) || 0); failSave = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
       if (url.pathname.startsWith('/api/')) {
         request.query = Object.fromEntries(url.searchParams);
         const chunks = []; for await (const chunk of request) chunks.push(chunk);
@@ -41,6 +54,7 @@ let failSave = false;
           if (delayMs) await new Promise(resolve => setTimeout(resolve, delayMs));
           if (failSave) return response.status(503).json({ error: 'Synthetic save failure' });
         }
+        if (url.pathname === '/api/health/state' && request.method === 'GET' && getDelayMs) await new Promise(resolve => setTimeout(resolve, getDelayMs));
         const route = routes[url.pathname];
         if (route) return await route(request, response);
         return response.status(409).json({ error: 'Disabled in synthetic preview. No external providers are called.' });

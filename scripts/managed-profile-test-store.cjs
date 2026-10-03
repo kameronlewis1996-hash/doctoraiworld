@@ -9,6 +9,7 @@ function installTestStore() {
   const hashes = new Map();
   const blobs = new Map();
   const calls = [];
+  const blobCalls = [];
   global.fetch = async (input, options = {}) => {
     const url = new URL(input);
     assert.equal(url.origin, 'https://synthetic-store.invalid', 'Tests must never contact live storage or paid providers.');
@@ -28,11 +29,11 @@ function installTestStore() {
   };
   const blobModule = require.resolve('@vercel/blob');
   require.cache[blobModule] = { id: blobModule, filename: blobModule, loaded: true, exports: {
-    put: async (path, bytes) => { blobs.set(path, bytes); return { pathname: path }; },
-    get: async path => blobs.has(path) ? { stream: new ReadableStream({ start(controller) { controller.enqueue(blobs.get(path)); controller.close(); } }) } : null,
-    del: async path => { blobs.delete(path); }
+    put: async (path, bytes, options) => { blobCalls.push({ operation: 'put', token: options?.token }); blobs.set(path, bytes); return { pathname: path }; },
+    get: async (path, options) => { blobCalls.push({ operation: 'get', token: options?.token }); return blobs.has(path) ? { stream: new ReadableStream({ start(controller) { controller.enqueue(blobs.get(path)); controller.close(); } }) } : null; },
+    del: async (path, options) => { blobCalls.push({ operation: 'del', token: options?.token }); blobs.delete(path); }
   } };
-  return { hashes, blobs, calls };
+  return { hashes, blobs, calls, blobCalls };
 }
 function responseRecorder() {
   return { statusCode: 200, headers: {}, setHeader(key, value) { this.headers[key] = value; }, status(value) { this.statusCode = value; return this; }, json(value) { this.body = value; return this; }, send(value) { this.body = value; return this; } };

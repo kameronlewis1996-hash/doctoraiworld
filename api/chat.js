@@ -92,7 +92,10 @@ module.exports = async function chat(req, res) {
   if (req.method !== 'POST') return core.json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account) return core.json(res, 401, { error: 'Please sign in with Google before using DoctorAI chat.' });
-  if (await core.rejectUnsupportedManagedAction(req, res, account)) return;
+  let profile;
+  try { profile = await core.resolveProfileScope(req, account, { write: true }); }
+  catch (error) { return core.json(res, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  res.setHeader('X-DoctorAI-Profile', profile?.id || 'self');
   if (!process.env.OPENAI_API_KEY) return core.json(res, 503, { error: 'DoctorAI chat is not configured yet.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {
@@ -111,7 +114,16 @@ module.exports = async function chat(req, res) {
   if (!messages.length || messages[messages.length - 1].role !== 'user') return core.json(res, 400, { error: 'Please enter a question.' });
 
   let memoryLength = 0;
-  const memory = Array.isArray(body.memory) ? body.memory.slice(0, 6).map(value => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 240)).filter(value => {
+  // Managed saved context is authoritative: never accept a stale tab's owner
+  // memory or another person's memory supplied in the request body.
+  let memorySource = body.memory;
+  if (profile) {
+    try {
+      const record = await core.readHealthState(account, profile.id);
+      memorySource = record?.state?.memoryEnabled === true ? record.state.memoryDetails : [];
+    } catch { return core.json(res, 503, { error: 'This person’s approved Health Memory could not be loaded safely.' }); }
+  }
+  const memory = Array.isArray(memorySource) ? memorySource.slice(0, 6).map(value => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 240)).filter(value => {
     if (!value || memoryLength + value.length > 1400) return false;
     memoryLength += value.length;
     return true;
@@ -121,7 +133,8 @@ module.exports = async function chat(req, res) {
     : '';
   const responseLength = Object.hasOwn(responseStyles, body.responseLength) ? body.responseLength : 'medium';
   const responseStyle = responseStyles[responseLength];
-  const instructions = `${safetyPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
+  const subjectPrompt = profile ? '\n\nThe account owner is managing another person’s selected profile. The health subject is that selected person. Do not infer or combine information about the account owner or other profiles.' : '';
+  const instructions = `${safetyPrompt}${subjectPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
   const wantsStream = body.stream === true;
   const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
   const fetchFallbackAnswer = async () => {
