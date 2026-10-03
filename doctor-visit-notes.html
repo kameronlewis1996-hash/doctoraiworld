@@ -19,7 +19,9 @@
   <meta name="twitter:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
   <link rel="icon" href="/doctorai-app-icon.png?v=10">
   <link rel="stylesheet" href="/doctor-visit-notes.css">
+  <link rel="stylesheet" href="/resource-share.css">
   <script defer src="/doctor-visit-notes.js"></script>
+  <script defer src="/resource-share.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -39,9 +41,12 @@
         <p class="eyebrow">Free, printable Aotearoa resource</p>
         <h1>Questions and notes for your next doctor visit</h1>
         <p class="intro">Write down the questions you choose to ask, make notes during your visit, and record next steps you want to remember. Leave anything blank. Print this page or save it as a PDF from your browser.</p>
-        <div class="hero-actions" role="group" aria-label="Choose how to use this worksheet">
+        <div class="hero-actions" role="group" aria-label="Worksheet actions">
           <button class="button" id="print-notes" type="button">Print this worksheet</button>
           <a class="button button-secondary" href="/health-hub#summary">Open free Health Hub summary</a>
+          <button class="resource-share-button" type="button" data-share-resource data-share-title="Doctor Visit Questions and Notes Worksheet | DoctorAI" data-share-text="Share this free printable organizer for your own doctor visit questions and notes.">Share this worksheet</button>
+          <p class="resource-share-status" data-share-status role="status" aria-live="polite">Sharing offers only this public worksheet link and a fixed description. Your entries are not included.</p>
+          <input class="resource-share-link" data-share-link type="text" aria-label="Public worksheet link to share" readonly hidden>
         </div>
         <p class="privacy-note">Your entries stay on this page. DoctorAI does not send or save what you type.</p>
         <noscript><p>You can print this page using your browser’s print command.</p></noscript>
@@ -87,7 +92,7 @@
         <h2 id="source-title">Source and scope</h2>
         <p>This original, AI-assisted organizer is informed by visit-preparation resources from <a href="https://www.healthnz.govt.nz/hospitals-services/services-support/general-practices/preparing-for-your-doctors-visit" rel="noopener noreferrer">Health New Zealand | Te Whatu Ora</a> and the <a href="https://www.hqsc.govt.nz/resources/resource-library/lets-plan-for-your-next-health-care-visit/" rel="noopener noreferrer">Health Quality &amp; Safety Commission Te Tāhū Hauora</a>. Use the official resources for their complete guidance.</p>
         <p>It has not been clinician-reviewed and is not medical advice. The blank worksheet does not suggest which questions are right for you.</p>
-        <p class="checked-date"><strong>Last source check:</strong> 2 October 2026</p>
+        <p class="checked-date"><strong>Last source check:</strong> 4 October 2026</p>
       </section>
 
       <section class="measurement-section" aria-labelledby="measurement-title">
