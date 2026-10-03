@@ -66,7 +66,8 @@ test('five positive reviewer tool flows return public content', async () => {
   try { assert.equal((await call('search_health_research', { topic: 'symptom tracking' })).body.result.structuredContent.results.length, 1); }
   finally { global.fetch = original; }
 });
-test('negative reviewer boundaries reject account reads, diagnosis, and health writes', async () => {
+// This checks the server allowlist, not ChatGPT's conversation-level refusals.
+test('rejects unregistered account-read, diagnosis, and health-write tool names', async () => {
   for (const name of ['check_private_medications', 'diagnose_and_prescribe', 'add_health_record']) {
     assert.equal((await call(name, {})).body.result.isError, true);
   }
