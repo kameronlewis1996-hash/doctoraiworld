@@ -238,6 +238,7 @@
   let cloudSyncBusy = false;
   let cloudSyncDirty = false;
   let cloudSyncRevision = 0;
+  let cloudRecordRevision = null;
   let localStateUpdatedAt = Number(read('updated-at', 0)) || 0;
   let profileShortcutEditing = false;
   let medicationAlertFingerprint = '';
@@ -373,8 +374,10 @@
   let personOperations = 0;
   let selfStateSnapshot = null;
   let cloudSaveFailed = false;
+  let documentDeletionBusy = false;
   const activeManagedPerson = () => managedProfiles.find(person => person.id === activePersonId);
   const managedReadOnly = () => activePersonId !== 'self' && (!hasProAccess() || Boolean(activeManagedPerson()?.archivedAt));
+  const managedAiUnavailable = () => activePersonId !== 'self' && activeManagedPerson()?.authorityBasis !== 'adult_permission_or_authority';
   const personName = () => activePersonId === 'self' ? 'Myself' : activeManagedPerson()?.name || 'Managed profile';
   const personDocumentUrl = id => `/api/documents?id=${encodeURIComponent(id)}${activePersonId === 'self' ? '' : `&profileId=${encodeURIComponent(activePersonId)}`}`;
   const personMutationSelector = '[data-modal], [data-add-menu], [data-edit-medication], [data-delete-medication], [data-edit-symptom], [data-delete-symptom], [data-delete-appointment], [data-edit-provider], [data-med-toggle], [data-med-missed], [data-task-toggle], [data-file-action], [data-medication-safety-profile]';
@@ -469,11 +472,11 @@
       }
     });
     $$(unsupportedPersonSelector + ', ' + managedAiSelector + ', #result-upload, #document-upload, #document-upload-inline').forEach(control => {
-      const disabled = activePersonId !== 'self' && (control.matches(unsupportedPersonSelector) || managedReadOnly());
+      const disabled = activePersonId !== 'self' && (control.matches(unsupportedPersonSelector) || managedReadOnly() || (control.matches(managedAiSelector) && managedAiUnavailable()));
       if (disabled) { if (!control.disabled) control.dataset.scopeDisabled = 'true'; control.disabled = true; }
       else if (control.dataset.scopeDisabled) { control.disabled = false; delete control.dataset.scopeDisabled; }
     });
-    if (activePersonId !== 'self') setChatStatus(managedReadOnly() ? 'This profile is read only. Restore it with Pro to use chat or label scans.' : `Chat about ${personName()}. Only this person’s approved Health Memory is used.`, false);
+    if (activePersonId !== 'self') setChatStatus(managedAiUnavailable() ? 'Child AI and label scans are unavailable pending privacy/provider review. Manual records remain available.' : managedReadOnly() ? 'This profile is read only. Restore it with Pro to use chat or label scans.' : `Chat about ${personName()}. Only this person’s approved Health Memory is used.`, false);
   }
 
   async function loadManagedProfiles() {
@@ -518,6 +521,7 @@
       activePersonId = id; personEpoch += 1;
       cloudSyncRevision += 1; cloudSyncDirty = false; cloudSaveFailed = false;
       localStateUpdatedAt = Number(payload.updatedAt) || 0;
+      cloudRecordRevision = payload.revision || null;
       cloudSyncEnabled = true;
       applyCloudState(payload.state || (id === 'self' ? selfStateSnapshot : {}));
       // A new managed person starts with a blank record, never the self snapshot.
@@ -540,13 +544,19 @@
     if (!hasProAccess()) { location.href = '/subscription#plans'; return; }
     const person = id ? managedProfiles.find(item => item.id === id) : null;
     const creationId = crypto.randomUUID();
-    setModal(person ? 'Edit person' : 'Add a loved one', 'Family & loved ones', `<form class="modal-form" data-modal-form="managed-person"><input type="hidden" name="id" value="${escapeHTML(person?.id || '')}"><input type="hidden" name="creationId" value="${creationId}"><div class="modal-form-grid"><label class="modal-field full"><span>Name *</span><input name="name" required maxlength="80" autocomplete="off" value="${escapeHTML(person?.name || '')}"></label><label class="modal-field full"><span>Relationship (optional)</span><input name="relationship" maxlength="60" autocomplete="off" placeholder="e.g. Parent, partner, friend" value="${escapeHTML(person?.relationship || '')}"></label></div><p class="modal-help">You manage this private profile from your account. Their health records stay separate from yours. Archiving keeps their records.</p><p data-person-form-error role="alert"></p><div class="modal-actions"><button class="secondary-button" type="button" data-close-modal>Cancel</button><button class="primary-button" type="submit">${person ? 'Save changes' : 'Add person'}</button></div></form>`);
+    setModal(person ? 'Edit person' : 'Add a loved one', 'Family & loved ones', `<form class="modal-form" data-modal-form="managed-person"><input type="hidden" name="id" value="${escapeHTML(person?.id || '')}"><input type="hidden" name="creationId" value="${creationId}"><div class="modal-form-grid"><label class="modal-field full"><span>Name *</span><input name="name" required maxlength="80" autocomplete="off" value="${escapeHTML(person?.name || '')}"></label><label class="modal-field full"><span>Relationship (optional)</span><input name="relationship" maxlength="60" autocomplete="off" placeholder="e.g. Parent, partner, friend" value="${escapeHTML(person?.relationship || '')}"></label></div><p class="modal-help">You manage this private profile from your account. Their health records stay separate from yours. Archiving keeps their records.</p>${person ? '' : '<label class="modal-field full"><span>Permission or authority *</span><select name="authorityBasis" required><option value="">Choose your authority</option><option value="adult_permission_or_authority">Adult: their permission or other valid authority</option><option value="parent_or_legal_guardian">Child or young person: I am their parent or legal guardian</option></select></label><label class="managed-person-confirmation"><input type="checkbox" name="authorityConfirmed" required><span>I confirm I am an adult account holder and have the permission or authority selected above to manage this person\'s health information. For a child, I will explain uses in a way they can understand and consider their wishes and ability to take part. Parent or guardian status does not authorize every use. Disability alone does not establish inability to consent. I will review what I choose to send to AI.</span></label>'}<p data-person-form-error role="alert"></p><div class="modal-actions"><button class="secondary-button" type="button" data-close-modal>Cancel</button><button class="primary-button" type="submit">${person ? 'Save changes' : 'Add person'}</button></div></form>`);
+  }
+
+  function confirmManagedTransmission(kind) {
+    if (activePersonId === 'self') return true;
+    const data = kind === 'scan' ? 'Only this medication-label photo' : kind === 'briefing' ? 'The saved medicines and recent symptoms included in this briefing request, plus any enabled approved Health Memory' : 'This conversation, including this message, plus any enabled approved Health Memory';
+    return window.confirm(`${data} for ${personName()} will be sent to OpenAI. Confirm you have authority for this specific use. For a child, explain this action in a way they can understand and consider their wishes and ability to take part. OpenAI may retain abuse-monitoring logs. Send this request?`);
   }
 
   async function submitPersonForm(form) {
     if (personManagementBusy) return;
     const data = Object.fromEntries(new FormData(form));
-    const body = data.id ? { id: data.id, name: data.name, relationship: data.relationship } : { creationId: data.creationId, name: data.name, relationship: data.relationship };
+    const body = data.id ? { id: data.id, name: data.name, relationship: data.relationship } : { creationId: data.creationId, name: data.name, relationship: data.relationship, authorityBasis: data.authorityBasis, authorityConfirmed: data.authorityConfirmed === 'on' };
     personManagementBusy = true;
     form.querySelector('button[type="submit"]').disabled = true;
     try {
@@ -622,13 +632,14 @@
     cloudSyncDirty = false;
     cloudSyncBusy = true; setSyncStatus('Saving private health data…');
     try {
-      const response = await fetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave }) });
+      const response = await fetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave, revision: cloudRecordRevision }) });
       const payload = await response.json().catch(() => ({}));
       if (!personContextIsCurrent(personContext)) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
-        throw new Error(payload.error || 'Private data could not be synced.');
+        const error = new Error(payload.error || 'Private data could not be synced.'); error.status = response.status; throw error;
       }
+      cloudRecordRevision = payload.revision;
       if (revision === cloudSyncRevision && !cloudSyncDirty) {
         localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
         write('updated-at', localStateUpdatedAt);
@@ -636,7 +647,7 @@
       }
       cloudSaveFailed = false;
       return true;
-    } catch { if (!personContextIsCurrent(personContext)) return false; cloudSaveFailed = true; cloudSyncDirty = true; setSyncStatus('Private save failed · retry before switching'); return false; }
+    } catch (error) { if (!personContextIsCurrent(personContext)) return false; cloudSaveFailed = true; cloudSyncDirty = true; setSyncStatus(error?.status === 409 ? 'Records changed · export unsaved changes or reload before saving' : 'Private save failed · retry before switching'); return false; }
     finally {
       cloudSyncBusy = false;
       if (cloudSyncDirty && !cloudSaveFailed && authUser && cloudSyncEnabled) {
@@ -658,6 +669,7 @@
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be loaded.');
       }
+      cloudRecordRevision = payload.revision || null;
       const cloudState = payload.state; const cloudUpdatedAt = Number(payload.updatedAt || 0);
       if (cloudState && (!hasHealthState(serialiseHealthState()) || cloudUpdatedAt > localStateUpdatedAt)) {
         applyCloudState(cloudState); localStateUpdatedAt = cloudUpdatedAt || Date.now(); write('updated-at', localStateUpdatedAt); renderAll();
@@ -1306,12 +1318,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const personContext = capturePersonContext();
     const output = $('#today-ai-output');
     if (!output) return;
+    if (managedAiUnavailable()) { output.classList.remove('loading'); output.textContent = 'AI briefings are unavailable for child profiles pending privacy/provider review. Saved manual records are available above.'; return; }
     if (managedReadOnly()) { output.classList.remove('loading'); output.textContent = 'This profile is read only. Review this person’s saved records above.'; return; }
     if (!authUser) {
       output.classList.remove('loading');
       output.innerHTML = '<p>Sign in to generate an AI briefing from the health information you chose to save.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
       return;
     }
+    if (!confirmManagedTransmission('briefing')) { output.classList.remove('loading'); output.textContent = 'AI briefing was not sent. Your saved overview is available above.'; return; }
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 45_000);
     try {
@@ -1320,7 +1334,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: buildTodayIntelligencePrompt(medications, symptoms) }], responseLength: 'medium', stream: false }),
+        body: JSON.stringify({ managedActionConsent: activePersonId !== 'self', messages: [{ role: 'user', content: buildTodayIntelligencePrompt(medications, symptoms) }], responseLength: 'medium', stream: false }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({}));
@@ -1972,6 +1986,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       managedProfiles = []; managedProfilesStatus = '';
       cloudSyncDirty = false; cloudSaveFailed = false;
+      cloudRecordRevision = null;
       window.clearTimeout(cloudSyncTimer);
       subscriptionTier = 'free';
       applyCloudState({});
@@ -3328,18 +3343,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function submitMedicationScan(image, options = {}) {
+    if (managedAiUnavailable()) { showToast('Child label scans are unavailable pending privacy/provider review. Enter medicines manually.'); return; }
     const personContext = capturePersonContext();
     if (medicationScanBusy) return;
     if (!image || image.length > MAX_SCAN_DATA_URL) {
       openMedicationModal({ __scanAttempted: true, __barcode: Boolean(options.barcode), __scanError: 'The prepared image was too large to send.' });
       return;
     }
+    if (!confirmManagedTransmission('scan')) { showToast('Label photo was not sent.'); return; }
     setMedicationScanBusy(true);
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 50_000);
     try {
       showToast('Reading only the visible medicine label…');
-      const response = await fetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true }), signal: controller.signal });
+      const response = await fetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true, managedActionConsent: activePersonId !== 'self' }), signal: controller.signal });
       const payload = await response.json().catch(() => ({}));
       if (!personContextIsCurrent(personContext)) return;
       if (!response.ok) {
@@ -3757,6 +3774,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function sendChat(message, { retry = false } = {}) {
+    if (managedAiUnavailable()) { showToast('Child AI chat is unavailable pending privacy/provider review. Manual records remain available.'); return; }
     if (managedReadOnly()) { showToast('Restore this profile with Pro before using chat.'); return; }
     const text = String(message ?? els.chatInput.value).trim();
     if (!text || chatBusy) return;
@@ -3765,6 +3783,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       openGoogleSignIn();
       return;
     }
+    if (!confirmManagedTransmission('chat')) { showToast('Message was not sent.'); return; }
     const requestId = ++chatRequestId;
     chatBusy = true;
     const sendButton = $('#chat-send');
@@ -3792,7 +3811,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     try {
       if (activePersonId !== 'self' && (cloudSyncDirty || cloudSaveFailed) && !await saveCloudState()) throw new Error('Save this person’s latest changes before using chat.');
       const memory = approvedChatMemory();
-      const requestBody = { messages: chatHistory.slice(-CHAT_MAX_MESSAGES), path: 'health-hub', responseLength: chatResponseLength, stream: true };
+      const requestBody = { managedActionConsent: activePersonId !== 'self', messages: chatHistory.slice(-CHAT_MAX_MESSAGES), path: 'health-hub', responseLength: chatResponseLength, stream: true };
       if (memory.length) requestBody.memory = memory;
       const response = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestBody), signal: controller.signal });
       if (!response.ok) {
@@ -3918,22 +3937,38 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function deleteDocument(id) {
+    if (documentDeletionBusy) { showToast('Wait for the current document deletion to finish.'); return; }
     const personContext = capturePersonContext();
     const document = state.documents.find(item => item.id === id);
     if (!document || !window.confirm(`Delete “${document.title}” from your private library? This cannot be undone.`)) return;
+    documentDeletionBusy = true;
     try {
+      if (!managedReadOnly() && (cloudSyncDirty || cloudSaveFailed || cloudSyncBusy) && !await saveCloudState()) throw new Error('Save or export your pending health changes before deleting this document.');
+      const operationRevision = cloudSyncRevision;
       const response = await fetch(`/api/documents?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const payload = await response.json().catch(() => ({}));
       if (!personContextIsCurrent(personContext)) return;
       if (!response.ok) throw new Error(payload.error || 'The document could not be deleted.');
       state.documents = state.documents.filter(item => item.id !== id);
       state.timeline = state.timeline.filter(item => !(item.source === 'document' && (item.documentId === id || (!item.documentId && item.description === document.title))));
-      saveState(); renderResults(); renderDocuments(); renderTimeline(); renderActivity();
+      if (operationRevision === cloudSyncRevision && !cloudSyncDirty) {
+        if (payload.state) applyCloudState(payload.state);
+        cloudRecordRevision = payload.revision || null;
+        localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
+        write('updated-at', localStateUpdatedAt);
+      } else {
+        cloudSaveFailed = true;
+        setSyncStatus('Document deleted · export pending changes or reload before saving');
+      }
+      // The server already persisted reference cleanup. Do not queue a whole
+      // stale state PUT merely to delete a document.
+      write('documents', state.documents); write('timeline', state.timeline);
+      renderAll();
       showToast('Document deleted from private storage.');
     } catch (error) {
       if (!personContextIsCurrent(personContext)) return;
       showToast(error?.message || 'The document could not be deleted.');
-    }
+    } finally { documentDeletionBusy = false; }
   }
 
   function exportHealthData() {
@@ -3997,6 +4032,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     write('medications', []); write('appointments', []); write('providers', []); write('timeline', []); write('documents', []); write('measurements', []); write('tasks', []); write('profile', state.profile); write('memory-enabled', false); write('memory-details', []); write('updated-at', Date.now());
     clearChat({ confirm: false, notify: false });
     cloudSyncEnabled = syncWasEnabled;
+    cloudRecordRevision = null;
     renderAll(); closePrivacy();
     setSyncStatus('Health data deleted');
     showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
@@ -4416,6 +4452,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function handleClick(event) {
     if (blockPersonTransitionEvent(event)) return;
+    if (event.target.closest('[data-family-support-info]')) {
+      event.preventDefault();
+      setModal('Caregiver support', 'Planned lifetime complimentary Pro', '<p class="modal-help">Lifetime complimentary Pro is planned for parents and legal guardians of children with disabilities, after manual eligibility verification. Lifetime means no annual renewal or expiry when the child turns 18.</p><p class="modal-help">The private review route and minimum proof requirements are being prepared. No proof can be submitted here yet. Keep evidence out of AI messages and ordinary health-document uploads.</p><p class="modal-help">Approval will not automatically cancel or change an existing subscription. Details will be reviewed before this program opens.</p><div class="modal-actions"><button class="primary-button" type="button" data-close-modal>Close</button></div>');
+      return;
+    }
     const personAction = event.target.closest('[data-switch-person], [data-add-person], [data-edit-person], [data-archive-person], [data-confirm-archive-person], [data-restore-person]');
     if (personAction) {
       event.preventDefault();
@@ -4429,6 +4470,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (personSwitchBusy && event.target.closest(personMutationSelector + ', [data-delete-document], [data-delete-health]')) { event.preventDefault(); return; }
     if (managedReadOnly() && event.target.closest(personMutationSelector)) { event.preventDefault(); showToast('This profile is read only. View, export or delete existing records.'); return; }
+    if (managedAiUnavailable() && event.target.closest(managedAiSelector)) { event.preventDefault(); showToast('Child AI and label scans are unavailable pending privacy/provider review.'); return; }
     if (managedReadOnly() && event.target.closest(managedAiSelector)) { event.preventDefault(); showToast('Restore this profile with Pro before using chat or label scans.'); return; }
     if (activePersonId !== 'self' && event.target.closest(unsupportedPersonSelector)) { event.preventDefault(); showToast('This action is unavailable for managed profiles. Use local medication guidance.'); return; }
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }

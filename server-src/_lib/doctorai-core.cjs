@@ -327,16 +327,56 @@ async function hvals(namespace, account) {
 const healthField = profileId => profileId ? `managed-health:${profileId}` : 'health-state';
 const documentsNamespace = profileId => profileId ? `documents:${profileId}` : 'documents';
 
-async function saveHealthState(account, state, profileId = null) {
-  if (!storageConfigured()) return false;
-  return hset('accounts', account, healthField(profileId), seal({ v: 1, updatedAt: Date.now(), state }));
+async function healthSnapshot(account, profileId = null) {
+  const raw = await hget('accounts', account, healthField(profileId));
+  if (raw !== null && typeof raw !== 'string') throw new Error('Private health storage returned an invalid record.');
+  const record = raw ? unseal(raw) : null;
+  if (raw && !(record?.v === 1 && record.state)) throw new Error('Private health data could not be opened safely.');
+  return { raw, record: record ? { ...record, revision: hash(raw) } : null };
+}
+
+const healthStateCasLua = `-- doctorai-health-cas-v1
+local current = redis.call('HGET', KEYS[1], ARGV[1]) or ''
+if current ~= ARGV[2] then return 0 end
+redis.call('HSET', KEYS[1], ARGV[1], ARGV[3])
+return 1`;
+
+async function compareAndSetHealth(account, profileId, snapshot, state) {
+  const updatedAt = Date.now();
+  const next = seal({ v: 1, updatedAt, state });
+  const result = await redis('', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(['EVAL', healthStateCasLua, 1, decodeURIComponent(userHashKey('accounts', account)), healthField(profileId), snapshot.raw || '', next]) });
+  if (![0, 1].includes(Number(result.result))) throw new Error('Private health update could not be committed.');
+  return Number(result.result) === 1 ? { state, updatedAt, revision: hash(next) } : null;
+}
+
+async function saveHealthState(account, state, profileId = null, options = {}) {
+  if (!storageConfigured()) throw new Error('Private health storage is unavailable.');
+  const snapshot = await healthSnapshot(account, profileId);
+  if (Object.hasOwn(options, 'expectedRevision') && options.expectedRevision !== (snapshot.record?.revision || null)) throw profileError(409, 'These records changed. Export unsaved changes or reload before saving.');
+  const saved = await compareAndSetHealth(account, profileId, snapshot, state);
+  if (!saved) throw profileError(409, 'These records changed during saving. Export unsaved changes or reload before saving.');
+  return saved;
 }
 
 async function readHealthState(account, profileId = null) {
-  const raw = await hget('accounts', account, healthField(profileId));
-  const stored = raw && typeof raw === 'object' && raw.value ? raw.value : raw;
-  const record = stored ? unseal(stored) : null;
-  return record?.v === 1 && record.state ? record : null;
+  return (await healthSnapshot(account, profileId)).record;
+}
+
+async function removeDocumentHealthReferences(account, document, profileId = null) {
+  // Re-read after a CAS conflict, then remove only these references. A full
+  // health PUT uses the same CAS and a client revision, so neither can overwrite
+  // another deletion or resurrect a stale document/medication/notes snapshot.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const snapshot = await healthSnapshot(account, profileId);
+    if (!snapshot.record) return { state: null, revision: null, updatedAt: null };
+    const state = { ...snapshot.record.state,
+      documents: (snapshot.record.state.documents || []).filter(item => item?.id !== document.id),
+      timeline: (snapshot.record.state.timeline || []).filter(item => !(item?.source === 'document' && (item.documentId === document.id || (!item.documentId && item.description === document.name)))) };
+    const saved = await compareAndSetHealth(account, profileId, snapshot, state);
+    if (saved) return saved;
+  }
+  throw profileError(409, 'These records are changing. Retry document deletion; no other health fields were overwritten.');
 }
 
 async function deleteHealthState(account, profileId = null) {
@@ -600,6 +640,7 @@ module.exports = {
   reportError,
   readFreeGrant,
   readHealthState,
+  removeDocumentHealthReferences,
   readDocumentMetadata,
   readStoredEntitlement,
   recordFreeGrant,

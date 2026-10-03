@@ -10,11 +10,22 @@ function installTestStore() {
   const blobs = new Map();
   const calls = [];
   const blobCalls = [];
+  const controls = { beforeCas: null };
   global.fetch = async (input, options = {}) => {
     const url = new URL(input);
     assert.equal(url.origin, 'https://synthetic-store.invalid', 'Tests must never contact live storage or paid providers.');
     const [command, key, field] = url.pathname.slice(1).split('/').map(decodeURIComponent);
     calls.push({ command, key, field });
+    if (command === '') {
+      const [operation, script, keyCount, hashKey, healthField, expected, next] = JSON.parse(options.body);
+      assert.equal(operation, 'EVAL'); assert.equal(keyCount, 1);
+      assert.match(script, /doctorai-health-cas-v1/);
+      if (controls.beforeCas) await controls.beforeCas({ hashKey, field: healthField, expected, next });
+      const hash = hashes.get(hashKey) || new Map(); hashes.set(hashKey, hash);
+      const result = (hash.get(healthField) || '') === expected ? 1 : 0;
+      if (result) hash.set(healthField, next);
+      return { ok: true, json: async () => ({ result }) };
+    }
     if (command === 'pipeline') return { ok: true, json: async () => [{ result: 1 }, { result: 1 }] };
     const hash = hashes.get(key) || new Map();
     hashes.set(key, hash);
@@ -33,7 +44,7 @@ function installTestStore() {
     get: async (path, options) => { blobCalls.push({ operation: 'get', token: options?.token }); return blobs.has(path) ? { stream: new ReadableStream({ start(controller) { controller.enqueue(blobs.get(path)); controller.close(); } }) } : null; },
     del: async (path, options) => { blobCalls.push({ operation: 'del', token: options?.token }); blobs.delete(path); }
   } };
-  return { hashes, blobs, calls, blobCalls };
+  return { hashes, blobs, calls, blobCalls, controls };
 }
 function responseRecorder() {
   return { statusCode: 200, headers: {}, setHeader(key, value) { this.headers[key] = value; }, status(value) { this.statusCode = value; return this; }, json(value) { this.body = value; return this; }, send(value) { this.body = value; return this; } };

@@ -1,6 +1,6 @@
 'use strict';
 const core = require('../_lib/doctorai-core.cjs');
-const publicProfile = ({ id, name, relationship, createdAt, updatedAt, archivedAt }) => ({ id, name, relationship, createdAt, updatedAt, archivedAt });
+const publicProfile = ({ id, name, relationship, authorityBasis, createdAt, updatedAt, archivedAt }) => ({ id, name, relationship, authorityBasis, createdAt, updatedAt, archivedAt });
 const cleanText = (value, max) => typeof value === 'string' && value.length <= max && !/[\u0000-\u001f\u007f]/.test(value) ? value.trim() : null;
 
 module.exports = async function profiles(request, response) {
@@ -16,17 +16,18 @@ module.exports = async function profiles(request, response) {
     if (!['POST', 'PATCH'].includes(request.method)) return core.json(response, 405, { error: 'Method not allowed.' });
     let body;
     try { body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body; } catch { return core.json(response, 400, { error: 'Invalid profile request.' }); }
-    const allowed = request.method === 'POST' ? ['creationId', 'name', 'relationship'] : ['id', 'name', 'relationship', 'archived'];
+    const allowed = request.method === 'POST' ? ['creationId', 'name', 'relationship', 'authorityBasis', 'authorityConfirmed'] : ['id', 'name', 'relationship', 'archived'];
     if (!body || Array.isArray(body) || typeof body !== 'object' || Object.keys(body).some(key => !allowed.includes(key))) return core.json(response, 400, { error: 'Invalid profile fields.' });
     const archiveOnly = request.method === 'PATCH' && body.archived === true && Object.keys(body).every(key => ['id', 'archived'].includes(key));
     if (!archiveOnly && !await core.activeEntitlement(request, account)) return core.json(response, 403, { error: 'Family & loved ones is included with DoctorAI Pro. Existing records remain available.' });
     const now = Date.now();
     if (request.method === 'POST') {
+      if (body.authorityConfirmed !== true || !['adult_permission_or_authority', 'parent_or_legal_guardian'].includes(body.authorityBasis)) return core.json(response, 400, { error: 'Confirm adult permission or valid authority, or that you are this child’s parent or legal guardian.' });
       const id = `person-${body.creationId}`;
       const name = cleanText(body.name, 80);
       const relationship = cleanText(body.relationship ?? '', 60);
       if (!core.validProfileId(id) || !name || relationship === null) return core.json(response, 400, { error: 'Enter a name (up to 80 characters) and an optional relationship (up to 60 characters).' });
-      const profile = await core.createManagedProfile(account, { id, name, relationship, createdAt: now, updatedAt: now, archivedAt: null });
+      const profile = await core.createManagedProfile(account, { id, name, relationship, authorityBasis: body.authorityBasis, authorityConfirmedAt: now, createdAt: now, updatedAt: now, archivedAt: null });
       return core.json(response, 201, { profile: publicProfile(profile) });
     }
     const profile = await core.readManagedProfile(account, body.id);

@@ -19,15 +19,16 @@ module.exports = async function handler(request, response) {
     const profileId = profile?.id || null;
     if (request.method === 'GET') {
       const record = await core.readHealthState(account, profileId);
-      return response.status(200).json({ configured: true, profileId: profileId || 'self', updatedAt: record?.updatedAt || null, state: record?.state || null });
+      return response.status(200).json({ configured: true, profileId: profileId || 'self', revision: record?.revision || null, updatedAt: record?.updatedAt || null, state: record?.state || null });
     }
     if (request.method === 'PUT') {
       let body = request.body || {};
       try { body = typeof body === 'string' ? JSON.parse(body) : body; } catch { return response.status(400).json({ error: 'Invalid private health data request.' }); }
       const state = body?.state;
       if (!core.validHealthState(state)) return response.status(400).json({ error: 'The health update was not valid.' });
-      await core.saveHealthState(account, state, profileId);
-      return response.status(200).json({ ok: true, updatedAt: Date.now() });
+      if (!Object.hasOwn(body, 'revision') || !(body.revision === null || (typeof body.revision === 'string' && /^[A-Za-z0-9_-]{43}$/.test(body.revision)))) return response.status(400).json({ error: 'Reload these records before saving; a valid record revision is required.' });
+      const saved = await core.saveHealthState(account, state, profileId, { expectedRevision: body.revision });
+      return response.status(200).json({ ok: true, revision: saved.revision, updatedAt: saved.updatedAt });
     }
     if (request.method === 'DELETE') {
       await core.deleteHealthState(account, profileId);

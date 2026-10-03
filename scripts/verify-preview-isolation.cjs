@@ -50,7 +50,7 @@ async function call(handler, session, method = 'POST', body = {}) {
   const session = core.createSession({ sub: 'preview-a', email: 'preview-a@example.invalid' });
   await core.activateSession(session);
   await core.saveEntitlement(session, { tier: 'pro', exp: core.nowSeconds() + 3600 });
-  assert.equal((await call(health, session, 'PUT', { state: { profile: { name: 'Synthetic isolated account' } } })).statusCode, 200);
+  assert.equal((await call(health, session, 'PUT', { state: { profile: { name: 'Synthetic isolated account' } }, revision: null })).statusCode, 200);
   assert.equal((await call(health, session, 'GET')).body.state.profile.name, 'Synthetic isolated account');
   const document = await call(documents, session, 'POST', { name: 'synthetic-isolated.txt', data: 'data:text/plain;base64,c3ludGhldGlj' });
   assert.equal(document.statusCode, 201);

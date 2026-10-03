@@ -32,7 +32,7 @@
   <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
   <link rel="stylesheet" href="/care-design.css?v=7">
   <link rel="stylesheet" href="/accessibility.css?v=9">
-  <link rel="stylesheet" href="/managed-profiles.css?v=1">
+  <link rel="stylesheet" href="/managed-profiles.css?v=2">
 </head>
 <body data-hub-theme="today" data-subscription="free">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -264,9 +264,10 @@
           </div>
           <section class="panel-card family-card" aria-labelledby="family-title">
             <div class="card-heading"><div><p class="card-kicker">Care for the people you love</p><h2 id="family-title">Family &amp; loved ones <span class="family-pro-tag">Pro</span></h2></div><button class="secondary-button" type="button" data-add-person>＋ Add person</button></div>
-            <p class="family-intro">Manage separate health profiles from your account. Only a name is required; relationship is optional. Each person's records stay separate. Only manage information you have permission or authority to handle.</p>
+            <p class="family-intro">Manage separate profiles for adults with permission or authority, and children you parent or legally guard. Add a name and optional relationship. Each person's records stay separate. Child profiles support manual records; AI and label scans await privacy/provider review.</p>
             <div id="family-status" class="family-status" role="status" aria-live="polite"></div>
             <div id="family-list" class="family-list"></div>
+            <p class="family-support-note">Caregiver support · Planned <button class="quiet-button" type="button" data-family-support-info>Lifetime Pro request details</button></p>
           </section>
           <section class="panel-card profile-shortcuts-card" aria-labelledby="profile-shortcuts-title">
             <div class="card-heading"><div><p class="card-kicker">Make it yours</p><h2 id="profile-shortcuts-title">Personal shortcuts</h2></div><button type="button" class="quiet-button" data-profile-edit-shortcuts aria-pressed="false">Edit shortcuts</button></div>
@@ -403,6 +404,6 @@
   <dialog class="google-signin-modal" id="google-signin-modal" aria-labelledby="google-signin-title"><div class="modal-header"><div><p class="eyebrow">Secure account access</p><h2 id="google-signin-title">Sign in to DoctorAI</h2></div><button class="icon-button" type="button" data-close-google-signin aria-label="Close Google sign-in">×</button></div><div class="google-signin-copy"><div id="google-signin-button" class="google-signin-button-host"></div><button type="button" class="google-signin-fallback" data-google-start><span class="google-g-mark"><img src="google-g-logo.svg" alt="" class="google-mark"></span><span>Continue with Google</span><span>→</span></button><p id="google-signin-status" class="signin-status">Loading secure Google sign-in…</p><p class="signin-disclaimer">DoctorAI uses Google only to identify your private workspace. Health information is never made public by signing in.</p></div></dialog>
   <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy, clearly</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy information">×</button></div><div class="privacy-copy"><div class="privacy-highlight"><span>♢</span><p><b>Your health information belongs to you.</b> You choose whether this browser keeps health-hub entries between visits. When signed in, approved hub data is also encrypted for your account.</p></div><h3>DoctorAI can organise and explain</h3><p>It is not a doctor, does not diagnose, and should not be used to start, stop or change prescribed treatment. Health Memory is optional and you can edit or delete saved details.</p><h3>Urgent or emergency situations</h3><p>Contact your local emergency service or an appropriate crisis service now. Do not wait for an AI response.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep data on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><button type="button" class="secondary-button" data-export-health>Export my hub data</button><button type="button" class="danger-button" data-delete-health>Delete my hub data</button><button type="button" class="secondary-button" data-close-privacy>Close</button><a href="/privacy" class="text-button">Read privacy notice <span>→</span></a><a href="/terms" class="text-button">Read terms</a></div></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="health-hub.js?v=64"></script>
+  <script src="health-hub.js?v=65"></script>
 </body>
 </html>

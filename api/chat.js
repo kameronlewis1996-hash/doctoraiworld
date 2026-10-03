@@ -95,16 +95,19 @@ module.exports = async function chat(req, res) {
   let profile;
   try { profile = await core.resolveProfileScope(req, account, { write: true }); }
   catch (error) { return core.json(res, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  if (profile && profile.authorityBasis !== 'adult_permission_or_authority') return core.json(res, 409, { code: 'managed_child_ai_unavailable', error: 'AI is unavailable for child or unreviewed profiles pending child-focused privacy/provider assessment and approved action notices. Manual records remain available.' });
   res.setHeader('X-DoctorAI-Profile', profile?.id || 'self');
   if (!process.env.OPENAI_API_KEY) return core.json(res, 503, { error: 'DoctorAI chat is not configured yet.' });
+  let body = {};
+  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
+  if (!body || Array.isArray(body) || typeof body !== 'object') return core.json(res, 400, { error: 'Invalid chat request.' });
+  if (profile && body.managedActionConsent !== true) return core.json(res, 400, { error: 'Review the selected person’s AI disclosure and confirm authority and consent for this individual request.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfter));
     return core.json(res, 429, { error: 'You have sent several messages quickly. Please wait a minute and try again.' });
   }
 
-  let body = {};
-  try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); } catch { return core.json(res, 400, { error: 'Invalid chat request.' }); }
   const incoming = Array.isArray(body.messages) ? body.messages : [];
   const messages = incoming.slice(-12).map(item => {
     const role = item?.role === 'assistant' || item?.role === 'user' ? item.role : null;
@@ -136,7 +139,7 @@ module.exports = async function chat(req, res) {
   const subjectPrompt = profile ? '\n\nThe account owner is managing another person’s selected profile. The health subject is that selected person. Do not infer or combine information about the account owner or other profiles.' : '';
   const instructions = `${safetyPrompt}${subjectPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
   const wantsStream = body.stream === true;
-  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
+  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', store: false, instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
   const fetchFallbackAnswer = async () => {
     const fallbackResponse = await requestProvider({ ...providerPayload, stream: false }, { retry: false });
     if (!fallbackResponse.ok) return '';

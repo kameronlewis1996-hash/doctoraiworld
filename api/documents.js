@@ -143,15 +143,9 @@ module.exports = async function handler(request, response) {
       await del(document.blobPath, { token: core.documentStorageToken() });
       // Deletion is owner-authorized even after downgrade/archive. Only remove
       // this document's references; do not expose a general health-state write.
-      const record = await core.readHealthState(account, profileId);
-      if (record?.state) {
-        const state = record.state;
-        state.documents = (state.documents || []).filter(item => item.id !== id);
-        state.timeline = (state.timeline || []).filter(item => !(item.source === 'document' && (item.documentId === id || (!item.documentId && item.description === document.name))));
-        await core.saveHealthState(account, state, profileId);
-      }
+      const cleaned = await core.removeDocumentHealthReferences(account, document, profileId);
       await core.deleteDocumentMetadata(account, id, profileId);
-      return response.status(200).json({ ok: true, id });
+      return response.status(200).json({ ok: true, id, ...cleaned });
     }
 
     return response.status(405).json({ error: 'Method not allowed.' });

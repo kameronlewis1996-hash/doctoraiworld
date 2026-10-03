@@ -65,6 +65,7 @@ module.exports = async function handler(request, response) {
   let profile;
   try { profile = await core.resolveProfileScope(request, account, { write: true }); }
   catch (error) { return json(response, error.status || 503, { error: error.status ? error.message : 'Profile access is unavailable.' }); }
+  if (profile && profile.authorityBasis !== 'adult_permission_or_authority') return json(response, 409, { code: 'managed_child_ai_unavailable', error: 'AI label scanning is unavailable for child or unreviewed profiles pending child-focused privacy/provider assessment and approved action notices. Enter medicines manually.' });
   response.setHeader('X-DoctorAI-Profile', profile?.id || 'self');
   const access = await core.activeEntitlement(request, account);
   if (!access) return json(response, 403, { error: 'Medication image scanning is a DoctorAI Pro feature.' });
@@ -79,7 +80,9 @@ module.exports = async function handler(request, response) {
   } catch {
     return json(response, 400, { error: 'Invalid image scan request.' });
   }
+  if (!body || Array.isArray(body) || typeof body !== 'object') return json(response, 400, { error: 'Invalid image scan request.' });
   if (body.consent !== true) return json(response, 400, { error: 'Confirm that you want to send this medicine-label image to OpenAI for text extraction.' });
+  if (profile && body.managedActionConsent !== true) return json(response, 400, { error: 'Review the selected person’s photo disclosure and confirm authority and consent for this individual scan.' });
   const image = String(body.image || '');
   if (!decodedImage(image)) return json(response, 400, { error: 'Use a clear JPG, PNG or WEBP image small enough to send securely.' });
 
