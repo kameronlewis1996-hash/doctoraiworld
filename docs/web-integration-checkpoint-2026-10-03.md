@@ -35,3 +35,17 @@ Live page text was reviewed through the web tool. Direct browser access to `www.
 ## Focused next step
 
 Fix only the briefing dialog contrast, run the focused browser check, inspect the result, and decide the next single priority with the parent. Refresh current evidence and recheck affected privacy/consent behavior before publishing a draft PR or Preview. Native Android work remains owned by its separate thread; this branch has no native changes.
+
+## Focused follow-up — briefing contrast
+
+At the parent's request, only the two briefing label colors were darkened to `#405d73`. Their ratios are now 6.79:1 on `#fbfdff` and 6.93:1 on white. A `--briefing-only` mode was added to the existing browser verifier so this flow can be checked without expanding the audit.
+
+Commands run:
+
+- `DOCTORAI_CHROMIUM=/usr/bin/chromium DOCTORAI_WEB_EVIDENCE_DIR=/workspace/doctorai-web-evidence/briefing-after node scripts/verify-web-accessibility.cjs --briefing-only` — PASS: 8 assertions, 2 axe states (1440px and 390px), zero JavaScript errors, zero paid calls. Verifies opening/withholding consent makes no request, double activation makes one request, consent resets, Escape closes, and briefing accessibility in the two viewports.
+- `node scripts/verify-managed-client-guards.cjs` — PASS: declined transmissions, child blocking, managed disclosures and serialized document deletion.
+- `git diff --check` — PASS.
+
+The original failure was reproduced and captured before changing the CSS. Evidence: `/workspace/doctorai-web-evidence/briefing-before/briefing-1440.png`, `/workspace/doctorai-web-evidence/briefing-after/briefing-1440.png`, `/workspace/doctorai-web-evidence/briefing-after/briefing-390.png`, and `/workspace/doctorai-web-evidence/briefing-after/briefing-verification.json`. All data is synthetic. No Library upload, branch push, PR, deployment, credentials, paid calls or production changes.
+
+The earlier broad browser run remains incomplete. The next safe integration step is to run the remaining checks once, resolve any concrete failure, refresh evidence and cache versions, then publish the draft PR and fail-closed Preview without configuring credentials. This focused result does not establish full WCAG conformance or release readiness.

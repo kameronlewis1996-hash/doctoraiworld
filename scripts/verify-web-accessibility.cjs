@@ -39,6 +39,31 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
   await goto(page);
   check((await json(page, '/__test/writes')).synthetic === true, 'All browser flows run on the synthetic fixture');
   await page.locator('#storage-consent [data-device-storage-session]').click();
+  if (process.argv.includes('--briefing-only')) {
+    check(requests.filter(item => item.path === '/api/chat').length === 0, 'Opening the Hub sends no AI request');
+    await page.locator('.home-briefing-link').click();
+    check(requests.filter(item => item.path === '/api/chat').length === 0, 'Opening the briefing sends no AI request');
+    await page.locator('[data-generate-today-briefing]').click();
+    check(requests.filter(item => item.path === '/api/chat').length === 0, 'Briefing without consent sends no AI request');
+    await page.locator('[data-briefing-medication]').first().check();
+    await page.locator('[data-briefing-consent]').check();
+    await json(page, '/__test/latency?providerMs=500');
+    await page.locator('[data-generate-today-briefing]').evaluate(button => { button.click(); button.click(); });
+    await page.waitForFunction(() => document.getElementById('today-ai-output').textContent.includes('Synthetic educational'));
+    check(requests.filter(item => item.path === '/api/chat').length === 1, 'Double activation sends one synthetic briefing request');
+    check(!await page.locator('[data-briefing-consent]').isChecked(), 'Briefing consent resets after completion');
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.locator('#quick-modal').screenshot({ path: path.join(output, `briefing-${width}.png`) });
+      await axe(page, `briefing dialog at ${width}px`);
+    }
+    await page.keyboard.press('Escape');
+    check(!await page.locator('#quick-modal').evaluate(e => e.open), 'Escape closes the briefing');
+    check(errors.length === 0, 'No page JavaScript errors');
+    fs.writeFileSync(path.join(output, 'briefing-verification.json'), JSON.stringify({ synthetic: true, checks, audits, errors, requests, paidCalls: 0, limitations: ['Local Chromium with mocked provider/storage only', 'Automated checks do not establish WCAG conformance'] }, null, 2));
+    console.log(JSON.stringify({ checksPassed: checks.length, axeStates: audits.length, javascriptErrors: errors, evidence: output, paidCalls: 0 }, null, 2));
+    return;
+  }
   await page.locator('.skip-link').focus(); await page.keyboard.press('Enter');
   check(await page.locator('#main-content').evaluate(e => e === document.activeElement), 'Skip link moves keyboard focus to main content');
   await page.locator('.home-medication-manual-cta').click();

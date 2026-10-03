@@ -5291,7 +5291,7 @@ body[data-hub-theme] #view-medications > .page-heading .secondary-button {
 .today-dashboard-facts { display: grid; gap: 8px; margin: 0; }
 .today-dashboard-facts > div { display: grid; grid-template-columns: 95px minmax(0, 1fr); gap: 9px; padding-bottom: 7px; border-bottom: 1px solid #e6eff5; }
 .today-dashboard-facts > div:last-child { padding-bottom: 0; border-bottom: 0; }
-.today-dashboard-facts dt { color: #62798b; font-size: 10px; font-weight: 750; }
+.today-dashboard-facts dt { color: #405d73; font-size: 10px; font-weight: 750; }
 .today-dashboard-facts dd { min-width: 0; margin: 0; color: #173550; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
 .today-dashboard-empty p, .today-dashboard-no-appointment { margin: 0; color: #60788a; font-size: 11px; line-height: 1.5; }
 .today-dashboard-empty .secondary-button { min-height: 36px; margin-top: 9px; padding-inline: 11px; font-size: 10px; }
@@ -5309,7 +5309,7 @@ body[data-hub-theme] #view-medications > .page-heading .secondary-button {
 .today-medication-guidance-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: #e6f8f1; color: #168060; font-size: 14px; font-weight: 900; }
 .today-medication-guidance-list b { display: block; color: #173550; font-size: 12px; }
 .today-medication-guidance-list p { margin: 4px 0 0; color: #456478; font-size: 10px; line-height: 1.5; }
-.today-medication-guidance-list small { display: block; margin-top: 7px; color: #6b7f8c; font-size: 9px; line-height: 1.5; }
+.today-medication-guidance-list small { display: block; margin-top: 7px; color: #405d73; font-size: 9px; line-height: 1.5; }
 .today-medication-guidance-note { margin: 10px 0 0; padding: 10px 11px; border-radius: 10px; background: #eaf7fb; color: #496879; font-size: 9px; line-height: 1.55; }
 .today-medication-guidance-note strong { color: #145f80; }
 .today-medication-empty { padding: 12px; border: 1px dashed #cfe1e8; border-radius: 11px; color: #60788a; font-size: 10px; line-height: 1.5; background: #fff; }
