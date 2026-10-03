@@ -15,6 +15,9 @@ let delayMs = 0;
 let getDelayMs = 0;
 let providerDelayMs = 0;
 let failSave = false;
+let autoSignIn = true;
+let failAuth = false;
+const healthWrites = [];
 // Use real handlers with synthetic provider output. All other outbound calls
 // still go through the in-memory store's strict origin guard.
 const syntheticStorageFetch = global.fetch;
@@ -38,6 +41,8 @@ global.fetch = async (url, options) => {
       response.send = value => response.end(value);
       if (url.pathname === '/__test/plan') { await core.saveEntitlement(owner, { tier: url.searchParams.get('tier') === 'free' ? 'free' : 'pro', exp: core.nowSeconds() + 3600 }); return response.json({ synthetic: true }); }
       if (url.pathname === '/__test/account') { const account = url.searchParams.get('other') === '1' ? other : owner; response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(account)}; Path=/; HttpOnly; SameSite=Lax`); return response.json({ synthetic: true }); }
+      if (url.pathname === '/__test/auth') { autoSignIn = url.searchParams.get('auto') !== '0'; failAuth = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
+      if (url.pathname === '/__test/writes') return response.json({ synthetic: true, writes: healthWrites });
       if (url.pathname === '/__test/latency') { delayMs = Math.min(3000, Number(url.searchParams.get('ms')) || 0); getDelayMs = Math.min(3000, Number(url.searchParams.get('getMs')) || 0); providerDelayMs = Math.min(3000, Number(url.searchParams.get('providerMs')) || 0); failSave = url.searchParams.get('fail') === '1'; return response.json({ synthetic: true }); }
       if (url.pathname.startsWith('/api/')) {
         request.query = Object.fromEntries(url.searchParams);
@@ -45,12 +50,15 @@ global.fetch = async (url, options) => {
         request.body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : {};
         if (url.pathname === '/api/auth/google') {
           if (request.method === 'DELETE') { response.setHeader('Set-Cookie', 'doctorai_session=; Path=/; Max-Age=0'); return response.json({ authenticated: false }); }
+          if (failAuth) return response.status(503).json({ error: 'Synthetic authentication outage' });
           const account = await core.identityFromRequest(request);
           return response.json({ authenticated: Boolean(account), user: account ? { accountId: core.accountKey(account), name: account.name, email: account.email, sub: account.sub } : null });
         }
         if (url.pathname === '/api/auth/config') return response.json({ configured: false });
         if (url.pathname === '/api/stripe/entitlement') { const account = await core.identityFromRequest(request); const entitlement = await core.activeEntitlement(request, account); return response.json({ active: Boolean(entitlement), tier: entitlement ? 'pro' : 'free', expiresAt: entitlement?.exp }); }
         if (url.pathname === '/api/health/state' && request.method === 'PUT') {
+          const account = await core.identityFromRequest(request);
+          healthWrites.push({ ownerId: account ? core.accountKey(account) : null, profileId: request.query.profileId || request.headers['x-doctorai-profile'] || 'self', state: request.body.state });
           if (delayMs) await new Promise(resolve => setTimeout(resolve, delayMs));
           if (failSave) return response.status(503).json({ error: 'Synthetic save failure' });
         }
@@ -65,7 +73,7 @@ global.fetch = async (url, options) => {
       response.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream');
       response.setHeader('Cache-Control', 'no-store');
       // The preview signs in a synthetic owner only; no real OAuth credentials.
-      if (filename === 'health-hub.html' && !request.headers.cookie?.includes('doctorai_session=')) response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(owner)}; Path=/; HttpOnly; SameSite=Lax`);
+      if (autoSignIn && filename === 'health-hub.html' && !request.headers.cookie?.includes('doctorai_session=')) response.setHeader('Set-Cookie', `doctorai_session=${core.signedToken(owner)}; Path=/; HttpOnly; SameSite=Lax`);
       response.end(fs.readFileSync(file));
     } catch { response.statusCode = 500; response.end('Synthetic preview error'); }
   });

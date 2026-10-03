@@ -4,7 +4,9 @@
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { installTestStore, responseRecorder } = require('./managed-profile-test-store.cjs');
-const store = installTestStore();
+const realRedis = Boolean(process.env.DOCTORAI_REDIS_TEST_CONTAINER);
+const redisCommand = realRedis ? require('./local-redis-test-command.cjs').localRedisCommand(process.env.DOCTORAI_REDIS_TEST_CONTAINER) : null;
+const store = installTestStore({ redisCommand });
 const core = require('../server-src/_lib/doctorai-core.cjs');
 const health = require('../server-src/health/state.js');
 const documents = require('../api/documents.js');
@@ -81,5 +83,7 @@ function holdFirstCas() {
   store.controls.beforeCas = null;
   const concurrent = await Promise.all([call(health, 'PUT', { state: { ...reloaded.state, profile: { notes: 'First update' } }, revision: reloaded.revision }), call(health, 'PUT', { state: { ...reloaded.state, profile: { notes: 'Second update' } }, revision: reloaded.revision })]);
   assert.deepEqual(concurrent.map(result => result.statusCode).sort(), [200, 409]);
-  console.log('Health concurrency verification passed: simultaneous document deletes, delete/PUT in both orders, preserved medication/notes, stale/missing/invalid revision rejection and two competing PUTs. Real handlers/encryption; Redis CAS and Blob are mocked.');
+  if (realRedis) assert.ok(store.casMetrics.conflicts >= 3, 'The actual Redis Lua path must experience and safely handle conflicting snapshots.');
+  console.log('Health concurrency verification passed: simultaneous document deletes, delete/PUT in both orders, preserved medication/notes, stale/missing/invalid revision rejection and two competing PUTs. Real handlers/encryption; ' + (realRedis ? 'actual local Redis Lua/CAS and durable hash commands; Blob and rate-limit pipeline mocked.' : 'Redis CAS and Blob mocked.'));
+  if (realRedis) console.log(JSON.stringify({ realRedis: true, cas: store.casMetrics, externalStorageCalls: 0, realBlobCalls: 0 }));
 })().catch(error => { console.error(error); process.exitCode = 1; });

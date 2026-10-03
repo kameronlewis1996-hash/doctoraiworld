@@ -8,7 +8,18 @@
   const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
   let activePersonId = 'self';
   let personEpoch = 0;
-  let browserSelfOwner = '';
+  let selfCacheCandidate = null;
+  let selfRecoveryActive = false;
+  let recoveryBeforeState = null;
+  let recoveryBaseRevision = null;
+  let guestRecoveryState = null;
+  let authRequestEpoch = 0;
+  let cacheLocalDirty = false;
+  let cacheWritesBlocked = false;
+  let selfCloudReady = false;
+  let cloudLoadEpoch = 0;
+  let pendingCacheRecoveryReview = null;
+  const recoverySessionDrafts = new Map();
   let currentSelfOwner = '';
   const selfSessionStates = new Map();
   const personAlertAcks = new Set();
@@ -18,16 +29,26 @@
   let localStorageAllowed = false;
   try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; } catch {}
 
+  const selfCache = window.DoctorAISelfCache.create({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) });
+  const preferenceKeys = new Set(['profile-shortcuts', 'chat-response-length']);
   const read = (key, fallback) => {
-    if (deviceStorageChoice === 'session') return fallback;
-    try {
-      const value = localStorage.getItem(storagePrefix + key);
-      return value ? JSON.parse(value) : fallback;
-    } catch { return fallback; }
+    // Health starts blank until a server session confirms the opaque owner ID.
+    if (!preferenceKeys.has(key) || deviceStorageChoice === 'session') return fallback;
+    try { const value = localStorage.getItem(storagePrefix + key); return value ? JSON.parse(value) : fallback; } catch { return fallback; }
   };
+  function persistSelfCache() {
+    if (activePersonId !== 'self' || !window.DoctorAISelfCache.validOwner(currentSelfOwner)) return false;
+    if (selfRecoveryActive) recoverySessionDrafts.set(currentSelfOwner, { state: serialiseHealthState(), beforeState: recoveryBeforeState || {}, revision: recoveryBaseRevision, pendingRecovery: true });
+    if (!localStorageAllowed || cacheWritesBlocked) return false;
+    return selfCache.write(currentSelfOwner, serialiseHealthState(), selfRecoveryActive
+      ? { kind: 'recovery', revision: recoveryBaseRevision, updatedAt: localStateUpdatedAt, beforeState: recoveryBeforeState || {}, pendingRecovery: true }
+      : { revision: cloudRecordRevision, updatedAt: localStateUpdatedAt, dirty: cacheLocalDirty });
+  }
   const write = (key, value) => {
-    if (!localStorageAllowed || (!['profile-shortcuts'].includes(key) && (activePersonId !== 'self' || (browserSelfOwner && browserSelfOwner !== currentSelfOwner)))) return;
-    try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {}
+    if (!localStorageAllowed) return;
+    if (preferenceKeys.has(key)) { try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {} return; }
+    // A complete health snapshot is stored once, after its edit timestamp.
+    if (key === 'updated-at') persistSelfCache();
   };
   const clone = value => JSON.parse(JSON.stringify(value));
   const emptyProfile = { name: '', bloodType: '', allergies: '', conditions: '', notes: '', medicationSafetyTerms: { allergies: [], conditions: [], symptoms: [], unmatched: [], reviewed: { allergies: false, conditions: false, symptoms: false } } };
@@ -344,11 +365,12 @@
     try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
     if (storageConsent) storageConsent.hidden = true;
     if (allowed) saveState();
-    setSyncStatus(allowed ? 'Saved in this browser' : 'Device storage off · session only');
-    showToast(allowed ? 'This browser will keep your health hub between visits.' : 'Health-hub changes will stay only for this session unless account sync is active.');
+    setSyncStatus(deviceStorageStatus());
+    showToast(allowed && currentSelfOwner ? 'This browser will keep self records for this signed-in account.' : allowed ? 'Preferences saved. Sign in for account-bound health storage, or export this session.' : 'Health-hub changes will stay only for this session unless account sync is active.');
     renderHomePrescriptionAlert();
   }
   const saveState = () => {
+    if (activePersonId === 'self') cacheLocalDirty = true;
     write('medications', state.medications);
     write('appointments', state.appointments);
     write('providers', state.providers);
@@ -360,8 +382,8 @@
     write('memory-enabled', state.memoryEnabled);
     write('memory-details', state.memoryDetails);
     localStateUpdatedAt = Date.now();
-    write('updated-at', localStateUpdatedAt);
     queueCloudSave();
+    write('updated-at', localStateUpdatedAt);
   };
 
   const serialiseHealthState = () => ({
@@ -377,7 +399,8 @@
   let documentDeletionBusy = false;
   const activeManagedPerson = () => managedProfiles.find(person => person.id === activePersonId);
   const managedReadOnly = () => activePersonId !== 'self' && (!hasProAccess() || Boolean(activeManagedPerson()?.archivedAt));
-  const managedAiUnavailable = () => activePersonId !== 'self' && activeManagedPerson()?.authorityBasis !== 'adult_permission_or_authority';
+  const managedAiUnavailable = () => (activePersonId === 'self' && selfRecoveryActive) || (activePersonId !== 'self' && activeManagedPerson()?.authorityBasis !== 'adult_permission_or_authority');
+  const unavailableAiMessage = () => selfRecoveryActive && activePersonId === 'self' ? 'Recovery draft: review and explicitly save it, or return to saved account records, before using AI.' : 'Child AI and label scans are unavailable pending privacy/provider review. Manual records remain available.';
   const personName = () => activePersonId === 'self' ? 'Myself' : activeManagedPerson()?.name || 'Managed profile';
   const personDocumentUrl = id => `/api/documents?id=${encodeURIComponent(id)}${activePersonId === 'self' ? '' : `&profileId=${encodeURIComponent(activePersonId)}`}`;
   const personMutationSelector = '[data-modal], [data-add-menu], [data-edit-medication], [data-delete-medication], [data-edit-symptom], [data-delete-symptom], [data-delete-appointment], [data-edit-provider], [data-med-toggle], [data-med-missed], [data-task-toggle], [data-file-action], [data-medication-safety-profile]';
@@ -472,11 +495,12 @@
       }
     });
     $$(unsupportedPersonSelector + ', ' + managedAiSelector + ', #result-upload, #document-upload, #document-upload-inline').forEach(control => {
-      const disabled = activePersonId !== 'self' && (control.matches(unsupportedPersonSelector) || managedReadOnly() || (control.matches(managedAiSelector) && managedAiUnavailable()));
+      const disabled = (activePersonId !== 'self' && (control.matches(unsupportedPersonSelector) || managedReadOnly())) || (control.matches(managedAiSelector) && managedAiUnavailable());
       if (disabled) { if (!control.disabled) control.dataset.scopeDisabled = 'true'; control.disabled = true; }
       else if (control.dataset.scopeDisabled) { control.disabled = false; delete control.dataset.scopeDisabled; }
     });
-    if (activePersonId !== 'self') setChatStatus(managedAiUnavailable() ? 'Child AI and label scans are unavailable pending privacy/provider review. Manual records remain available.' : managedReadOnly() ? 'This profile is read only. Restore it with Pro to use chat or label scans.' : `Chat about ${personName()}. Only this person’s approved Health Memory is used.`, false);
+    if (managedAiUnavailable()) setChatStatus(unavailableAiMessage(), false);
+    else if (activePersonId !== 'self') setChatStatus(managedAiUnavailable() ? unavailableAiMessage() : managedReadOnly() ? 'This profile is read only. Restore it with Pro to use chat or label scans.' : `Chat about ${personName()}. Only this person’s approved Health Memory is used.`, false);
   }
 
   async function loadManagedProfiles() {
@@ -503,7 +527,7 @@
     window.clearTimeout(cloudSyncTimer);
     try {
       if (els.modal.open && els.modalBody.querySelector('form') && !window.confirm('Discard this unfinished form and switch people? Saved records are kept.')) return;
-      if (cloudSyncDirty || cloudSaveFailed) {
+      if ((cloudSyncDirty || cloudSaveFailed) && !selfRecoveryActive) {
         // The transition owns this flush; new user operations remain blocked.
         if (!await guardedPersonOperations.saveCloudState() && !window.confirm(`Private save failed for ${personName()}. Discard unsaved changes and switch? Saved records are kept; choose Cancel to retry or export your changes.`)) throw new Error('Switch cancelled. Current changes are kept.');
       }
@@ -511,7 +535,7 @@
       const response = await window.fetch(url, { cache: 'no-store', headers: { accept: 'application/json', 'x-doctorai-account': authUser.accountId } });
       const payload = await response.json();
       if (!response.ok || payload.profileId !== id) throw new Error(payload.error || 'Records could not be loaded safely.');
-      if (activePersonId === 'self') selfStateSnapshot = serialiseHealthState();
+      if (activePersonId === 'self') { persistSelfCache(); selfStateSnapshot = selfRecoveryActive ? recoveryBeforeState || {} : serialiseHealthState(); selfRecoveryActive = false; recoveryBeforeState = null; recoveryBaseRevision = null; }
       closeModal(); closePrivacy(); closeMedicationScanner(); closeProfile();
       closeMedicationSafetyAlert(false);
       clearTimeout(medicationAlertTimer); medicationAlertFingerprint = '';
@@ -591,7 +615,7 @@
   }
 
 
-  const hasHealthState = value => Boolean(value?.medications?.length || value?.appointments?.length || value?.providers?.length || value?.timeline?.length || value?.documents?.length || value?.measurements?.length || value?.tasks?.length || value?.memoryDetails?.length || Object.values(value?.profile || {}).some(Boolean));
+  const hasHealthState = value => Boolean(value?.medications?.length || value?.appointments?.length || value?.providers?.length || value?.timeline?.length || value?.documents?.length || value?.measurements?.length || value?.tasks?.length || value?.memoryDetails?.length || Object.entries(value?.profile || {}).some(([key, item]) => key !== 'medicationSafetyTerms' && Boolean(item)) || ['allergies', 'conditions', 'symptoms', 'unmatched'].some(key => value?.profile?.medicationSafetyTerms?.[key]?.length));
 
   function applyCloudState(value) {
     if (!value || typeof value !== 'object') return;
@@ -611,21 +635,24 @@
   }
 
   function deviceStorageStatus() {
-    if (localStorageAllowed) return 'Saved in this browser';
+    if (selfRecoveryActive) return 'Recovery draft · account sync paused';
+    if (localStorageAllowed && currentSelfOwner) return 'Saved in this browser for this account';
+    if (!currentSelfOwner) return 'Signed-out health data stays in this session · export to keep a copy';
     if (deviceStorageChoice === 'session') return 'Device storage off · session only';
     return 'Choose storage settings';
   }
   function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; }
   function queueCloudSave() {
     if (!authUser || !cloudSyncEnabled || managedReadOnly() || personSwitchBusy) return;
-    cloudSyncDirty = true;
     cloudSyncRevision += 1;
+    if (activePersonId === 'self' && (selfRecoveryActive || !selfCloudReady)) { cloudSyncDirty = true; return; }
+    cloudSyncDirty = true;
     window.clearTimeout(cloudSyncTimer);
     cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 900);
   }
-  async function saveCloudState() {
+  async function saveCloudState({ reviewedRecovery = false } = {}) {
     const personContext = capturePersonContext();
-    if (!authUser || !cloudSyncEnabled || managedReadOnly()) return false;
+    if (!authUser || !cloudSyncEnabled || managedReadOnly() || (activePersonId === 'self' && (currentSelfOwner !== authUser.accountId || !selfCloudReady || (selfRecoveryActive && !reviewedRecovery)))) return false;
     if (cloudSyncBusy) { cloudSyncDirty = true; return; }
     const revision = cloudSyncRevision;
     const stateToSave = serialiseHealthState();
@@ -641,6 +668,7 @@
       }
       cloudRecordRevision = payload.revision;
       if (revision === cloudSyncRevision && !cloudSyncDirty) {
+        cacheLocalDirty = false;
         localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
         write('updated-at', localStateUpdatedAt);
         setSyncStatus('Private data synced');
@@ -650,32 +678,45 @@
     } catch (error) { if (!personContextIsCurrent(personContext)) return false; cloudSaveFailed = true; cloudSyncDirty = true; setSyncStatus(error?.status === 409 ? 'Records changed · export unsaved changes or reload before saving' : 'Private save failed · retry before switching'); return false; }
     finally {
       cloudSyncBusy = false;
-      if (cloudSyncDirty && !cloudSaveFailed && authUser && cloudSyncEnabled) {
+      if (cloudSyncDirty && !cloudSaveFailed && authUser && cloudSyncEnabled && !(activePersonId === 'self' && selfRecoveryActive)) {
         window.clearTimeout(cloudSyncTimer);
         cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 0);
       }
     }
   }
   async function loadCloudState() {
+    const loadTicket = ++cloudLoadEpoch;
+    const startingRevision = cloudSyncRevision;
     const personContext = capturePersonContext();
     if (!authUser || !cloudSyncEnabled) return;
     setSyncStatus('Checking private account data…');
     try {
       const response = await fetch('/api/health/state', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
-      if (!personContextIsCurrent(personContext)) return;
-      if (!cloudSyncEnabled) return;
+      if (!personContextIsCurrent(personContext) || loadTicket !== cloudLoadEpoch) return;
+      if (!cloudSyncEnabled || (activePersonId === 'self' && selfRecoveryActive)) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be loaded.');
       }
+      const localBeforeLoad = activePersonId === 'self' && (cacheLocalDirty || cloudSyncRevision !== startingRevision) ? { v: 2, ownerId: currentSelfOwner, profileId: 'self', kind: 'record', state: serialiseHealthState(), revision: cloudRecordRevision, updatedAt: localStateUpdatedAt, dirty: true } : null;
       cloudRecordRevision = payload.revision || null;
+      if (activePersonId === 'self') selfCloudReady = true;
       const cloudState = payload.state; const cloudUpdatedAt = Number(payload.updatedAt || 0);
-      if (cloudState && (!hasHealthState(serialiseHealthState()) || cloudUpdatedAt > localStateUpdatedAt)) {
-        applyCloudState(cloudState); localStateUpdatedAt = cloudUpdatedAt || Date.now(); write('updated-at', localStateUpdatedAt); renderAll();
-      } else if (hasHealthState(serialiseHealthState())) queueCloudSave();
+      if (activePersonId === 'self' && (selfCacheCandidate || localBeforeLoad)) {
+        const candidate = localBeforeLoad || selfCacheCandidate; selfCacheCandidate = null;
+        if (candidate.dirty) {
+          cacheWritesBlocked = !selfCache.preserve(currentSelfOwner, candidate);
+          applyCloudState(cloudState || {}); cacheLocalDirty = false; localStateUpdatedAt = cloudUpdatedAt;
+          if (!cacheWritesBlocked) persistSelfCache();
+          renderAll(); setSyncStatus('Device changes preserved · review or export in Privacy before saving'); return;
+        }
+      }
+      // Startup never uploads a cache on the basis of its timestamp. Local
+      // unsynced copies are retained for deliberate named-account recovery.
+      applyCloudState(cloudState || {}); cacheLocalDirty = false; localStateUpdatedAt = cloudUpdatedAt; persistSelfCache(); renderAll();
       setSyncStatus('Private data synced');
-    } catch { setSyncStatus(deviceStorageStatus()); }
+    } catch { if (personContextIsCurrent(personContext) && loadTicket === cloudLoadEpoch) setSyncStatus(deviceStorageStatus()); }
   }
 
   function updateDate() {
@@ -1318,7 +1359,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const personContext = capturePersonContext();
     const output = $('#today-ai-output');
     if (!output) return;
-    if (managedAiUnavailable()) { output.classList.remove('loading'); output.textContent = 'AI briefings are unavailable for child profiles pending privacy/provider review. Saved manual records are available above.'; return; }
+    if (managedAiUnavailable()) { output.classList.remove('loading'); output.textContent = unavailableAiMessage(); return; }
     if (managedReadOnly()) { output.classList.remove('loading'); output.textContent = 'This profile is read only. Review this person’s saved records above.'; return; }
     if (!authUser) {
       output.classList.remove('loading');
@@ -1473,8 +1514,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function medicationAlertAcknowledged(fingerprint) {
-    if (activePersonId !== 'self') return personAlertAcks.has(activePersonId + ':' + fingerprint);
-    try { return sessionStorage.getItem('doctorai-medication-alert-ack-v1') === fingerprint; } catch { return false; }
+    if (activePersonId !== 'self' || !currentSelfOwner) return personAlertAcks.has(activePersonId + ':' + fingerprint);
+    try { return sessionStorage.getItem('doctorai-medication-alert-ack-v2:' + currentSelfOwner) === fingerprint; } catch { return false; }
   }
 
   function queueMedicationSafetyAlert(status) {
@@ -1496,9 +1537,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function closeMedicationSafetyAlert(acknowledge = true) {
     clearTimeout(medicationAlertTimer);
-    if (acknowledge && medicationAlertFingerprint && activePersonId !== 'self') personAlertAcks.add(activePersonId + ':' + medicationAlertFingerprint);
-    if (acknowledge && medicationAlertFingerprint && activePersonId === 'self') {
-      try { sessionStorage.setItem('doctorai-medication-alert-ack-v1', medicationAlertFingerprint); } catch {}
+    if (acknowledge && medicationAlertFingerprint && (activePersonId !== 'self' || !currentSelfOwner)) personAlertAcks.add(activePersonId + ':' + medicationAlertFingerprint);
+    if (acknowledge && medicationAlertFingerprint && activePersonId === 'self' && currentSelfOwner) {
+      try { sessionStorage.setItem('doctorai-medication-alert-ack-v2:' + currentSelfOwner, medicationAlertFingerprint); } catch {}
     } else if (!acknowledge) medicationAlertFingerprint = '';
     if (els.medicationAlertModal?.open) els.medicationAlertModal.close();
   }
@@ -1947,10 +1988,90 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (restoreFocus && profileReturnFocus?.isConnected) profileReturnFocus.focus({ preventScroll: true });
     profileReturnFocus = null;
   }
+  function recoveryDraft() {
+    if (!authUser || currentSelfOwner !== authUser.accountId) return null;
+    return recoverySessionDrafts.get(currentSelfOwner) || selfCache.read(currentSelfOwner, 'recovery');
+  }
+  function recoverySource(source) {
+    if (source === 'legacy') { const value = selfCache.legacy(); return value.exists ? { state: value.state, rawEntries: value.rawEntries, recoverable: value.recoverable } : null; }
+    if (source === 'guest') return guestRecoveryState ? { state: guestRecoveryState, recoverable: true } : null;
+    if (!authUser || currentSelfOwner !== authUser.accountId) return null;
+    if (source === 'draft') { const value = recoveryDraft(); return value ? { ...value, recoverable: true } : null; }
+    if (/^device:[0-9]+$/.test(source)) { const value = selfCache.preserved(currentSelfOwner)[Number(source.split(':')[1])]; return value ? { ...value, recoverable: true } : null; }
+    return null;
+  }
+  function renderCacheRecovery() {
+    const section = $('#self-cache-recovery'); if (!section) return;
+    const legacy = selfCache.legacy(); const copies = authUser ? selfCache.preserved(currentSelfOwner) : [];
+    const draft = recoveryDraft(); const hasDraft = draft?.pendingRecovery;
+    section.hidden = !legacy.exists && !copies.length && !guestRecoveryState && !draft;
+    const row = (label, source) => `<p>${escapeHTML(label)}</p><div class="modal-actions"><button class="secondary-button" type="button" data-export-cache="${source}">Export this device copy</button><button class="secondary-button" type="button" data-review-cache="${source}" ${authUser && activePersonId === 'self' ? '' : 'disabled'}>Review for Myself · ${escapeHTML(authUser?.name || 'sign in first')}</button></div>`;
+    section.innerHTML = '<h3>Recover older device data</h3><p>Older unowned entries are kept separate. They are never loaded or uploaded automatically, and account deletion does not remove this quarantine. Export them if unsure who they belong to. Recovery is for your own self profile; keep other people’s records separate.</p>'
+      + (legacy.exists ? row('Unlinked entries from an earlier version', 'legacy') : '')
+      + (guestRecoveryState ? row('Unsigned-in entries from this session', 'guest') : '')
+      + copies.map((value, index) => row(`Preserved device copy ${index + 1} for this account`, `device:${index}`)).join('')
+      + (draft ? `<p>${hasDraft ? 'A recovery draft is preserved for this account. It does not sync automatically.' : 'A completed recovery and its prior account snapshot are kept for export.'}</p><div class="modal-actions"><button class="secondary-button" type="button" data-export-cache="draft">Export recovery and prior snapshot</button>${hasDraft && !selfRecoveryActive ? '<button class="secondary-button" type="button" data-review-cache="draft">Continue reviewed recovery</button>' : ''}</div>` : '')
+      + (selfRecoveryActive && activePersonId === 'self' ? '<p><b>Recovery draft · sync and AI paused.</b> Manual edits stay in this draft.</p><div class="modal-actions"><button class="primary-button" type="button" data-save-reviewed-cache>Save reviewed recovery to this account</button><button class="secondary-button" type="button" data-return-account-records>Return to saved account records</button></div>' : '');
+  }
+  function exportCacheRecovery(source) {
+    const value = recoverySource(source); if (!value) return;
+    const file = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), source, notice: 'Local recovery export. Legacy ownership is unverified; no data was uploaded. Document files are not included.', ...value }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(file); const link = document.createElement('a'); link.href = url;
+    link.download = `doctorai-device-recovery-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.append(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Device copy exported. Nothing was uploaded.');
+  }
+  function reviewCacheRecovery(source) {
+    if (!authUser || currentSelfOwner !== authUser.accountId || activePersonId !== 'self' || !selfCloudReady || personOperations || personSwitchBusy || cloudSyncBusy) { showToast('Select Myself and wait for your signed-in account records before recovery.'); return; }
+    const value = recoverySource(source); if (!value?.recoverable || !window.DoctorAISelfCache.validState(value.state)) { showToast('This device copy cannot be safely opened. Export it for recovery; its bytes are preserved.'); return; }
+    pendingCacheRecoveryReview = { ownerId: currentSelfOwner, epoch: personEpoch, value: clone(value) };
+    closePrivacy();
+    setModal('Review device recovery', `Myself · ${authUser.name || 'your account'}`, `<p class="modal-help">These entries will be recovered only as your own self record for ${escapeHTML(authUser.name || authUser.email)}. They will not be merged with current records or another person’s profile. Your existing account snapshot is kept separately. AI and sync remain paused until a separate explicit save.</p><details><summary>Review all fields in this device copy</summary><pre class="cache-recovery-fields">${escapeHTML(JSON.stringify(value.state, null, 2))}</pre></details><form class="modal-form" data-modal-form="self-cache-recovery"><label class="managed-person-confirmation"><input type="checkbox" name="confirmOwnRecords" required><span>I reviewed these fields and confirm they are my own health information, to recover for Myself under ${escapeHTML(authUser.name || authUser.email)}. If they belong to someone else, I will export them instead.</span></label><div class="modal-actions"><button class="secondary-button" type="button" data-close-modal>Cancel</button><button class="primary-button" type="submit">Recover as a paused draft</button></div></form>`);
+  }
+  function confirmCacheRecovery(form) {
+    const review = pendingCacheRecoveryReview;
+    if (!review || form.elements.confirmOwnRecords?.checked !== true || !authUser || review.ownerId !== currentSelfOwner || currentSelfOwner !== authUser.accountId || review.epoch !== personEpoch || activePersonId !== 'self' || !selfCloudReady || personOperations || personSwitchBusy || cloudSyncBusy) { showToast('Recovery was not applied. Review it again under the intended account.'); return; }
+    const previousDraft = recoveryDraft();
+    if (previousDraft) {
+      const saved = selfCache.preserve(currentSelfOwner, { ...previousDraft, ownerId: currentSelfOwner, profileId: 'self' });
+      if (localStorageAllowed && !saved) { showToast('Export the existing recovery first; this browser could not preserve it safely.'); return; }
+    }
+    const beforeState = review.value.beforeState || serialiseHealthState();
+    const baseRevision = review.value.pendingRecovery ? review.value.revision : cloudRecordRevision;
+    closeModal(); clearChat({ confirm: false, notify: false });
+    window.clearTimeout(cloudSyncTimer); cloudSyncDirty = false; cloudSaveFailed = false; cloudSyncRevision += 1;
+    selfRecoveryActive = true; recoveryBeforeState = clone(beforeState); recoveryBaseRevision = baseRevision;
+    applyCloudState({ ...clone(review.value.state), memoryEnabled: false }); cacheLocalDirty = true; localStateUpdatedAt = Date.now();
+    persistSelfCache(); renderAll(); setSyncStatus('Recovery draft · account sync and AI paused'); openPrivacy();
+    showToast('Reviewed device copy recovered as a paused draft. Nothing was uploaded.');
+  }
+  async function saveReviewedRecovery() {
+    if (!selfRecoveryActive || !authUser || currentSelfOwner !== authUser.accountId || activePersonId !== 'self' || !selfCloudReady || personOperations || personSwitchBusy || cloudSyncBusy) return;
+    if (recoveryBaseRevision !== cloudRecordRevision) { showToast('The saved account record changed. Export this draft and return to account records before reviewing again.'); return; }
+    if (!window.confirm(`Replace the saved self health record for ${authUser.name || 'this account'} with this reviewed draft? A prior snapshot is retained in the recovery export. Other people’s records stay separate.`)) return;
+    const context = capturePersonContext(); const revision = cloudSyncRevision;
+    if (!await saveCloudState({ reviewedRecovery: true }) || !personContextIsCurrent(context)) return;
+    recoveryBaseRevision = cloudRecordRevision;
+    if (revision !== cloudSyncRevision || cloudSyncDirty) { persistSelfCache(); showToast('Some edits changed while saving. Review and explicitly save the remaining draft again.'); return; }
+    const complete = { state: serialiseHealthState(), beforeState: recoveryBeforeState || {}, revision: cloudRecordRevision, pendingRecovery: false };
+    recoverySessionDrafts.set(currentSelfOwner, complete);
+    if (localStorageAllowed) selfCache.write(currentSelfOwner, complete.state, { ...complete, kind: 'recovery', updatedAt: localStateUpdatedAt });
+    selfRecoveryActive = false; cacheLocalDirty = false; recoveryBeforeState = null; recoveryBaseRevision = null;
+    persistSelfCache(); renderAll(); renderCacheRecovery(); setSyncStatus('Reviewed recovery saved to this account');
+  }
+  async function returnToAccountRecords() {
+    if (!selfRecoveryActive || activePersonId !== 'self' || personOperations || cloudSyncBusy || personSwitchBusy) return;
+    persistSelfCache(); const before = recoveryBeforeState || {};
+    selfRecoveryActive = false; recoveryBeforeState = null; recoveryBaseRevision = null; cacheLocalDirty = false; cloudSyncDirty = false; cloudSaveFailed = false;
+    selfCloudReady = false; window.clearTimeout(cloudSyncTimer); applyCloudState(before); renderAll();
+    await loadCloudState(); renderCacheRecovery();
+  }
+
   function openPrivacy() {
+    renderCacheRecovery();
     if (!els.privacyModal.open) els.privacyModal.showModal();
   }
-  function closeModal() { if (els.modal.open) els.modal.close(); }
+  function closeModal() { pendingCacheRecoveryReview = null; if (els.modal.open) els.modal.close(); }
   function closePrivacy() { if (els.privacyModal.open) els.privacyModal.close(); }
   function setGoogleSigninStatus(message, tone = '') {
     if (!els.googleSigninStatus) return;
@@ -1973,28 +2094,31 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.alt = signedIn ? 'Account initials' : '';
   }
   function renderAccountSession(user) {
-    const previousEmail = String(authUser?.email || '').trim().toLowerCase();
-    const nextEmail = String(user?.email || '').trim().toLowerCase();
-    if (previousEmail && previousEmail !== nextEmail) {
-      selfSessionStates.set(previousEmail, activePersonId === 'self' ? serialiseHealthState() : selfStateSnapshot || {});
-      currentSelfOwner = nextEmail;
+    const previousOwner = currentSelfOwner;
+    const nextOwner = window.DoctorAISelfCache.validOwner(user?.accountId) ? user.accountId : '';
+    if (previousOwner !== nextOwner) {
+      if (previousOwner) {
+        if (activePersonId === 'self') { persistSelfCache(); selfSessionStates.set(previousOwner, { state: serialiseHealthState(), revision: cloudRecordRevision, updatedAt: localStateUpdatedAt, recovery: selfRecoveryActive }); }
+      } else if (hasHealthState(serialiseHealthState())) guestRecoveryState = serialiseHealthState();
       personEpoch += 1;
       clearChat({ confirm: false, notify: false });
-      if (activePersonId !== 'self') {
-        activePersonId = 'self';
-        closeModal(); closeMedicationScanner(); closePrivacy();
-      }
+      closeModal(); closeMedicationScanner(); closePrivacy();
+      activePersonId = 'self'; selfStateSnapshot = null; selfCacheCandidate = null;
       managedProfiles = []; managedProfilesStatus = '';
-      cloudSyncDirty = false; cloudSaveFailed = false;
-      cloudRecordRevision = null;
+      cloudSyncDirty = false; cloudSaveFailed = false; cloudRecordRevision = null;
+      selfRecoveryActive = false; recoveryBeforeState = null; recoveryBaseRevision = null; cacheLocalDirty = false; cacheWritesBlocked = false; selfCloudReady = false; cloudLoadEpoch += 1; pendingCacheRecoveryReview = null;
       window.clearTimeout(cloudSyncTimer);
       subscriptionTier = 'free';
-      applyCloudState({});
+      applyCloudState({}); localStateUpdatedAt = 0;
     }
-    currentSelfOwner = nextEmail;
-    if (nextEmail && !browserSelfOwner) browserSelfOwner = nextEmail;
-    if (!previousEmail && nextEmail && selfSessionStates.has(nextEmail)) applyCloudState(selfSessionStates.get(nextEmail));
-    authUser = user || null;
+    currentSelfOwner = nextOwner;
+    authUser = nextOwner ? user : null;
+    if (nextOwner && previousOwner !== nextOwner) {
+      selfCacheCandidate = localStorageAllowed ? selfCache.read(nextOwner) : null;
+      const session = selfSessionStates.get(nextOwner);
+      if (!selfCacheCandidate && session && !session.recovery) selfCacheCandidate = { ...session, ownerId: nextOwner, profileId: 'self', dirty: true };
+      if (selfCacheCandidate) { applyCloudState(selfCacheCandidate.state); localStateUpdatedAt = Number(selfCacheCandidate.updatedAt) || 0; cacheLocalDirty = Boolean(selfCacheCandidate.dirty); }
+    }
     const signedIn = Boolean(authUser);
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
     const firstName = displayName.split(/\s+/)[0];
@@ -2055,14 +2179,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     copy.textContent = `${parts.join(', ')} remaining · expires ${expiry.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
   }
   async function loadAccountSession() {
+    const requestEpoch = ++authRequestEpoch;
     try {
       const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
-      if (!response.ok) return renderAccountSession(null);
+      if (!response.ok) { if (requestEpoch === authRequestEpoch) renderAccountSession(null); return; }
       const payload = await response.json();
+      if (requestEpoch !== authRequestEpoch) return;
       renderAccountSession(payload.authenticated ? payload.user : null);
     } catch {
-      renderAccountSession(null);
-    } finally { accountSessionReady = true; }
+      if (requestEpoch === authRequestEpoch) renderAccountSession(null);
+    } finally { if (requestEpoch === authRequestEpoch) accountSessionReady = true; }
   }
   async function loadEntitlement() {
     try {
@@ -2083,7 +2209,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   async function signOut() {
     if (personOperations || personSwitchBusy || personManagementBusy) { showToast('An action is finishing. Wait a moment before signing out.'); return; }
-    if ((cloudSyncDirty || cloudSaveFailed) && !await saveCloudState() && !window.confirm('Private save failed. Sign out and discard unsaved changes? Choose Cancel to export or retry first. Saved server records are kept.')) return;
+    if (!selfRecoveryActive && (cloudSyncDirty || cloudSaveFailed) && !await saveCloudState() && !window.confirm('Private save failed. Sign out and discard unsaved changes? Choose Cancel to export or retry first. Saved server records are kept.')) return;
+    authRequestEpoch += 1;
     try { await fetch('/api/auth/google', { method: 'DELETE' }); } catch {}
     renderAccountSession(null);
     closeProfile();
@@ -2132,6 +2259,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       setGoogleSigninStatus('Google sign-in was cancelled. No health information was changed.');
       return;
     }
+    const requestEpoch = ++authRequestEpoch;
     try {
       const result = await fetch('/api/auth/google', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
       const payload = await result.json().catch(() => ({}));
@@ -2140,10 +2268,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         error.status = result.status;
         throw error;
       }
+      if (requestEpoch !== authRequestEpoch) return;
       renderAccountSession(payload.user || null);
       closeGoogleSignIn();
       showToast('Signed in to your private DoctorAI workspace.');
     } catch (error) {
+      if (requestEpoch !== authRequestEpoch) return;
       if (error?.status === 401) {
         setGoogleSigninStatus('Google sign-in could not be verified. Please try again and choose your Google account once more.', 'setup');
       } else if (error?.status === 429) {
@@ -3343,7 +3473,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function submitMedicationScan(image, options = {}) {
-    if (managedAiUnavailable()) { showToast('Child label scans are unavailable pending privacy/provider review. Enter medicines manually.'); return; }
+    if (managedAiUnavailable()) { showToast(unavailableAiMessage()); return; }
     const personContext = capturePersonContext();
     if (medicationScanBusy) return;
     if (!image || image.length > MAX_SCAN_DATA_URL) {
@@ -3774,7 +3904,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function sendChat(message, { retry = false } = {}) {
-    if (managedAiUnavailable()) { showToast('Child AI chat is unavailable pending privacy/provider review. Manual records remain available.'); return; }
+    if (managedAiUnavailable()) { showToast(unavailableAiMessage()); return; }
     if (managedReadOnly()) { showToast('Restore this profile with Pro before using chat.'); return; }
     const text = String(message ?? els.chatInput.value).trim();
     if (!text || chatBusy) return;
@@ -3892,6 +4022,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   const formatFileSize = bytes => bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
   async function addDocument(file) {
+    if (activePersonId === 'self' && selfRecoveryActive) { showToast('Return to saved account records or finish this reviewed recovery before changing private documents or deleting account data.'); return; }
     const personContext = capturePersonContext();
     if (managedReadOnly()) { showToast('This profile is read only. Existing files remain available.'); return; }
     if (!file) return;
@@ -3937,6 +4068,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function deleteDocument(id) {
+    if (activePersonId === 'self' && selfRecoveryActive) { showToast('Return to saved account records or finish this reviewed recovery before changing private documents or deleting account data.'); return; }
     if (documentDeletionBusy) { showToast('Wait for the current document deletion to finish.'); return; }
     const personContext = capturePersonContext();
     const document = state.documents.find(item => item.id === id);
@@ -3989,6 +4121,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function deleteHealthData() {
+    if (activePersonId === 'self' && selfRecoveryActive) { showToast('Return to saved account records or finish this reviewed recovery before changing private documents or deleting account data.'); return; }
     if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
     if (!window.confirm(`Delete health records for ${personName()}, including medications, symptoms, appointments, measurements, notes and documents? This cannot be undone. Other profiles are kept.`)) return;
@@ -4035,7 +4168,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     cloudRecordRevision = null;
     renderAll(); closePrivacy();
     setSyncStatus('Health data deleted');
-    showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
+    showToast(authUser && selfCache.legacy().exists ? 'Selected account records deleted. Older unowned device entries are preserved separately in Privacy recovery.' : authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
   }
 
   function handleModalSubmit(event) {
@@ -4044,6 +4177,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const form = event.target.closest('[data-modal-form]');
     if (!form) return;
     event.preventDefault();
+    if (form.dataset.modalForm === 'self-cache-recovery') { confirmCacheRecovery(form); return; }
     if (form.dataset.modalForm === 'managed-person') { submitPersonForm(form); return; }
     if (managedReadOnly() && !['symptom-guidance'].includes(form.dataset.modalForm)) { showToast('This profile is read only. You can view, export or delete existing records.'); return; }
     const values = Object.fromEntries(new FormData(form).entries());
@@ -4452,6 +4586,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function handleClick(event) {
     if (blockPersonTransitionEvent(event)) return;
+    const recoveryExport = event.target.closest('[data-export-cache]');
+    if (recoveryExport) { event.preventDefault(); exportCacheRecovery(recoveryExport.dataset.exportCache); return; }
+    const recoveryReview = event.target.closest('[data-review-cache]');
+    if (recoveryReview) { event.preventDefault(); reviewCacheRecovery(recoveryReview.dataset.reviewCache); return; }
+    if (event.target.closest('[data-save-reviewed-cache]')) { event.preventDefault(); await saveReviewedRecovery(); return; }
+    if (event.target.closest('[data-return-account-records]')) { event.preventDefault(); await returnToAccountRecords(); return; }
     if (event.target.closest('[data-family-support-info]')) {
       event.preventDefault();
       setModal('Caregiver support', 'Planned lifetime complimentary Pro', '<p class="modal-help">Lifetime complimentary Pro is planned for parents and legal guardians of children with disabilities, after manual eligibility verification. Lifetime means no annual renewal or expiry when the child turns 18.</p><p class="modal-help">The private review route and minimum proof requirements are being prepared. No proof can be submitted here yet. Keep evidence out of AI messages and ordinary health-document uploads.</p><p class="modal-help">Approval will not automatically cancel or change an existing subscription. Details will be reviewed before this program opens.</p><div class="modal-actions"><button class="primary-button" type="button" data-close-modal>Close</button></div>');
@@ -4470,7 +4610,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (personSwitchBusy && event.target.closest(personMutationSelector + ', [data-delete-document], [data-delete-health]')) { event.preventDefault(); return; }
     if (managedReadOnly() && event.target.closest(personMutationSelector)) { event.preventDefault(); showToast('This profile is read only. View, export or delete existing records.'); return; }
-    if (managedAiUnavailable() && event.target.closest(managedAiSelector)) { event.preventDefault(); showToast('Child AI and label scans are unavailable pending privacy/provider review.'); return; }
+    if (managedAiUnavailable() && event.target.closest(managedAiSelector)) { event.preventDefault(); showToast(unavailableAiMessage()); return; }
     if (managedReadOnly() && event.target.closest(managedAiSelector)) { event.preventDefault(); showToast('Restore this profile with Pro before using chat or label scans.'); return; }
     if (activePersonId !== 'self' && event.target.closest(unsupportedPersonSelector)) { event.preventDefault(); showToast('This action is unavailable for managed profiles. Use local medication guidance.'); return; }
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }

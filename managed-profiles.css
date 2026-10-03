@@ -33,3 +33,6 @@
 
 .family-support-note { font-size: 12px; line-height: 1.5; color: #627c8b; border-top: 1px solid #d9e9ef; padding-top: 12px; margin: 16px 0 0; }
 .family-support-note button { display: block; padding: 6px 0; text-align: left; }
+
+.cache-recovery-fields { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; font-size: 12px; }
+#self-cache-recovery { padding: 12px 0; border-bottom: 1px solid #d9e9ef; }

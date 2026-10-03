@@ -6,7 +6,7 @@ const source = fs.readFileSync('health-hub.js', 'utf8');
 const between = (start, end) => { const a = source.indexOf(start), b = source.indexOf(end, a); if (a < 0 || b < 0) throw new Error('UI fixture boundaries missing'); return source.slice(a, b); };
 const notices = []; let confirm = false; let requests = 0;
 const context = vm.createContext({ activePersonId: 'river', personName: () => 'River', window: { confirm: text => { notices.push(text); return confirm; } },
-  capturePersonContext: () => ({}), managedReadOnly: () => false, managedAiUnavailable: () => false, chatBusy: false, medicationScanBusy: false, MAX_SCAN_DATA_URL: 1000,
+  capturePersonContext: () => ({}), managedReadOnly: () => false, managedAiUnavailable: () => false, unavailableAiMessage: () => 'Child AI is unavailable', selfRecoveryActive: false, activePersonId: 'river', chatBusy: false, medicationScanBusy: false, MAX_SCAN_DATA_URL: 1000,
   authUser: { name: 'Synthetic owner' }, showToast() {}, fetch: async () => { requests++; throw new Error('No request should be sent after declining.'); },
   els: { chatInput: { value: 'Synthetic question' } }, $: () => ({ classList: { remove() {} } }) });
 vm.runInContext(between('  function confirmManagedTransmission(', '  async function submitPersonForm('), context);
@@ -33,7 +33,7 @@ vm.runInContext(between('  async function loadTodayIntelligence(', '  function n
   assert.equal(notices.length, 5, 'Child AI never reaches an activation consent prompt.');
 
   let release; const pending = new Promise(resolve => { release = resolve; });
-  const deletion = vm.createContext({ documentDeletionBusy: false, capturePersonContext: () => ({}), personContextIsCurrent: () => true,
+  const deletion = vm.createContext({ documentDeletionBusy: false, activePersonId: 'river', selfRecoveryActive: false, capturePersonContext: () => ({}), personContextIsCurrent: () => true,
     state: { documents: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }], timeline: [] }, window: { confirm: () => true }, managedReadOnly: () => true,
     cloudSyncRevision: 0, cloudSyncDirty: false, fetch: async () => { requests++; await pending; return { ok: true, json: async () => ({ state: { documents: [{ id: 'b', title: 'B' }], timeline: [] }, revision: 'synthetic_revision', updatedAt: 1 }) }; },
     applyCloudState(state) { deletion.state = state; }, write() {}, renderAll() {}, showToast() {}, setSyncStatus() {} });

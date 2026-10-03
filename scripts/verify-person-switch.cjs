@@ -12,7 +12,7 @@ function harness({ fail = false, dirty = false } = {}) {
   const target = deferred(); const decode = deferred();
   const writes = []; const renders = []; const messages = [];
   const controls = [{ disabled: false }, { disabled: true }];
-  const context = vm.createContext({ Headers, URL, console, setTimeout, clearTimeout,
+  const context = vm.createContext({ persistSelfCache() {}, selfRecoveryActive: false, recoveryBeforeState: null, recoveryBaseRevision: null, Headers, URL, console, setTimeout, clearTimeout,
     location: { href: 'http://synthetic.invalid/health-hub', origin: 'http://synthetic.invalid' },
     state: blank('Cedar'), authUser: { accountId: 'synthetic-owner' },
     els: { modal: { open: false }, modalBody: { replaceChildren() {} } },
@@ -85,6 +85,11 @@ function harness({ fail = false, dirty = false } = {}) {
   await Promise.resolve(); dirty.target.resolve(); await dirtySwitch;
   assert.equal(dirty.context.flushes, 1, 'Switch itself must still flush originating unsaved records.');
   assert.equal(dirty.context.activePersonId, 'river');
+  const paused = harness({ dirty: true }); paused.context.activePersonId = 'self'; paused.context.selfRecoveryActive = true; paused.context.recoveryBeforeState = blank('Saved self');
+  const pausedSwitch = paused.context.switchManagedPerson('river'); paused.target.resolve(); await pausedSwitch;
+  assert.equal(paused.context.flushes, 0, 'Switching away from a paused recovery must never upload its unsynced edits.');
+  assert.equal(paused.context.activePersonId, 'river');
+  assert.equal(paused.context.selfStateSnapshot.profile.name, 'Saved self', 'Self fallback retains the prior account state, not recovered data.');
   for (const [name, end, resultKey] of [['runMedicationSafetyCheck', '  async function runIngredientSafetyCheck(', 'lastMedicationSafetyResult'], ['runIngredientSafetyCheck', '  async function handleClick(', 'lastIngredientSafetyResult']]) {
     const delayed = harness(); const body = deferred(); const headers = deferred();
     const c = delayed.context; c.activePersonId = 'self'; c[resultKey] = null;
