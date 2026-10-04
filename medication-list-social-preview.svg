@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Free Medication List Template for Appointments</title>
+  <desc id="desc">A blank printable DoctorAI organizer with writing areas for medicine label details and questions for the care team.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f8fcff"/>
+      <stop offset="1" stop-color="#dff4ff"/>
+    </linearGradient>
+    <filter id="paper-shadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#17476b" flood-opacity=".14"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#background)"/>
+  <circle cx="1090" cy="-20" r="260" fill="#bceeff" opacity=".55"/>
+  <circle cx="80" cy="620" r="240" fill="#d4f5ff" opacity=".65"/>
+  <image href="https://www.doctoraiworld.com/doctorai-public-logo-transparent.png?v=10" x="68" y="42" width="220" height="110" preserveAspectRatio="xMidYMid meet" aria-label="DoctorAI World logo"/>
+  <rect x="72" y="177" width="246" height="42" rx="21" fill="#e0f3fc"/>
+  <text x="94" y="205" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1.2" fill="#126aa5">FREE PRINTABLE · NZ</text>
+  <text x="70" y="302" font-family="Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.5" fill="#0b2346">Medication list</text>
+  <text x="72" y="362" font-family="Arial, sans-serif" font-size="36" font-weight="600" fill="#18344d">for your next appointment</text>
+  <text x="74" y="426" font-family="Arial, sans-serif" font-size="22" fill="#35566e">Keep label details and questions together.</text>
+  <text x="74" y="554" font-family="Arial, sans-serif" font-size="18" fill="#5e8197">A blank organizer, not a medicine safety check.</text>
+  <g transform="translate(790 86)" filter="url(#paper-shadow)">
+    <rect width="330" height="454" rx="25" fill="#ffffff"/>
+    <rect x="31" y="31" width="48" height="7" rx="3.5" fill="#126aa5"/>
+    <text x="31" y="75" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.1" fill="#526b80">MEDICATION LIST</text>
+    <g font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#126aa5">
+      <text x="31" y="125">NAME ON THE LABEL</text>
+      <text x="31" y="218">STRENGTH OR FORM</text>
+      <text x="31" y="311">QUESTIONS FOR YOUR CARE TEAM</text>
+      <text x="31" y="404">MEDICINE OR SUPPLEMENT</text>
+    </g>
+    <g stroke="#d8e6f0" stroke-width="3" stroke-linecap="round">
+      <path d="M31 150H292 M31 174H260"/>
+      <path d="M31 243H292 M31 267H260"/>
+      <path d="M31 336H292 M31 360H260"/>
+      <path d="M31 429H292"/>
+    </g>
+  </g>
+</svg>
