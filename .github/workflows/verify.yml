@@ -22,7 +22,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check:js
       - run: pnpm run verify:scan
-      - run: pnpm run verify:nzf
+      - run: pnpm run verify:medication-provider-retirement
       - run: pnpm run verify:server
       - run: pnpm run verify:medication-database
       - run: pnpm run verify:medication-safety
