@@ -18,7 +18,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/medication-list-template.css">
+  <link rel="stylesheet" href="/resource-share.css">
   <script defer src="/medication-list-template.js"></script>
+  <script defer src="/resource-share.js"></script>
 </head>
 <body class="medication-guide">
   <a class="guide-skip" href="#main">Skip to content</a>
@@ -39,12 +41,15 @@
         <p class="guide-eyebrow">A free, printable organizer</p>
         <h1>Medication list template for your next appointment</h1>
         <p class="guide-intro">Use this blank template to collect medicine details and questions in one place. Copy information from the package or pharmacy label when you can, add what you take each item for in your own words, and ask your pharmacist or clinician about anything you cannot confirm.</p>
-        <div class="guide-actions" role="group" aria-label="Choose how to organize your medicine list">
+        <div class="guide-actions" role="group" aria-label="Template actions">
           <button class="guide-button guide-print" id="print-template" type="button">Print blank template</button>
           <button class="guide-button" id="download-csv" type="button">Download blank CSV</button>
+          <button class="guide-button guide-button-secondary" data-share-resource data-share-title="Free Medication List Template" data-share-text="Share this blank template to organise medicine information for an appointment." type="button">Share this free template</button>
           <a class="guide-button guide-button-secondary" href="/health-hub#medications">Open free medicines list <span aria-hidden="true">→</span></a>
+          <input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public page link to share">
         </div>
         <p class="guide-utility-note">The CSV contains column headings only. The template does not collect or include your medicine details. Optional page counts are separate and off until you allow them below.</p>
+        <p class="guide-utility-note">Sharing offers only the public template link and a fixed description; it does not include your lookup or anything you typed.<span class="resource-share-status" data-share-status role="status" aria-live="polite"></span></p>
         <p class="guide-utility-note">Preparing for more than medicines? Use our <a href="/appointment-checklist">free New Zealand doctor appointment checklist</a>.</p>
       </header>
 
@@ -98,6 +103,10 @@
           </table>
         </div>
         <p class="guide-note"><strong>Last checked:</strong> 1 October 2026 &nbsp; <strong>Appointment date:</strong> ____________________</p>
+        <div class="guide-print-hub-link">
+          <img src="/health-hub-medications-qr.svg" alt="QR code linking to the free DoctorAI Health Hub medicines section" width="164" height="164">
+          <p><strong>Free digital version:</strong> Scan or visit <a href="/health-hub#medications">www.doctoraiworld.com/health-hub#medications</a></p>
+        </div>
       </section>
 
       <section class="guide-section guide-copy" aria-labelledby="include-title">

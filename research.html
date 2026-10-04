@@ -7,9 +7,19 @@
   <title>Latest Medical Research Explorer | DoctorAI</title>
   <meta name="description" content="Explore recent medical papers, search by topic, and browse daily, monthly and yearly highlights from Europe PMC with dates and original-source links.">
   <link rel="canonical" href="https://www.doctoraiworld.com/research">
+  <meta property="og:title" content="Latest Medical Research Explorer | DoctorAI">
+  <meta property="og:description" content="Explore recent medical papers, search by topic, and browse daily, monthly and yearly highlights from Europe PMC with dates and original-source links.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.doctoraiworld.com/research">
+  <meta property="og:site_name" content="DoctorAI World">
+  <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="DoctorAI World logo on a pale blue background with the words Your health, at a glance and labels for medicines, appointments, results, and documents.">
   <link rel="icon" type="image/png" href="/doctorai-app-icon.png?v=10">
   <link rel="apple-touch-icon" type="image/png" href="/doctorai-app-icon.png?v=10">
-  <link rel="stylesheet" href="/research.css?v=9">
+  <link rel="stylesheet" href="/research.css?v=10">
+  <link rel="stylesheet" href="/resource-share.css">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/site-shell.css?v=2">
   <script defer src="/site-shell.js?v=3"></script>
@@ -78,11 +88,29 @@
       </section>
     </section>
 
-    <section class="research-method"><div class="method-icon">✓</div><div><h2>Use research as a conversation starter</h2><p>Open the original paper before drawing conclusions. Research can be early, limited or updated over time.</p><p class="source-note">Primary index: <a href="https://europepmc.org/" target="_blank" rel="noopener">Europe PMC</a>. DoctorAI provides education and organisation—not diagnosis or treatment.</p><a class="hub-button research-method-cta" href="/health-hub#appointments">Open the free Health Hub <span aria-hidden="true">→</span></a></div></section>
+    <section class="research-method">
+      <div class="method-icon" aria-hidden="true">✓</div>
+      <div>
+        <h2>Use research as a conversation starter</h2>
+        <p>Open the original paper before drawing conclusions. Research can be early, limited or updated over time.</p>
+        <p class="source-note">Primary index: <a href="https://europepmc.org/" target="_blank" rel="noopener">Europe PMC</a>. DoctorAI provides education and organisation—not diagnosis or treatment.</p>
+        <a class="hub-button research-method-cta" href="/health-hub#appointments">Open the free Health Hub <span aria-hidden="true">→</span></a>
+        <section class="research-share" aria-labelledby="research-share-title">
+          <div class="research-share-copy">
+            <h3 id="research-share-title">Share this research explorer</h3>
+            <p>Only the public research page link and a fixed description are shared. Topic searches and private notes are not included.</p>
+          </div>
+          <button class="quiet-action research-share-button" data-share-resource data-share-title="Latest Medical Research Explorer | DoctorAI" data-share-text="Browse medical research with original source links, then open the free DoctorAI Health Hub." type="button">Share this research page</button>
+          <input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public research page link to share">
+          <p class="resource-share-status" data-share-status role="status" aria-live="polite" aria-atomic="true"></p>
+        </section>
+      </div>
+    </section>
   </main>
 
   <script src="/branding.js?v=10"></script>
   <script src="/logo-loader.js?v=10"></script>
   <script src="/research.js?v=8"></script>
+  <script src="/resource-share.js"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
 # DoctorAI Health Hub
 
+Open the [free DoctorAI Health Hub](https://www.doctoraiworld.com/health-hub) to organise appointments, medicines, symptoms, and notes. For print tools, see the [New Zealand appointment checklist](https://www.doctoraiworld.com/appointment-checklist) or the [medication-list template](https://www.doctoraiworld.com/medication-list-template).
+
 Source for [DoctorAI World](https://www.doctoraiworld.com), deployed as the `doctorai-health-hub` Vercel project.
 
 DoctorAI is a personal health organizer and information service. It does not diagnose, treat, or replace a qualified clinician or emergency service. Use the in-app medication coverage and privacy disclosures when reviewing scan or medication information.
