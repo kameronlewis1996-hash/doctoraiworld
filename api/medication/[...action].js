@@ -1,17 +1,18 @@
 'use strict';
 
 const handlers = {
-  'ingredient-search': () => require('./_handlers/ingredient-search.js'),
-  'nzf-interactions': () => require('./_handlers/nzf-interactions.js'),
-  'nzf-product-search': () => require('./_handlers/nzf-product-search.js'),
-  'safety-check': () => require('./_handlers/safety-check.js'),
   scan: () => require('./_handlers/scan.js'),
 };
+const retiredActions = new Set(['ingredient-search', 'nzf-interactions', 'nzf-product-search', 'safety-check']);
 
 module.exports = async function medicationAction(request, response) {
   const raw = request.query?.action;
   const fromPath = String(request.url || '').split('?')[0].split('/').filter(Boolean).pop();
   const action = Array.isArray(raw) ? (raw.length === 1 ? raw[0] : '') : String(raw || fromPath || '').split('/')[0];
+  if (retiredActions.has(action)) {
+    response.setHeader('Cache-Control', 'no-store, max-age=0');
+    return response.status(410).json({ error: 'This medication provider feature has been retired. Only the limited DoctorAI local rules check remains available.' });
+  }
   const load = handlers[action];
   if (!load) {
     response.setHeader('Cache-Control', 'no-store');

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const handler = require('../api/medication/safety.js');
 const source = fs.readFileSync(require.resolve('../health-hub.js'),'utf8');
-const code = source.slice(source.indexOf('  function renderLocalMedicationDatabaseResult('), source.indexOf('  async function runMedicationSafetyCheck('));
+const code = source.slice(source.indexOf('  function renderLocalMedicationDatabaseResult('), source.indexOf('  async function handleClick('));
 class Element {
   constructor(tag='div'){this.tag=tag;this.children=[];this.textContent='';this.checked=false;}
   append(...items){this.children.push(...items);}
@@ -34,5 +34,25 @@ vm.runInContext(code,context);
   consent.checked=true;state.medications[1].name='';await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/No partial list/);
   state.medications[1].name='Nurofen';pro=false;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/Pro/);
   pro=true;context.authUser=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.equal(signIns,1);
-  console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, exact payload privacy, sourced warnings, catalogue attribution and no partial lists.');
+
+  let concurrentFetches=0;let releaseRequest;
+  context.authUser={id:'synthetic-test-user'};consent.checked=true;
+  context.fetch=async(url,options)=>{
+    concurrentFetches+=1;
+    sent=JSON.parse(options.body);
+    return new Promise(resolve=>{releaseRequest=async()=>{
+      const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};
+      await handler({method:options.method,body:sent},response);
+      resolve({ok:response.code===200,json:async()=>response.body});
+    };});
+  };
+  const running=context.runLocalMedicationSafetyCheck(button);
+  await Promise.resolve();
+  await context.runLocalMedicationSafetyCheck(button);
+  assert.equal(concurrentFetches,1,'A double activation must not start a second request.');
+  assert.equal(button.disabled,true,'The check action stays disabled while its request is pending.');
+  await releaseRequest();
+  await running;
+  assert.equal(button.disabled,false,'The action is restored after the request completes.');
+  console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, exact payload privacy, sourced warnings, no partial lists and duplicate-click protection.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

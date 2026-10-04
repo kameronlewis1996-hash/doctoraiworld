@@ -26,7 +26,7 @@ DoctorAI normalises names, excludes devices/special foods, combines duplicate co
 | Curated interaction rules | 13 |
 | Medicine-condition rules | 0 |
 
-These are terminology records, not 3,419 independently approved treatments. Generic headings include combinations. This is not the full NZULM or all Medsafe-registered/OTC products. A Schedule listing does not establish Medsafe approval, availability, suitability, subsidy eligibility or complete interaction knowledge. NZULM monthly raw-data access is requested from its provider: https://info.nzulm.org.nz/data-access.
+These are terminology records, not 3,419 independently approved treatments. Generic headings include combinations. This is not the full NZULM or all Medsafe-registered/OTC products. A Schedule listing does not establish Medsafe approval, availability, suitability, subsidy eligibility or complete interaction knowledge. NZULM data is not part of this local dataset.
 
 Broad ingredient-class coverage and clinician approval are not established by this import. Salt equivalences are explicit; no general salt stripping, substring brand matching or fuzzy automatic selection is used. Different ingredient sets sharing a brand/manufacturer remain ambiguous. Full imported product names are available in name suggestions. Strength suffix matching identifies ingredients only and does not validate the strength or route.
 
@@ -45,6 +45,6 @@ node scripts/check-js.js
 
 Review constituent exceptions, salt equivalences, ambiguous names and counts before committing a new generated release. Update the seed version, UI effective-date notice and suggestion-cache version alongside the import. Raw XML is not bundled into the public app; the generated factual catalogue is.
 
-Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. The separate provider features retain their original access/licence gates. No provider approval is asserted or enabled by this expansion.
+Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. NZF/NZULM product and interaction checks and DrugBank ingredient-check routes have been retired from the Health Hub. The separate DoctorAI local rules check remains limited and is not equivalent to or as comprehensive as any external catalogue. No provider approval is asserted.
 
 The local safety API rejects invalid, blank and oversized input instead of returning a partial check. It does not cache personal requests. Tests use synthetic medicine lists, never user health records.

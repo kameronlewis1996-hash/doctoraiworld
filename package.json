@@ -9,11 +9,13 @@
   "scripts": {
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
-    "verify:nzf": "node scripts/verify-nzf-fhir.js",
     "verify:server": "node scripts/verify-server-core.js",
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
-    "verify:medication-database": "node scripts/verify-medication-database.cjs"
+    "verify:medication-database": "node scripts/verify-medication-database.cjs",
+    "verify:medication-safety": "node scripts/verify-medication-safety.js",
+    "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
+    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

@@ -1,0 +1,47 @@
+name: Medication provider retirement checks
+
+on:
+  pull_request:
+    paths:
+      - 'api/medication/**'
+      - 'data/medication/**'
+      - 'docs/nz-medication-database.md'
+      - 'health-hub.css'
+      - 'health-hub.html'
+      - 'health-hub.js'
+      - 'privacy.html'
+      - 'scripts/verify-medication-*'
+      - 'scripts/verify-local-medication-ui.cjs'
+      - 'scripts/verify-retired-medication-providers.cjs'
+      - 'service-worker.js'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  medication-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify changed JavaScript syntax
+        run: |
+          node scripts/check-js.js
+          node --check health-hub.js
+          node --check 'api/medication/[...action].js'
+          node --check scripts/verify-medication-safety.js
+          node --check scripts/verify-medication-database.cjs
+          node --check scripts/verify-medication-scan.js
+          node --check scripts/verify-local-medication-ui.cjs
+          node --check scripts/verify-retired-medication-providers.cjs
+      - name: Run local medication and scan regressions
+        run: |
+          node scripts/verify-medication-safety.js
+          node scripts/verify-medication-database.cjs
+          node scripts/verify-local-medication-ui.cjs
+          node scripts/verify-retired-medication-providers.cjs
+          node scripts/verify-medication-scan.js
