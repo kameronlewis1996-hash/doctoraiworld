@@ -34,16 +34,19 @@ Every result reports limited interaction coverage and `completeForRequest: false
 
 ## Updating and testing
 
-Download the official **XML** community and hospital schedules for the same effective date. Do not import the Excel reporting views into production.
+For the planned review updater, source permissions, field coverage, gaps, rollback, and activation proposal, see [NZ medicine catalogue maintenance](nz-medication-maintenance.md).
+
+Download the official **XML** community and hospital schedules for the same effective date. Do not import the Excel reporting views into production. Prefer the staged updater, which checks provenance, validates a generated pair, and prepares a human-readable change report:
 
 ```sh
-python3 scripts/import-pharmac-medicines.py /path/to/Schedule_DATE.xml /path/to/HML_DATE.xml
+python3 scripts/prepare-pharmac-catalogue.py --effective-date YYYY-MM-01
+python3 scripts/verify-pharmac-catalogue-update.py
 node scripts/verify-medication-database.cjs
 node scripts/verify-local-medication-ui.cjs
 node scripts/check-js.js
 ```
 
-Review constituent exceptions, salt equivalences, ambiguous names and counts before committing a new generated release. Update the seed version, UI effective-date notice and suggestion-cache version alongside the import. Raw XML is not bundled into the public app; the generated factual catalogue is.
+The importer remains available for offline source files and requires `--retrieved-at <UTC-ISO-8601>` as well as optional `--output-dir`. Review ingredient-mapping changes, ambiguity, additions/removals, names, forms, identifiers and counts before committing any generated release. Raw XML is not bundled into the public app; only the reference catalogue and name list are generated.
 
 Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. The separate provider features retain their original access/licence gates. No provider approval is asserted or enabled by this expansion.
 
