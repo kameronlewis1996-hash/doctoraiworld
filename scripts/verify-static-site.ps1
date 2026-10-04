@@ -8,12 +8,10 @@ $required = @(
   'branding.js', 'logo-loader.js', 'site-shell.css', 'site-shell.js', 'pwa.js', 'service-worker.js', 'manifest.webmanifest', 'sitemap.xml',
   'doctorai-public-logo-transparent.png', 'doctorai-head-logo-transparent.png', 'doctorai-app-icon.png',
   'google-g-logo.svg', 'vercel.json',
-  '.env.example', 'scripts/csp-hashes.js', 'scripts/check-js.js', 'scripts/verify-server-core.js', 'scripts/verify-medication-safety.js', 'scripts/verify-medication-scan.js', 'scripts/verify-nzf-fhir.js',
+  '.env.example', 'scripts/csp-hashes.js', 'scripts/check-js.js', 'scripts/verify-server-core.js', 'scripts/verify-medication-safety.js', 'scripts/verify-medication-database.cjs', 'scripts/verify-medication-scan.js', 'scripts/verify-local-medication-ui.cjs', 'scripts/verify-retired-medication-providers.cjs',
   'api/chat.js', 'api/auth/config.js', 'api/auth/google.js', 'api/auth/mobile.js', 'scripts/verify-stripe-pricing.js',
   'api/health/state.js', 'api/documents.js', 'api/medication/[...action].js',
-  'api/medication/_handlers/ingredient-search.js', 'api/medication/_handlers/nzf-interactions.js',
-  'api/medication/_handlers/nzf-product-search.js', 'api/medication/_handlers/safety-check.js',
-  'api/medication/_handlers/scan.js', 'api/medication/_lib/nzf-fhir.cjs', 'api/medication/_lib/drugbank.cjs', 'api/research.js',
+  'api/medication/_handlers/scan.js', 'api/research.js',
   'api/staff/access.js', 'api/staff/[...action].js', 'api/stripe/[...action].js', 'server-src/_lib/doctorai-core.cjs',
   'server-src/staff/grant-pro.js', 'server-src/staff/redeem-pro.js', 'server-src/staff/revoke-pro.mjs',
   'server-src/stripe/plan-catalog.cjs', 'server-src/stripe/public-plans.js', 'server-src/stripe/create-checkout-session.js', 'server-src/stripe/create-portal-session.js',
@@ -24,7 +22,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 foreach ($relative in $required) {
   $path = Join-Path $root $relative
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $failures.Add("Missing required file: $relative"); continue }
-  if ((Get-Item -LiteralPath $path).Length -le 0) { $failures.Add("Empty required file: $relative") }
+  if ((Get-Item -LiteralPath $path -Force).Length -le 0) { $failures.Add("Empty required file: $relative") }
 }
 
 $hubScriptPath = Join-Path $root 'health-hub.js'
@@ -36,8 +34,8 @@ $hubHtmlText = Get-Content -Raw -LiteralPath $hubHtmlPath
 if ((Get-Item -LiteralPath $hubScriptPath).Length -eq 65536 -or $hubScriptText -notmatch '\}\)\(\);\s*$') { $failures.Add('health-hub.js is truncated or missing its executable ending') }
 if ((Get-Item -LiteralPath $hubStylePath).Length -lt 120000 -or $hubStyleText -notmatch '#view-today \.prescription-alert-home' -or $hubStyleText -notmatch '\.mobile-bottom-nav') { $failures.Add('health-hub.css is incomplete or missing the verified home/mobile layout') }
 if ($hubHtmlText -notmatch 'data-view-panel="symptoms"' -or $hubHtmlText -notmatch 'data-modal="symptom"') { $failures.Add('The Symptom Diary view or add action is missing') }
-if ($hubHtmlText -notmatch 'health-hub\.js\?v=62' -or $hubScriptText -notmatch 'data-scan-attempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'Confirm the exact product and ingredient matches') { $failures.Add('Saving a scanned medication must lead people to the saved-list safety panel without running a check automatically') }
-if ($hubHtmlText -notmatch 'health-hub\.css\?v=67' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
+if ($hubHtmlText -notmatch 'health-hub\.js\?v=63' -or $hubScriptText -notmatch 'data-scan-attempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'Label scan saved as a draft') { $failures.Add('Saving a scanned medication must ask people to review label details before use') }
+if ($hubHtmlText -notmatch 'health-hub\.css\?v=68' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
 if ($hubScriptText -notmatch "source:\s*'symptom-diary'" -or $hubScriptText -notmatch 'data-modal-form="symptom"' -or $hubScriptText -match 'state\.symptoms') { $failures.Add('Symptom Diary must use the canonical timeline store with working form handling') }
 if ($hubScriptText -notmatch 'Intensity \(optional\)' -or $hubScriptText -notmatch 'Not recorded / not sure' -or $hubScriptText -notmatch 'Date \*' -or $hubScriptText -notmatch 'date > localToday') { $failures.Add('Symptom Diary must offer an honest optional intensity value, require a date, and reject future dates') }
 if ($hubHtmlText -notmatch 'data-symptom-guidance' -or $hubScriptText -notmatch 'data-modal-form="symptom-guidance"' -or $hubScriptText -notmatch 'setSymptomGuidanceResult') { $failures.Add('Symptom Diary is missing the non-diagnostic urgency safety check') }
@@ -45,26 +43,21 @@ if ($hubHtmlText -notmatch 'symptom-pattern-card' -or $hubHtmlText -notmatch 'sy
 if ($hubHtmlText -match 'data-symptom-filter|Current status|ongoing symptoms|Improving|Resolved' -or $hubScriptText -match 'symptomStatusLabels|data-resolve-symptom|symptomFilter') { $failures.Add('Symptom Diary still exposes status-based tracking instead of a simple log') }
 if ($hubScriptText -match '<option value="symptom">Symptom / wellbeing</option>') { $failures.Add('Generic timeline entry must not bypass the structured Symptom Diary form') }
 if ($hubScriptText -notmatch 'cloudSyncDirty' -or $hubScriptText -notmatch 'revision === cloudSyncRevision') { $failures.Add('Cloud sync must preserve symptom changes queued while another save is in flight') }
-if ($hubScriptText -notmatch '/api/medication/nzf-product-search' -or $hubScriptText -notmatch '/api/medication/nzf-interactions' -or $hubScriptText -notmatch 'nzfProductConfirmed' -or $hubScriptText -notmatch 'validMedicationBarcodeGtin') { $failures.Add('Medication product matching, confirmed product storage, or NZF interaction checking is missing') }
-if (-not $hubScriptText.Contains("ingredientSearchConsentInput.name = 'drugbankSearchConsent';") -or -not $hubScriptText.Contains("ingredientSearchButton.dataset.medicationMatchIngredients = 'true';") -or -not $hubScriptText.Contains("ingredientResults.dataset.medicationMatchResults = 'true';") -or -not $hubScriptText.Contains("event.target.closest('[data-medication-match-ingredients]')") -or -not $hubScriptText.Contains("resolvedInput.value = '[]';") -or -not $hubScriptText.Contains("form.elements.drugbankSearchConsent.checked = false;")) { $failures.Add('Ingredient matching must require explicit consent, render selectable results, and clear stale mappings and consent') }
-if ($hubScriptText -notmatch 'data-medication-safety-profile' -or $hubScriptText -notmatch 'data-run-ingredient-safety-check' -or $hubScriptText -notmatch '/api/medication/safety-check' -or $hubScriptText -notmatch 'buildDrugBankSafetyPayload') { $failures.Add('The ingredient, allergy, condition, and symptom screening path is not integrated into the saved medication flow') }
-if ($hubScriptText -notmatch 'Symptom diary entries \(local reference only; not sent automatically\)' -or $hubScriptText -notmatch 'not sent automatically') { $failures.Add('The safety-term review must let people reconcile saved symptom diary entries without sending them automatically') }
-if ($hubHtmlText -notmatch 'Neither scan verifies medicine safety' -or $hubScriptText -notmatch 'Allergy, condition, and symptom screening remains disabled until an approved licensed provider and modules are configured') { $failures.Add('Medication scan or interaction coverage limits are not stated clearly') }
+if ($hubScriptText -match '/api/medication/(nzf-product-search|nzf-interactions|ingredient-search|safety-check)|BarcodeDetector|data-medication-match-ingredients|data-run-ingredient-safety-check' -or $hubHtmlText -match 'barcode') { $failures.Add('Retired medicine provider and barcode lookup controls must not remain active in the UI') }
+if ($hubScriptText -notmatch 'data-run-local-medication-safety-check' -or $hubScriptText -notmatch '/api/medication/safety' -or $hubScriptText -notmatch 'completeForRequest') { $failures.Add('The limited local medication rules check must remain available and visibly disclose unknown coverage') }
 if ($hubHtmlText -notmatch 'data-medication-image-consent' -or $hubScriptText -notmatch 'medicationImageConsent' -or $hubScriptText -notmatch 'consent: true') { $failures.Add('Medication image scans are missing the explicit per-scan consent gate') }
 if ($hubHtmlText -match 'image/heic|image/heif|\.heic|\.heif' -or $hubScriptText -match 'heic|heif') { $failures.Add('Medication photo picker must advertise only formats the browser decoder accepts reliably') }
 $privacyText = Get-Content -Raw -LiteralPath (Join-Path $root 'privacy.html')
-if ($privacyText -notmatch 'OpenAI for text extraction only after you check the separate scan-consent box' -or $privacyText -notmatch 'up to 30 days by default' -or $privacyText -notmatch 'We have not confirmed a shorter-retention exception' -or $privacyText -notmatch 'NZF/NZULM product searches and interaction checks are currently disabled' -or $privacyText -notmatch 'disabled DrugBank ingredient-level screening prototype requires') { $failures.Add('Privacy Notice is out of sync with medication scan consent, provider retention, or disabled database providers') }
+if ($privacyText -notmatch 'OpenAI for text extraction only after you check the separate scan-consent box' -or $privacyText -notmatch 'up to 30 days by default' -or $privacyText -notmatch 'We have not confirmed a shorter-retention exception' -or $privacyText -notmatch 'NZF/NZULM product and interaction requests and DrugBank ingredient-check requests are retired') { $failures.Add('Privacy Notice must explain the scan consent and retired medication provider paths') }
 if ($hubStyleText -notmatch '\.symptom-diary-layout' -or $hubStyleText -notmatch '#view-symptoms\.view') { $failures.Add('Symptom Diary desktop or mobile styling is missing') }
 $workerText = Get-Content -Raw -LiteralPath (Join-Path $root 'service-worker.js')
-if ($hubHtmlText -notmatch 'data-open-medication-scanner' -or $hubHtmlText -notmatch 'id="medication-scanner-video"' -or $hubScriptText -notmatch 'BarcodeDetector' -or $hubScriptText -notmatch 'stopMedicationScannerCamera') { $failures.Add('The live medication barcode scanner or camera cleanup is missing') }
+if ($hubHtmlText -notmatch 'data-open-medication-scanner' -or $hubHtmlText -notmatch 'id="medication-scanner-video"' -or $hubScriptText -match 'BarcodeDetector' -or $hubScriptText -notmatch 'stopMedicationScannerCamera') { $failures.Add('The camera must remain a label-photo flow with camera cleanup and no barcode lookup') }
 if ($hubScriptText -match 'Tesseract|cdn\.jsdelivr\.net' -or $hubScriptText -notmatch 'MAX_SCAN_DATA_URL') { $failures.Add('Medication scanning must use bounded same-origin processing without the old CDN OCR fallback') }
 $medicationDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/[...action].js')
 if ($medicationDispatcherText -notmatch "'ingredient-search'" -or $medicationDispatcherText -notmatch "'nzf-interactions'" -or $medicationDispatcherText -notmatch "'nzf-product-search'" -or $medicationDispatcherText -notmatch "'safety-check'" -or $medicationDispatcherText -notmatch 'scan:') { $failures.Add('Medication API dispatcher must preserve all existing medication endpoints') }
-$drugBankText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_lib/drugbank.cjs')
-if ($drugBankText -notmatch 'DRUGBANK_NZ_INGREDIENT_SCOPE_APPROVED' -or $drugBankText -notmatch 'DRUGBANK_SAFETY_CRITICAL_USE_APPROVED') { $failures.Add('DrugBank checks must remain disabled without explicit consumer-use and NZ ingredient-scope approvals') }
 $medicationScanApiText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_handlers/scan.js')
 if ($medicationScanApiText -notmatch 'body\.consent\s*!==\s*true' -or $medicationScanApiText -notmatch 'store:\s*false' -or $medicationScanApiText -notmatch "type:\s*'json_schema'" -or $medicationScanApiText -notmatch 'AbortSignal\.timeout' -or $medicationScanApiText -notmatch 'MAX_IMAGE_DATA_URL') { $failures.Add('Medication scan API is missing explicit image consent or structured, no-store, bounded processing') }
-if ($workerText -notmatch "doctorai-shell-v106" -or $workerText -notmatch "welcome\.css\?v=2" -or $workerText -notmatch "health-hub\.css\?v=67" -or $workerText -notmatch "health-hub\.js\?v=62" -or $workerText -notmatch "subscription\.css\?v=7" -or $workerText -notmatch "subscription\.js\?v=11" -or $workerText -notmatch "accessibility\.css\?v=9" -or $workerText -notmatch "care-design\.css\?v=7" -or $workerText -notmatch "site-shell\.css\?v=2" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
+if ($workerText -notmatch "doctorai-shell-v107" -or $workerText -notmatch "welcome\.css\?v=2" -or $workerText -notmatch "health-hub\.css\?v=68" -or $workerText -notmatch "health-hub\.js\?v=63" -or $workerText -notmatch "subscription\.css\?v=7" -or $workerText -notmatch "subscription\.js\?v=11" -or $workerText -notmatch "accessibility\.css\?v=9" -or $workerText -notmatch "care-design\.css\?v=7" -or $workerText -notmatch "site-shell\.css\?v=2" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
 
 $subscriptionScriptText = Get-Content -Raw -LiteralPath (Join-Path $root 'subscription.js')
 $stripeDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/stripe/[...action].js')
@@ -86,7 +79,12 @@ $templateJs = Get-Content -Raw -LiteralPath (Join-Path $root 'medication-list-te
 if ($templateHtml -notmatch '<title>Free Medication List Template for Appointments \| DoctorAI</title>' -or $templateHtml -notmatch '<link rel="canonical" href="https://www\.doctoraiworld\.com/medication-list-template">' -or $templateHtml -notmatch '<h1>Medication list template for your next appointment</h1>') { $failures.Add('The medication-list resource must have a specific title, canonical URL, and descriptive H1') }
 if ($templateHtml -notmatch 'fda\.gov/consumers/consumer-updates/create-and-keep-medication-list-your-health' -or $templateHtml -notmatch 'medlineplus\.gov/ency/patientinstructions/000600\.htm') { $failures.Add('The medication-list resource must cite its FDA and MedlinePlus source guidance') }
 if ($templateHtml -notmatch 'does not verify medicine safety or check drug interactions' -or $templateHtml -notmatch 'Do not start, stop, or change a medicine based on this page') { $failures.Add('The medication-list resource must state product limits and avoid treatment directions') }
-if ($templateHtml -match '<form\b|<input\b|<textarea\b' -or $templateJs -notmatch 'window\.print\(\)') { $failures.Add('The printable medication-list resource must remain static and must not collect health information') }
+$searchIsBrowserOnly = $templateJs -match 'form\.addEventListener\(''submit'',\s*async event\s*=>\s*\{\s*event\.preventDefault\(\);' -and
+  $templateJs -match 'credentials:\s*''omit''' -and
+  $templateJs -match 'fetch\(''/data/medication/nz-medicine-names\.json\?v=20261001''' -and
+  $templateJs -notmatch 'fetch\([^)]*input\.value'
+$searchIsPersistedOrSent = $templateJs -match '(?i)(localStorage|sessionStorage)\.setItem|navigator\.sendBeacon|XMLHttpRequest'
+if ($templateHtml -match '<form\b[^>]*\b(action|method)\s*=' -or -not $searchIsBrowserOnly -or $searchIsPersistedOrSent -or $templateJs -notmatch 'window\.print\(\)') { $failures.Add('Medication-name search must stay browser-only, not submit or persist the query, and preserve printing') }
 $sitemapText = Get-Content -Raw -LiteralPath (Join-Path $root 'sitemap.xml')
 if ($sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/</loc>' -or $sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/medication-list-template</loc>') { $failures.Add('The sitemap must include the homepage and medication-list resource') }
 $homeHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
@@ -96,7 +94,7 @@ foreach ($relative in $htmlFiles) {
   $text = Get-Content -Raw -LiteralPath (Join-Path $root $relative)
   foreach ($match in [regex]::Matches($text, '(?:src|href)=["'']([^"''#?]+)')) {
     $reference = $match.Groups[1].Value
-    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template')) { continue }
+    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template','/appointment-checklist')) { continue }
     $target = Join-Path $root $reference.TrimStart('/')
     if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { $failures.Add("Broken local reference in ${relative}: $reference") }
   }
