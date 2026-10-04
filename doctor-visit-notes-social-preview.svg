@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Free Doctor Visit Questions and Notes Worksheet</title>
+  <desc id="desc">DoctorAI printable worksheet with blank areas for questions before a visit, notes during it, and next steps to remember.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f8fcff"/>
+      <stop offset="1" stop-color="#dff4ff"/>
+    </linearGradient>
+    <filter id="paper-shadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#17476b" flood-opacity=".14"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#background)"/>
+  <circle cx="1090" cy="-20" r="260" fill="#bceeff" opacity=".55"/>
+  <circle cx="80" cy="620" r="240" fill="#d4f5ff" opacity=".65"/>
+
+  <image href="https://www.doctoraiworld.com/doctorai-public-logo-transparent.png?v=10" x="68" y="42" width="220" height="110" preserveAspectRatio="xMidYMid meet" aria-label="DoctorAI World logo"/>
+  <rect x="72" y="177" width="292" height="42" rx="21" fill="#e0f3fc"/>
+  <text x="94" y="205" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1.2" fill="#126aa5">FREE PRINTABLE · AOTEAROA</text>
+  <text x="70" y="302" font-family="Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="-1.5" fill="#0b2346">Questions &amp; notes</text>
+  <text x="72" y="362" font-family="Arial, sans-serif" font-size="38" font-weight="600" fill="#18344d">for your next doctor visit</text>
+  <text x="74" y="426" font-family="Arial, sans-serif" font-size="22" fill="#35566e">A little room for what you want to remember.</text>
+  <text x="74" y="554" font-family="Arial, sans-serif" font-size="18" fill="#5e8197">Organisation and education — not medical care.</text>
+
+  <g transform="translate(790 86)" filter="url(#paper-shadow)">
+    <rect width="330" height="454" rx="25" fill="#ffffff"/>
+    <rect x="31" y="31" width="48" height="7" rx="3.5" fill="#126aa5"/>
+    <text x="31" y="75" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.1" fill="#526b80">VISIT NOTES</text>
+    <g font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#126aa5">
+      <text x="31" y="126">BEFORE</text>
+      <text x="31" y="226">DURING</text>
+      <text x="31" y="326">NEXT STEPS</text>
+    </g>
+    <g stroke="#d8e6f0" stroke-width="3" stroke-linecap="round">
+      <path d="M31 151H292 M31 176H268"/>
+      <path d="M31 251H292 M31 276H268"/>
+      <path d="M31 351H292 M31 376H268 M31 401H245"/>
+    </g>
+  </g>
+</svg>
