@@ -92,16 +92,65 @@ for (const [meds, rule] of [
 ]) { expectRule(meds, rule); expectRule(meds.slice().reverse(), rule); }
 console.log(`NZ catalogue verification passed: ${mapped} mapped product/formulations, combinations, ambiguous names, duplicates and 13 sourced interaction rules.`);
 
+const core = require('../server-src/_lib/doctorai-core.cjs');
+const originalCore = {
+  identityFromRequest: core.identityFromRequest,
+  storageConfigured: core.storageConfigured,
+  activeEntitlement: core.activeEntitlement
+};
+let account = { sub: 'synthetic-test-account', email: 'synthetic@example.invalid' };
+let storageReady = true;
+let entitlement = { tier: 'pro', exp: Math.floor(Date.now() / 1000) + 600 };
+let entitlementError = false;
+let entitlementCalls = 0;
+core.identityFromRequest = async () => account;
+core.storageConfigured = () => storageReady;
+core.activeEntitlement = async () => {
+  entitlementCalls += 1;
+  if (entitlementError) throw new Error('synthetic entitlement service outage');
+  return entitlement;
+};
 const handler = require('../api/medication/safety.js');
 function call(method, body) {
   const result = {headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(v){this.body=v;return this;}};
   return handler({method,body},result).then(() => result);
 }
 (async () => {
-  for (const body of [null, 'null', '{', {}, [], {medications:[]}, {medications:['']}, {medications:[{}]}, {medications:Array(51).fill('Warfarin')}, {medications:['Warfarin'],allergies:'penicillin'}]) assert.equal((await call('POST',body)).statusCode,400);
+  for (const body of [null, 'null', '{', {}, [], {medications:[]}, {medications:['']}, {medications:[{}]}, {medications:Array(31).fill('Warfarin'),consent:true}, {medications:['Warfarin'],allergies:'penicillin',consent:true}]) assert.equal((await call('POST',body)).statusCode,400);
   assert.equal((await call('GET',{})).statusCode,405);
-  const r = await call('POST',{medications:['Marevan','Nurofen']});
-  assert.equal(r.statusCode,200);assert.equal(r.body.status,'red');assert.equal(r.headers['Cache-Control'],'no-store');
+  let beforeEntitlement = entitlementCalls;
+  account = null;
+  let r = await call('POST',{consent:true,medications:['Marevan']});
+  assert.equal(r.statusCode,401);assert.equal(r.headers['Cache-Control'],'no-store, max-age=0');
+  assert.equal(entitlementCalls,beforeEntitlement,'Unauthenticated requests must stop before entitlement lookup.');
+
+  account = { sub: 'synthetic-test-account', email: 'synthetic@example.invalid' };
+  storageReady = false;
+  beforeEntitlement = entitlementCalls;
+  r = await call('POST',{consent:true,medications:['Marevan']});
+  assert.equal(r.statusCode,503);assert.equal(entitlementCalls,beforeEntitlement,'Unconfigured storage must fail closed before entitlement lookup.');
+
+  storageReady = true;
+  for (const inactive of [null, {tier:'free',exp:Math.floor(Date.now()/1000)+600}, {tier:'pro'}, {tier:'pro',exp:'invalid'}, {tier:'pro',exp:Math.floor(Date.now()/1000)-1}, {tier:'pro',exp:Math.floor(Date.now()/1000)+600,revokedAt:Date.now()}]) {
+    entitlement = inactive;
+    r = await call('POST',{consent:true,medications:['Marevan']});
+    assert.equal(r.statusCode,403,'Missing, non-Pro, expired and revoked entitlements must fail closed.');
+  }
+
+  entitlement = {tier:'pro',exp:Math.floor(Date.now()/1000)+600};
+  entitlementError = true;
+  r = await call('POST',{consent:true,medications:['Marevan']});
+  assert.equal(r.statusCode,503,'Entitlement service failures must fail closed.');
+  entitlementError = false;
+
+  r = await call('POST',{medications:['Marevan','Nurofen']});
+  assert.equal(r.statusCode,400);assert.match(r.body.error,/consent/i,'Consent must be explicit at the server boundary.');
+  r = await call('POST',{consent:true,medications:['Marevan','Nurofen']});
+  assert.equal(r.statusCode,200);assert.equal(r.body.status,'red');assert.equal(r.headers['Cache-Control'],'no-store, max-age=0');
   assert.equal(r.body.coverage.completeForRequest,false);
-  console.log('Endpoint verification passed: malformed/blank/oversized lists rejected without partial checks, no-store, and sourced alerts.');
-})().catch(error => { console.error(error); process.exitCode=1; });
+  console.log('Endpoint verification passed: synthetic auth/secure-storage/active-Pro/consent gates, expired and revoked access rejected, malformed/oversized lists rejected without partial checks, no-store, and sourced alerts.');
+})().catch(error => { console.error(error); process.exitCode=1; }).finally(() => {
+  core.identityFromRequest = originalCore.identityFromRequest;
+  core.storageConfigured = originalCore.storageConfigured;
+  core.activeEntitlement = originalCore.activeEntitlement;
+});
