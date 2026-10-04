@@ -25,7 +25,7 @@ module.exports = async function handler(request, response) {
     return response.status(200).json({ ok: true, accessToken, user: { email: session.email, name: session.name, picture: session.picture } });
   } catch (error) {
     const message = String(error?.message || '');
-    const status = /credential|verification/i.test(message) ? 401 : /configured/i.test(message) ? 503 : 500;
+    const status = /credential|verification/i.test(message) ? 401 : /configured|storage|unavailable|network|fetch failed|time(?:d?\s*out)|abort|econn|socket/i.test(message) ? 503 : 500;
     return response.status(status).json({ error: status === 500 ? 'Unable to create a secure mobile session.' : message });
   }
 }

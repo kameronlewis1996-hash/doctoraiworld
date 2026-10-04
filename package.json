@@ -25,6 +25,7 @@
     "verify:self-cache:browser": "node scripts/verify-self-cache-browser.cjs",
     "preview:profiles": "node scripts/preview-managed-profiles.cjs",
     "verify:server": "node scripts/verify-server-core.js",
+    "verify:cloud-auth-boundaries": "node scripts/verify-cloud-auth-boundaries.cjs",
     "verify:static": "node scripts/verify-static-site.cjs",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
     "verify:medication-database": "node scripts/verify-medication-database.cjs",
