@@ -2,6 +2,15 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const core = require('../server-src/_lib/doctorai-core.cjs');
+const originalCore = {
+  identityFromRequest: core.identityFromRequest,
+  storageConfigured: core.storageConfigured,
+  activeEntitlement: core.activeEntitlement
+};
+core.identityFromRequest = async () => ({ sub: 'synthetic-ui-account', email: 'synthetic@example.invalid' });
+core.storageConfigured = () => true;
+core.activeEntitlement = async () => ({ tier: 'pro', exp: Math.floor(Date.now() / 1000) + 600 });
 const handler = require('../api/medication/safety.js');
 const source = fs.readFileSync(require.resolve('../health-hub.js'),'utf8');
 const code = source.slice(source.indexOf('  function renderLocalMedicationDatabaseResult('), source.indexOf('  async function handleClick('));
@@ -26,7 +35,7 @@ const context = vm.createContext({document:{createElement:tag=>new Element(tag),
 vm.runInContext(code,context);
 (async()=>{
   await context.runLocalMedicationSafetyCheck(button);
-  assert.deepEqual(sent,{medications:['Marevan','Nurofen'],allergies:['penicillin'],conditions:['kidney disease']});
+  assert.deepEqual(sent,{consent:true,medications:['Marevan','Nurofen'],allergies:['penicillin'],conditions:['kidney disease']});
   assert.equal(consent.checked,false);assert.equal(button.disabled,false);
   const allText = el=>[el.textContent,...(el.children||[]).map(allText)].join(' ');
   assert.match(allText(output),/potential issues/);assert.match(allText(output),/3[,.]?419/);assert.match(allText(output),/13 curated interaction rules/);assert.match(allText(output),/does not endorse/);assert.match(allText(output),/does not mean safe/i);
@@ -55,4 +64,8 @@ vm.runInContext(code,context);
   await running;
   assert.equal(button.disabled,false,'The action is restored after the request completes.');
   console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, exact payload privacy, sourced warnings, no partial lists and duplicate-click protection.');
-})().catch(e=>{console.error(e);process.exitCode=1;});
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{
+  core.identityFromRequest = originalCore.identityFromRequest;
+  core.storageConfigured = originalCore.storageConfigured;
+  core.activeEntitlement = originalCore.activeEntitlement;
+});

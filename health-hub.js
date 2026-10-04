@@ -655,7 +655,7 @@
         '</div></details>' +
         '<div class="clash-status" role="status" aria-live="polite"></div>' +
         '<div class="clash-actions"><button class="primary-button" type="button" data-run-local-medication-safety-check>Check saved medicines</button></div>' +
-        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent><span>For this one-time check, send saved medicine names and the allergy and condition terms in this profile to the DoctorAI server. Dose, schedule, notes, symptoms, label images and older provider match details are not included. The server does not query an external medicine database.</span></label>' +
+        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent><span>For this one-time check, send all saved medicine names (up to 30) and the allergy and condition terms in your active profile to DoctorAI’s server. Doses, schedules, notes, symptoms, label images and older provider match details are not included. DoctorAI checks these terms against its own limited rules and does not query an external medicine database.</span></label>' +
         '<div class="medication-db-result" data-local-medication-db-result role="status" aria-live="polite"></div>' +
         '<small class="clash-footnote">Review any result with a pharmacist or prescriber. Do not start, stop or change treatment based on this app.</small>';
     }
@@ -2932,6 +2932,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const payload = {
+      consent: true,
       medications: state.medications.map(item => String(item?.name || '').trim()),
       allergies: splitDetails(state.profile?.allergies || ''),
       conditions: splitDetails(state.profile?.conditions || '')
