@@ -6,15 +6,20 @@ on:
       - 'api/medication/**'
       - 'data/medication/**'
       - 'docs/nz-medication-database.md'
+      - '.env.example'
       - 'health-hub.css'
       - 'health-hub.html'
       - 'health-hub.js'
+      - 'medication-list-template.html'
       - 'privacy.html'
+      - 'public-mcp/api/mcp.js'
       - 'scripts/verify-medication-*'
       - 'scripts/verify-local-medication-ui.cjs'
       - 'scripts/verify-retired-medication-providers.cjs'
+      - 'scripts/verify-static-site.ps1'
       - 'service-worker.js'
       - 'package.json'
+      - 'subscription.html'
   workflow_dispatch:
 
 permissions:
@@ -45,3 +50,6 @@ jobs:
           node scripts/verify-local-medication-ui.cjs
           node scripts/verify-retired-medication-providers.cjs
           node scripts/verify-medication-scan.js
+      - name: Verify the production static site
+        shell: pwsh
+        run: ./scripts/verify-static-site.ps1
