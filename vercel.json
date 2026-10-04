@@ -85,6 +85,10 @@
       "destination": "/appointment-checklist.html"
     },
     {
+      "source": "/changing-gp-records",
+      "destination": "/changing-gp-records.html"
+    },
+    {
       "source": "/research",
       "destination": "/research.html"
     },
