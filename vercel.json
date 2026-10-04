@@ -36,11 +36,6 @@
       "source": "/marketplace",
       "destination": "/subscription",
       "permanent": true
-    },
-    {
-      "source": "/about",
-      "destination": "/health-hub#today",
-      "permanent": true
     }
   ],
   "rewrites": [
@@ -83,6 +78,10 @@
     {
       "source": "/appointment-checklist",
       "destination": "/appointment-checklist.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
     },
     {
       "source": "/research",

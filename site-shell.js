@@ -5,7 +5,7 @@
     if (document.querySelector('.hub-shell') || document.body.matches('[data-staff-page], .mobile-auth-page')) return;
 
     const path = location.pathname.replace(/\.html$/, '') || '/';
-    const page = path === '/research' ? 'research' : path === '/subscription' ? 'pro' : path === '/download' ? 'download' : '';
+    const page = path === '/research' ? 'research' : path === '/about' ? 'about' : path === '/subscription' ? 'pro' : path === '/download' ? 'download' : '';
     const validHubViews = ['today', 'ask', 'health', 'profile', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
     let returnView = 'today';
     try {
@@ -30,6 +30,7 @@
           <a data-site-nav="hub" href="${returnHref}">Health Hub</a>
           <a data-site-nav="chat" href="/health-hub#ask">Ask DoctorAI</a>
           <a data-site-nav="research" href="/research">Research</a>
+          <a data-site-nav="about" href="/about">About</a>
           <a data-site-nav="pro" href="/subscription">Pro</a>
           <a data-site-nav="download" href="/download">Get the app</a>
           <a class="doctorai-site-primary" href="${returnHref}">Open my hub <span aria-hidden="true">→</span></a>
@@ -42,7 +43,7 @@
       <div class="doctorai-site-footer-inner">
         <a class="doctorai-site-footer-brand" href="${returnHref}"><img src="/doctorai-head-logo-transparent.png?v=10" alt=""><span><b>DoctorAI</b><small>Personal health organisation</small></span></a>
         <p>For education and organisation only — DoctorAI does not diagnose, prescribe, or replace professional medical care.</p>
-        <nav aria-label="Legal, support and social"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer" aria-label="Follow DoctorAI World on LinkedIn (opens in a new tab)">LinkedIn</a></nav>
+        <nav aria-label="About, legal, support and social"><a href="/about"${page === 'about' ? ' aria-current="page"' : ''}>About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer" aria-label="Follow DoctorAI World on LinkedIn (opens in a new tab)">LinkedIn</a></nav>
       </div>`;
 
     document.body.prepend(header);
@@ -74,7 +75,6 @@
       header.classList.toggle('menu-open', open);
       button.setAttribute('aria-expanded', String(open));
       button.setAttribute('aria-label', open ? 'Close main menu' : 'Open main menu');
-      if (open) menu.querySelector('a')?.focus({ preventScroll: true });
     });
     menu.addEventListener('click', event => { if (event.target.closest('a')) closeMenu(); });
     document.addEventListener('click', event => { if (!header.contains(event.target)) closeMenu(); });
