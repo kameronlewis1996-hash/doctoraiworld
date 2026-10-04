@@ -24,6 +24,7 @@ jobs:
       - run: pnpm run verify:scan
       - run: pnpm run verify:medication-provider-retirement
       - run: pnpm run verify:server
+      - run: pnpm run verify:cloud-auth-boundaries
       - run: pnpm run verify:medication-database
       - run: pnpm run verify:medication-safety
       - run: pnpm run verify:local-medication-ui

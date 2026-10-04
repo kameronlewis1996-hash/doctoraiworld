@@ -126,6 +126,14 @@ function clearSession(response) {
   response.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`);
 }
 
+function appendSetCookies(response, cookies) {
+  const current = typeof response.getHeader === 'function'
+    ? response.getHeader('Set-Cookie')
+    : response.headers?.['set-cookie'];
+  const existing = Array.isArray(current) ? current : current ? [current] : [];
+  response.setHeader('Set-Cookie', [...existing, ...cookies]);
+}
+
 function createSession(profile) {
   return {
     v: 1,
@@ -224,7 +232,7 @@ function setEntitlementCookie(response, entitlement, name = 'doctorai_entitlemen
 }
 
 function clearEntitlementCookies(response) {
-  response.setHeader('Set-Cookie', ENTITLEMENT_COOKIES.map(name => `${name}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`));
+  appendSetCookies(response, ENTITLEMENT_COOKIES.map(name => `${name}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`));
 }
 
 const redisUrl = () => String(isPreview() ? previewValue('KV_REST_API_URL') : process.env.KV_REST_API_URL || '').replace(/\/$/, '');
