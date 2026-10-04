@@ -22,7 +22,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 foreach ($relative in $required) {
   $path = Join-Path $root $relative
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $failures.Add("Missing required file: $relative"); continue }
-  if ((Get-Item -LiteralPath $path).Length -le 0) { $failures.Add("Empty required file: $relative") }
+  if ((Get-Item -LiteralPath $path -Force).Length -le 0) { $failures.Add("Empty required file: $relative") }
 }
 
 $hubScriptPath = Join-Path $root 'health-hub.js'
