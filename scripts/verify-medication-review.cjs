@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
+const html = fs.readFileSync(require.resolve('../health-hub.html'), 'utf8');
 const section = (startMarker, endMarker) => {
   const start = source.indexOf(startMarker);
   const end = source.indexOf(endMarker, start);
@@ -11,12 +12,13 @@ const section = (startMarker, endMarker) => {
   return source.slice(start, end);
 };
 
-const openScanner = section('  async function openMedicationScanner() {', '  async function startMedicationScannerCamera() {');
-const startCamera = section('  async function startMedicationScannerCamera() {', '  async function scanMedicationPhoto(');
-assert.ok(openScanner.includes('Choose package barcode, label photo, or manual entry'));
-assert.equal(openScanner.includes('getUserMedia'), false, 'Opening the scanner must not request camera access.');
-assert.ok(startCamera.includes('navigator.mediaDevices.getUserMedia'), 'Camera access is available only after the barcode action.');
-assert.ok(source.includes('data-medication-barcode'), 'Barcode scanning must be an explicit user choice.');
+const scanFlow = section('  async function openMedicationScanner() {', '  async function scanMedicationPhoto(');
+assert.ok(scanFlow.includes('Choose a label photo after consent, or enter medicine details manually.'));
+assert.equal(scanFlow.includes('getUserMedia'), false, 'Photo selection must not directly request camera access.');
+assert.equal(source.includes('BarcodeDetector'), false, 'Retired barcode lookup cannot call a product-matching service.');
+assert.equal(source.includes('data-medication-barcode'), false, 'Retired barcode lookup is not exposed in the UI.');
+assert.doesNotMatch(html, /barcode/i, 'The static medication UI must not promise the retired barcode path.');
+assert.ok(source.includes('data-medication-photo') && source.includes('data-medication-image-consent'), 'Label photos remain a separate, consented OCR flow.');
 
 assert.ok(source.includes('const scanReviewRequired = Boolean(prefill.__scanned);'));
 assert.ok(source.includes('name="reviewedAgainstPackage" ${scanReviewRequired ? \'required\' : \'\'}'));

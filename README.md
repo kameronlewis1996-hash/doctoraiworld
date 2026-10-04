@@ -24,7 +24,7 @@ pnpm run check:js
 pnpm run verify:static
 ```
 
-The static verification script uses PowerShell. Other focused verification scripts are available as `verify:scan`, `verify:nzf`, and `verify:server`.
+The static verification suite runs cross-platform with Node. Focused verification scripts include `verify:scan`, `verify:medication-safety`, `verify:medication-provider-retirement`, and `verify:server`.
 
 ## Secrets
 

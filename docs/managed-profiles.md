@@ -14,7 +14,7 @@ Pro managed adult profiles support the existing chat, AI briefings and OCR/camer
 
 Chat explicitly sends `store:false` in the initial, streaming and fallback OpenAI Responses requests, as does the existing scan path. This opts out of Responses application-state storage; it does not establish that all provider retention or abuse-monitoring logs are eliminated.
 
-External NZF/DrugBank catalogue/safety workflows and sharing remain unavailable for managed profiles. Their existing signed-use/licensing, NZ-scope, provider and consent gates are unchanged. These workflows require separate scope/consent/provider integration verification before enabling managed use; this is a remaining limitation. Manual records, local medication guidance, visit briefs and document storage are supported.
+The current web candidate has removed external NZF/DrugBank catalogue/safety execution rather than enabling it for managed profiles. The limited local DoctorAI medication check remains gated and scoped; it is not equivalent to external provider coverage. See [the medication provider retirement note](medication-provider-retirement-2026-10-04.md). Manual records, local medication guidance, visit briefs and document storage are supported.
 
 ## Verification
 

@@ -90,29 +90,5 @@ function harness({ fail = false, dirty = false } = {}) {
   assert.equal(paused.context.flushes, 0, 'Switching away from a paused recovery must never upload its unsynced edits.');
   assert.equal(paused.context.activePersonId, 'river');
   assert.equal(paused.context.selfStateSnapshot.profile.name, 'Saved self', 'Self fallback retains the prior account state, not recovered data.');
-  for (const [name, end, resultKey] of [['runMedicationSafetyCheck', '  async function runIngredientSafetyCheck(', 'lastMedicationSafetyResult'], ['runIngredientSafetyCheck', '  async function handleClick(', 'lastIngredientSafetyResult']]) {
-    const delayed = harness(); const body = deferred(); const headers = deferred();
-    const c = delayed.context; c.activePersonId = 'self'; c[resultKey] = null;
-    c.state.medications = [{ nzfProductConfirmed: true, nzfProduct: {} }];
-    c.selectedSafetyMedications = () => c.state.medications;
-    c.validNzmtProduct = () => ({ id: '1234567', ingredientsComplete: true });
-    c.medicationSafetyTerms = () => ({ reviewed: { allergies: true, conditions: true, symptoms: true } });
-    c.buildDrugBankSafetyPayload = () => ({ medications: [{ ingredientIds: ['DB00001'] }] });
-    c.renderMedicationSafetyResult = () => { delayed.renders.push('stale result'); };
-    c.window.fetch = async () => { headers.resolve(); return { ok: true, json: () => body.promise }; };
-    const output = { textContent: '' }; const consent = { checked: true };
-    const button = { closest: () => ({ querySelector: selector => selector.includes('consent') ? consent : output }) };
-    vm.runInContext(between(`  async function ${name}(`, end), c);
-    const action = c.protectPersonOperation(c[name])(button);
-    await headers.promise; await Promise.resolve();
-    await c.switchManagedPerson('river');
-    assert.equal(c.activePersonId, 'self', 'JSON parsing is part of the originating operation barrier.');
-    // Also exercise the post-body context check independently of the barrier,
-    // including an account replacement after the headers have arrived.
-    c.activePersonId = 'river'; c.personEpoch++; c.authUser = { accountId: 'other-synthetic-account' };
-    body.resolve({ oldAllergy: 'Self-only allergy' }); await action;
-    assert.equal(c[resultKey], null, 'Late JSON cannot commit another person/account’s global safety result.');
-    assert.equal(delayed.renders.length, 0);
-  }
-  console.log('Person-switch regression passed: delayed target GET blocks upload/save/scan/chat/safety/form events; delayed external-check JSON holds the barrier and rechecks person/account before result commits; failure unlocks controls; originating changes flush. Synthetic dependencies only.');
+  console.log('Person-switch regression passed: delayed target GET blocks upload/save/scan/chat/form events; failure unlocks controls; originating changes flush; stale managed self-cache data is not sent. Synthetic dependencies only.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -45,6 +45,6 @@ node scripts/check-js.js
 
 Review constituent exceptions, salt equivalences, ambiguous names and counts before committing a new generated release. Update the seed version, UI effective-date notice and suggestion-cache version alongside the import. Raw XML is not bundled into the public app; the generated factual catalogue is.
 
-Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. The separate provider features retain their original access/licence gates. No provider approval is asserted or enabled by this expansion.
+Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. The current isolated web candidate has retired all NZF/NZULM and DrugBank product/interaction/ingredient-check requests; the limited local DoctorAI rules remain separate and are not equivalent to external provider coverage. See [the retirement note](medication-provider-retirement-2026-10-04.md). No provider approval is asserted.
 
 The local safety API rejects invalid, blank and oversized input instead of returning a partial check. It does not cache personal requests. Tests use synthetic medicine lists, never user health records.

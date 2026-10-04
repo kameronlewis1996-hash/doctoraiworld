@@ -125,17 +125,17 @@ const check = (test, label) => {
   await page
     .locator("#quick-modal")
     .screenshot({ path: path.join(out, "medication-essentials-desktop.png") });
-  await page.locator(".medication-provider-details summary").click();
+  await page.locator("details").filter({ hasText: "Optional active ingredient notes" }).locator("summary").click();
   check(
     await page
-      .locator("[name=nzfProductQuery]")
+      .locator("textarea[name=activeIngredients]")
       .evaluate((e) => getComputedStyle(e).fontSize === "16px"),
-    "Optional product-search input is 16px",
+    "Optional local label-notes input is 16px",
   );
   await audit("medication dialog");
   await page
     .locator("#quick-modal")
-    .screenshot({ path: path.join(out, "medication-provider-desktop.png") });
+    .screenshot({ path: path.join(out, "medication-local-notes-desktop.png") });
   await page.locator("#quick-modal [type=submit]").evaluate((e) => {
     e.click();
     e.click();

@@ -11,7 +11,7 @@ const context = vm.createContext({ activePersonId: 'river', personName: () => 'R
   els: { chatInput: { value: 'Synthetic question' } }, $: () => ({ classList: { remove() {} } }) });
 vm.runInContext(between('  function confirmManagedTransmission(', '  async function submitPersonForm('), context);
 vm.runInContext(between('  async function sendChat(', '  async function copyChatAnswer('), context);
-vm.runInContext(between('  async function submitMedicationScan(', '  async function medicationBarcodeDetected('), context);
+vm.runInContext(between('  async function submitMedicationScan(', '  async function scanMedicationPhoto('), context);
 vm.runInContext(between('  async function loadTodayIntelligence(', '  function normalizeMedicationKey('), context);
 (async () => {
   await context.sendChat();

@@ -4,10 +4,6 @@ const path = require('node:path');
 const guard = require('../server-src/_lib/preview-provider-guard.cjs');
 const paths = [
   'api/chat.js', 'api/medication/_handlers/scan.js',
-  'api/medication/_handlers/ingredient-search.js',
-  'api/medication/_handlers/nzf-product-search.js',
-  'api/medication/_handlers/nzf-interactions.js',
-  'api/medication/_handlers/safety-check.js',
   'server-src/stripe/public-plans.js',
   'server-src/stripe/create-checkout-session.js',
   'server-src/stripe/create-portal-session.js',
@@ -42,5 +38,5 @@ const response = () => ({ statusCode: 200, headers: {}, setHeader(key, value) { 
     assert.equal(guard.blockPreview(response(), 'ai'), false);
   }
   assert.equal(calls, 0);
-  console.log('Preview providers passed: 12 real handlers reject inherited keys before auth/provider calls, config reports AI/billing disabled, production/development guard unchanged; zero outbound calls. Local medication checks remain separate.');
+  console.log(`Preview providers passed: ${paths.length} real handlers reject inherited keys before auth/provider calls, config reports AI/billing disabled, production/development guard unchanged; zero outbound calls. Local medication checks remain separate.`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

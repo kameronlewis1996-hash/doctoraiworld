@@ -9,7 +9,7 @@
   "scripts": {
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
-    "verify:nzf": "node scripts/verify-nzf-fhir.js",
+    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs",
     "verify:profiles": "node scripts/verify-managed-profiles.cjs",
     "verify:person-switch": "node scripts/verify-person-switch.cjs",
     "verify:preview-isolation": "node scripts/verify-preview-isolation.cjs",
