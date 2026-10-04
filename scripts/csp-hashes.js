@@ -10,8 +10,13 @@ const blocks = { script: new Map(), style: new Map() };
 
 for (const file of htmlFiles) {
   const html = fs.readFileSync(path.join(root, file), 'utf8');
-  for (const match of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)) {
-    const hash = crypto.createHash('sha256').update(match[1], 'utf8').digest('base64');
+  for (const match of html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    const typeAttribute = match[1].match(/\btype\s*=\s*(["'])(.*?)\1/i);
+    const scriptType = typeAttribute?.[2].trim().toLowerCase();
+    const executableTypes = new Set(['module', 'text/javascript', 'application/javascript', 'text/ecmascript', 'application/ecmascript']);
+    if (scriptType && !executableTypes.has(scriptType)) continue;
+
+    const hash = crypto.createHash('sha256').update(match[2], 'utf8').digest('base64');
     blocks.script.set(`'sha256-${hash}'`, file);
   }
   for (const match of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) {

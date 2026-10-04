@@ -24,7 +24,7 @@ pnpm run check:js
 pnpm run verify:static
 ```
 
-The static verification script uses PowerShell. Other focused verification scripts are available as `verify:scan`, `verify:nzf`, and `verify:server`.
+The static verification script uses PowerShell. Focused checks include `verify:scan`, `verify:medication-provider-retirement`, `verify:medication-database`, and `verify:server`.
 
 ## Secrets
 
