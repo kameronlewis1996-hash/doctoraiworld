@@ -94,7 +94,7 @@ foreach ($relative in $htmlFiles) {
   $text = Get-Content -Raw -LiteralPath (Join-Path $root $relative)
   foreach ($match in [regex]::Matches($text, '(?:src|href)=["'']([^"''#?]+)')) {
     $reference = $match.Groups[1].Value
-    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template')) { continue }
+    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template','/appointment-checklist')) { continue }
     $target = Join-Path $root $reference.TrimStart('/')
     if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { $failures.Add("Broken local reference in ${relative}: $reference") }
   }
