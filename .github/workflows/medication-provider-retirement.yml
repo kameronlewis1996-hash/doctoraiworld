@@ -17,6 +17,7 @@ on:
       - 'scripts/verify-local-medication-ui.cjs'
       - 'scripts/verify-retired-medication-providers.cjs'
       - 'scripts/verify-static-site.ps1'
+      - 'scripts/csp-hashes.js'
       - 'service-worker.js'
       - 'package.json'
       - 'subscription.html'
