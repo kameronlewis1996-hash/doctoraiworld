@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f1f9ff">
+  <title>Changing GP? NZ Health Records Transfer Planner | DoctorAI</title>
+  <meta name="description" content="A free printable New Zealand planner for tracking questions and administrative follow-up when changing general practice. No health records are collected.">
+  <link rel="canonical" href="https://www.doctoraiworld.com/changing-gp-records">
+  <meta property="og:title" content="Changing GP? NZ Health Records Transfer Planner | DoctorAI">
+  <meta property="og:description" content="A free, printable organizer for tracking questions and administrative steps when changing general practice in New Zealand.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://www.doctoraiworld.com/changing-gp-records">
+  <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Changing GP? NZ Health Records Transfer Planner | DoctorAI">
+  <meta name="twitter:description" content="A free, printable organizer for tracking questions and administrative steps when changing general practice in New Zealand.">
+  <meta name="twitter:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <link rel="icon" href="/doctorai-app-icon.png?v=10">
+  <link rel="stylesheet" href="/changing-gp-records.css">
+  <link rel="stylesheet" href="/resource-share.css">
+  <script defer src="/changing-gp-records.js"></script>
+  <script defer src="/resource-share.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="page-header">
+    <a class="brand" href="/" aria-label="DoctorAI World home">
+      <img src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI World" width="168" height="84">
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="/appointment-checklist">Checklist</a>
+      <a class="nav-cta" href="/health-hub">Open your hub</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page-main" tabindex="-1">
+    <article>
+      <header class="hero">
+        <p class="eyebrow">Free, printable New Zealand resource</p>
+        <h1>Changing general practices? Track your next steps</h1>
+        <p class="intro">Health New Zealand says people enrolling with a new general practice will be asked to sign a form so records can be transferred from their old practice. Use this planner to keep track of questions and administrative follow-up. The new practice’s instructions apply.</p>
+        <div class="hero-actions" role="group" aria-label="Planner actions">
+          <button class="button" id="print-planner" type="button">Print this planner</button>
+          <a class="button button-secondary" href="/health-hub#summary">Open free Health Hub summary</a>
+          <button class="resource-share-button" type="button" data-share-resource data-share-title="Changing GP? NZ Health Records Transfer Planner | DoctorAI" data-share-text="Share this free printable planner for administrative steps when changing general practice in New Zealand.">Share this planner</button>
+          <p class="resource-share-status" data-share-status role="status" aria-live="polite">Sharing offers only this public planner link and a fixed description. Your entries are not included.</p>
+          <input class="resource-share-link" data-share-link type="text" aria-label="Public planner link to share" readonly hidden>
+        </div>
+        <p class="privacy-note">Use these fields for practice names and administrative steps only. Avoid entering diagnoses, medicine details, or other health information. Entries stay in this open page; DoctorAI does not send or save them.</p>
+        <noscript><p>You can print this page using your browser’s print command.</p></noscript>
+      </header>
+
+      <section class="notes-section" aria-labelledby="before-title">
+        <div class="section-heading">
+          <p class="eyebrow">Before I contact the new practice</p>
+          <h2 id="before-title">The details I want to remember</h2>
+        </div>
+        <div class="detail-fields">
+          <label for="previous-practice">Previous general practice (optional)<input id="previous-practice" type="text" autocomplete="off"></label>
+          <label for="new-practice">New general practice (optional)<input id="new-practice" type="text" autocomplete="off"></label>
+          <label for="contact-date">Date I contacted or enrolled (optional)<input id="contact-date" type="text" autocomplete="off"></label>
+          <label for="contact-person">Who I spoke with (optional)<input id="contact-person" type="text" autocomplete="off"></label>
+          <label class="field-wide" for="my-questions">Administrative questions I want to ask<textarea id="my-questions" rows="3"></textarea></label>
+        </div>
+      </section>
+
+      <section class="notes-section" aria-labelledby="process-title">
+        <div class="section-heading">
+          <p class="eyebrow">What the new practice tells me</p>
+          <h2 id="process-title">Form or administrative steps</h2>
+        </div>
+        <label class="field-wide" for="practice-reply">What I want to remember about its form or process<textarea id="practice-reply" rows="4" aria-describedby="admin-only-note"></textarea></label>
+        <p id="admin-only-note" class="privacy-note">Administrative details only. Leave out health information and copies of records.</p>
+        <div class="detail-fields">
+          <label class="field-wide" for="form-date">Date I signed or sent a form (optional)<input id="form-date" type="text" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section class="notes-section" aria-labelledby="follow-up-title">
+        <div class="section-heading">
+          <p class="eyebrow">My follow-up</p>
+          <h2 id="follow-up-title">What I choose to do next</h2>
+        </div>
+        <div class="detail-fields">
+          <label class="field-wide" for="next-step">My next administrative step<textarea id="next-step" rows="3"></textarea></label>
+          <label class="field-wide" for="follow-up-date">Follow-up date I choose (optional)<input id="follow-up-date" type="text" autocomplete="off"></label>
+        </div>
+        <div class="checklist-actions">
+          <button class="button button-secondary" id="clear-planner" type="button">Clear entries from this page</button>
+          <p id="planner-status" class="screen-reader-only" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="source-note" aria-labelledby="source-title">
+        <h2 id="source-title">Source and scope</h2>
+        <p>Health New Zealand | Te Whatu Ora’s <a href="https://www.healthnz.govt.nz/hospitals-services/services-support/general-practices" rel="noopener noreferrer">General practices guide</a> says people enrolling with a new practice will be asked to sign a form so records can be transferred from the old practice. Read the official page for complete guidance.</p>
+        <p>This original, AI-assisted organizer does not contact practices or transfer records, and it makes no promise about timing or completeness. It is for health organization and education, not medical advice; it has not been clinician-reviewed.</p>
+        <p class="checked-date"><strong>Last source check:</strong> 4 October 2026</p>
+      </section>
+
+      <section class="measurement-section" aria-labelledby="measurement-title">
+        <h2 id="measurement-title">Help improve this free resource</h2>
+        <p>If you allow, Vercel can count this page visit using its cookie-free Web Analytics service. The same generic resource URL is reported for everyone; entries and Health Hub details are not included. The page and analytics script use a no-referrer policy, so the referring-page URL is not sent. Vercel may derive aggregate browser, device and location statistics from incoming requests. Your choice applies to this page visit and is not saved. <a href="/privacy">Read the privacy notice</a>.</p>
+        <div class="hero-actions" role="group" aria-label="Optional page counting">
+          <button class="button" id="measurement-allow" type="button" disabled>Allow for this visit</button>
+          <button class="button button-secondary" id="measurement-decline" type="button" disabled>No thanks</button>
+        </div>
+        <p id="measurement-status" class="privacy-note" role="status" aria-live="polite">Page counting is off until you allow it.</p>
+        <noscript><p>Page counting stays off because JavaScript is unavailable.</p></noscript>
+      </section>
+
+      <section class="hub-cta" aria-labelledby="hub-title">
+        <div>
+          <p class="eyebrow">Keep the details together</p>
+          <h2 id="hub-title">Prefer a digital health summary?</h2>
+          <p>Open the free DoctorAI Health Hub summary. Choose what, if anything, you want to add.</p>
+        </div>
+        <a class="button" href="/health-hub">Open the free Health Hub <span aria-hidden="true">→</span></a>
+      </section>
+
+      <p class="related-resource">For preparing for a visit, see the <a href="/appointment-checklist">free New Zealand doctor appointment checklist</a>. The Health Hub also has a <a href="/medication-list-template">free medication list template</a>.</p>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <span>© DoctorAI World</span>
+    <nav aria-label="Footer navigation">
+      <a href="/">Home</a>
+      <a href="/health-hub">Health Hub</a>
+      <a href="/appointment-checklist">Doctor appointment checklist</a>
+      <a href="/medication-list-template">Medication list template</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="mailto:support@doctoraiworld.com">Support</a>
+    </nav>
+  </footer>
+</body>
+</html>
