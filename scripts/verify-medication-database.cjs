@@ -72,6 +72,19 @@ for (const product of nz.products) {
   }
 }
 assert.ok(mapped > 3000);
+assert.deepEqual(nz.stats, {
+  ...nz.stats,
+  productFormulations: 3419,
+  brandNames: 1444,
+  chemicalNames: 1224,
+  ingredientTerms: 1136,
+  completeIngredientProducts: 3288,
+  incompleteIngredientProducts: 131
+}, 'Displayed Pharmac catalogue counts must match the checked-in dataset metadata.');
+const rules = require('../data/medication/medication-safety.seed.json');
+assert.equal(rules.interactionRules.length, 13);
+assert.equal(rules.allergyRules.length, 2);
+assert.equal(rules.contraindicationRules.length, 0);
 for (const [name, expected] of [
   ['Marevan', ['warfarin']], ['Setrona', ['sertraline']],
   ['Trisul', ['trimethoprim','sulfamethoxazole']],

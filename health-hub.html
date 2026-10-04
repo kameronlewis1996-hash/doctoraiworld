@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=70">
+  <link rel="stylesheet" href="/health-hub.css?v=72">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -130,8 +130,8 @@
               <div class="home-medication-action-group">
                 <button type="button" class="primary-button home-medication-manual-cta" data-modal="medication">Add a medicine by hand <span aria-hidden="true">＋</span></button>
                 <button type="button" class="primary-button home-medication-scan-cta" data-open-medication-scanner aria-describedby="home-medication-support home-check-coverage">
-                  <span class="home-medication-scan-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4M8 9v6M11 8v8M14 9v6M17 8v8"/></svg></span>
-                  <span class="home-medication-scan-copy"><b>Scan a prescription or medicine label</b><small>Photo or supported barcode · Pro · Review before saving</small></span>
+                  <span class="home-medication-scan-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 17 5-5 3 3 2-2 4 4"/></svg></span>
+                  <span class="home-medication-scan-copy"><b>Scan a prescription or medicine label</b><small>Label photo only · Pro · Review before saving</small></span>
                   <span class="home-medication-scan-arrow" aria-hidden="true">→</span>
                 </button>
                 <div class="home-medication-support" id="home-medication-support" role="group" aria-label="Free and Pro medication tools">
@@ -332,7 +332,7 @@
         </section>
 
         <section class="view" id="view-medications" data-view-panel="medications" aria-labelledby="medications-title" hidden>
-          <div class="page-heading"><div><p class="eyebrow">Stay on top of your routine</p><h1 id="medications-title">Medications</h1><p class="page-subtitle">Keep prescriptions, reminders, supply and history together.</p></div><div class="page-heading-actions"><button class="secondary-button pro-feature-control medication-scan-button" type="button" data-pro-feature="medication-scan" data-open-medication-scanner><span class="medication-scan-button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4M8 9v6M11 8v8M14 9v6M17 8v8"/></svg></span><span>Scan prescription <small>Photo or barcode · Pro</small></span></button><input id="medication-scan" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden><button class="primary-button" type="button" data-modal="medication">＋ Add medication</button></div></div>
+          <div class="page-heading"><div><p class="eyebrow">Stay on top of your routine</p><h1 id="medications-title">Medications</h1><p class="page-subtitle">Keep prescriptions, reminders, supply and history together.</p></div><div class="page-heading-actions"><button class="secondary-button pro-feature-control medication-scan-button" type="button" data-pro-feature="medication-scan" data-open-medication-scanner><span class="medication-scan-button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m5 17 5-5 3 3 2-2 4 4"/></svg></span><span>Choose label photo <small>Pro · review before saving</small></span></button><input id="medication-scan" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden><button class="primary-button" type="button" data-modal="medication">＋ Add medication</button></div></div>
           <div class="medication-view-grid"><section class="panel-card library-card"><div class="card-heading"><div><p class="card-kicker">Current list</p><h2>Active medications</h2></div><span class="soft-count" id="medications-count">0 active</span></div><div id="medication-library" class="library-list"></div><div class="library-disclaimer"><span>i</span><p>Scanned labels are not database verified, and only confirmed active ingredients are compared. These checks do not assess inactive ingredients, dose, route, timing, or New Zealand product formulations. Missing or unmatched medicines and partial checks are not a clear result. Never start, stop, or change a prescribed medicine based only on an app result; confirm warnings and your complete medication list with a pharmacist or clinician.</p></div></section><aside class="medication-side"><section class="panel-card refill-card"><div class="refill-icon">↻</div><p class="card-kicker">Plan ahead</p><h2 id="refill-title">No refill reminders</h2><p id="refill-copy">Add a medication with a refill date to see reminders here.</p><div class="refill-progress" id="refill-progress" hidden><span></span></div><div class="refill-meta" id="refill-meta" hidden><span></span><b></b></div><button type="button" class="secondary-button full-width" id="refill-action" data-view="medications">＋ Add medication <span>→</span></button></section><section class="panel-card history-card"><div class="card-heading"><div><p class="card-kicker">Archive</p><h2>Medication history</h2></div><a href="#timeline" data-view="timeline">Timeline <span>→</span></a></div><div id="medication-history-list"><div class="empty-inline">Medication changes will appear here.</div></div></section></aside></div>
         </section>
 
@@ -401,19 +401,12 @@
   <dialog class="medication-scanner-modal" id="medication-scanner-modal" aria-labelledby="medication-scanner-title" aria-describedby="medication-scanner-intro">
     <div class="modal-header"><div><p class="eyebrow">Medication manager · Pro</p><h2 id="medication-scanner-title">Scan a prescription</h2></div><button class="icon-button" type="button" data-close-medication-scanner aria-label="Close prescription scanner">×</button></div>
     <div class="medication-scanner-copy">
-      <p class="medication-scanner-intro" id="medication-scanner-intro">Choose how to add a medicine. The camera opens only if you choose package barcode scanning. A label photo is sent only after separate consent.</p>
-      <div class="medication-camera-stage" data-camera-state="idle" hidden>
-        <video id="medication-scanner-video" playsinline muted aria-label="Live rear camera for prescription and medicine label scanning"></video>
-        <div class="medication-scan-reticle" aria-hidden="true"><i></i><span>Keep the label clear and steady</span></div>
-        <div class="medication-camera-placeholder" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg></span><b>Starting camera…</b></div>
-      </div>
-      <p class="medication-scanner-status" id="medication-scanner-status" role="status" aria-live="polite">Choose package barcode, label photo, or manual entry.</p>
-      <p class="medication-scanner-safety"><span aria-hidden="true">i</span><span>Images are sent only when you capture or choose a label photo. A numeric barcode can be searched against NZF/NZULM only after separate consent; it does not contain your dose or directions. Neither scan verifies medicine safety.</span></p>
+      <p class="medication-scanner-intro" id="medication-scanner-intro">Choose a label photo or enter medicine details manually. The camera opens only if you choose a photo in your device’s file picker.</p>
+      <p class="medication-scanner-status" id="medication-scanner-status" role="status" aria-live="polite">Choose a label photo after consent, or enter details manually.</p>
+      <p class="medication-scanner-safety"><span aria-hidden="true">i</span><span>A chosen image is sent only after separate consent for text extraction. This does not match a product or check medicine safety. You can enter the details manually instead.</span></p>
       <label class="medication-image-consent"><input type="checkbox" data-medication-image-consent><span>I agree to send this selected label image to OpenAI for text extraction. It may contain personal health information. OpenAI may retain API content in abuse-monitoring logs for up to 30 days by default; DoctorAI has not confirmed a shorter-retention exception. This scan does not check medicine safety.</span></label>
     </div>
     <div class="medication-scanner-actions">
-      <button type="button" class="primary-button medication-capture-button" data-medication-capture disabled hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg><span>Capture label</span></button>
-      <button type="button" class="secondary-button" data-medication-barcode>Scan package barcode</button>
       <button type="button" class="secondary-button" data-medication-photo>Choose photo</button>
       <button type="button" class="secondary-button" data-medication-manual>Enter manually</button>
     </div>
@@ -428,6 +421,6 @@
   </div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="self-cache.js?v=2"></script>
-  <script src="health-hub.js?v=69"></script>
+  <script src="health-hub.js?v=70"></script>
 </body>
 </html>

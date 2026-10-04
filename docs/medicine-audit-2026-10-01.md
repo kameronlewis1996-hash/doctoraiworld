@@ -1,5 +1,7 @@
 # Medicine audit — 1 October 2026
 
+> Historical audit snapshot: this document records the code state on 1 October. On 4 October, a follow-up isolated web candidate retired NZF/NZULM and DrugBank request paths. See [the current retirement note](medication-provider-retirement-2026-10-04.md) for present behavior and verification.
+
 Review base: `993f593642db8657a3d27cb834d323e534df871c`, `kameronlewis1996-hash/doctoraiworld`. This is an engineering audit with synthetic fixtures, not clinical sign-off. No production changes, deployment, provider purchase, or outreach were made.
 
 ## Findings and scoped repairs

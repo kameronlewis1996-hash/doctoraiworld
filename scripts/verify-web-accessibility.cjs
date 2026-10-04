@@ -114,7 +114,9 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
   await axe(page, 'briefing dialog'); await page.keyboard.press('Escape');
   await page.locator('[data-open-medication-scanner]').first().click();
   check(await page.locator('#medication-scanner-modal').evaluate(e => e.open), 'Scanner choices open without starting a camera');
-  check(await page.locator('#medication-scanner-video').evaluate(e => !e.srcObject), 'No camera stream starts on scanner open');
+  check(await page.locator('#medication-scanner-modal [data-medication-photo]').isVisible(), 'The scanner offers an explicit label-photo action');
+  check(await page.locator('#medication-scanner-modal [data-medication-manual]').isVisible(), 'Manual medication entry remains available beside photo scanning');
+  check(!await page.locator('#medication-scanner-modal [data-medication-barcode]').count(), 'Retired barcode search is not offered');
   await axe(page, 'scanner dialog'); await page.keyboard.press('Escape');
   await goto(page, 'documents');
   await page.locator('#document-upload-inline').setInputFiles({ name: 'synthetic-note.txt', mimeType: 'text/plain', buffer: Buffer.from('Synthetic document only') });
@@ -146,7 +148,14 @@ const json = (page, url, options) => page.evaluate(async ({ url, options }) => (
     for (const view of ['today', 'medications', 'appointments', 'health', 'documents', 'profile', 'ask']) {
       await goto(page, view); await axe(page, `${view} at ${width}px`);
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${view} reflows at ${width}px`);
-      if ([1440, 390].includes(width) && ['today', 'medications', 'profile'].includes(view)) await page.screenshot({ path: path.join(output, `after-${view}-${width}.png`), fullPage: true });
+      if (view === 'documents') {
+        const fileControls = await page.locator('.document-card').evaluateAll(cards => cards.map(card => ({
+          labelFont: parseFloat(getComputedStyle(card.querySelector('.document-type')).fontSize),
+          actions: [...card.querySelectorAll('.document-card-actions button')].map(button => ({ font: parseFloat(getComputedStyle(button).fontSize), height: button.getBoundingClientRect().height }))
+        })));
+        check(fileControls.length > 0 && fileControls.every(card => card.labelFont >= 12 && card.actions.every(action => action.font >= 14 && action.height >= 44)), `Document labels are readable and file actions have 44px targets at ${width}px`);
+      }
+      if ([1440, 390].includes(width) && ['today', 'medications', 'documents', 'profile'].includes(view)) await page.screenshot({ path: path.join(output, `after-${view}-${width}.png`), fullPage: true });
     }
   }
   await page.setViewportSize({ width: 768, height: 1000 });

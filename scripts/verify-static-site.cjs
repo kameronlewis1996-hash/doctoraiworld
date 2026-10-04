@@ -62,7 +62,14 @@ const hub = read('health-hub.js');
 assert.doesNotMatch(hub, /Tesseract|cdn\.jsdelivr\.net/);
 assert.match(hub, /data-scan-review-required/);
 assert.match(hub, /data-briefing-consent/);
-assert.match(read('api/medication/_lib/drugbank.cjs'), /DRUGBANK_SAFETY_CRITICAL_USE_APPROVED/);
+assert.doesNotMatch(hub, /\/api\/medication\/(?:ingredient-search|nzf-interactions|nzf-product-search|safety-check)|buildDrugBankSafetyPayload|data-medication-barcode/);
+assert.match(hub, /data-run-local-medication-safety-check/);
+for (const file of ['api/medication/_handlers/ingredient-search.js', 'api/medication/_handlers/nzf-interactions.js', 'api/medication/_handlers/nzf-product-search.js', 'api/medication/_handlers/safety-check.js', 'api/medication/_lib/drugbank.cjs', 'api/medication/_lib/nzf-fhir.cjs']) assert.equal(fs.existsSync(path.join(root, file)), false, 'Retired provider code remains: ' + file);
+assert.match(read('api/medication/[...action].js'), /retiredActions\.has\(action\)[\s\S]*?status\(410\)/);
+assert.doesNotMatch(read('.env.example'), /(?:DRUGBANK|NZF_FHIR|NZF_INTERACTION)/);
+assert.match(read('api/medication/safety.js'), /safety-engine\.cjs/);
+assert.match(read('privacy.html'), /does not send medication-check requests to a third-party medication database/);
+assert.doesNotMatch(read('health-hub.html'), /NZF\/NZULM|package barcode|data-medication-barcode/);
 for (const resource of ['medication-list-template', 'appointment-checklist']) {
   const html = read(resource + '.html');
   assert.doesNotMatch(html, /<textarea\b/i, 'Printable resource must not collect health records');
