@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f1f9ff">
+  <title>Doctor Visit Questions and Notes Worksheet | DoctorAI</title>
+  <meta name="description" content="A free printable doctor visit questions and notes worksheet. Write your own questions, take notes, and record next steps in one place.">
+  <link rel="canonical" href="https://www.doctoraiworld.com/doctor-visit-notes">
+  <meta property="og:title" content="Doctor Visit Questions and Notes Worksheet | DoctorAI">
+  <meta property="og:description" content="A free, printable organizer for your own questions, visit notes, and next steps.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://www.doctoraiworld.com/doctor-visit-notes">
+  <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Doctor Visit Questions and Notes Worksheet | DoctorAI">
+  <meta name="twitter:description" content="A free, printable organizer for your own questions, visit notes, and next steps.">
+  <meta name="twitter:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
+  <link rel="icon" href="/doctorai-app-icon.png?v=10">
+  <link rel="stylesheet" href="/doctor-visit-notes.css">
+  <link rel="stylesheet" href="/resource-share.css">
+  <script defer src="/doctor-visit-notes.js"></script>
+  <script defer src="/resource-share.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="page-header">
+    <a class="brand" href="/" aria-label="DoctorAI World home">
+      <img src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI World" width="168" height="84">
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="/appointment-checklist">Checklist</a>
+      <a class="nav-cta" href="/health-hub#summary">Open your hub</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page-main" tabindex="-1">
+    <article>
+      <header class="hero">
+        <p class="eyebrow">Free, printable Aotearoa resource</p>
+        <h1>Questions and notes for your next doctor visit</h1>
+        <p class="intro">Write down the questions you choose to ask, make notes during your visit, and record next steps you want to remember. Leave anything blank. Print this page or save it as a PDF from your browser.</p>
+        <div class="hero-actions" role="group" aria-label="Worksheet actions">
+          <button class="button" id="print-notes" type="button">Print this worksheet</button>
+          <a class="button button-secondary" href="/health-hub#summary">Open free Health Hub summary</a>
+          <button class="resource-share-button" type="button" data-share-resource data-share-title="Doctor Visit Questions and Notes Worksheet | DoctorAI" data-share-text="Share this free printable organizer for your own doctor visit questions and notes.">Share this worksheet</button>
+          <p class="resource-share-status" data-share-status role="status" aria-live="polite">Sharing offers only this public worksheet link and a fixed description. Your entries are not included.</p>
+          <input class="resource-share-link" data-share-link type="text" aria-label="Public worksheet link to share" readonly hidden>
+        </div>
+        <p class="privacy-note">Your entries stay on this page. DoctorAI does not send or save what you type.</p>
+        <noscript><p>You can print this page using your browser’s print command.</p></noscript>
+      </header>
+
+      <section class="notes-section" aria-labelledby="before-title">
+        <div class="section-heading">
+          <p class="eyebrow">Before the visit</p>
+          <h2 id="before-title">What I want to discuss</h2>
+        </div>
+        <div class="detail-fields">
+          <label for="visit-date">Date and time<input id="visit-date" type="text" autocomplete="off"></label>
+          <label for="visit-provider">Clinic or health professional<input id="visit-provider" type="text" autocomplete="off"></label>
+          <label class="field-wide" for="main-concern">My main concern or reason for this visit<textarea id="main-concern" rows="2"></textarea></label>
+          <label class="field-wide" for="my-questions">Questions I want to remember, in my own words<textarea id="my-questions" rows="3"></textarea></label>
+        </div>
+      </section>
+
+      <section class="notes-section" aria-labelledby="during-title">
+        <div class="section-heading">
+          <p class="eyebrow">During the visit</p>
+          <h2 id="during-title">Notes and answers</h2>
+        </div>
+        <label class="field-wide" for="visit-notes">Notes I want to keep<textarea id="visit-notes" rows="6"></textarea></label>
+      </section>
+
+      <section class="notes-section" aria-labelledby="after-title">
+        <div class="section-heading">
+          <p class="eyebrow">After the visit</p>
+          <h2 id="after-title">What I want to remember next</h2>
+        </div>
+        <div class="detail-fields">
+          <label class="field-wide" for="next-steps">My notes about next steps<textarea id="next-steps" rows="3"></textarea></label>
+          <label class="field-wide" for="follow-up">Follow-up date or contact (optional)<input id="follow-up" type="text" autocomplete="off"></label>
+        </div>
+        <div class="checklist-actions">
+          <button class="button button-secondary" id="clear-notes" type="button">Clear entries from this page</button>
+          <p id="notes-status" class="screen-reader-only" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="source-note" aria-labelledby="source-title">
+        <h2 id="source-title">Source and scope</h2>
+        <p>This original, AI-assisted organizer is informed by visit-preparation resources from <a href="https://www.healthnz.govt.nz/hospitals-services/services-support/general-practices/preparing-for-your-doctors-visit" rel="noopener noreferrer">Health New Zealand | Te Whatu Ora</a> and the <a href="https://www.hqsc.govt.nz/resources/resource-library/lets-plan-for-your-next-health-care-visit/" rel="noopener noreferrer">Health Quality &amp; Safety Commission Te Tāhū Hauora</a>. Use the official resources for their complete guidance.</p>
+        <p>It has not been clinician-reviewed and is not medical advice. The blank worksheet does not suggest which questions are right for you.</p>
+        <p class="checked-date"><strong>Last source check:</strong> 4 October 2026</p>
+      </section>
+
+      <section class="measurement-section" aria-labelledby="measurement-title">
+        <h2 id="measurement-title">Help improve this free resource</h2>
+        <p>If you allow, Vercel can count this page visit using its cookie-free Web Analytics service. The same generic resource URL is reported for everyone; your entries and Health Hub details are not included. The page and analytics script use a no-referrer policy, so the referring-page URL is not sent. Vercel may derive aggregate browser, device and location statistics from incoming requests. Your choice applies to this page visit and is not saved. <a href="/privacy">Read the privacy notice</a>.</p>
+        <div class="hero-actions" role="group" aria-label="Optional page counting">
+          <button class="button" id="measurement-allow" type="button" disabled>Allow for this visit</button>
+          <button class="button button-secondary" id="measurement-decline" type="button" disabled>No thanks</button>
+        </div>
+        <p id="measurement-status" class="privacy-note" role="status" aria-live="polite">Page counting is off until you allow it.</p>
+        <noscript><p>Page counting stays off because JavaScript is unavailable.</p></noscript>
+      </section>
+
+      <section class="hub-cta" aria-labelledby="hub-title">
+        <div>
+          <p class="eyebrow">Keep the details together</p>
+          <h2 id="hub-title">Prefer a digital visit summary?</h2>
+          <p>Open the free DoctorAI Health Hub summary. You choose whether information stays in this browser or only for this session.</p>
+        </div>
+        <a class="button" href="/health-hub#summary">Open the free Health Hub <span aria-hidden="true">→</span></a>
+      </section>
+
+      <p class="related-resource">For a visit preparation checklist, see the <a href="/appointment-checklist">free New Zealand doctor appointment checklist</a>. For medicine details, use the <a href="/medication-list-template">free medication list template</a>.</p>
+    </article>
+  </main>
+
+  <footer class="page-footer">
+    <span>© DoctorAI World</span>
+    <nav aria-label="Footer navigation">
+      <a href="/">Home</a>
+      <a href="/health-hub">Health Hub</a>
+      <a href="/appointment-checklist">Doctor appointment checklist</a>
+      <a href="/medication-list-template">Medication list template</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="mailto:support@doctoraiworld.com">Support</a>
+    </nav>
+  </footer>
+</body>
+</html>
