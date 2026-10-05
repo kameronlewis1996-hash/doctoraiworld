@@ -14,7 +14,10 @@
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
     "verify:medication-database": "node scripts/verify-medication-database.cjs",
     "verify:medication-safety": "node scripts/verify-medication-safety.js",
+    "verify:medication-pipeline": "node scripts/verify-medication-pipeline.cjs",
+    "verify:medication-evidence": "node scripts/verify-medication-evidence.cjs",
     "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
+    "measure:medication-pipeline": "node scripts/measure-medication-pipeline.cjs",
     "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs"
   },
   "dependencies": {

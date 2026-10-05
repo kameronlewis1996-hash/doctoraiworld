@@ -41,6 +41,9 @@ jobs:
           node --check 'api/medication/[...action].js'
           node --check scripts/verify-medication-safety.js
           node --check scripts/verify-medication-database.cjs
+          node --check scripts/verify-medication-pipeline.cjs
+          node --check scripts/verify-medication-evidence.cjs
+          node --check scripts/measure-medication-pipeline.cjs
           node --check scripts/verify-medication-scan.js
           node --check scripts/verify-local-medication-ui.cjs
           node --check scripts/verify-retired-medication-providers.cjs
@@ -48,6 +51,8 @@ jobs:
         run: |
           node scripts/verify-medication-safety.js
           node scripts/verify-medication-database.cjs
+          node scripts/verify-medication-pipeline.cjs
+          node scripts/verify-medication-evidence.cjs
           node scripts/verify-local-medication-ui.cjs
           node scripts/verify-retired-medication-providers.cjs
           node scripts/verify-medication-scan.js

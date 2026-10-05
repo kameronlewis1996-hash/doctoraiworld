@@ -55,6 +55,37 @@ function validDate(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === text ? text : '';
 }
 
+function normalizeExtractedMedication(medication) {
+  const field = (name, max) => String(medication?.[name] || '').replace(/\s+/g, ' ').trim().slice(0, max);
+  const frequency = field('frequency', 20);
+  const time = field('time', 5);
+  const supply = field('supply', 20);
+  const activeIngredients = Array.isArray(medication?.activeIngredients)
+    ? [...new Set(medication.activeIngredients.map(item => String(item || '').replace(/\s+/g, ' ').trim().slice(0, 120)).filter(Boolean))].slice(0, 8)
+    : [];
+  const scanned = {
+    name: field('name', 120),
+    dose: field('dose', 80),
+    activeIngredients,
+    frequency: FREQUENCIES.has(frequency) ? frequency : '',
+    time: /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : '',
+    instructions: field('instructions', 500),
+    supply: /^\d{1,6}$/.test(supply) ? supply : '',
+    refill: validDate(medication?.refill),
+    startDate: validDate(medication?.startDate),
+    endDate: validDate(medication?.endDate),
+    prescriptionExpiry: validDate(medication?.prescriptionExpiry),
+    repeats: field('repeats', 30)
+  };
+  const missing = ['name', 'dose'].filter(key => !scanned[key]);
+  const fields = Object.fromEntries(MEDICATION_FIELDS.map(key => [key, {
+    status: Array.isArray(scanned[key]) ? (scanned[key].length ? 'extracted' : 'not_extracted') : (scanned[key] ? 'extracted' : 'not_extracted'),
+    confirmation: 'required',
+    confidence: 'not_reported'
+  }]));
+  return { medication: scanned, review: { required: true, confirmed: false, fields, missing, message: missing.length ? 'Some required label details were not clear enough to fill. Enter and review them manually; every extracted field still needs confirmation against the original.' : 'Review every extracted field against the medicine box or prescription before saving. An empty field may mean the scan did not read it; check the original label.' } };
+}
+
 module.exports = async function handler(request, response) {
   if (request.method !== 'POST') return json(response, 405, { error: 'Method not allowed.' });
   const contentLength = Number(request.headers?.['content-length'] || 0);
@@ -125,33 +156,12 @@ module.exports = async function handler(request, response) {
       core.reportError('medication_scan_empty', { route: '/api/medication/scan', provider: 'openai', code: 'empty_output' });
       return json(response, 502, { error: 'No readable label details were returned. Try a closer photo or enter them manually.' });
     }
-    const medication = JSON.parse(rawText);
-    const field = (name, max) => String(medication?.[name] || '').replace(/\s+/g, ' ').trim().slice(0, max);
-    const frequency = field('frequency', 20);
-    const time = field('time', 5);
-    const supply = field('supply', 20);
-    const activeIngredients = Array.isArray(medication?.activeIngredients)
-      ? [...new Set(medication.activeIngredients.map(item => String(item || '').replace(/\s+/g, ' ').trim().slice(0, 120)).filter(Boolean))].slice(0, 8)
-      : [];
-    const scanned = {
-      name: field('name', 120),
-      dose: field('dose', 80),
-      activeIngredients,
-      frequency: FREQUENCIES.has(frequency) ? frequency : '',
-      time: /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : '',
-      instructions: field('instructions', 500),
-      supply: /^\d{1,6}$/.test(supply) ? supply : '',
-      refill: validDate(medication?.refill),
-      startDate: validDate(medication?.startDate),
-      endDate: validDate(medication?.endDate),
-      prescriptionExpiry: validDate(medication?.prescriptionExpiry),
-      repeats: field('repeats', 30)
-    };
-    const needsReview = ['name', 'dose'].filter(key => !scanned[key]);
-    return json(response, 200, { medication: scanned, review: { required: true, missing: needsReview, message: needsReview.length ? 'Some required label details were not clear enough to fill. Please enter and review them manually.' : 'Review every extracted field against the medicine box or prescription before saving.' } });
+    return json(response, 200, normalizeExtractedMedication(JSON.parse(rawText)));
   } catch (error) {
     const timeout = error?.name === 'TimeoutError' || error?.name === 'AbortError';
     core.reportError(timeout ? 'medication_scan_timeout' : 'medication_scan_failed', { route: '/api/medication/scan', provider: 'openai', name: error?.name, operation: timeout ? 'timeout' : 'parse_or_transport' });
     return json(response, timeout ? 504 : 502, { error: timeout ? 'The scan took too long. Please try again with a closer label photo.' : 'The image could not be read. You can enter the details manually.' });
   }
 };
+
+module.exports.normalizeExtractedMedication = normalizeExtractedMedication;
