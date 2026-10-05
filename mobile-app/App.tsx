@@ -60,10 +60,10 @@ const createScopedPrivateStateStore = (scope: string, medicationAckKey: string) 
 });
 const privateStateStore = createScopedPrivateStateStore("device", MEDICATION_ACK_KEY);
 const accountStateStores = new Map<string, ReturnType<typeof createPrivateStateStore>>();
-async function privateStateStoreForAccount(email: string) {
-  const normalizedEmail = String(email || "").trim().toLowerCase();
-  if (!normalizedEmail) throw new Error("DoctorAI could not identify the signed-in account.");
-  const digest = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, normalizedEmail)).toLowerCase();
+async function privateStateStoreForAccount(subject: string) {
+  const normalizedSubject = String(subject || "").trim();
+  if (!normalizedSubject) throw new Error("DoctorAI could not identify the signed-in account.");
+  const digest = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, normalizedSubject)).toLowerCase();
   const scope = `account-${digest}`;
   const medicationAckKey = `${MEDICATION_ACK_KEY}-${digest}`;
   if (!accountStateStores.has(scope)) accountStateStores.set(scope, createScopedPrivateStateStore(scope, medicationAckKey));
@@ -403,7 +403,7 @@ export default function App() {
     if (identity.status === 401 || identity.status === 403) throw new SessionExpiredError();
     if (!identity.ok || !String(identity.payload?.user?.email || "").trim() || !String(identity.payload?.user?.sub || "").trim()) throw new Error("DoctorAI could not verify the signed-in account.");
     const user = identity.payload.user as Account;
-    const scoped = await privateStateStoreForAccount(user.email);
+    const scoped = await privateStateStoreForAccount(user.sub);
     const stored = await scoped.store.read();
     const local = stored?.raw ? normaliseState(JSON.parse(stored.raw)) : empty;
     if (revision !== accountRevision.current) return false;

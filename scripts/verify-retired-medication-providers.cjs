@@ -49,9 +49,11 @@ function responseRecorder() {
   const html = fs.readFileSync(path.join(root, 'health-hub.html'), 'utf8');
   const dispatcher = fs.readFileSync(path.join(root, 'api/medication/[...action].js'), 'utf8');
   const safetyApi = fs.readFileSync(path.join(root, 'api/medication/safety.js'), 'utf8');
+  const safetyProvider = fs.readFileSync(path.join(root, 'server-src/medication/safety-provider.cjs'), 'utf8');
   assert.match(dispatcher, /scan:/, 'The consented label-photo route remains available');
   assert.match(app, /fetch\('\/api\/medication\/safety'/, 'The limited local rules path stays active');
-  assert.match(safetyApi, /server-src\/medication\/safety-engine\.cjs/);
+  assert.match(safetyApi, /server-src\/medication\/safety-provider\.cjs/, 'The limited safety endpoint must use the replaceable local provider interface');
+  assert.match(safetyProvider, /require\(['"]\.\/safety-engine\.cjs['"]\)/, 'The default provider must delegate to the existing local rule engine');
   for (const retired of ['/api/medication/nzf-product-search', '/api/medication/nzf-interactions', '/api/medication/ingredient-search', '/api/medication/safety-check']) {
     assert.equal(app.includes(retired), false, 'The UI must not request ' + retired);
   }
@@ -64,8 +66,8 @@ function responseRecorder() {
   assert.match(app, /\.\.\.\(existingMedication \|\| \{\}\)/, 'Medication edits must retain unknown legacy record fields');
   assert.match(app, /activeIngredientsManuallyConfirmed === true/, 'Legacy provider-derived ingredient confirmation must not be treated as user-confirmed');
   assert.match(app, /older provider match details remain in this private record but are not used/i);
-  assert.match(html, /health-hub\.css\?v=69/);
-  assert.match(html, /health-hub\.js\?v=64/);
+  assert.match(html, /health-hub\.css\?v=70/);
+  assert.match(html, /health-hub\.js\?v=66/);
 
   console.log('Medication provider retirement verified: retired routes are no-store 410s with zero outbound calls; the local endpoint, scan route, and inert legacy record preservation remain.');
 })().catch(error => {

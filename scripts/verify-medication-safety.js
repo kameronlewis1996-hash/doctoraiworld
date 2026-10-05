@@ -21,7 +21,8 @@ const unknownMedicine = review({ medications: ['synthetic unlisted tablet'] });
 assert.equal(unknownMedicine.status, 'unknown');
 assert.equal(unknownMedicine.coverage.unknown, 1);
 assert.equal(unknownMedicine.coverage.completeForRequest, false);
-assert.match(unknownMedicine.disclaimer, /does not mean safe/i);
+assert.match(unknownMedicine.disclaimer, /Coverage remains limited/i);
+assert.doesNotMatch(unknownMedicine.disclaimer, /No.*alerts?.*safe/i);
 
 const noKnownAlert = review({ medications: ['paracetamol', 'cetirizine'] });
 assert.equal(noKnownAlert.status, 'unknown');

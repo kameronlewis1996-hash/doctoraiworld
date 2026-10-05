@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'api/medication/**'
+      - 'api/auth/google.js'
       - 'data/medication/**'
       - 'docs/nz-medication-database.md'
       - '.env.example'
       - 'health-hub.css'
       - 'health-hub.html'
       - 'health-hub.js'
+      - 'medication-check-controller.js'
       - 'medication-list-template.html'
       - 'privacy.html'
       - 'public-mcp/api/mcp.js'
@@ -41,6 +43,9 @@ jobs:
           node --check 'api/medication/[...action].js'
           node --check scripts/verify-medication-safety.js
           node --check scripts/verify-medication-database.cjs
+          node --check scripts/verify-medication-pipeline.cjs
+          node --check scripts/verify-medication-evidence.cjs
+          node --check scripts/measure-medication-pipeline.cjs
           node --check scripts/verify-medication-scan.js
           node --check scripts/verify-local-medication-ui.cjs
           node --check scripts/verify-retired-medication-providers.cjs
@@ -48,6 +53,10 @@ jobs:
         run: |
           node scripts/verify-medication-safety.js
           node scripts/verify-medication-database.cjs
+          node scripts/verify-medication-pipeline.cjs
+          node scripts/verify-medication-evidence.cjs
+          node scripts/verify-medication-check-controller.cjs
+          node scripts/verify-medication-login.cjs
           node scripts/verify-local-medication-ui.cjs
           node scripts/verify-retired-medication-providers.cjs
           node scripts/verify-medication-scan.js
