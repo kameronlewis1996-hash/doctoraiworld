@@ -11,6 +11,9 @@ importers:
       '@vercel/blob':
         specifier: ^2.8.0
         version: 2.8.0
+      '@vercel/oidc':
+        specifier: ^3.8.5
+        version: 3.8.5
       stripe:
         specifier: ^18.5.0
         version: 18.5.0

@@ -246,11 +246,16 @@ function documentStorageConfigured() {
   }
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
-function documentBlobOptions() {
+async function documentBlobOptions() {
   const environment = String(process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV || '');
   if (environment === 'preview') {
     if (!documentStorageConfigured()) throw new Error('Preview private document storage is not configured.');
-    return { access: 'private', storeId: process.env.DOCTORAI_TEST_BLOB_STORE_ID };
+    // Pass an explicit OIDC credential so @vercel/blob cannot silently fall
+    // back to the legacy shared BLOB_READ_WRITE_TOKEN if OIDC is unavailable.
+    const { getVercelOidcToken } = await import('@vercel/oidc');
+    const oidcToken = await getVercelOidcToken();
+    if (!oidcToken) throw new Error('Preview private document storage requires Vercel OIDC.');
+    return { access: 'private', oidcToken, storeId: process.env.DOCTORAI_TEST_BLOB_STORE_ID };
   }
   if (!documentStorageConfigured()) throw new Error('Private document storage is not configured.');
   return { access: 'private' };

@@ -154,8 +154,8 @@ module.exports = async function deleteAccount(request, response) {
       return response.status(409).json({ error: 'The account is now blocked while billing is resolved. Inspect Stripe, resolve every subscription, then retry deletion.', billing: { verified: finalBilling.verified, blockers: finalBilling.blockers } });
     }
     const result = await core.deleteAccountData(account, finalBilling.subscriptionIds, {
-      list: options => list({ ...options, ...core.documentBlobOptions() }),
-      del: paths => del(paths, core.documentBlobOptions())
+      list: async options => list({ ...options, ...await core.documentBlobOptions() }),
+      del: async paths => del(paths, await core.documentBlobOptions())
     });
     return response.status(200).json({ ok: true, email, deleted: true, documentsDeleted: result.documentsDeleted, alreadyDeleted: result.alreadyDeleted });
   } catch (error) {
