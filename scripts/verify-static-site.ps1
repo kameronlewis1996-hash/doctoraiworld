@@ -133,8 +133,9 @@ foreach ($call in $rateLimitCalls) {
 }
 
 $documentsText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/documents.js')
-if ($documentsText -notmatch "put\([\s\S]*?access:\s*'private'" -or $documentsText -notmatch "get\([\s\S]*?access:\s*'private'") {
-  $failures.Add("Document storage must use private Blob access for writes and reads")
+$documentCoreText = Get-Content -Raw -LiteralPath (Join-Path $root 'server-src/_lib/doctorai-core.cjs')
+if ($documentsText -notmatch 'put\([\s\S]*?core\.documentBlobOptions\(\)' -or $documentsText -notmatch 'get\([\s\S]*?core\.documentBlobOptions\(\)' -or $documentsText -notmatch 'del\([\s\S]*?core\.documentBlobOptions\(\)' -or $documentCoreText -notmatch "function documentBlobOptions\(\)[\s\S]*?access:\s*'private'") {
+  $failures.Add("Document storage must use environment-selected private Blob options for writes, reads, and deletions")
 }
 
 if ($failures.Count) {

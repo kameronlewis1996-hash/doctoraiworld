@@ -12,7 +12,7 @@ Updated 6 October 2026, New Zealand time. **Status: public release remains open;
 | Older staged candidate | `dpl_CMEh68U3fqRf96jA7RstB3rUqsZh` is Ready and its homepage/deletion route return 200, but it was built from `c478c7f`, before current `main` advanced to `f182faa`. The intervening mainline change retires several medication-provider handlers and changes Health Hub behavior. **Do not promote this older artifact.** |
 | Current release changes | Code commit `4c4c028` is based on `f182faa`, preserving the current medication-provider retirement. Documentation/evidence head `0d24205` is the current draft [PR 48](https://github.com/kameronlewis1996-hash/doctoraiworld/pull/48) head. Its protected Preview `dpl_7dRvHaEDDXJAwvuZagrx2d8vzyoe` is Ready from that head. JavaScript syntax, account-deletion, staff deletion-route, Preview-isolation and static-site checks passed after the latest deletion-race hardening. No Production promotion has occurred. |
 
-The current Preview routes and plan configuration have been read-checked. The subscriptions service remains unready because its Preview webhook secret is missing; shared Redis/Blob credentials also still need separate physical Preview resources. Checkout, webhook, document and deletion rehearsals, plus owner/privacy/clinical copy review, remain open. The existing candidates below document earlier releases and are not evidence for this commit.
+The current Preview routes and plan configuration have been read-checked. The subscriptions service remains unready because its Preview webhook secret is missing. A separate Preview Blob store is now connected with OIDC, but the latest code change selecting it has not yet been deployed and smoke-tested; Preview and Production still share Redis. Checkout, webhook, document and deletion rehearsals, plus owner/privacy/clinical copy review, remain open. The existing candidates below document earlier releases and are not evidence for this commit.
 
 ## Current and earlier protected candidates
 
@@ -35,7 +35,7 @@ Vercel assigned the staged candidate the project alias `doctorai-health-hub-kame
 - The server now accepts the `providers` array that the Android client always includes in its health-sync payload. The earlier validator rejected that payload, including an empty providers array. The fix is in these protected candidates; the public backend still needs the reviewed release.
 - Account health state, private-document metadata, pending Checkout sessions and entitlements now check the deletion marker before and after writes. If a deletion overlaps a write, the write is removed and reported as unsuccessful. Re-running a completed deletion now repeats the scoped cleanup to remove any data left by an interrupted or racing operation.
 
-Environment namespacing is extra protection. Preview now has Stripe sandbox key and price configuration, but still needs a durable claimed sandbox, separate physical Redis/Blob resources and a signed test webhook before a provider rehearsal. The Vercel connection denied Blob-store and automation-bypass creation. [Owner setup checklist](doctorai-preview-setup.md).
+Environment namespacing is extra protection. Preview now has Stripe sandbox key and price configuration plus a separate OIDC-connected private Blob store. It still needs a durable claimed sandbox, separate physical Redis and a signed test webhook before a provider rehearsal. Vercel API access still lacks permission to create another Blob store or an automation bypass; the existing test Blob store has since been confirmed in the dashboard. [Owner setup checklist](doctorai-preview-setup.md).
 
 ## Evidence and limits
 
@@ -53,7 +53,7 @@ Source checkpoint and machine-readable evidence: `C:\doctorai-launch-checkpoints
 
 ## Remaining release requirements
 
-1. Claim or replace the temporary Stripe sandbox before **11 October 2026**. Vercel's current connection returned 403 when creating a private Blob store or Protection Bypass for Automation. A project administrator must connect a separate Preview Blob/Redis resource and arrange the protected test webhook, then rehearse checkout, cancellation, signed webhooks, entitlements, cloud document operations and staff deletion using synthetic accounts.
+1. Claim or replace the temporary Stripe sandbox before **11 October 2026**. Create a separate Preview Redis database and arrange protected test webhook delivery through an approved bypass or trusted OIDC source, then rehearse checkout, cancellation, signed webhooks, entitlements, cloud document operations and staff deletion using synthetic accounts.
 2. Record the market/operator, exact public copy and clinical/privacy/legal decisions, support ownership, retention procedure, monitoring, recovery and rollback evidence. The deletion workflow remains disabled.
 3. Complete installed-device review of the signed Android candidate and owner-approved Play declarations, testing and submission. The current app contacts the public backend, so its cloud-sync fix must be released before that path can pass on the current API.
 4. Promote the exact reviewed **staged Production** artifact only after its release requirements are met, verify the custom domains and deletion resource, and record advertising measurement, creative and spend approvals.

@@ -10,6 +10,8 @@ process.env.AUTH_SECRET = 'synthetic-shared-environment-secret';
 process.env.KV_REST_API_URL = 'https://example.invalid';
 process.env.KV_REST_API_TOKEN = 'synthetic-token';
 process.env.BLOB_READ_WRITE_TOKEN = 'synthetic-blob-token';
+process.env.DOCTORAI_TEST_BLOB_STORE_ID = 'store_synthetic_preview';
+delete process.env.VERCEL_OIDC_TOKEN;
 delete process.env.VERCEL_TARGET_ENV;
 const hashes = new Map();
 const keysSeen = [];
@@ -66,6 +68,8 @@ const snapshotProduction = () => JSON.stringify([...hashes].filter(([key]) => ke
   const account = { email: 'same.account@example.test' };
   process.env.VERCEL_ENV = 'production';
   assert.equal(core.storageNamespace(), 'doctorai');
+  assert.equal(core.documentStorageConfigured(), true);
+  assert.deepEqual(core.documentBlobOptions(), { access: 'private' });
   const production = core.createSession({ sub: 'synthetic-google-sub', email: account.email });
   const productionToken = core.signedToken(production);
   const payload = productionToken.slice(0, productionToken.lastIndexOf('.'));
@@ -86,8 +90,15 @@ const snapshotProduction = () => JSON.stringify([...hashes].filter(([key]) => ke
   const before = snapshotProduction();
 
   process.env.VERCEL_ENV = 'preview';
+  delete process.env.BLOB_READ_WRITE_TOKEN;
   keysSeen.length = 0;
   assert.equal(core.storageNamespace(), 'doctorai-preview');
+  assert.equal(core.documentStorageConfigured(), true, 'Preview documents must use their connected OIDC-backed Blob store without a build-only OIDC environment variable.');
+  assert.deepEqual(core.documentBlobOptions(), { access: 'private', storeId: 'store_synthetic_preview' });
+  delete process.env.DOCTORAI_TEST_BLOB_STORE_ID;
+  assert.equal(core.documentStorageConfigured(), false, 'Preview documents must fail closed without a connected test store.');
+  assert.throws(() => core.documentBlobOptions(), /Preview private document storage is not configured/);
+  process.env.DOCTORAI_TEST_BLOB_STORE_ID = 'store_synthetic_preview';
   process.env.NEXT_PUBLIC_APP_URL = 'https://www.doctoraiworld.com';
   process.env.VERCEL_URL = 'synthetic-preview.vercel.app';
   assert.equal(require('../server-src/stripe/app-url.cjs')(), 'https://synthetic-preview.vercel.app');

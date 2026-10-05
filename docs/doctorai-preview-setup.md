@@ -1,13 +1,13 @@
 # DoctorAI Preview setup
 
-Updated 5 October 2026. This checklist supplies the settings needed for a real provider rehearsal. Local synthetic checks cannot establish that Stripe, Google login, storage and deletion work together on the deployed site.
+Updated 6 October 2026. This checklist supplies the settings needed for a real provider rehearsal. Local synthetic checks cannot establish that Stripe, Google login, storage and deletion work together on the deployed site.
 
 ## Current setup status
 
 - Vercel Preview now has a separate Stripe sandbox restricted test key, a USD 9.99/month test price and a USD 79/year test price. Production retains its existing Stripe key and prices. The temporary sandbox expires on **11 October 2026** unless its owner claims it in Stripe. Do not treat these settings as durable until the sandbox is claimed.
 - The live webhook signing secret is now Production-only. Preview webhook delivery is still unconfigured.
-- The existing Preview Blob store ID points to a store that Vercel reports as not found. The Vercel connection could edit environment variables and deploy, but returned 403 when creating a Blob store or an automation bypass. A Vercel project administrator must complete those dashboard steps below.
-- Preview and Production still use the same Redis database and the same Blob token. Environment namespaces reduce accidental collisions but do not provide physical storage isolation.
+- A separate private Blob store, `doctorai-preview-test`, is attached to this project for Preview only. Vercel's store page confirms the project connection uses OIDC. The release patch now passes this store ID to every private Blob operation; deployed smoke checks are still required before treating the isolation as verified.
+- Preview and Production still use the same Redis database. The production Blob token is still scoped to Preview and Development for now; remove those targets after the OIDC document smoke checks pass.
 - Rechecked 5 October: creating a new private Blob store through the connected Vercel API also returned 403 (`You don't have permission to create the blob`). The connected Stripe account list exposes only the live-mode `Doctoraiworld` context, not the separate temporary Preview sandbox, so no Stripe API write was attempted. The test sandbox's current key/prices remain configured in Vercel Preview, but its webhook signing secret must be created inside that sandbox and entered in Vercel Preview by an authorized dashboard user.
 
 ## 1. Separate the Vercel environments
@@ -23,11 +23,10 @@ Open **Vercel → doctorai-health-hub → Settings → Environment Variables**. 
 | `KV_REST_API_URL` | REST URL of a separate test Redis database |
 | `KV_REST_API_TOKEN` | REST token for that test database |
 | `KV_REST_API_READ_ONLY_TOKEN` | If retained, the test database's read-only token |
-| `BLOB_READ_WRITE_TOKEN` | Token for a separate **private** test Blob store |
 | `AUTH_SECRET` | A newly generated random secret, distinct from Production |
 | `ACCOUNT_DELETION_WORKFLOW_ENABLED` | Keep `false`; enable in Preview only when the synthetic staff rehearsal is ready |
 
-`DOCTORAI_TEST_BLOB_STORE_ID` and `DOCTORAI_TEST_BLOB_WEBHOOK_PUBLIC_KEY` do not redirect account-document storage. The application uses `BLOB_READ_WRITE_TOKEN`. The current test-store ID is stale; update it when a new store is attached.
+`DOCTORAI_TEST_BLOB_STORE_ID` selects the Preview private Blob store. The Vercel Blob SDK uses the connected store's short-lived OIDC credential from the function request context; it is not available as `process.env.VERCEL_OIDC_TOKEN` at runtime. After the release patch is deployed and document operations are verified, remove Preview and Development from the production `BLOB_READ_WRITE_TOKEN` environment variable. Keep the production value scoped to Production. `DOCTORAI_TEST_BLOB_WEBHOOK_PUBLIC_KEY` is for Vercel Blob callback verification and does not select the store.
 
 ## 2. Stripe sandbox and prices
 
@@ -35,7 +34,7 @@ Use one claimed Stripe sandbox for Preview keys, products, prices and billing-po
 
 ## 3. Test storage and Google login
 
-Create a separate test Redis database and copy its REST URL and token into Preview. In Vercel's **Storage → Create Storage → Blob**, choose **Private**, name the store for DoctorAI Preview, and select **Preview only** when connecting it; Production is preselected in the creation flow, so check the selection before saving. Use the ordinary `BLOB_READ_WRITE_TOKEN` name. Then change the existing Blob token to Production and Development only, and add the new store's token to Preview. Update `DOCTORAI_TEST_BLOB_STORE_ID` and its webhook public key to the new store's values. [Vercel Blob setup](https://vercel.com/docs/vercel-blob/using-blob-sdk).
+The private Preview Blob store is already created and connected for Preview with OIDC. No long-lived Preview Blob token is needed. Keep `DOCTORAI_TEST_BLOB_STORE_ID` set to the attached store's ID. Once the new code is deployed and private upload/read/delete are rehearsed successfully, restrict the legacy shared `BLOB_READ_WRITE_TOKEN` to Production only. [Vercel Blob OIDC](https://vercel.com/changelog/vercel-blob-now-supports-oidc-authentication).
 
 The application now also separates Preview KV keys, signatures, encryption derivation and document paths. This extra safeguard does not replace dedicated physical stores. Earlier Preview records and logins will not be visible through the new namespace.
 

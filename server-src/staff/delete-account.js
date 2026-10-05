@@ -144,7 +144,7 @@ module.exports = async function deleteAccount(request, response) {
     if (!billing.verified || billing.blockers.length) {
       return response.status(409).json({ error: 'Billing must be verified and all subscriptions resolved before deleting this account.', billing: { verified: billing.verified, blockers: billing.blockers } });
     }
-    if (!process.env.BLOB_READ_WRITE_TOKEN) return response.status(503).json({ error: 'Private document storage is not configured, so complete account deletion cannot be verified.' });
+    if (!core.documentStorageConfigured()) return response.status(503).json({ error: 'Private document storage is not configured, so complete account deletion cannot be verified.' });
 
     await core.beginAccountDeletion(account);
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -153,7 +153,10 @@ module.exports = async function deleteAccount(request, response) {
     if (!finalBilling.verified || finalBilling.blockers.length) {
       return response.status(409).json({ error: 'The account is now blocked while billing is resolved. Inspect Stripe, resolve every subscription, then retry deletion.', billing: { verified: finalBilling.verified, blockers: finalBilling.blockers } });
     }
-    const result = await core.deleteAccountData(account, finalBilling.subscriptionIds, { list, del });
+    const result = await core.deleteAccountData(account, finalBilling.subscriptionIds, {
+      list: options => list({ ...options, ...core.documentBlobOptions() }),
+      del: paths => del(paths, core.documentBlobOptions())
+    });
     return response.status(200).json({ ok: true, email, deleted: true, documentsDeleted: result.documentsDeleted, alreadyDeleted: result.alreadyDeleted });
   } catch (error) {
     core.reportError('staff_account_deletion_failed', { route: '/api/staff/delete-account', operation: action, name: error?.name, code: error?.code });

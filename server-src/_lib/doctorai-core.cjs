@@ -237,6 +237,24 @@ function clearEntitlementCookies(response) {
 }
 
 const storageConfigured = () => Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && configured());
+function documentStorageConfigured() {
+  const environment = String(process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV || '');
+  if (environment === 'preview') {
+    // Vercel exposes its OIDC credential through the function request context,
+    // not process.env at runtime. The Blob SDK resolves that token when called.
+    return Boolean(process.env.DOCTORAI_TEST_BLOB_STORE_ID);
+  }
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+function documentBlobOptions() {
+  const environment = String(process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV || '');
+  if (environment === 'preview') {
+    if (!documentStorageConfigured()) throw new Error('Preview private document storage is not configured.');
+    return { access: 'private', storeId: process.env.DOCTORAI_TEST_BLOB_STORE_ID };
+  }
+  if (!documentStorageConfigured()) throw new Error('Private document storage is not configured.');
+  return { access: 'private' };
+}
 const redisUrl = () => String(process.env.KV_REST_API_URL || '').replace(/\/$/, '');
 const DELETION_STATUS_KEY = 'doctorai:account-deletions:v1';
 const DELETED_SUBSCRIPTIONS_KEY = 'doctorai:deleted-subscriptions:v1';
@@ -704,8 +722,10 @@ module.exports = {
   deletePendingCheckoutSession,
   deleteAccountData,
   deleteHealthState,
+  documentBlobOptions,
   documentBlobPrefix,
   documentPathIsOwned,
+  documentStorageConfigured,
   entitlementFromCookies,
   hdel,
   hget,

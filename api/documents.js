@@ -17,7 +17,7 @@ const allowedTypes = new Set([
 ]);
 const safeCategory = value => ['prescription', 'result', 'referral', 'discharge', 'specialist', 'certificate', 'imaging', 'letter', 'other'].includes(value) ? value : 'other';
 const safeName = value => String(value || 'health-document').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 140) || 'health-document';
-const storageReady = () => core.storageConfigured() && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const storageReady = () => core.storageConfigured() && core.documentStorageConfigured();
 const noCache = response => core.noStore(response);
 
 async function requireIdentity(request, response) {
@@ -85,7 +85,7 @@ module.exports = async function handler(request, response) {
       }
       const document = await core.readDocumentMetadata(account, id);
       if (!core.documentPathIsOwned(account, document?.blobPath)) return response.status(404).json({ error: 'This private document could not be found.' });
-      const stored = await get(document.blobPath, { access: 'private', useCache: false });
+      const stored = await get(document.blobPath, { ...core.documentBlobOptions(), useCache: false });
       if (!stored?.stream) return response.status(404).json({ error: 'This private document could not be found.' });
       const encrypted = Buffer.from(await new Response(stored.stream).arrayBuffer());
       const bytes = core.unsealBuffer(encrypted);
@@ -122,18 +122,18 @@ module.exports = async function handler(request, response) {
         blobPath: `${core.documentBlobPrefix(account)}${id}.enc`
       };
       await put(document.blobPath, core.sealBuffer(bytes), {
-        access: 'private',
+        ...core.documentBlobOptions(),
         addRandomSuffix: false,
         contentType: 'application/octet-stream'
       });
       try {
         const saved = await core.saveDocumentMetadata(account, document);
         if (!saved) {
-          await del(document.blobPath);
+          await del(document.blobPath, core.documentBlobOptions());
           return response.status(409).json({ error: 'This account is being deleted, so the document was not saved.' });
         }
       } catch (error) {
-        await del(document.blobPath).catch(() => {});
+        await del(document.blobPath, core.documentBlobOptions()).catch(() => {});
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
@@ -147,7 +147,7 @@ module.exports = async function handler(request, response) {
       if (!core.documentPathIsOwned(account, document?.blobPath)) return response.status(404).json({ error: 'This private document could not be found.' });
       // Keep the metadata when Blob deletion fails so the document remains
       // visible and the user can retry instead of receiving a false success.
-      await del(document.blobPath);
+      await del(document.blobPath, core.documentBlobOptions());
       await core.deleteDocumentMetadata(account, id);
       return response.status(200).json({ ok: true, id });
     }
