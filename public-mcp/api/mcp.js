@@ -5,6 +5,7 @@ const PROTOCOL_VERSION = '2026-01-26';
 const SUPPORTED_PROTOCOLS = new Set([PROTOCOL_VERSION, '2025-11-25', '2025-06-18', '2025-03-26']);
 const MAX_BODY_BYTES = 32_000;
 const MAX_RESEARCH_RESULTS = 5;
+const PUBLIC_USE_INSTRUCTION = 'This public plugin handles feature guides, direct website links, and general biomedical literature topics only. Do not ask the user to share symptoms, diagnoses, medicines or doses, medical history, or other personal health details, and do not send such details in a tool call. If the user requests personal medical advice, say this plugin cannot provide it, do not ask follow-up questions for their details, and suggest consulting a licensed clinician or pharmacist.';
 
 const SITE_GUIDE = {
   overview: {
@@ -18,7 +19,7 @@ const SITE_GUIDE = {
     title: 'Symptom Diary',
     summary: 'Record symptoms and surrounding context, then review repeated observations to prepare questions for a clinician.',
     destination: 'symptoms',
-    access: 'Open the Health Hub and enter only information you choose to save.',
+    access: 'Open the Health Hub on the website and enter only information you choose to save there. Do not share health details in this ChatGPT conversation.',
     limits: 'Patterns are observations, not confirmed causes or diagnoses.'
   },
   medications: {
@@ -113,7 +114,7 @@ const TOOLS = [
   {
     name: 'doctorai_website_guide',
     title: 'Guide to the DoctorAI website',
-    description: 'Explain real DoctorAI Health Hub features, access requirements, and safety limits. This public tool does not access personal account data or display subscription plans.',
+    description: 'Explain real DoctorAI Health Hub features, access requirements, and safety limits. This public tool does not access personal account data or display subscription plans. Do not ask the user to share health details or send them in a tool call; if personal medical advice is requested, decline without asking follow-up health questions.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -171,7 +172,7 @@ const TOOLS = [
   {
     name: 'search_health_research',
     title: 'Search public health research',
-    description: 'Search Europe PMC for public biomedical abstracts by a general, non-identifying topic. Do not send symptoms, names, contact details, medication lists, or other personal health information. This is not diagnosis, treatment, or personal medication-safety advice.',
+    description: 'Search Europe PMC for public biomedical abstracts by a general, non-identifying topic. Do not ask the user to share symptoms, diagnoses, medicines or doses, medical history, or other personal health details, and do not send them in a tool call. If personal medical advice is requested, decline without asking follow-up health questions. This is not diagnosis, treatment, or personal medication-safety advice.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -255,7 +256,7 @@ async function requestObject(req) {
 }
 
 function textResult(value, structuredContent) {
-  const result = { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }] };
+  const result = { content: [{ type: 'text', text: `${JSON.stringify(value, null, 2)}\n\n${PUBLIC_USE_INSTRUCTION}` }] };
   if (structuredContent) result.structuredContent = structuredContent;
   return result;
 }
@@ -302,7 +303,7 @@ async function searchHealthResearch(topic) {
   return {
     topic: cleanTopic,
     results,
-    notice: 'These are public research abstracts, not personalized diagnosis, treatment, or medication-safety advice. Discuss health decisions with a licensed clinician or pharmacist.'
+    notice: `These are public research abstracts, not personalized diagnosis, treatment, or medication-safety advice. Discuss health decisions with a licensed clinician or pharmacist. ${PUBLIC_USE_INSTRUCTION}`
   };
 }
 
@@ -397,7 +398,7 @@ module.exports = async function mcp(req, res) {
           protocolVersion: protocol || PROTOCOL_VERSION,
           capabilities: { tools: {} },
           serverInfo: { name: 'doctoraiworld', version: '1.3.0' },
-          instructions: 'DoctorAIWorld offers public website guidance, direct links to Health Hub sections, and general searches of public biomedical abstracts. It cannot access a private account, inspect or change health records, diagnose, prescribe, check interactions, or facilitate subscriptions.'
+          instructions: `DoctorAIWorld offers public website guidance, direct links to Health Hub sections, and general searches of public biomedical abstracts. It cannot access a private account, inspect or change health records, diagnose, prescribe, check interactions, or facilitate subscriptions. ${PUBLIC_USE_INSTRUCTION}`
         }
       });
       return;

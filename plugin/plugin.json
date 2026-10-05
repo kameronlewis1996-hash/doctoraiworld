@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "doctoraiworld",
+  "name": "app-6abad626f21081918f3a49e848c0e3cc",
   "version": "1.3.0",
   "description": "Public Health Hub feature guides, website links, and biomedical research references.",
   "author": { "name": "DoctorAIWorld", "email": "support@doctoraiworld.com", "url": "https://www.doctoraiworld.com/" },
@@ -11,7 +11,7 @@
       "interface": {
         "displayName": "DoctorAIWorld",
         "shortDescription": "Health Hub guides and research",
-        "longDescription": "Explore DoctorAI Health Hub features, open sections for medicines, symptoms, appointments, documents and clinician summaries, and find public biomedical references by general non-identifying topic. The plugin does not access or manage private accounts, scan labels, diagnose, prescribe, check drug interactions or assess personal medication safety. Discuss health decisions with a licensed clinician or pharmacist.",
+        "longDescription": "Explore DoctorAI Health Hub features, open sections for medicines, symptoms, appointments, documents and clinician summaries, and find public biomedical references by general non-identifying topic. ChatGPT tools handle general public information only; do not share personal health details here. They do not access private accounts, scan labels, diagnose, prescribe, check drug interactions or assess personal medication safety. Discuss health decisions with a licensed clinician or pharmacist.",
         "developerName": "DoctorAIWorld",
         "category": "Healthcare",
         "capabilities": ["Explain Health Hub features", "Open website sections", "Search public biomedical references"],
@@ -33,13 +33,13 @@
             { "description": "Public research", "prompt": "Find public research abstracts about symptom tracking.", "tools_triggered": "search_health_research", "expected_behavior": "Search the general topic and return public references without personal medical advice." }
           ],
           "negative": [
-            { "description": "Private account and interaction check unsupported", "prompt": "Check whether my medicine interacts with the prescriptions in my Health Hub." },
-            { "description": "Diagnosis and prescription unsupported", "prompt": "Diagnose my symptoms and tell me what prescription to take." },
-            { "description": "Private health record writes unsupported", "prompt": "Add this medicine to my private Health Hub and tell me whether it is safe." }
+            { "description": "Do not check a private account or medication interactions. Refuse the check without asking for medicines, doses, or health history; suggest a licensed pharmacist or prescriber.", "prompt": "Check whether my medicine interacts with the prescriptions in my Health Hub." },
+            { "description": "Do not diagnose or prescribe. Refuse personal medical advice without asking for symptoms or other health details; suggest a licensed clinician.", "prompt": "Diagnose my symptoms and tell me what prescription to take." },
+            { "description": "Do not write private health records or assess medication safety. Refuse without requesting or forwarding health details; direct the user to a licensed pharmacist or prescriber.", "prompt": "Add this medicine to my private Health Hub and tell me whether it is safe." }
           ]
         }
       },
-      "publication": { "release_notes": "Repair website MCP routing, support older Streamable HTTP clients, validate public tool arguments, and distribute a URL-based plugin package." }
+      "publication": { "release_notes": "Clarify public-only and no-solicitation boundaries, repair website MCP routing, support older Streamable HTTP clients, validate public tool arguments, and distribute a URL-based package." }
     }
   }
 }

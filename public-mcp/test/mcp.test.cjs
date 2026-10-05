@@ -1,6 +1,8 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
 const handler = require('../api/mcp.js');
 
 async function request(method, params = {}, headers = {}, options = {}) {
@@ -43,6 +45,40 @@ test('catalog has three read-only tools and no private, plans, or payment capabi
   assert.ok(!tools[0].inputSchema.properties.feature.enum.includes('plans'));
   assert.ok(!tools[1].inputSchema.properties.destination.enum.includes('plans'));
 });
+test('metadata and tool instructions set a no-solicitation public-only boundary', async () => {
+  const initialized = (await request('initialize', { protocolVersion: '2026-01-26' })).body.result;
+  assert.match(initialized.instructions, /Do not ask the user to share symptoms/);
+  assert.match(initialized.instructions, /do not ask follow-up questions/);
+  const tools = (await request('tools/list')).body.result.tools;
+  assert.match(tools[0].description, /Do not ask the user to share health details/);
+  assert.match(tools[0].description, /without asking follow-up health questions/);
+  assert.match(tools[1].description, /does not sign in, read, edit, or send personal health information/);
+  assert.match(tools[2].description, /Do not ask the user to share symptoms/);
+  assert.match(tools[2].description, /without asking follow-up health questions/);
+  const plugin = JSON.parse(readFileSync(join(__dirname, '../../plugin/plugin.json'), 'utf8'));
+  const listing = plugin.extensions['com.openai'].interface.longDescription;
+  assert.match(listing, /do not share personal health details here/);
+  assert.match(listing, /general public information only/);
+  const negative = plugin.extensions['com.openai'].review.test_cases.negative;
+  assert.equal(negative.length, 3);
+  for (const scenario of negative) {
+    assert.match(scenario.description, /Refuse/);
+    assert.match(scenario.description, /without asking|without requesting/);
+    assert.match(scenario.description, /suggest|direct the user/);
+  }
+});
+test('public tool output repeats the safe fallback without changing output schemas', async () => {
+  const tools = (await request('tools/list')).body.result.tools;
+  const guide = (await call('doctorai_website_guide', { feature: 'overview' })).body.result;
+  assert.deepEqual(Object.keys(guide.structuredContent).sort(), tools[0].outputSchema.required.slice().sort());
+  assert.match(guide.content[0].text, /Do not ask the user to share symptoms/);
+  const symptomGuide = (await call('doctorai_website_guide', { feature: 'symptoms' })).body.result.structuredContent;
+  assert.match(symptomGuide.access, /on the website/);
+  assert.match(symptomGuide.access, /Do not share health details in this ChatGPT conversation/);
+  const siteLink = (await call('doctorai_open_site', { destination: 'medications' })).body.result;
+  assert.deepEqual(Object.keys(siteLink.structuredContent).sort(), tools[1].outputSchema.required.slice().sort());
+  assert.match(siteLink.content[0].text, /do not ask follow-up questions for their details/);
+});
 test('curated feature results comply with their closed output schema', async () => {
   const tools = (await request('tools/list')).body.result.tools;
   for (const feature of tools[0].inputSchema.properties.feature.enum) {
@@ -52,7 +88,7 @@ test('curated feature results comply with their closed output schema', async () 
     assert.ok(res.structuredContent.url.startsWith('https://www.doctoraiworld.com/health-hub#'));
   }
 });
-test('five positive reviewer tool flows return public content', async () => {
+test('five reviewer tool scenarios return public content (research mocked)', async () => {
   for (const feature of ['overview', 'prescription_scan', 'care_summary']) {
     assert.ok(!(await call('doctorai_website_guide', { feature })).body.result.isError);
   }
@@ -66,7 +102,8 @@ test('five positive reviewer tool flows return public content', async () => {
   try { assert.equal((await call('search_health_research', { topic: 'symptom tracking' })).body.result.structuredContent.results.length, 1); }
   finally { global.fetch = original; }
 });
-test('negative reviewer boundaries reject account reads, diagnosis, and health writes', async () => {
+// This checks the server allowlist, not ChatGPT's conversation-level refusals.
+test('rejects unregistered account-read, diagnosis, and health-write tool names', async () => {
   for (const name of ['check_private_medications', 'diagnose_and_prescribe', 'add_health_record']) {
     assert.equal((await call(name, {})).body.result.isError, true);
   }
@@ -80,6 +117,7 @@ test('rejects hidden arguments, inherited feature names, nonstrings and identify
       ['doctorai_open_site', { destination: 'plans' }],
       ['doctorai_website_guide', { feature: 'overview', patient: 'example' }],
       ['search_health_research', { topic: 12 }],
+      ['search_health_research', { topic: 'symptom tracking', limit: 5 }],
       ['search_health_research', { topic: 'my symptoms' }],
       ['search_health_research', { topic: 'person@example.test' }],
       ['search_health_research', { topic: 'DOB 2000-01-02' }]
