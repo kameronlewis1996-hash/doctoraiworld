@@ -10,6 +10,7 @@ on:
       - 'health-hub.css'
       - 'health-hub.html'
       - 'health-hub.js'
+      - 'medication-check-controller.js'
       - 'medication-list-template.html'
       - 'privacy.html'
       - 'public-mcp/api/mcp.js'
@@ -53,6 +54,7 @@ jobs:
           node scripts/verify-medication-database.cjs
           node scripts/verify-medication-pipeline.cjs
           node scripts/verify-medication-evidence.cjs
+          node scripts/verify-medication-check-controller.cjs
           node scripts/verify-local-medication-ui.cjs
           node scripts/verify-retired-medication-providers.cjs
           node scripts/verify-medication-scan.js

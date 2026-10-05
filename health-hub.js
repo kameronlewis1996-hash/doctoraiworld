@@ -52,7 +52,8 @@
   const initialProfile = profileIsDemoIdentity ? clone(emptyProfile) : { ...emptyProfile, ...(storedProfile || {}) };
   function clearMedicationSafetyResults() {
     const localResult = $('[data-local-medication-db-result]');
-    if (localResult) localResult.replaceChildren();
+    if (typeof medicationCheckController !== 'undefined') refreshMedicationCheckContext().catch(() => {});
+    else if (localResult) localResult.replaceChildren();
   }
 
   const state = {
@@ -200,6 +201,21 @@
   let profileShortcutEditing = false;
   let medicationAlertFingerprint = '';
   let medicationAlertTimer = null;
+  let medicationAccountDataReady = false;
+  let medicationRulesVersion = '';
+  let medicationContextPromise = Promise.resolve();
+  const medicationCheckController = new window.DoctorAIMedicationCheck.Controller({
+    request: async (payload, signal) => {
+      const response = await fetch('/api/medication/safety', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(payload), signal });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'No medication check was returned.');
+      return result;
+    },
+    load: () => read('medication-check', null),
+    save: value => write('medication-check', value),
+    remove: () => { try { localStorage.removeItem(storagePrefix + 'medication-check'); } catch {} },
+    onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); }
+  });
 
   const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const CHAT_MAX_MESSAGES = 12;
@@ -302,6 +318,7 @@
     if (storageConsent) storageConsent.hidden = true;
     if (allowed) saveState();
     setSyncStatus(allowed ? 'Saved in this browser' : 'Device storage off · session only');
+    refreshMedicationCheckContext().catch(() => {});
     showToast(allowed ? 'This browser will keep your health hub between visits.' : 'Health-hub changes will stay only for this session unless account sync is active.');
     renderHomePrescriptionAlert();
   }
@@ -319,6 +336,7 @@
     localStateUpdatedAt = Date.now();
     write('updated-at', localStateUpdatedAt);
     queueCloudSave();
+    refreshMedicationCheckContext().catch(() => {});
   };
 
   const serialiseHealthState = () => ({
@@ -385,11 +403,12 @@
   }
   async function loadCloudState() {
     if (!authUser || !cloudSyncEnabled) return;
+    const accountScope = String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase();
     setSyncStatus('Checking private account data…');
     try {
       const response = await fetch('/api/health/state', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
-      if (!cloudSyncEnabled) return;
+      if (!cloudSyncEnabled || accountScope !== (String(authUser?.sub || '') + ':' + String(authUser?.email || '').toLowerCase())) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be loaded.');
@@ -398,8 +417,10 @@
       if (cloudState && (!hasHealthState(serialiseHealthState()) || cloudUpdatedAt > localStateUpdatedAt)) {
         applyCloudState(cloudState); localStateUpdatedAt = cloudUpdatedAt || Date.now(); write('updated-at', localStateUpdatedAt); renderAll();
       } else if (hasHealthState(serialiseHealthState())) queueCloudSave();
+      medicationAccountDataReady = true;
+      refreshMedicationCheckContext().catch(() => {});
       setSyncStatus('Private data synced');
-    } catch { setSyncStatus(deviceStorageStatus()); }
+    } catch { medicationAccountDataReady = false; refreshMedicationCheckContext().catch(() => {}); setSyncStatus(deviceStorageStatus()); }
   }
 
   function updateDate() {
@@ -505,6 +526,7 @@
   function showView(name, updateHash = true, moveFocus = false) {
     const next = viewNames.includes(name) ? name : 'today';
     currentView = next;
+    if (next === 'medications' || next === 'today') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
     document.body.dataset.hubTheme = next;
     document.body.dataset.activeFeature = next;
@@ -654,12 +676,16 @@
           '<p>Source data: Pharmac New Zealand schedules, shared under CC BY 4.0. <a href="https://schedule.pharmac.govt.nz/pub/" target="_blank" rel="noopener noreferrer">View Pharmac source files</a>.</p>' +
         '</div></details>' +
         '<div class="clash-status" role="status" aria-live="polite"></div>' +
+        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent aria-describedby="medication-check-steps"><span><b>Allow checks when my medicine details, allergies or conditions change.</b> After I choose Check saved medicines, send each saved medicine name and strength/dose (up to 30 medicines), plus active ingredient names only when you confirmed them against the original label, and allergy and condition terms in your active profile to DoctorAI’s server for this check and relevant changes while this consent remains enabled. Schedules, notes, symptoms, label images and older provider match details are not included. DoctorAI checks these terms against its own limited local rules and does not query an external medicine database.</span></label>' +
+        '<p class="medication-check-steps" id="medication-check-steps">Select consent, then choose Check saved medicines to start. Selecting the box alone sends nothing. Rechecks run on relevant changes, not on every visit. Uncheck it to revoke consent. Last results are kept only where you already allow device storage.</p>' +
         '<div class="clash-actions"><button class="primary-button" type="button" data-run-local-medication-safety-check>Check saved medicines</button></div>' +
-        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent><span>For this one-time check, send each saved medicine name and strength/dose (up to 30 medicines), plus active ingredient names only when you confirmed them against the original label, and allergy and condition terms in your active profile to DoctorAI’s server. Schedules, notes, symptoms, label images and older provider match details are not included. DoctorAI checks these terms against its own limited local rules and does not query an external medicine database.</span></label>' +
+        '<p class="medication-check-time" data-medication-check-time></p>' +
         '<div class="medication-db-result" data-local-medication-db-result role="status" aria-live="polite"></div>' +
         '<small class="clash-footnote">Review any result with a pharmacist or prescriber. Do not start, stop or change treatment based on this app.</small>';
     }
     panel.classList.toggle('pro-locked', !hasProAccess());
+    renderMedicationCheckState();
+    refreshMedicationCheckContext().catch(() => {});
     const status = $('.clash-status', panel);
     if (!hasProAccess()) {
       status.innerHTML = proFeatureGate('Medication database checks are a DoctorAI Pro feature.', 'This local check uses limited rules. Unknown or uncovered entries remain unchecked.');
@@ -671,7 +697,8 @@
       ? '<div class="clash-box clash-box-note"><span>i</span><div><b>No medicines saved yet</b><p>Add your medicines to see if any local name or label-text match needs review.</p></div></div>'
       : caution.length
         ? '<div class="clash-box clash-box-caution"><span>⚠</span><div><b>Possible text match to review</b><p>' + escapeHTML(caution[0].message) + ' This has not been checked against a medicine database.</p></div></div>'
-        : '<div class="clash-box clash-box-note"><span>i</span><div><b>No text match to show</b><p>This is not a safety assessment. Use the limited local check only if you understand its coverage.</p></div></div>';
+        : '<div class="clash-box clash-box-note"><span>i</span><div><b>Interaction check not run</b><p>No interaction check has been run for this list. Consent and choose Check saved medicines to start the limited check.</p></div></div>';
+    renderMedicationCheckState();
   }
 
   function medicationSafetyAlerts(medication) {
@@ -890,14 +917,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!els.homePrescriptionAlert) return;
     const alerts = state.medications.flatMap(medication => medicationSafetyAlerts(medication));
     const concern = alerts.find(alert => alert.severity === 'critical') || alerts.find(alert => alert.severity === 'caution');
-    const status = concern
+    const check = medicationCheckController.snapshot();
+    const issue = check.status === 'complete' ? window.DoctorAIMedicationCheck.issues(check.result)[0] : null;
+    const status = issue
+      ? { className: 'status-danger', icon: '!', label: issue.type === 'interaction' ? 'Interaction warning' : issue.title, message: issue.message, detail: 'Limited local rules · review the sourced alert and complete list with a pharmacist or prescriber.' }
+      : check.status === 'pending'
+        ? { className: 'status-note', icon: 'i', label: 'Checking medicines…', message: 'No current interaction result is available yet.', detail: 'Wait for the current limited check.' }
+      : concern
       ? { className: concern.severity === 'critical' ? 'status-danger' : 'status-caution', icon: concern.severity === 'critical' ? '!' : '⚠', label: concern.title, message: concern.message, detail: `${concern.source} · Confirm with a pharmacist or clinician.`, concern, alerts }
       : !state.medications.length
         ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list to review saved details.', detail: 'The optional local rules check covers only a small set of medicine risks; it cannot confirm medicines are safe together.' }
-        : { className: 'status-note', icon: 'i', label: 'No match in checked details', message: 'No same-name duplicate or saved allergy/adverse-reaction match was found.', detail: 'This quick view does not run the limited medication check and cannot confirm safety. Use the separate local check only if you understand its narrow coverage, and confirm your full list with a pharmacist or clinician.' };
+        : { className: 'status-note', icon: 'i', label: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Check incomplete' : 'Limited check: no interaction alert found') : check.status === 'unavailable' ? 'Check unavailable' : 'Interaction check not run', message: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Some medicines could not be assessed. Review the coverage details.' : 'No covered interaction alert was found. This does not confirm safety.') : 'No current interaction assessment is available.', detail: 'The limited rules cannot confirm safety. Confirm your full list with a pharmacist or clinician.' };
     els.homePrescriptionAlert.className = `prescription-alert-status ${status.className}`;
     els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">${status.icon}</span><div><b>${escapeHTML(status.label)}</b><p>${escapeHTML(status.message)}</p><small>${escapeHTML(status.detail)}</small></div><button type="button" data-view="medications">View details <span aria-hidden="true">→</span></button>`;
-    if (els.homePrescriptionLastChecked) els.homePrescriptionLastChecked.textContent = state.medications.length ? `Saved-list review: ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'No list to review';
+    if (els.homePrescriptionLastChecked) els.homePrescriptionLastChecked.textContent = check.checkedAt ? 'Last checked: ' + new Date(check.checkedAt).toLocaleString() : 'No current interaction check';
     if (status.concern) queueMedicationSafetyAlert(status);
     else closeMedicationSafetyAlert(false);
   }
@@ -1411,7 +1444,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
+    if (previousEmail !== nextEmail) medicationAccountDataReady = false;
     authUser = user || null;
+    refreshMedicationCheckContext().catch(() => {});
     const signedIn = Boolean(authUser);
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
     const firstName = displayName.split(/\s+/)[0];
@@ -1453,6 +1488,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     else setSyncStatus(deviceStorageStatus());
   }
   function renderEntitlementStatus() {
+    refreshMedicationCheckContext().catch(() => {});
     const title = $('#drawer-pro-status');
     const copy = $('#drawer-pro-countdown');
     if (!title || !copy) return;
@@ -1478,7 +1514,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       renderAccountSession(payload.authenticated ? payload.user : null);
     } catch {
       renderAccountSession(null);
-    } finally { accountSessionReady = true; }
+    } finally { accountSessionReady = true; refreshMedicationCheckContext().catch(() => {}); }
   }
   async function loadEntitlement() {
     try {
@@ -1494,8 +1530,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         showToast('DoctorAI Pro is active on this device.');
       } else { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); }
       renderEntitlementStatus();
+      refreshMedicationCheckContext().catch(() => {});
       if (!entitlementTimer) entitlementTimer = window.setInterval(renderEntitlementStatus, 60000);
-    } catch {} finally { entitlementReady = true; }
+    } catch {} finally { entitlementReady = true; refreshMedicationCheckContext().catch(() => {}); }
   }
   async function signOut() {
     try { await fetch('/api/auth/google', { method: 'DELETE' }); } catch {}
@@ -1519,6 +1556,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (configResponse.ok) {
         const config = await configResponse.json();
         clientId = String(config.googleClientId || '').trim();
+        medicationRulesVersion = String(config.medicationRulesVersion || '');
+        refreshMedicationCheckContext().catch(() => {});
       }
     } catch { /* Keep the safe setup message below. */ }
     if (!clientId) {
@@ -2888,44 +2927,28 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderLocalMedicationDatabaseResult(container, result) {
     container.replaceChildren();
     const summary = document.createElement('p');
-    summary.className = 'medication-db-summary is-incomplete';
-    if (result.status === 'red') summary.textContent = 'The limited DoctorAI database found one or more potential issues. Review every alert with a pharmacist or prescriber.';
+    const foundIssues = window.DoctorAIMedicationCheck.issues(result).length > 0;
+    summary.className = 'medication-db-summary ' + (foundIssues ? 'is-warning' : 'is-incomplete');
+    if (foundIssues) summary.textContent = 'Warning found in the limited check. Review the alert below with a pharmacist or prescriber.';
     else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'This is a limited check. Unmatched medicines and risks outside the curated rules could not be assessed. Matching every medicine does not confirm safety.';
     else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
     container.append(summary);
-    const coverage = document.createElement('small');
-    coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · ruleset ' + (result.ruleset?.version || 'version unavailable') + ' · ingredient match for ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines · ' + (result.coverage?.unmatched ?? 0) + ' unmatched · ' + (result.coverage?.ambiguous ?? 0) + ' ambiguous/incomplete · ' + (result.coverage?.mismatched ?? 0) + ' name/label mismatches · ' + (result.coverage?.confirmedLabels ?? 0) + ' ingredient lists checked by you against the package (not clinically validated) · ' + (result.coverage?.strengthUnverified ?? 0) + ' strengths/doses unverified';
-    container.append(coverage);
-    if (result.catalogue) {
-      const catalogue = document.createElement('p');
-      catalogue.textContent = (result.catalogue.productFormulations || 0) + ' NZ product/formulation records · ' + (result.catalogue.brandNames || 0) + ' brand names · ' + (result.coverage?.interactionRuleCount || 0) + ' curated interaction rules. ' + String(result.catalogue.attribution || '') + ' ' + String(result.catalogue.disclaimer || '');
-      const source = document.createElement('a');
-      source.href = 'https://schedule.pharmac.govt.nz/pub/';
-      source.textContent = 'Pharmac source files (CC BY 4.0)';
-      catalogue.append(document.createTextNode(' '), source);
-      container.append(catalogue);
-    }
-    (Array.isArray(result.resolved) ? result.resolved : []).forEach(item => {
-      const line = document.createElement('p');
-      const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
-      let matchText = 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : '');
-      if (item.status === 'resolved' && names.length) {
-        matchText = item.basis === 'confirmed_label_only'
-          ? 'ingredient text you checked against the package: ' + names.join(', ') + '; medicine name remains unverified; text matching only'
-          : item.labelIngredientsConfirmed === true
-            ? 'name mapping agrees with the ingredient text you checked against the package: ' + names.join(', ') + ' (text matching only)'
-            : 'name terminology match: ' + names.join(', ') + '; active ingredients were not checked by you against the package';
-      }
-      if (item.strength?.status === 'unverified') matchText += '; strength/dose unverified — no dose check was performed';
-      else if (item.strength?.status === 'listed_match') matchText += '; the numeric strength appears in the catalogue, but this is not a dose or treatment check';
-      line.textContent = String(item.name || 'Saved medicine') + ': ' + matchText;
-      container.append(line);
-    });
-    (Array.isArray(result.alerts) ? result.alerts : []).forEach(alert => {
+    const alerts = [...(Array.isArray(result.alerts) ? result.alerts : [])];
+    const rank = alert => ['high', 'critical'].includes(alert.severity) ? 0 : alert.severity === 'moderate' ? 1 : 2;
+    alerts.sort((left, right) => rank(left) - rank(right)).forEach(alert => {
       const article = document.createElement('article');
-      article.className = 'safety-result-alert';
-      const heading = document.createElement('b');
-      heading.textContent = String(alert.title || 'Medicine safety alert');
+      const warning = ['high', 'critical'].includes(alert.severity);
+      const caution = alert.severity === 'moderate';
+      article.className = 'safety-result-alert ' + (warning ? 'is-warning' : caution ? 'is-caution' : 'is-unknown');
+      article.setAttribute('data-severity', String(alert.severity || 'unknown'));
+      if (warning || caution) article.setAttribute('role', 'alert');
+      const heading = document.createElement('h3');
+      heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : String(alert.title || 'Medicine check notice');
+      const icon = document.createElement('span');
+      icon.className = 'medication-warning-icon';
+      icon.textContent = warning || caution ? '!' : 'i';
+      icon.setAttribute('aria-hidden', 'true');
+      heading.prepend(icon);
       const copy = document.createElement('p');
       copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
       article.append(heading, copy);
@@ -2962,10 +2985,85 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       container.append(article);
     });
+
+    const coverage = document.createElement('small');
+    coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · ruleset ' + (result.ruleset?.version || 'version unavailable') + ' · ingredient match for ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines · ' + (result.coverage?.unmatched ?? 0) + ' unmatched · ' + (result.coverage?.ambiguous ?? 0) + ' ambiguous/incomplete · ' + (result.coverage?.mismatched ?? 0) + ' name/label mismatches · ' + (result.coverage?.confirmedLabels ?? 0) + ' ingredient lists checked by you against the package (not clinically validated) · ' + (result.coverage?.strengthUnverified ?? 0) + ' strengths/doses unverified';
+    container.append(coverage);
+    if (result.catalogue) {
+      const catalogue = document.createElement('p');
+      catalogue.textContent = (result.catalogue.productFormulations || 0) + ' NZ product/formulation records · ' + (result.catalogue.brandNames || 0) + ' brand names · ' + (result.coverage?.interactionRuleCount || 0) + ' curated interaction rules. ' + String(result.catalogue.attribution || '') + ' ' + String(result.catalogue.disclaimer || '');
+      const source = document.createElement('a');
+      source.href = 'https://schedule.pharmac.govt.nz/pub/';
+      source.textContent = 'Pharmac source files (CC BY 4.0)';
+      catalogue.append(document.createTextNode(' '), source);
+      container.append(catalogue);
+    }
+    (Array.isArray(result.resolved) ? result.resolved : []).forEach(item => {
+      const line = document.createElement('p');
+      const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
+      let matchText = 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : '');
+      if (item.status === 'resolved' && names.length) {
+        matchText = item.basis === 'confirmed_label_only'
+          ? 'ingredient text you checked against the package: ' + names.join(', ') + '; medicine name remains unverified; text matching only'
+          : item.labelIngredientsConfirmed === true
+            ? 'name mapping agrees with the ingredient text you checked against the package: ' + names.join(', ') + ' (text matching only)'
+            : 'name terminology match: ' + names.join(', ') + '; active ingredients were not checked by you against the package';
+      }
+      if (item.strength?.status === 'unverified') matchText += '; strength/dose unverified — no dose check was performed';
+      else if (item.strength?.status === 'listed_match') matchText += '; the numeric strength appears in the catalogue, but this is not a dose or treatment check';
+      line.textContent = String(item.name || 'Saved medicine') + ': ' + matchText;
+      container.append(line);
+    });
     const disclaimer = document.createElement('p');
     disclaimer.className = 'medication-db-incomplete-note';
-    disclaimer.textContent = String(result.disclaimer || 'This limited database cannot determine whether treatment is safe. Confirm with a pharmacist or prescriber.');
+    disclaimer.textContent = foundIssues || result.coverage?.unknown > 0
+      ? 'Coverage remains limited: other interactions and strength, dose, route, timing or treatment suitability are not assessed. Review your complete medicine list with a pharmacist or prescriber.'
+      : 'No interaction alert found in the covered rules. This does not mean these medicines are safe together. Coverage remains limited; medicine decisions require a pharmacist or prescriber.';
     container.append(disclaimer);
+  }
+
+  function medicationCheckPayload() {
+    return {
+      medications: state.medications.map(item => {
+        const confirmed = item?.activeIngredientsManuallyConfirmed === true && Array.isArray(item.activeIngredients) && item.activeIngredients.length > 0;
+        return { name: String(item?.name || '').trim(), dose: String(item?.dose || '').trim(), ...(confirmed ? { activeIngredients: item.activeIngredients.map(name => String(name).trim()).filter(Boolean), activeIngredientsConfirmed: true } : {}) };
+      }),
+      allergies: splitDetails(state.profile?.allergies || ''), conditions: splitDetails(state.profile?.conditions || '')
+    };
+  }
+
+  function refreshMedicationCheckContext() {
+    medicationContextPromise = medicationCheckController.update({
+      owner: authUser ? String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : '',
+      profileIdentity: String(state.profile?.id || '') + ':' + String(state.profile?.name || ''),
+      payload: medicationCheckPayload(), allowed: Boolean(authUser && accountSessionReady && entitlementReady && hasProAccess() && medicationAccountDataReady && Number.isFinite(entitlementExpiresAt) && entitlementExpiresAt * 1000 > Date.now()),
+      rulesVersion: medicationRulesVersion, storageAllowed: localStorageAllowed
+    });
+    return medicationContextPromise;
+  }
+
+  function renderMedicationCheckState() {
+    const view = medicationCheckController.snapshot();
+    const panel = document.querySelector('.clash-panel');
+    if (!panel) return;
+    const output = panel.querySelector('[data-local-medication-db-result]');
+    const consent = panel.querySelector('[data-local-medication-db-consent]');
+    const button = panel.querySelector('[data-run-local-medication-safety-check]');
+    const checked = panel.querySelector('[data-medication-check-time]');
+    const summary = panel.querySelector('.clash-status');
+    if (summary) summary.textContent = view.status === 'complete' ? (window.DoctorAIMedicationCheck.issues(view.result).length ? 'Interaction or medicine warning found — review the result below.' : view.result.coverage?.unknown ? 'Check incomplete — some medicines could not be assessed.' : 'No interaction alert found within covered rules; this does not confirm safety.') : view.status === 'pending' ? 'Checking the current medicine list…' : view.status === 'unavailable' ? 'Check unavailable — no current assessment.' : 'Interaction check not run.';
+    if (consent) consent.checked = view.consent;
+    if (button) { button.disabled = view.status === 'pending'; button.textContent = view.status === 'pending' ? 'Checking…' : 'Check saved medicines'; }
+    if (checked) checked.textContent = view.checkedAt ? 'Last checked: ' + new Date(view.checkedAt).toLocaleString() + ' · limited rules ' + medicationRulesVersion : 'Last checked: no current check';
+    if (!output) return;
+    output.setAttribute('aria-busy', String(view.status === 'pending'));
+    if (view.status === 'complete' && view.result) { renderLocalMedicationDatabaseResult(output, view.result); return; }
+    output.replaceChildren();
+    const notice = document.createElement('p'); notice.className = 'medication-db-summary is-incomplete';
+    notice.textContent = view.status === 'pending' ? 'Checking the current saved list… No current result is available yet.'
+      : view.status === 'unavailable' ? 'Check unavailable. ' + (view.error || 'No current result is available.')
+      : view.error || 'Not checked. Consent and choose Check saved medicines. No interaction assessment is available.';
+    output.append(notice);
   }
 
   async function runLocalMedicationSafetyCheck(button) {
@@ -2973,68 +3071,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const panel = button.closest('.clash-panel');
     const output = panel?.querySelector('[data-local-medication-db-result]');
     const consent = panel?.querySelector('[data-local-medication-db-consent]');
-    if (!panel || !output) return;
-    if (!authUser) {
-      output.textContent = 'Sign in before running a medication database check.';
-      openGoogleSignIn();
-      return;
-    }
-    if (!hasProAccess()) {
-      output.textContent = 'Medication database checks require DoctorAI Pro.';
-      return;
-    }
-    if (!state.medications.length) {
-      output.textContent = 'Add at least one medication before checking the saved list.';
-      return;
-    }
-    if (state.medications.length > 30) {
-      output.textContent = 'This check supports up to 30 saved medicines at a time. No partial list was sent.';
-      return;
-    }
-    if (consent?.checked !== true) {
-      output.textContent = 'Review the DoctorAI local database notice and check its consent box before this one-time request.';
-      consent?.focus();
-      return;
-    }
-    const payload = {
-      consent: true,
-      medications: state.medications.map(item => {
-        const activeIngredientsConfirmed = item?.activeIngredientsManuallyConfirmed === true && Array.isArray(item.activeIngredients) && item.activeIngredients.length > 0;
-        return {
-          name: String(item?.name || '').trim(),
-          dose: String(item?.dose || '').trim(),
-          ...(activeIngredientsConfirmed ? { activeIngredients: item.activeIngredients.map(name => String(name).trim()).filter(Boolean), activeIngredientsConfirmed: true } : {})
-        };
-      }),
-      allergies: splitDetails(state.profile?.allergies || ''),
-      conditions: splitDetails(state.profile?.conditions || '')
-    };
-    if (!payload.medications.length || payload.medications.some(item => !item.name)) {
-      output.textContent = 'Every saved medicine needs a name. No partial list was sent.';
-      return;
-    }
-    button.disabled = true;
-    output.textContent = 'Checking saved medicine names and any label-confirmed ingredients against DoctorAI’s limited local rules. Dose-level risks are not assessed.';
-    try {
-      const response = await fetch('/api/medication/safety', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'The DoctorAI medication database could not be reached.');
-      renderLocalMedicationDatabaseResult(output, result);
-    } catch (error) {
-      output.replaceChildren();
-      const message = document.createElement('p');
-      message.className = 'medication-db-incomplete-note';
-      message.textContent = String(error?.message || 'The DoctorAI database is unavailable. No complete check was returned.');
-      output.append(message);
-    } finally {
-      if (consent) consent.checked = false;
-      button.disabled = false;
-    }
+    if (!output) return;
+    if (!authUser) { output.textContent = 'Sign in to run this limited check.'; openGoogleSignIn(); return; }
+    if (!hasProAccess()) { output.textContent = 'Medication database checks require DoctorAI Pro.'; return; }
+    if (consent?.checked !== true) { output.textContent = 'Select consent before starting the limited check. No medicine terms were sent.'; consent?.focus(); return; }
+    await medicationContextPromise;
+    await medicationCheckController.setConsent(true);
+    await medicationCheckController.run(true);
+    document.querySelector('[data-local-medication-db-result]')?.scrollIntoView({ block: 'start' });
   }
 
   async function handleClick(event) {
@@ -3587,6 +3631,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   else if (initialView === 'privacy') { showView('today', false); openPrivacy(); }
   else if (initialView === 'summary') { showView('today', false); openCareSummary(); }
   else showView(viewNames.includes(initialView) ? initialView : 'today', false);
+  document.addEventListener('change', event => {
+    if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
+  });
   loadAccountSession();
   loadEntitlement();
 })();

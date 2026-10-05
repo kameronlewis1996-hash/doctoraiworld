@@ -1,71 +1,31 @@
 'use strict';
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const core = require('../server-src/_lib/doctorai-core.cjs');
-const originalCore = {
-  identityFromRequest: core.identityFromRequest,
-  storageConfigured: core.storageConfigured,
-  activeEntitlement: core.activeEntitlement
-};
-core.identityFromRequest = async () => ({ sub: 'synthetic-ui-account', email: 'synthetic@example.invalid' });
-core.storageConfigured = () => true;
-core.activeEntitlement = async () => ({ tier: 'pro', exp: Math.floor(Date.now() / 1000) + 600 });
-const handler = require('../api/medication/safety.js');
-const source = fs.readFileSync(require.resolve('../health-hub.js'),'utf8');
-const code = source.slice(source.indexOf('  function renderLocalMedicationDatabaseResult('), source.indexOf('  async function handleClick('));
-class Element {
-  constructor(tag='div'){this.tag=tag;this.children=[];this.textContent='';this.checked=false;}
-  append(...items){this.children.push(...items);}
-  replaceChildren(...items){this.children=items;this.textContent='';}
-  focus(){this.focused=true;}
-}
-const output = new Element();const consent = new Element();consent.checked = true;
-const panel = {querySelector:s=>s.includes('consent')?consent:output};
-const button = {closest:()=>panel,disabled:false};
-const state = {medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsManuallyConfirmed:true,notes:'private note'},{name:'Nurofen',dose:'200 mg',activeIngredients:['ibuprofen'],activeIngredientsManuallyConfirmed:false}],profile:{allergies:'penicillin',conditions:'kidney disease',symptoms:'private symptom'}};
-let sent;let signIns=0;let pro=true;
-const context = vm.createContext({document:{createElement:tag=>new Element(tag),createTextNode:t=>({textContent:t})},URL,state,authUser:{id:'synthetic-test-user'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns+=1;},splitDetails:s=>s.split(';').filter(Boolean),fetch:async(url,options)=>{
-  assert.equal(url,'/api/medication/safety');assert.equal(options.credentials,'same-origin');
-  sent=JSON.parse(options.body);
-  const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};
-  await handler({method:options.method,body:sent},response);
-  return {ok:response.code===200,json:async()=>response.body};
-}});
+const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+const core=require('../server-src/_lib/doctorai-core.cjs');const api=require('../api/medication/safety.js');
+const check=require('../medication-check-controller.js');
+const original={identityFromRequest:core.identityFromRequest,storageConfigured:core.storageConfigured,activeEntitlement:core.activeEntitlement};
+core.identityFromRequest=async()=>({sub:'synthetic-ui-account',email:'synthetic@example.invalid'});core.storageConfigured=()=>true;core.activeEntitlement=async()=>({tier:'pro',exp:Math.floor(Date.now()/1000)+600});
+const source=fs.readFileSync(require.resolve('../health-hub.js'),'utf8');const code=source.slice(source.indexOf('  function renderLocalMedicationDatabaseResult('),source.indexOf('  async function handleClick('));
+class Element{constructor(tag='div'){this.tag=tag;this.children=[];this.textContent='';this.checked=false;this.attributes={};}append(...items){this.children.push(...items);}prepend(...items){this.children.unshift(...items);}replaceChildren(...items){this.children=items;this.textContent='';}setAttribute(k,v){this.attributes[k]=v;}focus(){this.focused=true;}scrollIntoView(){}}
+const output=new Element(),consent=new Element(),time=new Element(),summary=new Element();const button=new Element('button');button.disabled=false;
+const panel={querySelector:s=>s.includes('consent')?consent:s.includes('result')?output:s.includes('run-local')?button:s.includes('time')?time:summary};button.closest=()=>panel;
+const allText=e=>[e.textContent,...(e.children||[]).map(allText)].join(' ');const articles=()=>output.children.filter(e=>e.tag==='article');
+const state={medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsManuallyConfirmed:true,notes:'private note'},{name:'Nurofen',dose:'200 mg',activeIngredients:['ibuprofen'],activeIngredientsManuallyConfirmed:false}],profile:{name:'Fictional profile',allergies:'penicillin',conditions:'kidney disease',symptoms:'private symptom'}};
+let sent=null,signIns=0,pro=true;
+const context=vm.createContext({window:{DoctorAIMedicationCheck:check},document:{createElement:t=>new Element(t),createTextNode:t=>({textContent:t}),querySelector:s=>s==='.clash-panel'?panel:s.includes('result')?output:null},URL,Date,state,authUser:{sub:'synthetic-ui-account',email:'synthetic@example.invalid'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns++;},splitDetails:s=>s.split(';').filter(Boolean),medicationAccountDataReady:true,medicationRulesVersion:'2026.10.05-r1',localStorageAllowed:false,entitlementExpiresAt:Math.floor(Date.now()/1000)+600,accountSessionReady:true,entitlementReady:true,medicationContextPromise:Promise.resolve(),fetch:async(url,options)=>{
+assert.equal(url,'/api/medication/safety');assert.equal(options.credentials,'same-origin');sent=JSON.parse(options.body);const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};await api({method:options.method,body:sent},response);return{ok:response.code===200,json:async()=>response.body};}});
 vm.runInContext(code,context);
+context.medicationCheckController=new check.Controller({request:async(payload,signal)=>{const response=await context.fetch('/api/medication/safety',{method:'POST',credentials:'same-origin',body:JSON.stringify(payload),signal});const r=await response.json();if(!response.ok)throw new Error(r.error);return r;},onChange:()=>context.renderMedicationCheckState()});
 (async()=>{
-  await context.runLocalMedicationSafetyCheck(button);
-  assert.deepEqual(sent,{consent:true,medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsConfirmed:true},{name:'Nurofen',dose:'200 mg'}],allergies:['penicillin'],conditions:['kidney disease']});
-  assert.equal(consent.checked,false);assert.equal(button.disabled,false);
-  const allText = el=>[el.textContent,...(el.children||[]).map(allText)].join(' ');
-  assert.match(allText(output),/potential issues/);assert.match(allText(output),/3[,.]?419/);assert.match(allText(output),/13 curated interaction rules/);assert.match(allText(output),/does not endorse/);assert.match(allText(output),/does not mean safe/i);
-  sent=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.equal(consent.focused,true);
-  consent.checked=true;state.medications[1].name='';await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/No partial list/);
-  state.medications[1].name='Nurofen';pro=false;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/Pro/);
-  pro=true;context.authUser=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.equal(signIns,1);
-
-  let concurrentFetches=0;let releaseRequest;
-  context.authUser={id:'synthetic-test-user'};consent.checked=true;
-  context.fetch=async(url,options)=>{
-    concurrentFetches+=1;
-    sent=JSON.parse(options.body);
-    return new Promise(resolve=>{releaseRequest=async()=>{
-      const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};
-      await handler({method:options.method,body:sent},response);
-      resolve({ok:response.code===200,json:async()=>response.body});
-    };});
-  };
-  const running=context.runLocalMedicationSafetyCheck(button);
-  await Promise.resolve();
-  await context.runLocalMedicationSafetyCheck(button);
-  assert.equal(concurrentFetches,1,'A double activation must not start a second request.');
-  assert.equal(button.disabled,true,'The check action stays disabled while its request is pending.');
-  await releaseRequest();
-  await running;
-  assert.equal(button.disabled,false,'The action is restored after the request completes.');
-  console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, dose and confirmed-ingredient payload privacy, sourced warnings, no partial lists and duplicate-click protection.');
-})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{
-  core.identityFromRequest = originalCore.identityFromRequest;
-  core.storageConfigured = originalCore.storageConfigured;
-  core.activeEntitlement = originalCore.activeEntitlement;
-});
+await context.refreshMedicationCheckContext();await context.medicationCheckController.setConsent(true);assert.equal(sent,null,'Consent alone does not request a check');await context.runLocalMedicationSafetyCheck(button);
+assert.deepEqual(sent,{consent:true,medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsConfirmed:true},{name:'Nurofen',dose:'200 mg'}],allergies:['penicillin'],conditions:['kidney disease']});
+assert.equal(consent.checked,true,'Approved automatic consent remains enabled until revoked');assert.equal(button.disabled,false);
+const alert=articles().find(e=>allText(e).includes('Increased bleeding risk'));assert.ok(alert);assert.equal(alert.attributes.role,'alert');assert.match(alert.className,/is-warning/);assert.match(allText(alert),/Interaction warning/);assert.match(allText(alert),/Medsafe NZ/);assert.equal(output.children.indexOf(alert),1,'Interaction must be shown immediately after the result summary');assert.match(allText(output),/3[,.]?419/);assert.match(allText(output),/13 curated interaction rules/);assert.match(allText(output),/does not endorse/);assert.doesNotMatch(allText(output.children.at(-1)),/no.*alert/i);assert.match(allText(output.children.at(-1)),/Coverage remains limited/);assert.match(time.textContent,/Last checked:/);
+await context.medicationCheckController.setConsent(false);sent=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.equal(consent.focused,true);
+for(const names of [['ibuprofen','warfarin'],['Nurofen','Marevan']]){state.medications=names.map(name=>({name,dose:'1 mg'}));await context.refreshMedicationCheckContext();await context.medicationCheckController.setConsent(true);await context.runLocalMedicationSafetyCheck(button);assert.ok(articles().some(e=>e.attributes.role==='alert'&&allText(e).includes('Increased bleeding risk')));}
+state.medications=[{name:'fictional unknown medicine',dose:'1 mg'},{name:'warfarin',dose:'1 mg'}];await context.refreshMedicationCheckContext();assert.match(allText(output),/could not be assessed|not matched|incomplete/i);assert.ok(!articles().some(e=>e.className.includes('is-warning')));assert.doesNotMatch(allText(output.children.at(-1)),/No interaction alert found/);
+state.medications=[{name:'paracetamol',dose:'500 mg'}];await context.refreshMedicationCheckContext();assert.match(allText(output.children.at(-1)),/No interaction alert found/);assert.match(allText(output.children.at(-1)),/does not mean.*safe/);
+context.fetch=async()=>({ok:false,json:async()=>({error:'Synthetic check unavailable; no check returned.'})});state.medications[0].dose='1000 mg';await context.refreshMedicationCheckContext();assert.match(allText(output),/Check unavailable/);assert.ok(!articles().length);assert.doesNotMatch(allText(output),/No interaction alert found/);
+sent=null;pro=false;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/Pro/);pro=true;context.authUser=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(signIns,1);
+const css=fs.readFileSync(require.resolve('../health-hub.css'),'utf8');assert.match(css,/\.safety-result-alert\.is-warning\s*\{[^}]*background:#fff0ee/);assert.match(css,/\.medication-warning-icon\s*\{/);
+console.log('UI→API→local rules passed: generic/brand interaction warnings first with alert role/icon/severity styling, source text, state-specific footer, unknown and unavailable presentation, explicit persistent consent, private payload and sign-in/Pro gates.');
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>Object.assign(core,original));

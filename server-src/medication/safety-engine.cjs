@@ -219,7 +219,7 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
     alerts: uniqueAlerts,
     coverage: { requested: resolved.length, resolved: resolved.length - unknown.length, unknown: unknown.length, unmatched, ambiguous, mismatched, confirmedLabels, strengthListed, strengthUnverified, terminologyComplete: resolved.length > 0 && unknown.length === 0, interactionRuleCount: db.interactionRules.length, interactionCoverage: 'limited', conditionCoverage: 'none', doseAssessment: 'not_performed', completeForRequest: !coverageIncomplete },
     status: high ? 'red' : moderate ? 'orange' : 'unknown',
-    disclaimer: 'No-known-alerts does not mean safe. DoctorAI only reports rules present in its limited dataset; strength, dose, route, timing, and treatment suitability are not assessed. Medicine decisions require a pharmacist or prescriber.'
+    disclaimer: (high || moderate || unknown.length ? '' : 'No alert found in the covered rules does not mean safe. ') + 'Coverage remains limited. DoctorAI only reports rules present in its limited dataset; strength, dose, route, timing, and treatment suitability are not assessed. Medicine decisions require a pharmacist or prescriber.'
   };
 }
 

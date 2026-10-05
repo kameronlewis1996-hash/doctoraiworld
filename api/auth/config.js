@@ -10,5 +10,5 @@ module.exports = function handler(request, response) {
     subscriptions: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.STRIPE_PRO_MONTHLY_PRICE_ID && process.env.STRIPE_PRO_ANNUAL_PRICE_ID),
     ai: Boolean(process.env.OPENAI_API_KEY)
   };
-  return response.status(200).json({ googleClientId, ready: Object.values(services).every(Boolean), services });
+  return response.status(200).json({ googleClientId, medicationRulesVersion: require('../../data/medication/medication-safety.seed.json').ruleset.version, ready: Object.values(services).every(Boolean), services });
 };
