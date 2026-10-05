@@ -8,20 +8,28 @@
   const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
   const storagePrefix = 'doctorai-health-hub-';
   const storageConsentKey = storagePrefix + 'device-storage-consent';
+  let activeStoragePrefix = storagePrefix;
+  const sessionValues = new Map();
   let deviceStorageChoice = '';
   let localStorageAllowed = false;
   try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; } catch {}
 
   const read = (key, fallback) => {
-    if (deviceStorageChoice === 'session') return fallback;
+    const storageKey = activeStoragePrefix + key;
+    if (deviceStorageChoice === 'session') return sessionValues.has(storageKey) ? sessionValues.get(storageKey) : fallback;
     try {
-      const value = localStorage.getItem(storagePrefix + key);
+      if (sessionValues.has(storageKey)) return sessionValues.get(storageKey);
+      const value = localStorage.getItem(storageKey);
       return value ? JSON.parse(value) : fallback;
     } catch { return fallback; }
   };
   const write = (key, value) => {
-    if (!localStorageAllowed) return;
-    try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {}
+    const storageKey = activeStoragePrefix + key;
+    if (!localStorageAllowed || deviceStorageChoice === 'session') {
+      sessionValues.set(storageKey, clone(value));
+      return;
+    }
+    try { localStorage.setItem(storageKey, JSON.stringify(value)); } catch {}
   };
   const clone = value => JSON.parse(JSON.stringify(value));
   const emptyProfile = { name: '', bloodType: '', allergies: '', conditions: '', notes: '' };
@@ -46,7 +54,7 @@
     });
     return Array.isArray(value) ? clean.slice(0, 8) : [...defaultProfileShortcutIds];
   };
-  let profileShortcuts = normaliseProfileShortcuts(read('profile-shortcuts', defaultProfileShortcutIds));
+  let profileShortcuts = normaliseProfileShortcuts(defaultProfileShortcutIds);
   const storedProfile = read('profile', emptyProfile);
   const profileIsDemoIdentity = /^emma\s+morgan$/i.test(String(storedProfile?.name || '').trim());
   const initialProfile = profileIsDemoIdentity ? clone(emptyProfile) : { ...emptyProfile, ...(storedProfile || {}) };
@@ -182,8 +190,23 @@
   let chatBusy = false;
   let chatController = null;
   let chatRequestId = 0;
-  let chatResponseLength = ['short', 'medium', 'detailed'].includes(read('chat-response-length', 'medium')) ? read('chat-response-length', 'medium') : 'medium';
+  let chatResponseLength = 'medium';
   let authUser = null;
+  let accountSessionRequestRevision = 0;
+  const accountFetch = (url, init = {}) => {
+    const expectedSub = String(authUser?.sub || '').trim();
+    const headers = new Headers(init.headers || {});
+    const request = { ...init, headers };
+    if (expectedSub) headers.set('x-doctorai-expected-sub', expectedSub);
+    else request.credentials = 'omit';
+    return fetch(url, request).then(response => {
+      if (response.status === 401 && String(authUser?.sub || '') === expectedSub) void loadAccountSession();
+      return response;
+    });
+  };
+  let activeAccountEmail = '';
+  let accountStorageRevision = 0;
+  let accountTransitionRevision = 0;
   let accountSessionReady = false;
   let entitlementExpiresAt = null;
   let entitlementReady = false;
@@ -191,15 +214,68 @@
   let medicationScanBusy = false;
   let medicationScannerActive = false;
   let medicationScannerStream = null;
+  let medicationScanController = null;
   let cloudSyncTimer = null;
   let cloudSyncEnabled = true;
   let cloudSyncBusy = false;
   let cloudSyncDirty = false;
   let cloudSyncRevision = 0;
+  let cloudSyncPaused = false;
+  let cloudSyncPromise = null;
   let localStateUpdatedAt = Number(read('updated-at', 0)) || 0;
   let profileShortcutEditing = false;
   let medicationAlertFingerprint = '';
   let medicationAlertTimer = null;
+
+  function persistCurrentStorage() {
+    write('medications', state.medications);
+    write('appointments', state.appointments);
+    write('providers', state.providers);
+    write('timeline', state.timeline);
+    write('documents', state.documents);
+    write('measurements', state.measurements);
+    write('tasks', state.tasks);
+    write('profile', state.profile);
+    write('memory-enabled', state.memoryEnabled);
+    write('memory-details', state.memoryDetails);
+    write('profile-shortcuts', profileShortcuts);
+    write('chat-response-length', chatResponseLength);
+    write('updated-at', localStateUpdatedAt);
+  }
+
+  function restoreActiveStorage() {
+    const storedProfile = read('profile', emptyProfile);
+    const profileIsDemoIdentity = /^emma\s+morgan$/i.test(String(storedProfile?.name || '').trim());
+    state.medications = read('medications', []);
+    state.appointments = read('appointments', []);
+    state.providers = read('providers', []);
+    state.timeline = read('timeline', []);
+    state.documents = read('documents', []);
+    state.measurements = read('measurements', []);
+    state.tasks = read('tasks', []);
+    state.profile = profileIsDemoIdentity ? clone(emptyProfile) : { ...emptyProfile, ...(storedProfile || {}) };
+    state.memoryEnabled = read('memory-enabled', false);
+    state.memoryDetails = read('memory-details', []);
+    profileShortcuts = normaliseProfileShortcuts(read('profile-shortcuts', defaultProfileShortcutIds));
+    const responseLength = read('chat-response-length', 'medium');
+    chatResponseLength = ['short', 'medium', 'detailed'].includes(responseLength) ? responseLength : 'medium';
+    localStateUpdatedAt = Number(read('updated-at', 0)) || 0;
+    els.responseLengthInputs.forEach(input => { input.checked = input.value === chatResponseLength; });
+    clearMedicationSafetyResults();
+    clearMedicationSafetyAlert(false);
+  }
+
+  async function accountStoragePrefix(email) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail) return storagePrefix;
+    if (window.crypto?.subtle) {
+      const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalizedEmail));
+      const hex = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+      return `${storagePrefix}account-${hex}-`;
+    }
+    const randomId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${storagePrefix}session-${randomId}-`;
+  }
 
   const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
   const CHAT_MAX_MESSAGES = 12;
@@ -349,57 +425,81 @@
   }
   function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; }
   function queueCloudSave() {
-    if (!authUser || !cloudSyncEnabled) return;
+    if (!authUser || !cloudSyncEnabled || cloudSyncPaused) return;
     cloudSyncDirty = true;
     cloudSyncRevision += 1;
     window.clearTimeout(cloudSyncTimer);
     cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 900);
   }
-  async function saveCloudState() {
-    if (!authUser || !cloudSyncEnabled) return;
-    if (cloudSyncBusy) { cloudSyncDirty = true; return; }
+  async function saveCloudState({ duringAccountChange = false } = {}) {
+    if (!authUser || !cloudSyncEnabled || (cloudSyncPaused && !duringAccountChange)) return;
+    if (cloudSyncBusy) { cloudSyncDirty = true; return cloudSyncPromise; }
     const revision = cloudSyncRevision;
+    const accountRevision = accountStorageRevision;
+    const accountEmail = activeAccountEmail;
     const stateToSave = serialiseHealthState();
     cloudSyncDirty = false;
-    cloudSyncBusy = true; setSyncStatus('Saving private health data…');
+    cloudSyncBusy = true; setSyncStatus('Saving your account data…');
+    let retryDelay = 0;
+    const request = (async () => {
+      try {
+        const response = await accountFetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave }) });
+        const payload = await response.json().catch(() => ({}));
+        if (accountRevision !== accountStorageRevision || accountEmail !== activeAccountEmail) return;
+        if (!response.ok) {
+          if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
+          throw new Error(payload.error || 'Health data could not be synced.');
+        }
+        if (revision === cloudSyncRevision && !cloudSyncDirty) {
+          localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
+          write('updated-at', localStateUpdatedAt);
+          setSyncStatus('Health data synced to your DoctorAI account');
+        }
+      } catch {
+        if (accountRevision === accountStorageRevision && accountEmail === activeAccountEmail) {
+          cloudSyncDirty = true;
+          retryDelay = 5000;
+          setSyncStatus(deviceStorageStatus());
+        }
+      }
+    })();
+    cloudSyncPromise = request;
     try {
-      const response = await fetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave }) });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
-        throw new Error(payload.error || 'Private data could not be synced.');
-      }
-      if (revision === cloudSyncRevision && !cloudSyncDirty) {
-        localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
-        write('updated-at', localStateUpdatedAt);
-        setSyncStatus('Private data synced');
-      }
-    } catch { setSyncStatus(deviceStorageStatus()); }
+      await request;
+    }
     finally {
+      if (cloudSyncPromise === request) cloudSyncPromise = null;
       cloudSyncBusy = false;
-      if (cloudSyncDirty && authUser && cloudSyncEnabled) {
+      if (cloudSyncDirty && authUser && cloudSyncEnabled && !cloudSyncPaused) {
         window.clearTimeout(cloudSyncTimer);
-        cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), 0);
+        cloudSyncTimer = window.setTimeout(() => saveCloudState().catch(() => {}), retryDelay);
       }
     }
   }
   async function loadCloudState() {
-    if (!authUser || !cloudSyncEnabled) return;
-    setSyncStatus('Checking private account data…');
+    if (!authUser || !cloudSyncEnabled || cloudSyncPaused) return;
+    const accountRevision = accountStorageRevision;
+    const accountEmail = activeAccountEmail;
+    const localRevision = cloudSyncRevision;
+    setSyncStatus('Checking your DoctorAI account…');
     try {
-      const response = await fetch('/api/health/state', { headers: { accept: 'application/json' } });
+      const response = await accountFetch('/api/health/state', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
+      if (accountRevision !== accountStorageRevision || accountEmail !== activeAccountEmail || !authUser) return;
       if (!cloudSyncEnabled) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
-        throw new Error(payload.error || 'Private data could not be loaded.');
+        throw new Error(payload.error || 'Health data could not be loaded.');
       }
       const cloudState = payload.state; const cloudUpdatedAt = Number(payload.updatedAt || 0);
-      if (cloudState && (!hasHealthState(serialiseHealthState()) || cloudUpdatedAt > localStateUpdatedAt)) {
+      const hasLocalState = hasHealthState(serialiseHealthState());
+      if (cloudState && (!hasLocalState || (localRevision === cloudSyncRevision && cloudUpdatedAt > localStateUpdatedAt))) {
         applyCloudState(cloudState); localStateUpdatedAt = cloudUpdatedAt || Date.now(); write('updated-at', localStateUpdatedAt); renderAll();
-      } else if (hasHealthState(serialiseHealthState())) queueCloudSave();
-      setSyncStatus('Private data synced');
-    } catch { setSyncStatus(deviceStorageStatus()); }
+      } else if (hasLocalState) queueCloudSave();
+      setSyncStatus('Health data synced to your DoctorAI account');
+    } catch {
+      if (accountRevision === accountStorageRevision && accountEmail === activeAccountEmail) setSyncStatus(deviceStorageStatus());
+    }
   }
 
   function updateDate() {
@@ -772,10 +872,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.innerHTML = '<p>Sign in to generate an AI briefing from the health information you chose to save.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
       return;
     }
+    const accountRevision = accountStorageRevision;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 45_000);
     try {
-      const response = await fetch('/api/chat', {
+      const response = await accountFetch('/api/chat', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
@@ -786,11 +887,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (!response.ok) throw new Error(payload.error || 'The personalised briefing is unavailable right now.');
       const answer = String(payload.answer || '').trim();
       if (!answer) throw new Error('The personalised briefing returned no information.');
-      if (!output.isConnected) return;
+      if (!output.isConnected || accountRevision !== accountStorageRevision) return;
       output.classList.remove('loading');
       output.textContent = answer;
     } catch (error) {
-      if (!output.isConnected) return;
+      if (!output.isConnected || accountRevision !== accountStorageRevision) return;
       output.classList.remove('loading');
       output.classList.add('error');
       output.textContent = error?.name === 'AbortError' ? 'The personalised briefing took too long. Close this window and try again.' : String(error?.message || 'The personalised briefing is unavailable right now.');
@@ -916,7 +1017,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function medicationAlertAcknowledged(fingerprint) {
-    try { return sessionStorage.getItem('doctorai-medication-alert-ack-v1') === fingerprint; } catch { return false; }
+    try { return sessionStorage.getItem(`${activeStoragePrefix}medication-alert-ack-v1`) === fingerprint; } catch { return false; }
   }
 
   function queueMedicationSafetyAlert(status) {
@@ -939,7 +1040,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function closeMedicationSafetyAlert(acknowledge = true) {
     clearTimeout(medicationAlertTimer);
     if (acknowledge && medicationAlertFingerprint) {
-      try { sessionStorage.setItem('doctorai-medication-alert-ack-v1', medicationAlertFingerprint); } catch {}
+      try { sessionStorage.setItem(`${activeStoragePrefix}medication-alert-ack-v1`, medicationAlertFingerprint); } catch {}
     } else if (!acknowledge) medicationAlertFingerprint = '';
     if (els.medicationAlertModal?.open) els.medicationAlertModal.close();
   }
@@ -1071,7 +1172,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderResults() {
     if (!els.resultList) return;
     if (!hasProAccess()) {
-      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing.');
+      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro adds uploads for supported file types. DoctorAI does not extract text from uploaded reports.');
       return;
     }
     const results = state.documents.filter(doc => doc.category === 'result');
@@ -1169,7 +1270,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const observations = entries.flatMap(entry => symptomObservationItems(entry).map(observation => ({ entry, ...observation })));
     if (!observations.length) {
       const hasEntries = entries.length > 0;
-      els.symptomTriggers.innerHTML = `<div class="symptom-triggers-empty"><span class="symptom-trigger-empty-icon" aria-hidden="true">✦</span><h3>${hasEntries ? 'No observations recorded yet' : 'Start with what you notice'}</h3><p>${hasEntries ? 'Edit a diary entry and add a possible trigger or context note. Your observations will appear here.' : 'Add a symptom and note what was happening around it. Your notes will stay private to this hub.'}</p><button type="button" class="primary-button" data-modal="symptom">＋ ${hasEntries ? 'Add an observation' : 'Add your first symptom'}</button></div>`;
+      els.symptomTriggers.innerHTML = `<div class="symptom-triggers-empty"><span class="symptom-trigger-empty-icon" aria-hidden="true">✦</span><h3>${hasEntries ? 'No observations recorded yet' : 'Start with what you notice'}</h3><p>${hasEntries ? 'Edit a diary entry and add a possible trigger or context note. Your observations will appear here.' : 'Add a symptom and note what was happening around it. Your notes follow the storage choice shown in Privacy controls.'}</p><button type="button" class="primary-button" data-modal="symptom">＋ ${hasEntries ? 'Add an observation' : 'Add your first symptom'}</button></div>`;
       return;
     }
     const grouped = new Map();
@@ -1299,7 +1400,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderDocuments() {
     if (!els.documentsGrid) return;
     if (!hasProAccess()) {
-      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Upload and share prescriptions, lab reports, referrals, letters, imaging, scans and health photos only when you choose.');
+      els.documentsGrid.innerHTML = proFeatureGate('File uploads are a Pro feature.', 'Add supported prescriptions, lab reports, referrals, letters, imaging and health photos to your account library. Open or download files yourself.');
       return;
     }
     const docs = state.documents.filter(doc => documentFilter === 'all' || doc.category === documentFilter);
@@ -1411,11 +1512,62 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.src = signedIn ? initialsAvatar(user) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
-  function renderAccountSession(user) {
-    const previousEmail = String(authUser?.email || '').trim().toLowerCase();
-    const nextEmail = String(user?.email || '').trim().toLowerCase();
-    if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
-    authUser = user || null;
+  async function prepareAccountChange() {
+    accountSessionRequestRevision += 1;
+    persistCurrentStorage();
+    cloudSyncPaused = true;
+    window.clearTimeout(cloudSyncTimer);
+    if (authUser && cloudSyncEnabled && cloudSyncDirty && !cloudSyncBusy) await saveCloudState({ duringAccountChange: true });
+    if (cloudSyncPromise) {
+      await Promise.race([cloudSyncPromise, new Promise(resolve => window.setTimeout(resolve, 8000))]);
+    }
+  }
+  function resumeCloudSync() {
+    cloudSyncPaused = false;
+    if (cloudSyncDirty && authUser && cloudSyncEnabled) queueCloudSave();
+  }
+  async function renderAccountSession(user, { sessionUnknown = false } = {}) {
+    const transitionRevision = ++accountTransitionRevision;
+    const nextUser = user && String(user.email || '').trim() ? user : null;
+    const nextEmail = sessionUnknown ? '' : String(nextUser?.email || '').trim().toLowerCase();
+    const preservingDeviceOnlyState = Boolean(nextEmail && activeStoragePrefix === storagePrefix && hasHealthState(serialiseHealthState()));
+    const nextStoragePrefix = sessionUnknown
+      ? `${storagePrefix}unverified-${Date.now()}-${Math.random().toString(36).slice(2)}-`
+      : await accountStoragePrefix(nextEmail);
+    if (transitionRevision !== accountTransitionRevision) return;
+    const storageChanged = activeStoragePrefix !== nextStoragePrefix;
+    if (storageChanged) {
+      cloudSyncPaused = true;
+      window.clearTimeout(cloudSyncTimer);
+      if (activeStoragePrefix === storagePrefix && !activeAccountEmail && !authUser && nextEmail) restoreActiveStorage();
+      persistCurrentStorage();
+      cloudSyncDirty = false;
+      cloudSyncRevision += 1;
+      accountStorageRevision += 1;
+      cloudSyncEnabled = true;
+      clearChat({ confirm: false, notify: false });
+      medicationScanController?.abort();
+      closeMedicationScanner();
+      closeModal();
+      closePrivacy();
+      closeProfile();
+      closeGoogleSignIn();
+      els.modalBody.replaceChildren();
+      careSummaryDraft = null;
+      profileShortcutEditing = false;
+      clearMedicationSafetyAlert(false);
+      activeStoragePrefix = nextStoragePrefix;
+      activeAccountEmail = nextEmail;
+      restoreActiveStorage();
+      entitlementExpiresAt = null;
+      entitlementReady = false;
+      subscriptionTier = 'free';
+      document.body.dataset.subscription = 'free';
+      applyBrandTheme();
+      renderEntitlementStatus();
+    } else if (!activeAccountEmail && !sessionUnknown) restoreActiveStorage();
+    const currentStorageRevision = accountStorageRevision;
+    authUser = nextUser;
     const signedIn = Boolean(authUser);
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
     const firstName = displayName.split(/\s+/)[0];
@@ -1425,7 +1577,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const accountLink = $('.account-link');
     if (accountLink) {
       accountLink.querySelector('b').textContent = signedIn ? displayName : 'Sign in with Google';
-      accountLink.querySelector('small').textContent = signedIn ? authUser.email : 'Keep your health hub private';
+      accountLink.querySelector('small').textContent = signedIn ? authUser.email : 'Sign in to sync your Health Hub';
       setAvatar(accountLink.querySelector('.avatar'), authUser, signedIn);
     }
     const profileName = $('.profile-trigger-name');
@@ -1433,12 +1585,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const profileTrigger = $('.profile-trigger');
     if (profileTrigger) profileTrigger.setAttribute('aria-label', signedIn ? `Open profile for ${displayName}` : 'Sign in with Google');
     if (els.profilePageName) els.profilePageName.textContent = signedIn ? displayName : 'Your profile';
-    if (els.profilePageEmail) els.profilePageEmail.textContent = signedIn ? authUser.email : 'Shortcuts and settings for your private hub';
+    if (els.profilePageEmail) els.profilePageEmail.textContent = signedIn ? authUser.email : 'Shortcuts and settings for your Health Hub';
     if (els.profilePageAvatar) setAvatar(els.profilePageAvatar, authUser, signedIn);
     const drawerProfile = $('.drawer-profile');
     if (drawerProfile) {
       drawerProfile.querySelector('b').textContent = signedIn ? displayName : 'Not signed in';
-      drawerProfile.querySelector('small').textContent = signedIn ? authUser.email : 'Sign in to personalise your private workspace';
+      drawerProfile.querySelector('small').textContent = signedIn ? authUser.email : 'Sign in to sync your Health Hub';
       drawerProfile.querySelector('button').textContent = signedIn ? 'Account' : 'Sign in';
       setAvatar(drawerProfile.querySelector('.avatar'), authUser, signedIn);
     }
@@ -1453,8 +1605,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       accountAction.toggleAttribute('data-google-signin', !signedIn);
       accountAction.innerHTML = signedIn ? 'Sign out <span>→</span>' : 'Sign in with Google <span>→</span>';
     }
-    if (signedIn) loadCloudState().catch(() => {});
-    else setSyncStatus(deviceStorageStatus());
+    renderAll();
+    if (preservingDeviceOnlyState) showToast('Your existing device-only health information stays on this browser and was not added to your account.');
+    if (sessionUnknown) {
+      cloudSyncPaused = true;
+      setSyncStatus('Account status unavailable · local data hidden until connection returns');
+    } else {
+      cloudSyncPaused = false;
+      if (signedIn) await loadCloudState();
+      else setSyncStatus(deviceStorageStatus());
+      if (currentStorageRevision === accountStorageRevision && cloudSyncDirty && authUser && cloudSyncEnabled) queueCloudSave();
+      if (currentStorageRevision === accountStorageRevision && signedIn) await loadEntitlement();
+      else if (!signedIn) entitlementReady = true;
+    }
+    accountSessionReady = true;
   }
   function renderEntitlementStatus() {
     const title = $('#drawer-pro-status');
@@ -1475,20 +1639,32 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     copy.textContent = `${parts.join(', ')} remaining · expires ${expiry.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
   }
   async function loadAccountSession() {
+    const requestRevision = ++accountSessionRequestRevision;
     try {
       const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
-      if (!response.ok) return renderAccountSession(null);
+      if (requestRevision !== accountSessionRequestRevision) return;
+      if (response.status === 401) return await renderAccountSession(null);
+      if (!response.ok) throw new Error('Account session could not be checked.');
       const payload = await response.json();
-      renderAccountSession(payload.authenticated ? payload.user : null);
+      if (payload.authenticated === true && String(payload.user?.email || '').trim()) await renderAccountSession(payload.user);
+      else if (payload.authenticated === false) await renderAccountSession(null);
+      else throw new Error('Account session response was incomplete.');
     } catch {
-      renderAccountSession(null);
-    } finally { accountSessionReady = true; }
+      if (requestRevision !== accountSessionRequestRevision) return;
+      await renderAccountSession(null, { sessionUnknown: true });
+      setGoogleSigninStatus('DoctorAI could not confirm the current account. Reload when your connection is available.', 'setup');
+    } finally { if (requestRevision === accountSessionRequestRevision) accountSessionReady = true; }
   }
   async function loadEntitlement() {
+    const accountRevision = accountStorageRevision;
+    if (!authUser) { entitlementExpiresAt = null; subscriptionTier = 'free'; entitlementReady = true; applyBrandTheme(); renderEntitlementStatus(); return; }
     try {
-      const response = await fetch('/api/stripe/entitlement', { headers: { accept: 'application/json' } });
-      if (!response.ok) return;
+      const response = await accountFetch('/api/stripe/entitlement', { headers: { accept: 'application/json' } });
+      if (accountRevision !== accountStorageRevision) return;
+      if (response.status === 401) { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); return; }
+      if (!response.ok) throw new Error('Entitlement could not be loaded.');
       const payload = await response.json();
+      if (accountRevision !== accountStorageRevision) return;
       if (payload.active === true) {
         entitlementExpiresAt = Number(payload.expiresAt) || null;
         subscriptionTier = 'pro';
@@ -1499,13 +1675,26 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       } else { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); }
       renderEntitlementStatus();
       if (!entitlementTimer) entitlementTimer = window.setInterval(renderEntitlementStatus, 60000);
-    } catch {} finally { entitlementReady = true; }
+    } catch {
+      if (accountRevision === accountStorageRevision) { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); }
+    } finally { if (accountRevision === accountStorageRevision) entitlementReady = true; }
   }
   async function signOut() {
-    try { await fetch('/api/auth/google', { method: 'DELETE' }); } catch {}
-    renderAccountSession(null);
+    await prepareAccountChange();
+    try {
+      const response = await accountFetch('/api/auth/google', { method: 'DELETE' });
+      if (!response.ok) throw new Error('The account session could not be ended.');
+    } catch {
+      await loadAccountSession();
+      if (!authUser) {
+        closeProfile();
+        showToast('Signed out. Device-only health information remains on this browser.');
+      } else showToast('Sign-out could not finish. You are still signed in; please try again.');
+      return;
+    }
+    await renderAccountSession(null);
     closeProfile();
-    showToast('Signed out securely. Health information saved on this device was not deleted.');
+    showToast('Signed out. Device-only health information remains on this browser.');
   }
   let googleSignInConfigured = false;
   let googleSignInConfigPromise = null;
@@ -1542,13 +1731,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.googleSigninButton.hidden = false;
     els.googleSigninFallback.hidden = true;
     googleSignInConfigured = true;
-    setGoogleSigninStatus('Continue with Google to open your private DoctorAI workspace.');
+    setGoogleSigninStatus('Continue with Google to sync your DoctorAI account.');
   }
   async function handleGoogleCredential(response) {
     if (!response?.credential) {
       setGoogleSigninStatus('Google sign-in was cancelled. No health information was changed.');
       return;
     }
+    await prepareAccountChange();
+    let sessionMayHaveChanged = false;
     try {
       const result = await fetch('/api/auth/google', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
       const payload = await result.json().catch(() => ({}));
@@ -1557,10 +1748,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         error.status = result.status;
         throw error;
       }
-      renderAccountSession(payload.user || null);
+      sessionMayHaveChanged = true;
+      if (!String(payload.user?.email || '').trim()) throw new Error('Google sign-in did not return a verified account.');
+      await renderAccountSession(payload.user);
+      sessionMayHaveChanged = false;
       closeGoogleSignIn();
-      showToast('Signed in to your private DoctorAI workspace.');
+      showToast('Signed in to your DoctorAI account.');
     } catch (error) {
+      if (sessionMayHaveChanged) await loadAccountSession();
+      else resumeCloudSync();
       if (error?.status === 401) {
         setGoogleSigninStatus('Google sign-in could not be verified. Please try again and choose your Google account once more.', 'setup');
       } else if (error?.status === 429) {
@@ -1798,7 +1994,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     closeModal();
     if (!authUser) {
       fillChat(prompt);
-      showToast('Sign in to create your private Today plan. Your draft is ready to review.');
+      showToast('Sign in to create your Today plan. Your draft is ready to review.');
       openGoogleSignIn();
       return;
     }
@@ -2100,7 +2296,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!authUser) {
       closeMedicationScanner();
       openGoogleSignIn();
-      showToast('Sign in before scanning a private medicine label.');
+      showToast('Sign in before scanning a medicine label.');
       return false;
     }
     if (!hasProAccess()) {
@@ -2144,13 +2340,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     setMedicationScanBusy(true);
     const controller = new AbortController();
+    medicationScanController = controller;
+    const accountRevision = accountStorageRevision;
     const timeout = window.setTimeout(() => controller.abort(), 50_000);
     try {
       showToast('Reading only the visible medicine label…');
-      const response = await fetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true }), signal: controller.signal });
+      const response = await accountFetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true }), signal: controller.signal });
       const payload = await response.json().catch(() => ({}));
+      if (accountRevision !== accountStorageRevision) return;
       if (!response.ok) {
-        if (response.status === 401) { accountSessionReady = false; renderAccountSession(null); }
+        if (response.status === 401) { accountSessionReady = false; await renderAccountSession(null); }
         if (response.status === 403) { entitlementReady = false; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); }
         const error = new Error(String(payload.error || (response.status === 413 ? 'That image was too large to scan.' : 'Medication scanning is temporarily unavailable.')));
         error.status = response.status;
@@ -2161,11 +2360,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       openMedicationModal({ ...medication, __scanned: extracted, __scanAttempted: true, __missing: payload.review?.missing || [] });
       showToast(extracted ? 'Details copied. Check every field against the label.' : 'The label text was not clear. Enter the details from the label.');
     } catch (error) {
+      if (accountRevision !== accountStorageRevision) return;
       const message = error?.name === 'AbortError' ? 'The scan took too long. Please check your connection and try again.' : String(error?.message || 'The image could not be read.');
       openMedicationModal({ __scanAttempted: true, __scanError: message });
       showToast('Scan not completed. Manual entry is ready.');
     } finally {
       clearTimeout(timeout);
+      if (medicationScanController === controller) medicationScanController = null;
       setMedicationScanBusy(false);
     }
   }
@@ -2467,7 +2668,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const text = String(message ?? els.chatInput.value).trim();
     if (!text || chatBusy) return;
     if (!authUser) {
-      showToast('Sign in with Google to keep your DoctorAI conversation private.');
+      showToast('Sign in with Google to use your account conversation.');
       openGoogleSignIn();
       return;
     }
@@ -2499,7 +2700,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const memory = approvedChatMemory();
       const requestBody = { messages: chatHistory.slice(-CHAT_MAX_MESSAGES), path: 'health-hub', responseLength: chatResponseLength, stream: true };
       if (memory.length) requestBody.memory = memory;
-      const response = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestBody), signal: controller.signal });
+      const response = await accountFetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(requestBody), signal: controller.signal });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || 'DoctorAI is unavailable right now.');
@@ -2586,16 +2787,18 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (!authUser) { openGoogleSignIn(); showToast('Sign in before uploading a private health document.'); return; }
     if (file.size > 2 * 1024 * 1024) { showToast('Choose a document smaller than 2 MB.'); return; }
+    const accountRevision = accountStorageRevision;
     const details = documentDetails(file);
-    showToast('Encrypting and storing your private document…');
+    showToast('Encrypting and uploading your selected document…');
     try {
       const data = await fileAsDataUrl(file);
-      const response = await fetch('/api/documents', {
+      const response = await accountFetch('/api/documents', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ name: file.name, category: details.category, type: details.type, data })
       });
       const payload = await response.json().catch(() => ({}));
+      if (accountRevision !== accountStorageRevision) return;
       if (!response.ok) throw new Error(payload.error || 'Secure document storage is unavailable right now.');
       const saved = payload.document || {};
       state.documents.unshift({
@@ -2603,7 +2806,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         category: saved.category || details.category,
         type: saved.type || details.type,
         title: saved.name || file.name,
-        description: 'Securely stored · review or download only when you choose',
+        description: 'Uploaded to your account · available after sign-in',
         date: 'Added today',
         size: `${(file.name.split('.').pop() || 'FILE').toUpperCase()} · ${formatFileSize(saved.size || file.size)}`,
         createdAt: saved.createdAt || Date.now()
@@ -2611,8 +2814,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       state.timeline.unshift({ id: `timeline-${Date.now()}`, source: 'document', type: 'result', date: new Date().toISOString().slice(0, 10), title: 'Health document uploaded', description: saved.name || file.name, icon: '▤' });
       saveState();
       renderResults(); renderDocuments(); renderTimeline(); renderActivity();
-      showToast('Document encrypted and added to your private library.');
+      showToast('Document encrypted and uploaded to your account.');
     } catch (error) {
+      if (accountRevision !== accountStorageRevision) return;
       showToast(error?.message || 'Secure document storage is unavailable right now.');
     }
   }
@@ -2620,15 +2824,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function deleteDocument(id) {
     const document = state.documents.find(item => item.id === id);
     if (!document || !window.confirm(`Delete “${document.title}” from your private library? This cannot be undone.`)) return;
+    const accountRevision = accountStorageRevision;
     try {
-      const response = await fetch(`/api/documents?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const response = await accountFetch(`/api/documents?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const payload = await response.json().catch(() => ({}));
+      if (accountRevision !== accountStorageRevision) return;
       if (!response.ok) throw new Error(payload.error || 'The document could not be deleted.');
       state.documents = state.documents.filter(item => item.id !== id);
       state.timeline = state.timeline.filter(item => !(item.source === 'document' && item.description === document.title));
       saveState(); renderResults(); renderDocuments(); renderTimeline(); renderActivity();
-      showToast('Document deleted from private storage.');
-    } catch (error) { showToast(error?.message || 'The document could not be deleted.'); }
+      showToast('Document removed from your DoctorAI account.');
+    } catch (error) { if (accountRevision === accountStorageRevision) showToast(error?.message || 'The document could not be deleted.'); }
   }
 
   function exportHealthData() {
@@ -2644,11 +2850,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     link.download = `doctorai-health-export-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.append(link); link.click(); link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Your private hub data export has downloaded.');
+    showToast('Your Health Hub export has downloaded.');
   }
 
   async function deleteHealthData() {
-    if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
+    if (cloudSyncBusy) { showToast('A save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
     if (!window.confirm('Delete all health hub data, including saved medications, symptom diary entries, appointments, measurements, timeline entries and documents? This cannot be undone.')) return;
     deleteHealthData.busy = true;
@@ -2664,20 +2870,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       // Retain the local record on failure so the user can retry or export it.
       let documents = [];
       try {
-        const response = await fetch('/api/documents', { cache: 'no-store' });
+        const response = await accountFetch('/api/documents', { cache: 'no-store' });
         const payload = await response.json();
         if (!response.ok || !Array.isArray(payload.documents)) throw new Error('Document inventory unavailable');
         documents = payload.documents;
       } catch { cloudDeletionFailed = true; }
       for (const document of documents) {
         try {
-          const response = await fetch(`/api/documents?id=${encodeURIComponent(document.id)}`, { method: 'DELETE' });
+          const response = await accountFetch(`/api/documents?id=${encodeURIComponent(document.id)}`, { method: 'DELETE' });
           if (!response.ok && response.status !== 404) cloudDeletionFailed = true;
         } catch { cloudDeletionFailed = true; }
       }
       try {
         if (cloudDeletionFailed) throw new Error('Document deletion incomplete');
-        const response = await fetch('/api/health/state', { method: 'DELETE' });
+        const response = await accountFetch('/api/health/state', { method: 'DELETE' });
         if (!response.ok) cloudDeletionFailed = true;
       } catch { cloudDeletionFailed = true; }
     }
@@ -2777,7 +2983,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const newPattern = getSymptomPatternInsights(state.timeline).find(insight => insight.count > (beforePatternCounts.get(insight.key) || 0));
       postSaveToast = newPattern
         ? `Pattern hint: ${newPattern.family.label} is noted near ${newPattern.context.label} in ${newPattern.count} entries. This is a correlation to review, not a cause.`
-        : (existing ? 'Symptom entry updated.' : 'Symptom added to your private diary.');
+        : (existing ? 'Symptom entry updated.' : 'Symptom added to your diary.');
     } else if (form.dataset.modalForm === 'measurement') {
       state.measurements.unshift({ type: values.type, value: values.value, date: values.date, note: values.note || '' });
       state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'result', date: values.date, title: `${values.type.replace('-', ' ')} logged`, description: values.value, icon: '⌁' });
@@ -2890,25 +3096,30 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     button.disabled = true;
+    const accountRevision = accountStorageRevision;
     output.textContent = 'Checking the saved medicine names against DoctorAI’s limited local rules. Unmatched medicines will remain unknown.';
     try {
-      const response = await fetch('/api/medication/safety', {
+      const response = await accountFetch('/api/medication/safety', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify(payload)
       });
       const result = await response.json().catch(() => ({}));
+      if (accountRevision !== accountStorageRevision) return;
       if (!response.ok) throw new Error(result.error || 'The DoctorAI medication database could not be reached.');
       renderLocalMedicationDatabaseResult(output, result);
     } catch (error) {
+      if (accountRevision !== accountStorageRevision) return;
       output.replaceChildren();
       const message = document.createElement('p');
       message.className = 'medication-db-incomplete-note';
       message.textContent = String(error?.message || 'The DoctorAI database is unavailable. No complete check was returned.');
       output.append(message);
     } finally {
-      if (consent) consent.checked = false;
+      if (accountRevision === accountStorageRevision) {
+        if (consent) consent.checked = false;
+      }
       button.disabled = false;
     }
   }
@@ -2991,7 +3202,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (shareTarget) {
       event.preventDefault();
       if (!hasProAccess()) { window.location.href = '/subscription#plans'; return; }
-      showToast('Secure sharing will ask for a recipient and permission before sending.');
+      showToast('Document sharing is not available yet. You can download the file and share it yourself.');
       return;
     }
     const chatAction = event.target.closest('[data-chat-action]');
@@ -3214,7 +3425,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       event.preventDefault();
       const id = documentView.dataset.documentView;
       const document = state.documents.find(item => item.id === id);
-      if (!document) { showToast('This document is not available in your private library.'); return; }
+      if (!document) { showToast('This document is not available in your account library.'); return; }
       window.open(`/api/documents?id=${encodeURIComponent(id)}`, '_blank', 'noopener');
       return;
     }
@@ -3230,7 +3441,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const documentShare = event.target.closest('[data-share-document]');
     if (documentShare) {
       event.preventDefault();
-      showToast('Sharing stays off by default. Download the document yourself or wait for an explicitly approved sharing flow.');
+      showToast('Document sharing is not available yet. You can download the file and share it yourself.');
       return;
     }
     if (event.target.closest('[data-clear-chat]')) { clearChat(); return; }
@@ -3457,12 +3668,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   const initialView = location.hash.slice(1);
   const termsQuery = new URLSearchParams(location.search).get('terms') === '1';
-  renderAll();
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
-  else if (initialView === 'privacy') { showView('today', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('today', false); openCareSummary(); }
-  else showView(viewNames.includes(initialView) ? initialView : 'today', false);
-  loadAccountSession();
-  loadEntitlement();
+  else {
+    loadAccountSession().then(() => {
+      if (initialView === 'privacy') { showView('today', false); openPrivacy(); }
+      else if (initialView === 'summary') { showView('today', false); openCareSummary(); }
+      else showView(viewNames.includes(initialView) ? initialView : 'today', false);
+    });
+  }
 })();

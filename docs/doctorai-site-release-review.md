@@ -2,6 +2,14 @@
 
 Updated 6 October 2026, New Zealand time. **Status: public release remains open; the older staged candidate must not be promoted.**
 
+## Fresh verification — 6 October 2026
+
+Production has advanced to `main` commit `adfe2db` (the latest Vercel Production deployment includes PR 53). A live fetch returned 200 for the homepage, auth configuration, plans, robots and sitemap; `/account-deletion` returned 404. The homepage still carries the older Health Hub title and headline. Public plans are USD 9.99/month and USD 79/year, not the planned NZ$6.99 monthly price. Treat the historical deployment IDs and `f182faa` references below as superseded.
+
+PR 48 remains draft at `3ebd5db`, based on `f182faa`, 7 commits behind `origin/main`. A non-mutating merge preview found conflicts in `docs/nz-medication-database.md`, `health-hub.html`, `health-hub.js`, `package.json`, medication/static verification scripts, `server-src/medication/safety-engine.cjs`, and `service-worker.js`. The deployed Preview at that head returns 200 for `/account-deletion`; its auth config is `ready: false` because subscriptions are not configured. Current local account-isolation edits (including a mobile bearer-cookie fix) have not been committed or deployed. Reconcile and review before updating the PR deployment.
+
+The account consistency header prevents a stale tab from acting under a different current session, but the current server account key and local account partitions still use normalized email. Google's identity guidance says `sub` is the stable, never-reused user identifier and warns that email can change or be non-unique ([Google OpenID Connect reference](https://developers.google.com/identity/openid-connect/reference)). Do not describe account isolation as complete until the product has a reviewed, data-preserving migration to subject-based ownership or an explicit, verified account-identity policy. Existing records must not be silently moved or discarded.
+
 ## Current live release — rechecked 6 October 2026
 
 | Check | Current result |
@@ -19,6 +27,10 @@ Updated 6 October 2026, New Zealand time. **Status: public release remains open;
 PR 48 application head `2e373c4` adds a 20-request-per-minute limit to the public `/api/research` route before it calls Europe PMC. `node --check api/research.js` and `git diff --check` passed; Vercel deployment `dpl_6ACqed6qXPBWaQGdnrySwxpEmjDY` reached Ready. On 6 October, the latest route-verified Preview `dpl_L12K83bEdLm6sWYxDV2tjTamBgD2` (head `bcd42ce`, unchanged application code `2e373c4`) returned 200 for the homepage, checklist, Privacy, Terms, account-deletion, `/api/auth/config` and `/api/stripe/plans`. Auth config has `ready: false`: authentication, account storage, document storage and AI are configured, but subscriptions is not; both sandbox plan prices are available. No test suites were run for the rate-limit change. Static review focused on authentication, Redis/Blob boundaries, Stripe billing/webhooks and account deletion. The shared Preview/Production Redis credential, missing Preview webhook secret, external review gates and public Production mismatch remain release blockers.
 
 On 6 October, deployment `dpl_EGvadiLMTjUw3QPPgFBrQBYHiecV` at `https://doctorai-health-ffn96l1e6-kameronlewis1996-3703s-projects.vercel.app` reached Ready from head `076b7ef`. Vercel-authenticated fetches returned 200 for the homepage, appointment checklist, Privacy, Terms, account-deletion, `/api/auth/config` and `/api/stripe/plans`. Auth config is not ready because subscriptions lacks a signed Preview webhook secret; authentication, account storage, document storage and AI are configured. Monthly and annual sandbox prices are available as USD 9.99 and USD 79. Static code review found that the Blob SDK can fall back to `BLOB_READ_WRITE_TOKEN` when OIDC is unavailable; the release patch now passes OIDC explicitly and fails closed. `Vercel Preview Comments` and `medication-regressions` checks succeeded. Authenticated upload/read/delete still needs a deployed smoke check. Preview and Production still share Redis, and the legacy Blob token remains scoped to Preview and Development. Checkout, webhook, document and deletion rehearsals, plus owner/privacy/clinical copy review, remain open.
+
+## Current working-tree review — 6 October 2026
+
+The uncommitted branch work now includes the checklist-led copy cleanup, account-scoped browser storage, an expected Google-subject header on account API calls, and a server-side identity comparison that rejects requests from a stale account tab. JavaScript syntax and Android TSX transpilation checks pass. These working-tree changes have not been committed, deployed to Preview, reviewed by CI or a human, or tested in an authenticated account-switch rehearsal. Production still serves the older homepage copy and its public account-deletion route still returns 404.
 
 ## Current and earlier protected candidates
 

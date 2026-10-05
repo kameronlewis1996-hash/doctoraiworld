@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "DoctorAI World",
+    "slug": "doctorai-mobile",
+    "version": "1.0.8",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d86fa316-ebcd-4828-b764-35cfe6a8feb1",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/doctorai-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f6faff"
+    },
+    "scheme": "doctorai",
+    "icon": "./assets/doctorai-icon.png",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.doctoraiworld.healthhub",
+      "buildNumber": "8"
+    },
+    "android": {
+      "package": "com.doctoraiworld.healthhub",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/doctorai-icon-foreground.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-updates",
+      "expo-system-ui",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow DoctorAI to access only the health document or medicine image you choose.",
+          "cameraPermission": "Allow DoctorAI to photograph a medicine label or health document you choose.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+          "faceIDPermission": "Allow DoctorAI to access your secure health hub session."
+        }
+      ],
+      [
+        "expo-web-browser",
+        {
+          "experimentalLauncherActivity": true
+        }
+      ],
+      "expo-document-picker"
+    ],
+    "extra": {
+      "apiBaseUrl": "https://www.doctoraiworld.com",
+      "eas": {
+        "projectId": "d86fa316-ebcd-4828-b764-35cfe6a8feb1"
+      }
+    },
+    "owner": "doctoraiworld"
+  }
+}

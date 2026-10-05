@@ -115,10 +115,14 @@ async function sessionIsActive(session) {
 
 async function identityFromRequest(request) {
   const session = sessionFromRequest(request);
-  if (session && await sessionIsActive(session).catch(() => false)) return { ...session, transport: 'cookie' };
-  const mobile = mobileFromRequest(request);
-  if (mobile && await sessionIsActive(mobile).catch(() => false)) return { ...mobile, transport: 'bearer' };
-  return null;
+  let identity = session && await sessionIsActive(session).catch(() => false) ? { ...session, transport: 'cookie' } : null;
+  if (!identity) {
+    const mobile = mobileFromRequest(request);
+    if (mobile && await sessionIsActive(mobile).catch(() => false)) identity = { ...mobile, transport: 'bearer' };
+  }
+  const expectedSub = String(request.headers?.['x-doctorai-expected-sub'] || '').trim();
+  if (identity && expectedSub && expectedSub !== String(identity.sub || '')) return null;
+  return identity;
 }
 
 function sessionCookie(response, session) {

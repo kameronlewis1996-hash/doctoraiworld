@@ -22,7 +22,7 @@ module.exports = async function handler(request, response) {
     core.sessionCookie(response, session);
     const accessToken = core.createMobileToken(session, state);
     if (!accessToken) return response.status(503).json({ error: 'Secure mobile sign-in is not configured.' });
-    return response.status(200).json({ ok: true, accessToken, user: { email: session.email, name: session.name, picture: session.picture } });
+    return response.status(200).json({ ok: true, accessToken, user: { sub: session.sub, email: session.email, name: session.name, picture: session.picture } });
   } catch (error) {
     const message = String(error?.message || '');
     const status = /credential|verification/i.test(message) ? 401 : /configured/i.test(message) ? 503 : 500;

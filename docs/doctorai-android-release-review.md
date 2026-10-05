@@ -1,6 +1,6 @@
 # DoctorAI Android 1.0.8 release review
 
-**Updated:** 6 October 2026, New Zealand time (store-asset inventory only; build and device evidence below remains dated as shown). **Status:** signed AAB built and inspected; no Play app entry, submission or installed-device review yet.
+**Updated:** 6 October 2026, New Zealand time. **Status:** the previously signed AAB is built and inspected; a first account-isolation source fix is now in the repository working tree, but there is no replacement Android build, Play app entry, submission or installed-device review yet.
 
 ## Play copy review — 6 October 2026
 
@@ -82,10 +82,24 @@ Packaged review JSON and extracted manifest/backup/resource evidence: `C:\doctor
 
 Record device model, Android version, build ID, observed result and any failure for each check. No device checklist item is marked passed yet.
 
+## Account-isolation fix in review — 6 October 2026
+
+An offline synthetic harness reproduced cross-account state mixing in the original Expo source: after Account A signs out, a 404 for Account B cloud state could leave A's local health state visible and send it with B's token. The reproduction used no real account, health data, network request or server write.
+
+A first source fix is now integrated in the repository working tree. The app verifies the Google identity before opening an account-scoped SecureStore partition keyed by a SHA-256 digest of the normalized email. Existing legacy device records remain at their original keys and are never auto-assigned to an account. Account cloud data is applied only after the identity check, and account revisions guard cloud responses and stale UI callbacks. Protected API calls carry the expected Google subject and the server rejects a mismatched session, covering stale browser tabs. The web Health Hub also partitions browser storage by verified account.
+
+Review performed on 6 October: App.tsx TSX transpilation and health-hub.js syntax checks passed; mobile package JSON files parsed successfully; git diff whitespace check passed. These are static checks only. A full TypeScript typecheck could not be established against the copied source tree, which has no local dependency link; no account-switch test suite, new Android build, install, or device review has been run. Keep real health data out of the candidate until the synthetic Account A → sign-out → Account B with cloud 404 path, account-local recovery, deletion scoping, and late-response races are verified. The existing 1.0.8 AAB/APK contains the old source and does not include this fix.
+
+## Follow-up source review — 6 October 2026
+
+The mobile account-resource helper now explicitly omits browser cookies on bearer-token requests, preventing a web preview's unrelated same-origin session cookie from taking precedence over the mobile token. After Google identity is verified, entitlement, cloud-state, sign-out and remote-deletion calls include the expected Google subject. `App.tsx` and `account-resource.ts` pass TypeScript transpile-only parsing with zero diagnostics. No full type check, synthetic account-switch suite, Android build, install, or device review was run for this follow-up; these edits are not in the signed 1.0.8 (12) AAB.
+
+The account partition itself is still keyed by normalized email. Google's [OpenID Connect reference](https://developers.google.com/identity/openid-connect/reference) specifies `sub` as the stable, never-reused Google account identifier and warns that email can change or be non-unique. Before treating mobile account isolation as complete, design a reviewed migration to subject-based local/cloud ownership that preserves recoverable records; do not automatically merge an email-keyed legacy record into a new subject.
+
 ## Remaining release work
 
-1. Preserve the reviewed AAB and source snapshot above; use that exact artifact for Play upload after the remaining gates clear.
-2. Install the signed candidate and check Google sign-in, offline loading, sync, chat, camera consent/cancel, scan, upload/view/delete, export, health/account deletion, restart/update, text scaling and screen-reader flows with fictional data.
+1. Preserve the reviewed AAB/APK as historical evidence only; do not submit those artifacts because they contain the pre-fix source. Build and inspect a new signed candidate from the reviewed account-isolation fix after its static and synthetic checks pass.
+2. Run the synthetic Account A sign-out → Account B cloud-404 isolation and race checks, then install the new signed candidate and check Google sign-in, offline loading, sync, chat, camera consent/cancel, scan, upload/view/delete, export, health/account deletion, restart/update, text scaling and screen-reader flows.
 3. Publish and verify approved Privacy/account-deletion pages; Production currently returns 404 for the deletion page. Rehearse support and configured billing/storage deletion in Preview.
 4. Approve the draft icon and feature graphic, capture current-app screenshots on the required device types, and complete truthful Health Apps, Data safety and reviewer access after intended-purpose and privacy review. Owner must review binding signing/export declarations before app creation.
 5. Follow Play internal/closed testing and production-access requirements. No public availability or advertising readiness is claimed.

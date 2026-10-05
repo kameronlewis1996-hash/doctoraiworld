@@ -22,6 +22,17 @@
   const initialQuery = new URLSearchParams(window.location.search);
   const accessCodeFromLink = initialQuery.get('access_code') || '';
   const requestedBillingPlan = initialQuery.get('plan') === 'annual' ? 'annual' : 'monthly';
+  const expectedAccountSub = fetch('/api/auth/google', { headers: { accept: 'application/json' }, cache: 'no-store' })
+    .then(async response => response.ok ? (await response.json())?.user?.sub : '')
+    .then(value => String(value || '').trim())
+    .catch(() => '');
+  const accountFetch = async (url, init = {}) => {
+    const expectedSub = await expectedAccountSub;
+    if (!expectedSub) throw new Error('Sign in with Google, then reload this page before using account billing.');
+    const headers = new Headers(init.headers || {});
+    headers.set('x-doctorai-expected-sub', expectedSub);
+    return fetch(url, { ...init, headers });
+  };
 
   const accessPanel = document.createElement('section');
   accessPanel.className = 'pro-access-panel';
@@ -30,7 +41,7 @@
   if (planSection) planSection.parentNode.insertBefore(accessPanel, planSection);
   accessPanel.querySelector('form').addEventListener('submit', async event => {
     event.preventDefault(); const note = accessPanel.querySelector('small'); const code = accessPanel.querySelector('input').value.trim() || accessCodeFromLink; note.textContent = 'Checking code…';
-    try { const response = await fetch('/api/staff/redeem-pro', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Code could not be accepted.'); note.textContent = 'DoctorAI Pro is active for 30 days. Return to the Health Hub to use Pro features.'; } catch (error) { note.textContent = error instanceof Error ? error.message : 'Code could not be accepted.'; }
+    try { const response = await accountFetch('/api/staff/redeem-pro', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error || 'Code could not be accepted.'); note.textContent = 'DoctorAI Pro is active for 30 days. Return to the Health Hub to use Pro features.'; } catch (error) { note.textContent = error instanceof Error ? error.message : 'Code could not be accepted.'; }
   });
   if (accessCodeFromLink) {
     accessPanel.querySelector('input').value = accessCodeFromLink;
@@ -138,7 +149,7 @@
     const code = (form.querySelector('[placeholder="Complimentary access code"]') || inputs.at(-1))?.value.trim() || accessCodeFromLink;
     if (status) { status.textContent = 'Checking code…'; status.dataset.tone = ''; }
     try {
-      const response = await fetch('/api/staff/redeem-pro', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) });
+      const response = await accountFetch('/api/staff/redeem-pro', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || 'Code could not be accepted.');
       if (status) status.textContent = 'Pro is active for one month. Open the Health Hub to use your benefits.';
@@ -155,7 +166,7 @@
     subscribeButton.innerHTML = 'Connecting to Stripe…';
     setCheckoutStatus('Preparing your secure Stripe checkout…');
     try {
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await accountFetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ plan: selectedBillingPlan })
@@ -179,7 +190,7 @@
     button.innerHTML = 'Opening billing…';
     setCheckoutStatus('Opening secure Stripe billing management…');
     try {
-      const response = await fetch('/api/stripe/create-portal-session', {
+      const response = await accountFetch('/api/stripe/create-portal-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(currentCheckoutSessionId ? { session_id: currentCheckoutSessionId } : {})
@@ -211,7 +222,7 @@
     setCheckoutStatus('Confirming your Stripe subscription…');
     openCheckoutDialog();
     try {
-      const response = await fetch('/api/stripe/verify-checkout-session', {
+      const response = await accountFetch('/api/stripe/verify-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId })
