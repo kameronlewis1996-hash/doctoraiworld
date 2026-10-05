@@ -38,7 +38,7 @@ The private Preview Blob store is already created and connected for Preview with
 
 The application now also separates Preview KV keys, signatures, encryption derivation and document paths. This extra safeguard does not replace dedicated physical stores. Earlier Preview records and logins will not be visible through the new namespace.
 
-After Codex creates the new protected Preview, add its exact HTTPS origin to the Google web client's authorized JavaScript origins if that origin is not already authorized. Use synthetic test accounts and records for the rehearsal. The revised billing handlers return to their own Preview deployment automatically.
+Before sign-in rehearsal, add the exact current protected Preview HTTPS origin to the Google web client's authorized JavaScript origins if that origin is not already authorized. Use synthetic test accounts and records for the rehearsal. The revised billing handlers return to their own Preview deployment automatically.
 
 ## 4. Protected sandbox webhook
 

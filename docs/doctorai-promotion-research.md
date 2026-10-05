@@ -1,6 +1,6 @@
 # DoctorAI World promotion research
 
-Prepared 5 October 2026. This is a practical, low-risk promotion plan for the current website candidate. It assumes no launch market, advertising budget, clinical review, or legal approval has been confirmed. New Zealand is used only as a working example because the site and draft plan contain NZ-specific content.
+Updated 6 October 2026 after checking current primary sources and the latest protected Preview. This is a practical, low-risk promotion plan for the current website candidate. It assumes no launch market, advertising budget, clinical review, or legal approval has been confirmed. New Zealand is used only as a working example because the site and draft plan contain NZ-specific content.
 
 ## Recommended starting position
 
@@ -110,7 +110,7 @@ These are drafts for the confirmed market and require the same clinical/legal/pr
 
 ## Current go/no-go
 
-The public domain currently returns 404 for `/account-deletion`. The reviewed checklist-led site candidate is protected Preview material, while the public homepage and policy pages still need final release verification. Preview also lacks isolated physical Blob/Redis storage and signed webhook delivery. The legal operator, launch market, qualified clinical and privacy reviews, support owner, real-account/device review, Play approval, measurement and spend cap are not confirmed. Therefore, prepare the organic materials and usability script now, but do not buy traffic or advertise the Android app yet.
+The public domain still returns 404 for `/account-deletion`; its last check was 5 October. The latest checklist-led candidate is protected Preview `dpl_4mYSAemzQaM749CeLQgQ8stabEHZ`; its key public routes return 200 and its auth configuration reports document storage ready. A separate OIDC-connected Preview Blob store is in place, but authenticated upload/read/delete has not been exercised. Preview still shares Redis with Production and lacks a signed Stripe test webhook. The legal operator, launch market, qualified clinical and privacy reviews, support owner, real-account/device review, Play approval, measurement and spend cap are not confirmed. Therefore, prepare organic materials and a fictional-data usability script, but do not buy traffic or advertise the Android app yet.
 
 ## Source list
 
