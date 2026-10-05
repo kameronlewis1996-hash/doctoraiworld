@@ -26,6 +26,11 @@ const researchQuery = (topic, start, end, broad = false) => {
 module.exports = async function handler(request, response) {
   core.noStore(response);
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
+  const limit = await core.rateLimit(request, 'public-research', 20, 60 * 1000);
+  if (!limit.allowed) {
+    response.setHeader('Retry-After', String(limit.retryAfter));
+    return response.status(429).json({ error: 'Too many research searches. Please try again shortly.' });
+  }
   let query = request.body || {};
   try { query = typeof query === 'string' ? JSON.parse(query) : query; }
   catch { return response.status(400).json({ error: 'Invalid research search request.' }); }
