@@ -144,7 +144,7 @@ const TOOLS = [
   {
     name: 'doctorai_open_site',
     title: 'Open a DoctorAI website section',
-    description: "Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available. Do not ask the user to share health details; if personal medical advice is requested, decline without asking follow-up health questions.",
+    description: "Return a direct link to a real DoctorAI website page or Health Hub section. This opens the user's website workflow; it does not sign in, read, edit, or send personal health information. No subscription or checkout destination is available.",
     inputSchema: {
       type: 'object',
       properties: {

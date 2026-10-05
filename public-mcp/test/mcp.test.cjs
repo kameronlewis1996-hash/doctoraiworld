@@ -50,10 +50,11 @@ test('metadata and tool instructions set a no-solicitation public-only boundary'
   assert.match(initialized.instructions, /Do not ask the user to share symptoms/);
   assert.match(initialized.instructions, /do not ask follow-up questions/);
   const tools = (await request('tools/list')).body.result.tools;
-  for (const tool of tools) {
-    assert.match(tool.description, /Do not ask the user/);
-    assert.match(tool.description, /without asking follow-up health questions/);
-  }
+  assert.match(tools[0].description, /Do not ask the user to share health details/);
+  assert.match(tools[0].description, /without asking follow-up health questions/);
+  assert.match(tools[1].description, /does not sign in, read, edit, or send personal health information/);
+  assert.match(tools[2].description, /Do not ask the user to share symptoms/);
+  assert.match(tools[2].description, /without asking follow-up health questions/);
   const plugin = JSON.parse(readFileSync(join(__dirname, '../../plugin/plugin.json'), 'utf8'));
   const listing = plugin.extensions['com.openai'].interface.longDescription;
   assert.match(listing, /do not share personal health details here/);
