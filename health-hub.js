@@ -748,23 +748,19 @@
     return `<section class="today-dashboard-section today-verified-guidance"><div class="today-dashboard-heading"><div><p>Symptom support</p><h3>Safe things to consider</h3></div><span>Not a diagnosis</span></div><div class="today-verified-grid">${sections.join('')}</div></section>`;
   }
 
-  function buildTodayIntelligencePrompt(medications, symptoms) {
+  function buildTodayIntelligencePrompt(symptoms) {
     const compact = (value, max = 220) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
-    const medicineContext = medications.slice(0, 8).map(item => [compact(item.name, 100), compact(item.dose, 60), compact(item.frequency, 60), item.time ? `time ${compact(item.time, 20)}` : '', compact(item.instructions, 240)].filter(Boolean).join(' · '));
     const symptomContext = symptoms.slice(0, 5).map(item => [compact(symptomName(item), 100), symptomSeverity(item.severity) === null ? '' : `intensity ${symptomSeverity(item.severity)}/10`, compact(item.triggers || item.context || item.notes, 220)].filter(Boolean).join(' · '));
-    return `Create a concise personal health briefing from the saved information below. Treat every saved field as unverified user-entered data.
+    return `Create a concise personal health briefing from the saved symptom notes below only. Treat every saved field as unverified user-entered data. Medication names, labels and interaction evidence are not included in this AI request.
 
-Saved medicines: ${medicineContext.length ? medicineContext.join(' | ') : 'none'}
 Recent symptoms: ${symptomContext.length ? symptomContext.join(' | ') : 'none'}
 
-Use exactly these headings: MEDICINES, POSSIBLE OVERLAPS TO CHECK, SYMPTOMS, TODAY. Under each heading give no more than 3 short bullet points.
+Use exactly these headings: SYMPTOMS, TODAY. Under each heading give no more than 3 short bullet points. Do not discuss, compare, identify, suggest, infer, or rule in or out medicine interactions, duplicate ingredients, contraindications, causes, or medicine safety. No medicine interaction check is part of this AI briefing. If asked about medicine or interaction safety, say you cannot assess it and recommend reviewing the complete medicine list with a pharmacist or prescriber.
 
-For medicines, explain only well-established general patient information: label timing, food or drink considerations, common practical cautions, sedation/driving, and serious red flags. If the exact formulation or active ingredients are unclear, say so. Do not give a dose. Do not state that medicines are safe together. Under POSSIBLE OVERLAPS TO CHECK, flag only plausible ingredient duplication or interaction concerns and explicitly say a pharmacist must verify them; if there is not enough information, say that instead of guessing.
-
-For symptoms, offer only low-risk self-care and useful monitoring. Do not diagnose or recommend starting any medicine or supplement. A headache may include hydration, regular meals, rest and reducing screen strain when appropriate. Any breathing difficulty must not receive fitness advice; advise stopping activity and seeking clinical assessment, with emergency escalation for severe breathing difficulty, chest pain, confusion, collapse, blue/grey lips or inability to speak normally. End TODAY with one or two manageable organisation steps. Keep the whole answer under 320 words.`;
+For symptoms, offer only low-risk self-care and useful monitoring. Do not diagnose, infer a medicine cause, or recommend starting any medicine or supplement. A headache may include hydration, regular meals, rest and reducing screen strain when appropriate. Any breathing difficulty must not receive fitness advice; advise stopping activity and seeking clinical assessment, with emergency escalation for severe breathing difficulty, chest pain, confusion, collapse, blue/grey lips or inability to speak normally. End TODAY with one or two manageable organisation steps. Keep the whole answer under 320 words.`;
   }
 
-  async function loadTodayIntelligence(medications, symptoms) {
+  async function loadTodayIntelligence(symptoms) {
     const output = $('#today-ai-output');
     if (!output) return;
     if (!authUser) {
@@ -779,7 +775,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: buildTodayIntelligencePrompt(medications, symptoms) }], responseLength: 'medium', stream: false }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: buildTodayIntelligencePrompt(symptoms) }], responseLength: 'medium', stream: false }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({}));
@@ -1752,8 +1748,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const verifiedMedicationGuidance = verifiedMedicationEducationMarkup(currentMedications);
     const verifiedSymptomGuidance = verifiedSymptomEducationMarkup(recentSymptoms);
     const savedCount = currentMedications.length + recentSymptoms.length + profileDetails.length + (nextAppointment ? 1 : 0);
-    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the medicines and recent symptoms you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
-    void loadTodayIntelligence(currentMedications, recentSymptoms);
+    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the recent symptom notes you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
+    void loadTodayIntelligence(recentSymptoms);
   }
 
   function buildTodayPlanPrompt(values) {
@@ -1785,7 +1781,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (memory.length) context.push(`Approved Health Memory: ${memory.join(' | ')}`);
     }
     const approvedContext = context.length ? context.join('\n') : 'No saved health details were approved for this request.';
-    return `Create a gentle plan for today. I feel ${compact(values.feeling, 40)} and my chosen focus is ${compact(values.focus, 80)}.\n\nUse only this approved context:\n${approvedContext}\n\nGive me: (1) one supportive sentence, (2) up to three practical low-risk actions for today, (3) one useful thing I could record or prepare, and (4) a brief note about when professional advice may be appropriate. Keep it concise and easy to scan. You may suggest ordinary options such as regular meals, hydration, rest, gentle movement, taking medicines only as already directed, or appointment preparation. Do not diagnose, infer a cause, prescribe a diet, recommend supplements, fasting, strenuous exercise, medication changes, or claim that an activity is safe for a specific condition. If the saved information makes an activity or food suggestion uncertain, say that clearly and suggest checking with a qualified professional.`;
+    return `Create a gentle plan for today. I feel ${compact(values.feeling, 40)} and my chosen focus is ${compact(values.focus, 80)}.\n\nUse only this approved context:\n${approvedContext}\n\nGive me: (1) one supportive sentence, (2) up to three practical low-risk actions for today, (3) one useful thing I could record or prepare, and (4) a brief note about when professional advice may be appropriate. Keep it concise and easy to scan. You may suggest ordinary options such as regular meals, hydration, rest, gentle movement, taking medicines only as already directed, or appointment preparation. Do not diagnose, infer a cause, infer medicine effects, compare medicines, or assess medicine safety; the saved medicine schedule is for organisation only. Do not prescribe a diet, recommend supplements, fasting, strenuous exercise, medication changes, or claim that an activity is safe for a specific condition. If the saved information makes an activity or food suggestion uncertain, say that clearly and suggest checking with a qualified professional.`;
   }
 
   function createTodayPlan(form, values) {
@@ -1981,9 +1977,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientInput.name = 'activeIngredients';
       ingredientInput.rows = 2;
       ingredientInput.maxLength = 600;
-      ingredientInput.placeholder = 'Copy the active ingredient names shown on the package';
+      ingredientInput.placeholder = 'Copy active ingredient names from the package; use commas between names';
       ingredientInput.value = ingredientPrefill;
-      ingredientField.append(ingredientTitle, ingredientInput);
+      const ingredientHelp = document.createElement('small');
+      ingredientHelp.className = 'modal-help medication-ingredient-help';
+      ingredientHelp.id = 'medication-ingredient-help';
+      ingredientHelp.textContent = 'Look for “active ingredient(s)” or “each tablet contains”; separate multiple names with commas. If you cannot find or read this section, leave it blank and ask a pharmacist. This checks only that your text matches the package; it is not clinical validation or a safety check.';
+      ingredientInput.setAttribute('aria-describedby', ingredientHelp.id);
+      ingredientField.append(ingredientTitle, ingredientInput, ingredientHelp);
       medicationGrid.append(ingredientField);
       ingredientInput.addEventListener('input', () => {
         if (medicationForm.elements.scanFieldsReviewed) medicationForm.elements.scanFieldsReviewed.checked = false;
@@ -1996,7 +1997,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientCheck.name = 'ingredientsConfirmed';
       ingredientCheck.checked = editing && prefill.activeIngredientsManuallyConfirmed === true;
       const ingredientCheckText = document.createElement('span');
-      ingredientCheckText.textContent = 'I checked that every active ingredient on the original medicine label appears above.';
+      ingredientCheckText.textContent = 'I copied every active ingredient listed on the original label. This checks my transcription only; it does not validate the medicine, dose, or safety.';
       ingredientConfirm.append(ingredientCheck, ingredientCheckText);
       medicationGrid.append(ingredientConfirm);
       for (const fieldName of ['name', 'dose', 'activeIngredients']) {
@@ -2893,7 +2894,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
     container.append(summary);
     const coverage = document.createElement('small');
-    coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · ruleset ' + (result.ruleset?.version || 'version unavailable') + ' · ingredient match for ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines · ' + (result.coverage?.unmatched ?? 0) + ' unmatched · ' + (result.coverage?.ambiguous ?? 0) + ' ambiguous/incomplete · ' + (result.coverage?.mismatched ?? 0) + ' name/label mismatches · ' + (result.coverage?.confirmedLabels ?? 0) + ' label-confirmed ingredient lists · ' + (result.coverage?.strengthUnverified ?? 0) + ' strengths/doses unverified';
+    coverage.textContent = 'DoctorAI local database ' + (result.datasetVersion || 'version unavailable') + ' · ruleset ' + (result.ruleset?.version || 'version unavailable') + ' · ingredient match for ' + (result.coverage?.resolved ?? 0) + ' of ' + (result.coverage?.requested ?? result.resolved?.length ?? 0) + ' medicines · ' + (result.coverage?.unmatched ?? 0) + ' unmatched · ' + (result.coverage?.ambiguous ?? 0) + ' ambiguous/incomplete · ' + (result.coverage?.mismatched ?? 0) + ' name/label mismatches · ' + (result.coverage?.confirmedLabels ?? 0) + ' ingredient lists checked by you against the package (not clinically validated) · ' + (result.coverage?.strengthUnverified ?? 0) + ' strengths/doses unverified';
     container.append(coverage);
     if (result.catalogue) {
       const catalogue = document.createElement('p');
@@ -2910,10 +2911,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       let matchText = 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : '');
       if (item.status === 'resolved' && names.length) {
         matchText = item.basis === 'confirmed_label_only'
-          ? 'label-confirmed ingredients ' + names.join(', ') + '; medicine name remains unverified'
+          ? 'ingredient text you checked against the package: ' + names.join(', ') + '; medicine name remains unverified; text matching only'
           : item.labelIngredientsConfirmed === true
-            ? 'medicine name and confirmed label ingredients match: ' + names.join(', ')
-            : 'name terminology match: ' + names.join(', ') + '; active ingredients were not confirmed from the label';
+            ? 'name mapping agrees with the ingredient text you checked against the package: ' + names.join(', ') + ' (text matching only)'
+            : 'name terminology match: ' + names.join(', ') + '; active ingredients were not checked by you against the package';
       }
       if (item.strength?.status === 'unverified') matchText += '; strength/dose unverified — no dose check was performed';
       else if (item.strength?.status === 'listed_match') matchText += '; the numeric strength appears in the catalogue, but this is not a dose or treatment check';

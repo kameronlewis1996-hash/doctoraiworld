@@ -39,6 +39,12 @@ async function run() {
     supply: '28', refill: '', startDate: '2026-09-01', endDate: '', prescriptionExpiry: '', repeats: '2 repeats'
   };
   let providerRequest;
+  const serviceFailureCases = [];
+  const expectServiceFailure = (name, response, status) => {
+    assert.equal(response.statusCode, status, `${name} status`);
+    assert.equal(response.headers['cache-control'], 'no-store, max-age=0', `${name} must not be cached`);
+    serviceFailureCases.push({ name, status });
+  };
   global.fetch = async (_url, options) => {
     providerRequest = JSON.parse(options.body);
     return new Response(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(medication) }] }] }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -80,34 +86,35 @@ async function run() {
   global.fetch = async () => new Response(JSON.stringify({ status: 'incomplete', incomplete_details: { reason: 'max_output_tokens' }, output: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
   const incomplete = responseRecorder();
   await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, incomplete);
-  assert.equal(incomplete.statusCode, 502);
+  expectServiceFailure('incomplete OCR response', incomplete, 502);
   assert.match(incomplete.body.error, /could not finish/i);
 
   global.fetch = async () => new Response(JSON.stringify({ error: { type: 'invalid_api_key' } }), { status: 401, headers: { 'content-type': 'application/json' } });
   const providerAuthFailure = responseRecorder();
   await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, providerAuthFailure);
-  assert.equal(providerAuthFailure.statusCode, 503);
+  expectServiceFailure('OCR provider authentication failure', providerAuthFailure, 503);
   assert.match(providerAuthFailure.body.error, /temporarily unavailable/i);
 
   global.fetch = async () => new Response(JSON.stringify({ status: 'completed', output_text: '{not-json' }), { status: 200, headers: { 'content-type': 'application/json' } });
   const malformedProviderOutput = responseRecorder();
   await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, malformedProviderOutput);
-  assert.equal(malformedProviderOutput.statusCode, 502);
+  expectServiceFailure('malformed OCR output', malformedProviderOutput, 502);
   assert.match(malformedProviderOutput.body.error, /could not be read/i);
 
   global.fetch = async () => new Response(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'synthetic refusal' }] }] }), { status: 200, headers: { 'content-type': 'application/json' } });
   const refused = responseRecorder();
   await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, refused);
-  assert.equal(refused.statusCode, 422);
+  expectServiceFailure('OCR refusal', refused, 422);
   assert.match(refused.body.error, /could not be read safely/i);
 
   global.fetch = async () => { const error = new Error('synthetic timeout'); error.name = 'AbortError'; throw error; };
   const timedOut = responseRecorder();
   await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, timedOut);
-  assert.equal(timedOut.statusCode, 504);
+  expectServiceFailure('OCR provider timeout', timedOut, 504);
   assert.match(timedOut.body.error, /too long/i);
 
-  process.stdout.write('Medication scan verification passed (explicit consent, bounded image, strict no-store output, per-field uncertainty, provider/parse/refusal/timeout failures).\n');
+  assert.deepEqual(serviceFailureCases.map(item => item.status), [502, 503, 502, 422, 504]);
+  process.stdout.write(`Medication scan verification passed: ${serviceFailureCases.length} synthetic OCR service failures returned no-store 502/503/502/422/504 responses; consent, image bounds, parse/refusal/timeout handling and per-field uncertainty also passed.\n`);
 }
 
 run().finally(() => {

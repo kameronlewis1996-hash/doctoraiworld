@@ -146,6 +146,7 @@ function call(method, body) {
   return handler({method,body},result).then(() => result);
 }
 (async () => {
+  const serviceFailureCases = [];
   for (const body of [null, 'null', '{', {}, [], {medications:[]}, {medications:['']}, {medications:[{}]}, {medications:Array(31).fill('Warfarin'),consent:true}, {medications:['Warfarin'],allergies:'penicillin',consent:true}]) assert.equal((await call('POST',body)).statusCode,400);
   assert.equal((await call('GET',{})).statusCode,405);
   let beforeEntitlement = entitlementCalls;
@@ -174,6 +175,8 @@ function call(method, body) {
   entitlementError = true;
   r = await call('POST',{consent:true,medications:['Marevan']});
   assert.equal(r.statusCode,503,'Entitlement service failures must fail closed.');
+  assert.equal(r.headers['Cache-Control'],'no-store, max-age=0');
+  serviceFailureCases.push({name:'entitlement service outage',status:r.statusCode});
   entitlementError = false;
 
   r = await call('POST',{medications:['Marevan','Nurofen']});
@@ -193,7 +196,9 @@ function call(method, body) {
   await failedHandler({method:'POST',body:{consent:true,medications:['Marevan']}},failedResponse);
   assert.equal(failedResponse.statusCode,503);assert.equal(failedResponse.body.status,'provider_unavailable');assert.equal(failedResponse.body.errorCode,'provider_unavailable');assert.equal(failedResponse.headers['Cache-Control'],'no-store, max-age=0');
   assert.equal(providerFailureReported,true,'provider outages should be recorded without returning a partial result');
-  console.log('Endpoint verification passed: synthetic auth/secure-storage/active-Pro/consent gates, expired and revoked access rejected, malformed/oversized lists rejected without partial checks, no-store, and sourced alerts.');
+  serviceFailureCases.push({name:'local rules provider exception',status:failedResponse.statusCode});
+  assert.deepEqual(serviceFailureCases.map(item => item.status),[503,503]);
+  console.log(`Endpoint verification passed: ${serviceFailureCases.length} synthetic entitlement/provider service failures returned no-store 503 with no partial result; synthetic auth/secure-storage/active-Pro/consent gates, expired/revoked access, malformed/oversized list rejection and sourced alerts also passed.`);
 })().catch(error => { console.error(error); process.exitCode=1; }).finally(() => {
   core.identityFromRequest = originalCore.identityFromRequest;
   core.storageConfigured = originalCore.storageConfigured;
