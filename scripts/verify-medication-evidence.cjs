@@ -201,7 +201,7 @@ async function run() {
 
   assert.match(hubHtml, /health-hub\.js\?v=64/);
   assert.match(hubHtml, /health-hub\.css\?v=69/);
-  assert.match(serviceWorker, /doctorai-shell-v109/);
+  assert.match(serviceWorker, /doctorai-shell-v110/);
   assert.match(serviceWorker, /health-hub\.js\?v=64/);
   assert.match(serviceWorker, /health-hub\.css\?v=69/);
   counts.cacheVersionGuards = 5;
