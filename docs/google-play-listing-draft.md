@@ -20,10 +20,10 @@ DoctorAI World helps you organise health details you choose to record and prepar
 
 • Keep notes about symptoms, medicines, measurements and appointments.
 • Prepare questions and review selected details before a visit.
-• Save documents you choose to add and review them in your Health Hub.
+• Pro accounts can save selected documents and open them from the Health Hub.
 • Use optional AI tools to organise information and get general health education.
 
-Your record starts empty. Choose what to add and whether to use device storage or sign in for account sync when that service is available. Review AI-generated content and medicine label details against the original information. Results may be incomplete or incorrect.
+Your record starts empty. Health entries stay on your device unless you sign in; account sync depends on the DoctorAI storage service being available. Document uploads require an active DoctorAI Pro entitlement. Review AI-generated content and medicine label details against the original information. Results may be incomplete or incorrect.
 
 DoctorAI is for health organisation and general education. It does not diagnose or prescribe, and it is not for emergency care or decisions about starting, stopping or changing treatment. For medical advice, speak with a healthcare professional. For an emergency, contact your local emergency service.
 

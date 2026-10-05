@@ -2,6 +2,10 @@
 
 **Updated:** 6 October 2026, New Zealand time (store-asset inventory only; build and device evidence below remains dated as shown). **Status:** signed AAB built and inspected; no Play app entry, submission or installed-device review yet.
 
+## Play copy review — 6 October 2026
+
+The working listing was checked against the Android source. The Documents screen labels uploads “Pro,” and `uploadDocumentJob()` requires an active entitlement before opening the picker. The listing draft now identifies document saving as a Pro feature and makes account-sync availability conditional on the DoctorAI storage service. This is a source-level copy check only: the draft is not approved or submitted, and no current-version device screenshot or end-to-end Play review has been completed.
+
 ## Backend dependency
 
 The Android health-sync payload includes `providers`, which the earlier public server validator rejects. That server defect is now fixed and reviewed in the protected Preview and staged Production candidates; it has not reached the public backend yet. Release the reviewed backend before claiming the installed app cloud-sync path passes. See [site release review](doctorai-site-release-review.md).
