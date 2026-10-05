@@ -1,6 +1,8 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
 const handler = require('../api/mcp.js');
 
 async function request(method, params = {}, headers = {}, options = {}) {
@@ -42,6 +44,39 @@ test('catalog has three read-only tools and no private, plans, or payment capabi
   }
   assert.ok(!tools[0].inputSchema.properties.feature.enum.includes('plans'));
   assert.ok(!tools[1].inputSchema.properties.destination.enum.includes('plans'));
+});
+test('metadata and tool instructions set a no-solicitation public-only boundary', async () => {
+  const initialized = (await request('initialize', { protocolVersion: '2026-01-26' })).body.result;
+  assert.match(initialized.instructions, /Do not ask the user to share symptoms/);
+  assert.match(initialized.instructions, /do not ask follow-up questions/);
+  const tools = (await request('tools/list')).body.result.tools;
+  for (const tool of tools) {
+    assert.match(tool.description, /Do not ask the user/);
+    assert.match(tool.description, /without asking follow-up health questions/);
+  }
+  const plugin = JSON.parse(readFileSync(join(__dirname, '../../plugin/plugin.json'), 'utf8'));
+  const listing = plugin.extensions['com.openai'].interface.longDescription;
+  assert.match(listing, /do not share personal health details here/);
+  assert.match(listing, /general public information only/);
+  const negative = plugin.extensions['com.openai'].review.test_cases.negative;
+  assert.equal(negative.length, 3);
+  for (const scenario of negative) {
+    assert.match(scenario.description, /Refuse/);
+    assert.match(scenario.description, /without asking|without requesting/);
+    assert.match(scenario.description, /suggest|direct the user/);
+  }
+});
+test('public tool output repeats the safe fallback without changing output schemas', async () => {
+  const tools = (await request('tools/list')).body.result.tools;
+  const guide = (await call('doctorai_website_guide', { feature: 'overview' })).body.result;
+  assert.deepEqual(Object.keys(guide.structuredContent).sort(), tools[0].outputSchema.required.slice().sort());
+  assert.match(guide.content[0].text, /Do not ask the user to share symptoms/);
+  const symptomGuide = (await call('doctorai_website_guide', { feature: 'symptoms' })).body.result.structuredContent;
+  assert.match(symptomGuide.access, /on the website/);
+  assert.match(symptomGuide.access, /Do not share health details in this ChatGPT conversation/);
+  const siteLink = (await call('doctorai_open_site', { destination: 'medications' })).body.result;
+  assert.deepEqual(Object.keys(siteLink.structuredContent).sort(), tools[1].outputSchema.required.slice().sort());
+  assert.match(siteLink.content[0].text, /do not ask follow-up questions for their details/);
 });
 test('curated feature results comply with their closed output schema', async () => {
   const tools = (await request('tools/list')).body.result.tools;
