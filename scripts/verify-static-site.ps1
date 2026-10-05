@@ -90,7 +90,7 @@ if ($sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/</loc>' -or $si
 $homeHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
 if ($homeHtml -notmatch 'href="/medication-list-template"') { $failures.Add('The homepage must link to the medication-list resource') }
 $aboutHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'about.html')
-if ($aboutHtml -notmatch 'about 18 months ago' -or $aboutHtml -notmatch 'About six months ago' -or $aboutHtml -notmatch 'I’ve been building it independently' -or $aboutHtml -notmatch 'not replace them' -or $aboutHtml -match '(?i)doctorai-about-family|portrait|kam-photo|<img\b') { $failures.Add('About must keep the approved text-only founder story') }
+if ($aboutHtml -notmatch 'about 18 months ago' -or $aboutHtml -notmatch 'About six months ago' -or $aboutHtml -notmatch "I’ve been building it independently" -or $aboutHtml -notmatch 'not replace them' -or $aboutHtml -match '(?i)doctorai-about-family|portrait|kam-photo|<img\b') { $failures.Add('About must keep the approved text-only founder story') }
 $htmlFiles = @('index.html', 'about.html', 'health-hub.html', 'subscription.html', 'terms.html', 'privacy.html', 'download.html', 'staff.html', 'research.html', 'mobile-auth.html', 'medication-list-template.html')
 foreach ($relative in $htmlFiles) {
   $text = Get-Content -Raw -LiteralPath (Join-Path $root $relative)
