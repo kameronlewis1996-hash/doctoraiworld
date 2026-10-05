@@ -45,8 +45,12 @@
   ],
   "rewrites": [
     {
+      "source": "/.well-known/openai-apps-challenge",
+      "destination": "https://mcp.doctoraiworld.com/.well-known/openai-apps-challenge"
+    },
+    {
       "source": "/api/mcp",
-      "destination": "https://doctoraiworld-public-mcp.vercel.app/api/mcp"
+      "destination": "https://mcp.doctoraiworld.com/api/mcp"
     },
     {
       "source": "/api/branding/public",

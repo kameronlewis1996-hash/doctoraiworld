@@ -5,6 +5,19 @@ const PROTOCOL_VERSION = '2026-01-26';
 const SUPPORTED_PROTOCOLS = new Set([PROTOCOL_VERSION, '2025-11-25', '2025-06-18', '2025-03-26']);
 const MAX_BODY_BYTES = 32_000;
 const MAX_RESEARCH_RESULTS = 5;
+const RESEARCH_TOPICS = {
+  'appointment preparation': 'patient appointment preparation',
+  'care coordination': 'care coordination',
+  'chronic condition self-management': 'chronic disease self management',
+  'digital health tools': 'digital health tools',
+  'health literacy': 'health literacy',
+  'medication adherence': 'medication adherence',
+  'medication reconciliation': 'medication reconciliation',
+  'patient-clinician communication': 'patient clinician communication',
+  'patient-reported outcomes': 'patient reported outcomes',
+  'shared decision making': 'shared decision making',
+  'symptom tracking': 'symptom tracking'
+};
 
 const SITE_GUIDE = {
   overview: {
@@ -171,15 +184,14 @@ const TOOLS = [
   {
     name: 'search_health_research',
     title: 'Search public health research',
-    description: 'Search Europe PMC for public biomedical abstracts by a general, non-identifying topic. Do not send symptoms, names, contact details, medication lists, or other personal health information. This is not diagnosis, treatment, or personal medication-safety advice.',
+    description: 'Search Europe PMC for public biomedical abstracts using a supported general topic. The server accepts only preset topics, not free text or personal health information. This is not diagnosis, treatment, or personal medication-safety advice.',
     inputSchema: {
       type: 'object',
       properties: {
         topic: {
           type: 'string',
-          minLength: 2,
-          maxLength: 180,
-          description: 'General, non-identifying biomedical research topic.'
+          enum: Object.keys(RESEARCH_TOPICS),
+          description: 'Choose one supported general topic. Free text and personal health details are not accepted.'
         }
       },
       required: ['topic'],
@@ -261,19 +273,16 @@ function textResult(value, structuredContent) {
 }
 
 function safeTopic(topic) {
-  if (typeof topic !== 'string') throw new Error('Enter a general research topic.');
-  const trimmed = topic.trim();
-  if (trimmed.length < 2 || trimmed.length > 180) throw new Error('Enter a general research topic between 2 and 180 characters.');
-  if (/@|https?:\/\/|www\.|\b\d{7,}\b|\b(?:I|my|mine|me|patient|born|DOB)\b|\b\d{1,4}[-/]\d{1,2}[-/]\d{1,4}\b/i.test(trimmed)) {
-    throw new Error('This search only accepts general, non-identifying topics. Do not send personal health information, contact details, or URLs.');
+  if (typeof topic !== 'string' || !Object.hasOwn(RESEARCH_TOPICS, topic)) {
+    throw new Error('Choose a supported general research topic. Free text and personal health information are not accepted.');
   }
-  return trimmed;
+  return { label: topic, query: RESEARCH_TOPICS[topic] };
 }
 
 async function searchHealthResearch(topic) {
-  const cleanTopic = safeTopic(topic);
+  const approvedTopic = safeTopic(topic);
   const url = new URL('https://www.ebi.ac.uk/europepmc/webservices/rest/search');
-  url.searchParams.set('query', cleanTopic);
+  url.searchParams.set('query', approvedTopic.query);
   url.searchParams.set('format', 'json');
   url.searchParams.set('pageSize', String(MAX_RESEARCH_RESULTS));
   url.searchParams.set('resultType', 'core');
@@ -300,7 +309,7 @@ async function searchHealthResearch(topic) {
     };
   });
   return {
-    topic: cleanTopic,
+    topic: approvedTopic.label,
     results,
     notice: 'These are public research abstracts, not personalized diagnosis, treatment, or medication-safety advice. Discuss health decisions with a licensed clinician or pharmacist.'
   };
@@ -345,7 +354,7 @@ module.exports = async function mcp(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Vary', 'Accept, MCP-Protocol-Version');
   const origin = req.headers?.origin;
-  if (origin && ![SITE_ORIGIN, 'https://doctoraiworld.com', 'https://doctoraiworld-public-mcp.vercel.app'].includes(origin)) {
+  if (origin && ![SITE_ORIGIN, 'https://doctoraiworld.com', 'https://mcp.doctoraiworld.com', 'https://doctoraiworld-public-mcp.vercel.app'].includes(origin)) {
     sendJson(res, 403, mcpError(null, -32000, 'Origin is not allowed.'));
     return;
   }
@@ -396,8 +405,8 @@ module.exports = async function mcp(req, res) {
         result: {
           protocolVersion: protocol || PROTOCOL_VERSION,
           capabilities: { tools: {} },
-          serverInfo: { name: 'doctoraiworld', version: '1.3.0' },
-          instructions: 'DoctorAIWorld offers public website guidance, direct links to Health Hub sections, and general searches of public biomedical abstracts. It cannot access a private account, inspect or change health records, diagnose, prescribe, check interactions, or facilitate subscriptions.'
+          serverInfo: { name: 'doctoraiworld', version: '1.3.1' },
+          instructions: 'DoctorAIWorld offers public website guidance, direct links to Health Hub sections, and searches of public biomedical abstracts using preset general topics. It cannot accept free-text health information, access a private account, inspect or change health records, diagnose, prescribe, check interactions, or facilitate subscriptions.'
         }
       });
       return;

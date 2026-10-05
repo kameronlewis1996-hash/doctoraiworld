@@ -9,10 +9,14 @@ Unavailable private and clinical capabilities are tested as server rejections.
 Conversation-level refusal behavior still needs review in ChatGPT.
 
 The directory publisher must select the existing verified legal identity and
-matching author in OpenAI Platform. `DoctorAIWorld` here is the product brand,
-not a claim that a business identity has been verified. Upload the bundled PNG
-for the directory and composer icons and provide a real demonstration recording.
-No legal or policy attestations are included or accepted by this package.
+matching author in OpenAI Platform. `DoctorAIWorld` in the manifest is the
+product brand, not a claim that a business identity has been verified; update
+the author and developer display name to the exact verified publisher name
+before packaging. Upload the bundled PNG for the directory and composer icons
+and provide a real demonstration recording of the published endpoint in
+ChatGPT. Confirm the privacy policy accurately reflects current practices and
+complete all required legal and policy attestations personally in the portal.
+No legal or policy attestations are included in this package.
 
 Public download availability is separate from directory approval. Reuse the
 saved public submission draft rather than creating a duplicate listing:
