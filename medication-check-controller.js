@@ -13,6 +13,7 @@
       Object.assign(this, { request, load, save, remove, onChange, hash, now });
       this.generation = 0; this.requestId = 0; this.view = { status: 'not_checked', consent: false, active: false, result: null, checkedAt: null };
       this.restored = false; this.contextKey = ''; this.attemptedKey = ''; this.pending = null;
+      this.lastLoginId = '';
     }
     snapshot() { return { ...this.view }; }
     emit() { this.onChange(this.snapshot()); }
@@ -21,17 +22,25 @@
       if (!this.context?.storageAllowed) { this.remove(); return; }
       if (!this.ownerHash || !this.profileHash || !this.view.consent) { this.remove(); return; }
       try { this.save({ version: 1, ownerHash: this.ownerHash, profileHash: this.profileHash, consent: true, active: this.view.active,
-        signature: this.signature, rulesVersion: this.context.rulesVersion, checkedAt: this.view.checkedAt, result: this.view.result }); } catch { /* A storage failure cannot turn an unchecked list into success. */ }
+        signature: this.signature, rulesVersion: this.context.rulesVersion, checkedAt: this.view.checkedAt, result: this.view.result,
+        lastLoginId: this.lastLoginId, checkStatus: this.view.status }); } catch { /* A storage failure cannot turn an unchecked list into success. */ }
     }
     async update(context) {
       const contextKey = JSON.stringify([context.owner, context.profileIdentity, context.payload, context.allowed, context.rulesVersion, context.storageAllowed]);
-      if (contextKey === this.contextKey && !(this.view.status === 'complete' && this.now() - this.view.checkedAt >= MAX_AGE)) return this.snapshot();
+      if (contextKey === this.contextKey && !(this.view.status === 'complete' && this.now() - this.view.checkedAt >= MAX_AGE)) {
+        if (this.pending && context.loginId !== this.context.loginId) {
+          ++this.generation; this.cancel(); this.view.status = this.view.result ? 'complete' : 'not_checked';
+        }
+        this.context = context;
+        if (this.loginNeedsCheck()) await this.run(false, true);
+        return this.snapshot();
+      }
       const previousOwner = this.context?.owner; const previousProfile = this.context?.profileIdentity;
       const scopeChanged = previousOwner && (previousOwner !== context.owner || previousProfile !== context.profileIdentity);
       this.contextKey = contextKey; this.context = context;
       const generation = ++this.generation; this.cancel(); this.attemptedKey = '';
       this.view = { ...this.view, status: context.allowed ? 'not_checked' : 'unavailable', result: null, checkedAt: null, error: context.allowed ? '' : 'Sign in with active Pro access and wait for private account data before checking.' };
-      if (scopeChanged && (this.restored || this.view.consent || this.view.active)) { this.view.consent = false; this.view.active = false; this.remove(); }
+      if (scopeChanged && (this.restored || this.view.consent || this.view.active)) { this.view.consent = false; this.view.active = false; this.lastLoginId = ''; this.remove(); }
       this.emit();
       if (!context.owner) return this.snapshot();
       let ownerHash, profileHash, signature;
@@ -45,7 +54,14 @@
         const saved = context.storageAllowed ? this.load() : null;
         if (saved?.version === 1 && saved.ownerHash === ownerHash && saved.profileHash === profileHash && saved.consent === true) {
           this.view.consent = true; this.view.active = saved.active === true;
-          if (saved.signature === signature && saved.rulesVersion === context.rulesVersion && this.validResult(saved.result) && Number.isFinite(saved.checkedAt) && saved.checkedAt <= this.now() && this.now() - saved.checkedAt < MAX_AGE) {
+          if (saved.signature === signature && saved.rulesVersion === context.rulesVersion) {
+            this.lastLoginId = typeof saved.lastLoginId === 'string' ? saved.lastLoginId : '';
+            if (['pending', 'unavailable'].includes(saved.checkStatus)) {
+              this.view.status = 'unavailable'; this.view.error = 'The previous check did not complete. No current check is available. Choose Check saved medicines to retry.';
+              this.attemptedKey = signature;
+            }
+          }
+          if (!['pending', 'unavailable'].includes(saved.checkStatus) && saved.signature === signature && saved.rulesVersion === context.rulesVersion && this.validResult(saved.result) && Number.isFinite(saved.checkedAt) && saved.checkedAt <= this.now() && this.now() - saved.checkedAt < MAX_AGE) {
             this.view.status = 'complete'; this.view.result = saved.result; this.view.checkedAt = saved.checkedAt;
           }
         } else if (saved) this.remove();
@@ -55,8 +71,13 @@
         this.emit(); return this.snapshot();
       }
       this.persist(); this.emit();
-      if (this.view.consent && this.view.active && this.view.status !== 'complete' && context.payload.medications.length) await this.run(false);
+      if (this.loginNeedsCheck()) await this.run(false, true);
+      else if (this.view.consent && this.view.active && this.view.status !== 'complete' && context.payload.medications.length) await this.run(false);
       return this.snapshot();
+    }
+    loginNeedsCheck() {
+      return !!(this.context?.loginId && this.context.allowed && this.context.rulesVersion && this.view.consent && this.view.active
+        && this.context.payload.medications.length && this.context.loginId !== this.lastLoginId);
     }
     validResult(result) {
       return !!result && ['red', 'orange', 'unknown'].includes(result.status) && Array.isArray(result.alerts) && Array.isArray(result.resolved)
@@ -70,19 +91,22 @@
       if (!this.view.consent) { ++this.generation; this.view.active = false; this.view.result = null; this.view.checkedAt = null; this.view.status = 'not_checked'; this.attemptedKey = ''; }
       this.persist(); this.emit(); // Selecting the checkbox alone never sends terms.
     }
-    async run(manual = true) {
+    async run(manual = true, loginRefresh = false) {
       if (this.pending) return this.pending;
       if (!this.view.consent || !this.context?.allowed || !this.context.rulesVersion || !this.signature) return this.snapshot();
       const payload = this.context.payload;
       if (!payload.medications.length || payload.medications.length > 30 || payload.medications.some(item => !item.name)) {
         this.view.status = 'not_checked'; this.view.result = null; this.view.checkedAt = null; this.view.error = 'Use 1–30 saved medicines with a name for every entry. No partial list was checked.'; this.persist(); this.emit(); return this.snapshot();
       }
-      if (!manual && this.attemptedKey === this.signature) return this.snapshot();
+      if (!manual && !loginRefresh && this.attemptedKey === this.signature) return this.snapshot();
       this.view.active = true; this.attemptedKey = this.signature;
+      if (this.context.loginId) this.lastLoginId = this.context.loginId;
       const requestId = ++this.requestId; const generation = this.generation;
       const owner = this.context.owner; const signature = this.signature;
       this.abort = new AbortController(); const abort = this.abort; const signal = abort.signal;
-      this.view.status = 'pending'; this.view.result = null; this.view.checkedAt = null; this.view.error = ''; this.persist(); this.emit();
+      const keepWarning = loginRefresh && this.view.status === 'complete' && issues(this.view.result).length > 0 && this.now() - this.view.checkedAt < MAX_AGE;
+      this.view.status = 'pending'; if (!keepWarning) { this.view.result = null; this.view.checkedAt = null; }
+      this.view.error = ''; this.persist(); this.emit();
       const timer = setTimeout(() => abort.abort(), 20000);
       const operation = (async () => {
         try {

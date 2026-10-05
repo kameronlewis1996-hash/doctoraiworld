@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'api/medication/**'
+      - 'api/auth/google.js'
       - 'data/medication/**'
       - 'docs/nz-medication-database.md'
       - '.env.example'
@@ -55,6 +56,7 @@ jobs:
           node scripts/verify-medication-pipeline.cjs
           node scripts/verify-medication-evidence.cjs
           node scripts/verify-medication-check-controller.cjs
+          node scripts/verify-medication-login.cjs
           node scripts/verify-local-medication-ui.cjs
           node scripts/verify-retired-medication-providers.cjs
           node scripts/verify-medication-scan.js
