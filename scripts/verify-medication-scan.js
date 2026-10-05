@@ -53,6 +53,10 @@ async function run() {
   assert.equal(success.body.medication.name, 'Test medicine');
   assert.equal(success.body.medication.time, '08:30');
   assert.equal(success.body.review.required, true);
+  assert.equal(success.body.review.confirmed, false);
+  assert.equal(success.body.review.fields.name.status, 'extracted');
+  assert.equal(success.body.review.fields.name.confidence, 'not_reported');
+  assert.equal(success.body.review.fields.activeIngredients.status, 'not_extracted');
   assert.equal(providerRequest.store, false);
   assert.equal(providerRequest.text.format.type, 'json_schema');
   assert.equal(providerRequest.text.format.strict, true);
@@ -79,7 +83,31 @@ async function run() {
   assert.equal(incomplete.statusCode, 502);
   assert.match(incomplete.body.error, /could not finish/i);
 
-  process.stdout.write('Medication scan verification passed (explicit consent, bounded image, strict no-store output, incomplete recovery).\n');
+  global.fetch = async () => new Response(JSON.stringify({ error: { type: 'invalid_api_key' } }), { status: 401, headers: { 'content-type': 'application/json' } });
+  const providerAuthFailure = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, providerAuthFailure);
+  assert.equal(providerAuthFailure.statusCode, 503);
+  assert.match(providerAuthFailure.body.error, /temporarily unavailable/i);
+
+  global.fetch = async () => new Response(JSON.stringify({ status: 'completed', output_text: '{not-json' }), { status: 200, headers: { 'content-type': 'application/json' } });
+  const malformedProviderOutput = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, malformedProviderOutput);
+  assert.equal(malformedProviderOutput.statusCode, 502);
+  assert.match(malformedProviderOutput.body.error, /could not be read/i);
+
+  global.fetch = async () => new Response(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'synthetic refusal' }] }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+  const refused = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, refused);
+  assert.equal(refused.statusCode, 422);
+  assert.match(refused.body.error, /could not be read safely/i);
+
+  global.fetch = async () => { const error = new Error('synthetic timeout'); error.name = 'AbortError'; throw error; };
+  const timedOut = responseRecorder();
+  await handler({ method: 'POST', headers: {}, body: { image: png, consent: true }, socket: {} }, timedOut);
+  assert.equal(timedOut.statusCode, 504);
+  assert.match(timedOut.body.error, /too long/i);
+
+  process.stdout.write('Medication scan verification passed (explicit consent, bounded image, strict no-store output, per-field uncertainty, provider/parse/refusal/timeout failures).\n');
 }
 
 run().finally(() => {

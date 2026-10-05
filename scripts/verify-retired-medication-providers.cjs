@@ -49,9 +49,11 @@ function responseRecorder() {
   const html = fs.readFileSync(path.join(root, 'health-hub.html'), 'utf8');
   const dispatcher = fs.readFileSync(path.join(root, 'api/medication/[...action].js'), 'utf8');
   const safetyApi = fs.readFileSync(path.join(root, 'api/medication/safety.js'), 'utf8');
+  const safetyProvider = fs.readFileSync(path.join(root, 'server-src/medication/safety-provider.cjs'), 'utf8');
   assert.match(dispatcher, /scan:/, 'The consented label-photo route remains available');
   assert.match(app, /fetch\('\/api\/medication\/safety'/, 'The limited local rules path stays active');
-  assert.match(safetyApi, /server-src\/medication\/safety-engine\.cjs/);
+  assert.match(safetyApi, /server-src\/medication\/safety-provider\.cjs/, 'The limited safety endpoint must use the replaceable local provider interface');
+  assert.match(safetyProvider, /require\(['"]\.\/safety-engine\.cjs['"]\)/, 'The default provider must delegate to the existing local rule engine');
   for (const retired of ['/api/medication/nzf-product-search', '/api/medication/nzf-interactions', '/api/medication/ingredient-search', '/api/medication/safety-check']) {
     assert.equal(app.includes(retired), false, 'The UI must not request ' + retired);
   }

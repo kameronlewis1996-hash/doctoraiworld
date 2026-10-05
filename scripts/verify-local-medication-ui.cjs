@@ -23,9 +23,9 @@ class Element {
 const output = new Element();const consent = new Element();consent.checked = true;
 const panel = {querySelector:s=>s.includes('consent')?consent:output};
 const button = {closest:()=>panel,disabled:false};
-const state = {medications:[{name:'Marevan',dose:'private dose',notes:'private note'},{name:'Nurofen'}],profile:{allergies:'penicillin',conditions:'kidney disease',symptoms:'private symptom'}};
+const state = {medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsManuallyConfirmed:true,notes:'private note'},{name:'Nurofen',dose:'200 mg',activeIngredients:['ibuprofen'],activeIngredientsManuallyConfirmed:false}],profile:{allergies:'penicillin',conditions:'kidney disease',symptoms:'private symptom'}};
 let sent;let signIns=0;let pro=true;
-const context = vm.createContext({document:{createElement:tag=>new Element(tag),createTextNode:t=>({textContent:t})},state,authUser:{id:'synthetic-test-user'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns+=1;},splitDetails:s=>s.split(';').filter(Boolean),fetch:async(url,options)=>{
+const context = vm.createContext({document:{createElement:tag=>new Element(tag),createTextNode:t=>({textContent:t})},URL,state,authUser:{id:'synthetic-test-user'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns+=1;},splitDetails:s=>s.split(';').filter(Boolean),fetch:async(url,options)=>{
   assert.equal(url,'/api/medication/safety');assert.equal(options.credentials,'same-origin');
   sent=JSON.parse(options.body);
   const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};
@@ -35,7 +35,7 @@ const context = vm.createContext({document:{createElement:tag=>new Element(tag),
 vm.runInContext(code,context);
 (async()=>{
   await context.runLocalMedicationSafetyCheck(button);
-  assert.deepEqual(sent,{consent:true,medications:['Marevan','Nurofen'],allergies:['penicillin'],conditions:['kidney disease']});
+  assert.deepEqual(sent,{consent:true,medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsConfirmed:true},{name:'Nurofen',dose:'200 mg'}],allergies:['penicillin'],conditions:['kidney disease']});
   assert.equal(consent.checked,false);assert.equal(button.disabled,false);
   const allText = el=>[el.textContent,...(el.children||[]).map(allText)].join(' ');
   assert.match(allText(output),/potential issues/);assert.match(allText(output),/3[,.]?419/);assert.match(allText(output),/13 curated interaction rules/);assert.match(allText(output),/does not endorse/);assert.match(allText(output),/does not mean safe/i);
@@ -63,7 +63,7 @@ vm.runInContext(code,context);
   await releaseRequest();
   await running;
   assert.equal(button.disabled,false,'The action is restored after the request completes.');
-  console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, exact payload privacy, sourced warnings, no partial lists and duplicate-click protection.');
+  console.log('Local UI→API→database→result verification passed with a synthetic account: consent, Pro/sign-in gates, dose and confirmed-ingredient payload privacy, sourced warnings, no partial lists and duplicate-click protection.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{
   core.identityFromRequest = originalCore.identityFromRequest;
   core.storageConfigured = originalCore.storageConfigured;

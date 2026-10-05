@@ -917,9 +917,15 @@
       "effect": "Increased bleeding risk; requires pharmacist/prescriber review.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/datasheet/c/coumadintab.pdf"
+        "url": "https://www.medsafe.govt.nz/profs/datasheet/c/coumadintab.pdf",
+        "title": "Data Sheet – Coumadin – 3-Mar-2026",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "The source also states warfarin doses require individual monitoring; this rule does not assess INR, prescribed dose, or personal risk."
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-09-30",
+      "recordVersion": 1,
+      "evidenceSummary": "The Coumadin New Zealand data sheet lists concomitant NSAID use among circumstances associated with serious bleeding risk and recommends ongoing clinical monitoring."
     },
     {
       "id": "pde5-nitrate",
@@ -933,9 +939,15 @@
       "effect": "Concomitant use is contraindicated because PDE5 inhibitors can potentiate the blood-pressure-lowering effects of nitrates.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUarticles/viagra.htm"
+        "url": "https://www.medsafe.govt.nz/profs/datasheet/v/viagratab.pdf",
+        "title": "VIAGRA – New Zealand Data Sheet",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "The cited product label is sildenafil-specific; the ruleset applies its curated PDE5 class mapping and does not verify every product label."
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-09-30",
+      "recordVersion": 1,
+      "evidenceSummary": "The Medsafe data sheet states that sildenafil potentiates nitrate-related hypotension and contraindicates co-administration with organic nitrates or nitric-oxide donors."
     },
     {
       "id": "ssri-maoi",
@@ -949,9 +961,15 @@
       "effect": "Concomitant use is contraindicated because of the risk of serotonin syndrome.",
       "source": {
         "publisher": "U.S. FDA prescribing information",
-        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/215133s001lbl.pdf"
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/215133s001lbl.pdf",
+        "title": "Sertraline HCl Capsules – U.S. FDA Prescribing Information (2023)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "This U.S. label states it may not be the latest FDA-approved labeling. The class-wide SSRI mapping and current New Zealand labeling require clinician verification."
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-09-30",
+      "recordVersion": 1,
+      "evidenceSummary": "The cited sertraline label contraindicates concomitant use with MAOIs and describes serotonin-syndrome risk."
     },
     {
       "id": "methotrexate-cotrimoxazole",
@@ -965,9 +983,15 @@
       "effect": "Trimethoprim alone or in co-trimoxazole with methotrexate can cause severe bone marrow suppression. Prompt pharmacist/prescriber review is required.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/March2022/Bone-marrow-suppression-methotrexate-and-trimethoprim-or-co-trimoxazole.html"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/March2022/Bone-marrow-suppression-methotrexate-and-trimethoprim-or-co-trimoxazole.html",
+        "title": "Interaction reminder: Bone marrow suppression with methotrexate and trimethoprim or co-trimoxazole (3-Mar-2022)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "The article describes case reports and monitoring advice; the ruleset does not assess dose, indication, timing, blood tests, or an individual plan."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe reports severe, sometimes fatal, bone-marrow suppression with methotrexate plus trimethoprim or co-trimoxazole, and advises avoiding the combination where possible."
     },
     {
       "id": "lithium-nsaid",
@@ -981,9 +1005,15 @@
       "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm",
+        "title": "Lithium (Prescriber Update, September 2017)",
+        "sourceStatus": "primary-source-link-recheck-required",
+        "currentnessNote": "The historical source link was not retrievable during this change; the rule requires a pharmacist or prescriber to confirm current relevance.",
+        "linkCheckAttemptedOn": "2026-10-05"
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Existing rule retained from the linked Medsafe source: NSAIDs are flagged as a possible lithium concentration/toxicity interaction."
     },
     {
       "id": "lithium-ace-inhibitor",
@@ -997,9 +1027,15 @@
       "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm",
+        "title": "Lithium (Prescriber Update, September 2017)",
+        "sourceStatus": "primary-source-link-recheck-required",
+        "currentnessNote": "The historical source link was not retrievable during this change; the rule requires a pharmacist or prescriber to confirm current relevance.",
+        "linkCheckAttemptedOn": "2026-10-05"
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Existing rule retained from the linked Medsafe source: ACE inhibitors are flagged as a possible lithium concentration/toxicity interaction."
     },
     {
       "id": "lithium-arb",
@@ -1013,9 +1049,15 @@
       "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm",
+        "title": "Lithium (Prescriber Update, September 2017)",
+        "sourceStatus": "primary-source-link-recheck-required",
+        "currentnessNote": "The historical source link was not retrievable during this change; the rule requires a pharmacist or prescriber to confirm current relevance.",
+        "linkCheckAttemptedOn": "2026-10-05"
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Existing rule retained from the linked Medsafe source: ARBs are flagged as a possible lithium concentration/toxicity interaction."
     },
     {
       "id": "lithium-thiazide-diuretic",
@@ -1029,9 +1071,15 @@
       "effect": "May increase lithium concentrations and toxicity risk. Requires prescriber review and appropriate lithium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2017/Lithium.htm",
+        "title": "Lithium (Prescriber Update, September 2017)",
+        "sourceStatus": "primary-source-link-recheck-required",
+        "currentnessNote": "The historical source link was not retrievable during this change; the rule requires a pharmacist or prescriber to confirm current relevance.",
+        "linkCheckAttemptedOn": "2026-10-05"
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Existing rule retained from the linked Medsafe source: thiazide diuretics are flagged as a possible lithium concentration/toxicity interaction."
     },
     {
       "id": "spironolactone-ace-inhibitor",
@@ -1045,9 +1093,15 @@
       "effect": "May cause severe hyperkalaemia, especially with renal impairment. Requires clinical review and potassium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm"
+        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm",
+        "title": "Reminder: Hyperkalaemia caused by Spironolactone and Renin-angiotensin System Medicine Interactions (1-Sep-2016)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "Medsafe marks the article as more than five years old and says content may no longer be current; confirm against current product information."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe says severe hyperkalaemia risk should be considered with spironolactone plus ACE inhibitors, especially with renal impairment, and recommends potassium/renal monitoring."
     },
     {
       "id": "spironolactone-arb",
@@ -1061,9 +1115,15 @@
       "effect": "May cause severe hyperkalaemia, especially with renal impairment. Requires clinical review and potassium/renal monitoring.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm"
+        "url": "https://www.medsafe.govt.nz/Profs/PUarticles/September2016/spironolactone-hyperkalaemia.htm",
+        "title": "Reminder: Hyperkalaemia caused by Spironolactone and Renin-angiotensin System Medicine Interactions (1-Sep-2016)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "Medsafe marks the article as more than five years old and says content may no longer be current; confirm against current product information."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe says severe hyperkalaemia risk should be considered with spironolactone plus ARBs, especially with renal impairment, and recommends potassium/renal monitoring."
     },
     {
       "id": "simvastatin-interacting-inhibitor",
@@ -1077,9 +1137,15 @@
       "effect": "Can increase simvastatin exposure and cause serious muscle injury/rhabdomyolysis. Prompt pharmacist/prescriber review is required; route and formulation must be checked.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/December2014Simvastatin.htm"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/December2014Simvastatin.htm",
+        "title": "Simvastatin Interactions and Fatal Reports (15-Dec-2014)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "Medsafe marks the article as more than five years old and says content may no longer be current. The present class mapping must be checked against current datasheets."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe describes potentially life-threatening myopathy/rhabdomyolysis with potent CYP3A4 inhibitors and contraindicates that combination in the cited article."
     },
     {
       "id": "serotonergic-opioid-antidepressant",
@@ -1093,9 +1159,15 @@
       "effect": "Increased risk of serotonin syndrome. Requires pharmacist/prescriber review.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html",
+        "title": "Opioids and serotonergic medicines: some combinations may increase the risk of serotonin syndrome (1-Sep-2022)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "The cited source stratifies specific opioid classes and combinations; this grouped warning is conservative and does not assess an individual regimen."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe describes risk as varying by opioid/antidepressant combination and identifies tramadol, pethidine, and dextromethorphan as high risk with serotonergic antidepressants."
     },
     {
       "id": "serotonergic-opioid-maoi",
@@ -1109,9 +1181,15 @@
       "effect": "Concomitant use is contraindicated because of serotonin syndrome risk. Prompt pharmacist/prescriber review is required.",
       "source": {
         "publisher": "Medsafe NZ",
-        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html"
+        "url": "https://www.medsafe.govt.nz/profs/PUArticles/September2022/Opioids-and-serotonergic%20medicines-risk-of-serotonin-syndrome.html",
+        "title": "Opioids and serotonergic medicines: some combinations may increase the risk of serotonin syndrome (1-Sep-2022)",
+        "sourceStatus": "primary-source-checked",
+        "checkedOn": "2026-10-05",
+        "currentnessNote": "The source identifies particular high-risk opioids; product identity and serotonergic class mapping must be confirmed."
       },
-      "reviewed": "2026-10-01"
+      "reviewed": "2026-10-01",
+      "recordVersion": 1,
+      "evidenceSummary": "Medsafe identifies concomitant use of high-risk serotonergic opioids with MAOIs as contraindicated in its risk table."
     }
   ],
   "allergyRules": [
@@ -1125,9 +1203,14 @@
       "severity": "high",
       "effect": "Recorded penicillin allergy may apply to this medicine. Verify the exact allergy and medicine with a pharmacist/prescriber.",
       "source": {
-        "publisher": "DoctorAI safety rule; ingredient class must be verified against medicine reference data"
+        "publisher": "DoctorAI curated class mapping",
+        "kind": "internal-rule",
+        "sourceStatus": "not-externally-sourced",
+        "currentnessNote": "No external allergy source is attached to this class prompt. Confirm the specific allergy and product with a pharmacist or prescriber."
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-09-30",
+      "recordVersion": 1,
+      "evidenceSummary": "A curated ingredient-class match only. This rule does not confirm the person’s allergy, cross-reactivity, or whether a medicine is suitable."
     },
     {
       "id": "nsaid-class",
@@ -1141,9 +1224,14 @@
       "severity": "high",
       "effect": "Recorded NSAID allergy or hypersensitivity may apply to this medicine. Verify with a pharmacist/prescriber.",
       "source": {
-        "publisher": "DoctorAI safety rule; ingredient class must be verified against medicine reference data"
+        "publisher": "DoctorAI curated class mapping",
+        "kind": "internal-rule",
+        "sourceStatus": "not-externally-sourced",
+        "currentnessNote": "No external allergy source is attached to this class prompt. Confirm the specific allergy and product with a pharmacist or prescriber."
       },
-      "reviewed": "2026-09-30"
+      "reviewed": "2026-09-30",
+      "recordVersion": 1,
+      "evidenceSummary": "A curated ingredient-class match only. This rule does not confirm the person’s allergy, cross-reactivity, or whether a medicine is suitable."
     }
   ],
   "terminologySources": [
@@ -1172,5 +1260,14 @@
       "access": "Automated import from NLM release files/API",
       "url": "https://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html"
     }
-  ]
+  ],
+  "ruleset": {
+    "version": "2026.10.05-r1",
+    "recordSchemaVersion": 1,
+    "metadataCheckedOn": "2026-10-05",
+    "interactionRuleCount": 13,
+    "allergyRuleCount": 2,
+    "conditionRuleCount": 0,
+    "scope": "Small, curated flags linked to the named sources. This ruleset is not a complete interaction or allergy reference; unflagged combinations are not cleared."
+  }
 }
