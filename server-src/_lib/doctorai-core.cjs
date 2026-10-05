@@ -23,6 +23,21 @@ const json = (response, status, payload) => {
 const secret = () => String(process.env.AUTH_SECRET || '');
 const configured = () => Boolean(secret());
 const hash = value => crypto.createHash('sha256').update(String(value)).digest('base64url');
+// Keep Production compatible and isolate every other deployed environment,
+// including signatures and encryption when credentials are accidentally shared.
+function storageNamespace() {
+  const environment = String(process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV || 'production');
+  if (environment === 'production') return 'doctorai';
+  if (['preview', 'development'].includes(environment)) return `doctorai-${environment}`;
+  return `doctorai-environment-${hash(environment).slice(0, 24)}`;
+}
+const storageKey = key => String(key).replace(/^doctorai:/, `${storageNamespace()}:`);
+const documentBlobPrefix = account => `${storageNamespace()}-private/${accountKey(account)}/`;
+function documentPathIsOwned(account, pathname) {
+  const prefix = documentBlobPrefix(account);
+  return typeof pathname === 'string' && pathname.startsWith(prefix)
+    && /^[A-Za-z0-9._-]+$/.test(pathname.slice(prefix.length)) && !pathname.includes('..');
+}
 const safeLogValue = value => String(value || '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
 function reportError(event, context = {}) {
   const allowed = ['route', 'provider', 'status', 'type', 'code', 'name', 'operation'];
@@ -36,7 +51,8 @@ const timingSafeEqual = (left, right) => {
   const b = Buffer.from(String(right));
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 };
-const sign = value => configured() ? crypto.createHmac('sha256', secret()).update(value).digest('base64url') : '';
+const sign = value => configured() ? crypto.createHmac('sha256', secret())
+  .update(storageNamespace() === 'doctorai' ? value : `${storageNamespace()}:${value}`).digest('base64url') : '';
 const encode = value => Buffer.from(JSON.stringify(value), 'utf8').toString('base64url');
 const decode = value => JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
 
@@ -88,10 +104,12 @@ async function sessionIsActive(session) {
   // account. The durable record makes sign-out and revocation enforceable, and
   // prevents a storage outage from weakening account isolation.
   if (!storageConfigured()) return false;
+  if (await isAccountDeletionBlocked({ email: session.email }).catch(() => true)) return false;
   const field = encodeURIComponent(hash(session.sid));
   const raw = await redis(`hget/${encodeURIComponent('doctorai:sessions')}/${field}`);
   const value = raw.result && typeof raw.result === 'object' && raw.result.value ? raw.result.value : raw.result;
   const stored = value ? unseal(value) : null;
+  if (await isAccountDeletionBlocked({ email: session.email }).catch(() => true)) return false;
   return Boolean(stored && !stored.revokedAt && Number(stored.exp) > Date.now() && normaliseEmail(stored.email) === normaliseEmail(session.email));
 }
 
@@ -148,12 +166,17 @@ function googleClientId() {
 
 async function activateSession(session) {
   if (!session?.sid || !storageConfigured()) return false;
+  if (await isAccountDeletionBlocked(session)) return false;
   const field = encodeURIComponent(hash(session.sid));
   await redis(`hset/${encodeURIComponent('doctorai:sessions')}/${field}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(seal({ sid: session.sid, email: normaliseEmail(session.email), exp: Number(session.exp), createdAt: Date.now() }))
   });
+  if (await isAccountDeletionBlocked(session)) {
+    await redis(`hdel/${encodeURIComponent('doctorai:sessions')}/${field}`, { method: 'POST' });
+    return false;
+  }
   return true;
 }
 
@@ -215,10 +238,64 @@ function clearEntitlementCookies(response) {
 
 const storageConfigured = () => Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && configured());
 const redisUrl = () => String(process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const DELETION_STATUS_KEY = 'doctorai:account-deletions:v1';
+const DELETED_SUBSCRIPTIONS_KEY = 'doctorai:deleted-subscriptions:v1';
+
+async function globalHget(key, field) {
+  if (!storageConfigured()) return null;
+  const raw = await redis(`hget/${encodeURIComponent(key)}/${encodeURIComponent(field)}`);
+  return raw.result && typeof raw.result === 'object' && raw.result.value ? raw.result.value : raw.result ?? null;
+}
+
+async function globalHset(key, field, value) {
+  if (!storageConfigured()) return false;
+  await redis(`hset/${encodeURIComponent(key)}/${encodeURIComponent(field)}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(value)
+  });
+  return true;
+}
+
+async function globalHdel(key, field) {
+  if (!storageConfigured()) return false;
+  await redis(`hdel/${encodeURIComponent(key)}/${encodeURIComponent(field)}`, { method: 'POST' });
+  return true;
+}
+
+async function globalHgetall(key) {
+  if (!storageConfigured()) return {};
+  const raw = await redis(`hgetall/${encodeURIComponent(key)}`);
+  return raw.result && typeof raw.result === 'object' && !Array.isArray(raw.result) ? raw.result : {};
+}
+
+async function isAccountDeletionBlocked(account) {
+  if (!storageConfigured()) return true;
+  return Boolean(await globalHget(DELETION_STATUS_KEY, accountKey(account)));
+}
+
+async function accountDeletionStatus(account) {
+  if (!storageConfigured()) return { configured: false, status: null };
+  return { configured: true, status: await globalHget(DELETION_STATUS_KEY, accountKey(account)) };
+}
+
+async function beginAccountDeletion(account) {
+  if (!storageConfigured()) throw new Error('Secure account storage is not configured.');
+  const key = accountKey(account);
+  const status = await globalHget(DELETION_STATUS_KEY, key);
+  if (status) return status;
+  await globalHset(DELETION_STATUS_KEY, key, 'processing');
+  return 'processing';
+}
+
+async function isDeletedSubscription(subscriptionId) {
+  if (!subscriptionId || !storageConfigured()) return false;
+  return Boolean(await globalHget(DELETED_SUBSCRIPTIONS_KEY, hash(subscriptionId)));
+}
 
 async function redis(path, options = {}) {
   if (!storageConfigured()) return { configured: false, result: null };
-  const response = await fetch(`${redisUrl()}/${path}`, {
+  const parts = path.split('/');
+  if (parts.length > 1) parts[1] = encodeURIComponent(storageKey(decodeURIComponent(parts[1])));
+  const response = await fetch(`${redisUrl()}/${parts.join('/')}`, {
     ...options,
     headers: {
       authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
@@ -232,7 +309,8 @@ async function redis(path, options = {}) {
 
 function encryptionKey() {
   if (!configured()) throw new Error('Secure account storage is not configured.');
-  return crypto.hkdfSync('sha256', Buffer.from(secret()), Buffer.from('doctorai-health-storage-v1'), Buffer.from('account-data'), 32);
+  const salt = storageNamespace() === 'doctorai' ? 'doctorai-health-storage-v1' : `${storageNamespace()}-health-storage-v1`;
+  return crypto.hkdfSync('sha256', Buffer.from(secret()), Buffer.from(salt), Buffer.from('account-data'), 32);
 }
 
 function seal(value) {
@@ -281,11 +359,18 @@ function userHashKey(namespace, account) {
 
 async function hset(namespace, account, field, value) {
   if (!storageConfigured()) return false;
-  await redis(`hset/${userHashKey(namespace, account)}/${encodeURIComponent(field)}`, {
+  const guarded = namespace === 'accounts' || namespace === 'documents' || namespace === 'checkout-sessions';
+  if (guarded && await isAccountDeletionBlocked(account)) return false;
+  const path = `hset/${userHashKey(namespace, account)}/${encodeURIComponent(field)}`;
+  await redis(path, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(value)
   });
+  if (guarded && await isAccountDeletionBlocked(account)) {
+    await hdel(namespace, account, field);
+    return false;
+  }
   return true;
 }
 
@@ -307,9 +392,38 @@ async function hvals(namespace, account) {
   return Array.isArray(raw.result) ? raw.result : [];
 }
 
+async function savePendingCheckoutSession(account, sessionId) {
+  const id = String(sessionId || '');
+  if (!/^cs_[A-Za-z0-9_]+$/.test(id) || !storageConfigured() || await isAccountDeletionBlocked(account)) return false;
+  const saved = await hset('checkout-sessions', account, id, seal({ id, createdAt: Date.now() }));
+  if (!saved) return false;
+  if (await isAccountDeletionBlocked(account)) {
+    await hdel('checkout-sessions', account, id);
+    return false;
+  }
+  return true;
+}
+
+async function listPendingCheckoutSessions(account) {
+  const values = await hvals('checkout-sessions', account);
+  return values.map(value => unseal(typeof value === 'object' && value.value ? value.value : value)?.id)
+    .filter(id => typeof id === 'string' && /^cs_[A-Za-z0-9_]+$/.test(id));
+}
+
+async function deletePendingCheckoutSession(account, sessionId) {
+  if (!/^cs_[A-Za-z0-9_]+$/.test(String(sessionId || ''))) return false;
+  return hdel('checkout-sessions', account, sessionId);
+}
+
 async function saveHealthState(account, state) {
-  if (!storageConfigured()) return false;
-  return hset('accounts', account, 'health-state', seal({ v: 1, updatedAt: Date.now(), state }));
+  if (!storageConfigured() || await isAccountDeletionBlocked(account)) return false;
+  const saved = await hset('accounts', account, 'health-state', seal({ v: 1, updatedAt: Date.now(), state }));
+  if (!saved) return false;
+  if (await isAccountDeletionBlocked(account)) {
+    await deleteHealthState(account);
+    return false;
+  }
+  return true;
 }
 
 async function readHealthState(account) {
@@ -324,8 +438,14 @@ async function deleteHealthState(account) {
 }
 
 async function saveDocumentMetadata(account, document) {
-  if (!storageConfigured()) return false;
-  return hset('documents', account, document.id, seal(document));
+  if (!storageConfigured() || await isAccountDeletionBlocked(account)) return false;
+  const saved = await hset('documents', account, document.id, seal(document));
+  if (!saved) return false;
+  if (await isAccountDeletionBlocked(account)) {
+    await deleteDocumentMetadata(account, document.id);
+    return false;
+  }
+  return true;
 }
 
 async function readDocumentMetadata(account, id) {
@@ -347,19 +467,26 @@ async function deleteDocumentMetadata(account, id) {
 }
 
 async function saveEntitlement(account, entitlement) {
-  if (!storageConfigured()) return false;
-  return hset('accounts', account, 'entitlement', seal({ ...entitlement, email: normaliseEmail(entitlement.email || account.email), updatedAt: Date.now() }));
+  if (!storageConfigured() || await isAccountDeletionBlocked(account)) return false;
+  if (entitlement?.subscriptionId && await isDeletedSubscription(entitlement.subscriptionId)) return false;
+  const saved = await hset('accounts', account, 'entitlement', seal({ ...entitlement, email: normaliseEmail(entitlement.email || account.email), updatedAt: Date.now() }));
+  if (!saved) return false;
+  if (await isAccountDeletionBlocked(account)) {
+    await hdel('accounts', account, 'entitlement');
+    return false;
+  }
+  return true;
 }
 
 async function readStoredEntitlement(account) {
   const raw = await hget('accounts', account, 'entitlement');
   const stored = raw && typeof raw === 'object' && raw.value ? raw.value : raw;
   const entitlement = stored ? unseal(stored) : null;
-  return entitlement && entitlement.tier === 'pro' ? entitlement : null;
+  return entitlement && typeof entitlement === 'object' ? entitlement : null;
 }
 
 async function activeEntitlement(request, account) {
-  if (!account) return null;
+  if (!account || await isAccountDeletionBlocked(account)) return null;
   const stored = await readStoredEntitlement(account).catch(() => null);
   // When durable account storage is connected it is the source of truth. This
   // prevents an old signed browser cookie from surviving a staff revocation or
@@ -382,16 +509,91 @@ async function readFreeGrant(account) {
 }
 
 async function recordFreeGrant(account, entry) {
-  if (!storageConfigured()) return false;
+  if (!storageConfigured() || await isAccountDeletionBlocked(account)) return false;
   const field = encodeURIComponent(accountKey(account));
+  const auditField = `${Date.now()}-${accountKey(account)}`;
   await redis(`hset/${encodeURIComponent('doctorai:free-pro:grants')}/${field}`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seal(entry))
   });
   const auditType = entry.revokedAt ? 'free-pro-revoked' : entry.redeemedAt ? 'free-pro-redeemed' : 'free-pro-issued';
-  await redis(`hset/${encodeURIComponent('doctorai:audit')}/${encodeURIComponent(`${Date.now()}-${accountKey(account)}`)}`, {
+  await redis(`hset/${encodeURIComponent('doctorai:audit')}/${encodeURIComponent(auditField)}`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seal({ type: auditType, at: new Date().toISOString(), actor: entry.actor || 'self', accountEmail: normaliseEmail(account.email), expiresAt: entry.expiresAt || null }))
   });
+  if (await isAccountDeletionBlocked(account)) {
+    await redis(`hdel/${encodeURIComponent('doctorai:free-pro:grants')}/${field}`, { method: 'POST' });
+    await redis(`hdel/${encodeURIComponent('doctorai:audit')}/${encodeURIComponent(auditField)}`, { method: 'POST' });
+    return false;
+  }
   return true;
+}
+
+async function deleteAccountData(account, subscriptionIds = [], blobStorage) {
+  if (!storageConfigured()) throw new Error('Secure account storage is not configured.');
+  if (typeof blobStorage?.list !== 'function' || typeof blobStorage?.del !== 'function') throw new Error('Private document deletion is not configured.');
+  const key = accountKey(account);
+  const status = await globalHget(DELETION_STATUS_KEY, key);
+  if (!status) await beginAccountDeletion(account);
+
+  const ids = new Set(subscriptionIds.map(value => String(value || '')).filter(value => /^sub_[A-Za-z0-9]+$/.test(value)));
+  const entitlement = await readStoredEntitlement(account);
+  if (entitlement?.subscriptionId && /^sub_[A-Za-z0-9]+$/.test(entitlement.subscriptionId)) ids.add(entitlement.subscriptionId);
+  for (const id of ids) await globalHset(DELETED_SUBSCRIPTIONS_KEY, hash(id), '1');
+
+  const sessions = await globalHgetall('doctorai:sessions');
+  for (const [field, value] of Object.entries(sessions)) {
+    const sealed = value && typeof value === 'object' && value.value ? value.value : value;
+    const session = sealed ? unseal(sealed) : null;
+    if (session && normaliseEmail(session.email) === normaliseEmail(account.email)) {
+      await globalHdel('doctorai:sessions', field);
+    }
+  }
+
+  const documents = await listDocumentMetadata(account);
+  let documentsDeleted = 0;
+  const prefix = documentBlobPrefix(account);
+  const blobPaths = new Set();
+  for (const document of documents) {
+    if (!document?.id || !documentPathIsOwned(account, document.blobPath)) {
+      throw new Error('A private document path could not be verified safely.');
+    }
+    blobPaths.add(document.blobPath);
+  }
+  let cursor;
+  let pageCount = 0;
+  while (true) {
+    const page = await blobStorage.list({ prefix, cursor, limit: 1000 });
+    for (const blob of page?.blobs || []) {
+      if (!documentPathIsOwned(account, blob.pathname)) {
+        throw new Error('A private document path could not be verified safely.');
+      }
+      blobPaths.add(blob.pathname);
+    }
+    pageCount += 1;
+    if (!page?.hasMore) break;
+    if (!page.cursor || page.cursor === cursor || pageCount >= 1000) throw new Error('Private document inventory could not be completed safely.');
+    cursor = page.cursor;
+  }
+  const allBlobPaths = [...blobPaths];
+  for (let index = 0; index < allBlobPaths.length; index += 500) {
+    await blobStorage.del(allBlobPaths.slice(index, index + 500));
+  }
+  for (const document of documents) {
+    await deleteDocumentMetadata(account, document.id);
+    documentsDeleted += 1;
+  }
+
+  await redis(`del/${userHashKey('accounts', account)}`, { method: 'POST' });
+  await redis(`del/${userHashKey('documents', account)}`, { method: 'POST' });
+  await redis(`del/${userHashKey('checkout-sessions', account)}`, { method: 'POST' });
+  await globalHdel('doctorai:free-pro:grants', key);
+
+  const audit = await globalHgetall('doctorai:audit');
+  for (const field of Object.keys(audit)) {
+    if (field.endsWith(`-${key}`)) await globalHdel('doctorai:audit', field);
+  }
+
+  await globalHset(DELETION_STATUS_KEY, key, 'deleted');
+  return { deleted: true, alreadyDeleted: status === 'deleted', documentsDeleted };
 }
 
 async function listFreeGrants() {
@@ -448,7 +650,7 @@ async function rateLimit(request, scope, maximum, windowMs) {
   const forwarded = String(request.headers?.['x-forwarded-for'] || '').split(',')[0].trim();
   const address = forwarded || request.socket?.remoteAddress || 'unknown';
   const bucket = Math.floor(Date.now() / safeWindowMs);
-  const key = `doctorai:rate-limit:v1:${hash(`${scope}:${address}:${bucket}`).slice(0, 48)}`;
+  const key = storageKey(`doctorai:rate-limit:v1:${hash(`${scope}:${address}:${bucket}`).slice(0, 48)}`);
 
   if (storageConfigured()) {
     try {
@@ -481,11 +683,11 @@ function isAdmin(account) {
 
 function validHealthState(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const allowed = ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memoryEnabled', 'memoryDetails'];
+  const allowed = ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'providers', 'profile', 'memoryEnabled', 'memoryDetails'];
   if (Object.keys(value).some(key => !allowed.includes(key))) return false;
   const serialized = JSON.stringify(value);
   if (serialized.length > 240000) return false;
-  return ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
+  return ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'providers', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
 }
 
 module.exports = {
@@ -499,7 +701,11 @@ module.exports = {
   createMobileToken,
   createSession,
   deleteDocumentMetadata,
+  deletePendingCheckoutSession,
+  deleteAccountData,
   deleteHealthState,
+  documentBlobPrefix,
+  documentPathIsOwned,
   entitlementFromCookies,
   hdel,
   hget,
@@ -508,10 +714,15 @@ module.exports = {
   googleClientId,
   identityFromRequest,
   isAdmin,
+  isAccountDeletionBlocked,
+  isDeletedSubscription,
+  accountDeletionStatus,
+  beginAccountDeletion,
   json,
   listAuditEntries,
   listFreeGrants,
   listDocumentMetadata,
+  listPendingCheckoutSessions,
   noStore,
   normaliseEmail,
   nowSeconds,
@@ -525,6 +736,7 @@ module.exports = {
   revokeFreeGrant,
   revokeSession,
   saveEntitlement,
+  savePendingCheckoutSession,
   saveDocumentMetadata,
   saveHealthState,
   sessionCookie,
@@ -532,6 +744,7 @@ module.exports = {
   setEntitlementCookie,
   signedToken,
   storageConfigured,
+  storageNamespace,
   unsealBuffer,
   validHealthState,
   verifyGoogleCredential

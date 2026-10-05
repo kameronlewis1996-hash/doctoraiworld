@@ -10,10 +10,24 @@ module.exports = async function handler(request, response) {
   }
   if (request.method === 'DELETE') {
     const session = await core.identityFromRequest(request);
-    await core.revokeSession(session).catch(() => {});
+    const hasSessionCredential = String(request.headers?.cookie || '').split(';').some(value => value.trim().startsWith('doctorai_session='))
+      || String(request.headers?.authorization || '').startsWith('Bearer ');
+    try {
+      if (session) {
+        const revoked = await core.revokeSession(session);
+        if (!revoked) throw new Error('Session revocation could not be confirmed.');
+      } else if (hasSessionCredential) {
+        throw new Error('Session revocation could not be confirmed.');
+      }
+    } catch (error) {
+      core.reportError('auth_session_revoke_failed', { route: '/api/auth/google', operation: 'revoke', name: error?.name });
+      core.clearSession(response);
+      core.clearEntitlementCookies(response);
+      return response.status(503).json({ ok: false, serverSessionRevoked: false, error: 'This device was signed out locally, but DoctorAI could not confirm server-side session revocation.' });
+    }
     core.clearSession(response);
     core.clearEntitlementCookies(response);
-    return response.status(200).json({ ok: true });
+    return response.status(200).json({ ok: true, serverSessionRevoked: true });
   }
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed' });
   if (!core.configured()) return response.status(503).json({ error: 'Secure authentication is not configured.' });

@@ -2271,33 +2271,6 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     setModal(entry.id ? 'Edit symptom entry' : 'Add a symptom', 'Private symptom diary', `<form class="modal-form" data-modal-form="symptom"><input type="hidden" name="id" value="${escapeHTML(entry.id || '')}"><div class="modal-form-grid"><label class="modal-field full"><span>What did you notice? *</span><input name="name" required maxlength="100" autocomplete="off" placeholder="Use your own words, e.g. headache" value="${escapeHTML(entry.id ? symptomName(entry) : '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common symptoms <small>Tap one or write your own</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common symptoms">${symptomPicks}</div></div><label class="modal-field"><span>Intensity (optional)</span><select name="severity"><option value="" ${severity === null ? 'selected' : ''}>Not recorded / not sure</option>${severityOptions}</select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required max="${localDate}" value="${escapeHTML(entry.date || localDate)}"></label><label class="modal-field"><span>Approximate start time</span><input name="time" type="time" value="${escapeHTML(entry.time || '')}"></label><label class="modal-field"><span>How long? (optional)</span><input name="duration" maxlength="80" placeholder="e.g. 20 minutes or since Monday" value="${escapeHTML(entry.duration || '')}"></label><label class="modal-field full"><span>What was happening around it? <small>Optional · helps spot patterns</small></span><input name="triggers" maxlength="240" placeholder="e.g. after a workout" value="${escapeHTML(entry.triggers || '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common context <small>Tap one to add it</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common context">${contextPicks}</div></div></div><details class="symptom-more-details" ${detailsOpen ? 'open' : ''}><summary>More detail <span>Optional · helps you describe patterns</span></summary><div class="modal-form-grid"><label class="modal-field"><span>Where did you feel it?</span><input name="location" maxlength="120" placeholder="e.g. left shoulder" value="${escapeHTML(entry.location || '')}"></label><label class="modal-field"><span>Pattern or frequency</span><input name="frequency" maxlength="120" placeholder="e.g. on and off" value="${escapeHTML(entry.frequency || '')}"></label><label class="modal-field"><span>How did it feel?</span><input name="quality" maxlength="120" placeholder="e.g. pressure, burning, tight" value="${escapeHTML(entry.quality || '')}"></label><label class="modal-field"><span>Other symptoms alongside it</span><input name="associatedSymptoms" maxlength="180" placeholder="Use your own words" value="${escapeHTML(entry.associatedSymptoms || '')}"></label><label class="modal-field"><span>Impact on normal activities</span><select name="impact"><option value="">Not recorded</option>${impactOptions}</select></label><label class="modal-field"><span>What did you try?</span><input name="interventions" maxlength="180" placeholder="e.g. rested, drank water" value="${escapeHTML(entry.interventions || '')}"></label><label class="modal-field full"><span>Context note</span><textarea name="context" rows="2" maxlength="240" placeholder="What else were you doing or noticing?">${escapeHTML(entry.context || '')}</textarea></label><label class="modal-field full"><span>Notes</span><textarea name="notes" rows="3" maxlength="500" placeholder="Anything else you want to remember">${escapeHTML(notes)}</textarea></label></div></details><p class="modal-help">Record observations in your own words; this diary cannot identify the cause. For severe, sudden or rapidly worsening symptoms, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">${entry.id ? 'Save changes' : 'Add to diary'} <span>→</span></button></div></form>`);
   }
 
-  function setSymptomGuidanceResult(result, tone, title, copy, note) {
-    if (!result) return;
-    result.hidden = false;
-    result.className = `symptom-guidance-result ${tone}`;
-    result.replaceChildren();
-    const heading = document.createElement('b');
-    heading.textContent = title;
-    const paragraph = document.createElement('p');
-    paragraph.textContent = copy;
-    const footnote = document.createElement('small');
-    footnote.textContent = note;
-    result.append(heading, paragraph, footnote);
-  }
-
-  function openSymptomGuidanceModal() {
-    setModal('Check symptom urgency', 'Safety check', `<form class="modal-form symptom-guidance-form" data-modal-form="symptom-guidance"><div class="symptom-guidance-intro"><b>This is not a diagnosis.</b><p>Use this brief check to decide what to do next. If you may be in immediate danger, call your local emergency service now and do not wait for DoctorAI.</p></div><fieldset class="symptom-guidance-fieldset"><legend>Do you think you may be in immediate danger?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="yes" required><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="unsure"><span>Not sure</span></label></div></fieldset><fieldset class="symptom-guidance-fieldset" data-guidance-worsening-fieldset hidden><legend>Is it sudden, severe, rapidly worsening, or stopping normal activities?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="yes"><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="unsure"><span>Not sure</span></label></div></fieldset><div class="symptom-guidance-result" data-guidance-result role="status" aria-live="polite" hidden></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="submit" class="primary-button">Show next step <span>→</span></button></div></form>`);
-    const form = document.querySelector('[data-modal-form="symptom-guidance"]');
-    const followup = form?.querySelector('[data-guidance-worsening-fieldset]');
-    const syncFollowup = () => {
-      const immediate = form?.elements?.['guidance-immediate']?.value || '';
-      if (followup) followup.hidden = immediate !== 'no';
-      followup?.querySelectorAll('input').forEach(input => { input.required = immediate === 'no'; });
-    };
-    form?.addEventListener('change', syncFollowup);
-    syncFollowup();
-  }
-
   function openMeasurementModal() {
     setModal('Log a measurement', 'Health tracking', `<form class="modal-form" data-modal-form="measurement"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type"><option value="blood-pressure">Blood pressure</option><option value="sleep">Sleep</option><option value="weight">Weight</option><option value="heart-rate">Heart rate</option><option value="temperature">Temperature</option><option value="mood">Mood / wellbeing</option></select></label><label class="modal-field"><span>Value *</span><input name="value" required placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Optional note</span><input name="note" placeholder="Anything useful to remember"></label></div><p class="modal-help">Tracking is optional. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save measurement <span>→</span></button></div></form>`);
   }
@@ -2734,31 +2707,6 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     let destinationView = '';
     let postSaveToast = '';
     let focusMedicationSafetyPanel = false;
-    if (form.dataset.modalForm === 'symptom-guidance') {
-      const result = form.querySelector('[data-guidance-result]');
-      const immediate = String(values['guidance-immediate'] || '');
-      if (!['yes', 'no', 'unsure'].includes(immediate)) {
-        showToast('Choose an answer before continuing.');
-        form.querySelector('input[name="guidance-immediate"]')?.focus();
-        return;
-      }
-      if (immediate !== 'no') {
-        setSymptomGuidanceResult(result, 'emergency', 'Seek emergency help now', 'Call your local emergency service now and do not wait for an AI response.', 'DoctorAI cannot assess or monitor emergencies.');
-        return;
-      }
-      const worsening = String(values['guidance-worsening'] || '');
-      if (!['yes', 'no', 'unsure'].includes(worsening)) {
-        showToast('Choose an answer about how the symptom is changing.');
-        form.querySelector('[data-guidance-worsening-fieldset] input')?.focus();
-        return;
-      }
-      if (worsening !== 'no') {
-        setSymptomGuidanceResult(result, 'urgent', 'Seek prompt professional advice', 'Contact an urgent-care service or your clinician today. If you may be in immediate danger, call your local emergency service.', 'This check cannot rule out a serious problem.');
-        return;
-      }
-      setSymptomGuidanceResult(result, 'monitor', 'Keep tracking and arrange care if needed', 'Record changes in your diary and contact a qualified healthcare professional if the symptom persists, worsens or concerns you.', 'No serious problem has been ruled out.');
-      return;
-    }
     if (form.dataset.modalForm === 'medication') {
       const editingId = String(form.dataset.editMedicationId || '');
       const existingIndex = editingId ? state.medications.findIndex(item => String(item.id) === editingId) : -1;
@@ -3124,7 +3072,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-delete-health]')) { event.preventDefault(); deleteHealthData(); return; }
     if (event.target.closest('[data-close-privacy]')) { closePrivacy(); return; }
     if (event.target.closest('[data-close-modal]')) { closeModal(); return; }
-    if (event.target.closest('[data-symptom-guidance]')) { event.preventDefault(); openSymptomGuidanceModal(); return; }
+
     const symptomPick = event.target.closest('[data-symptom-pick]');
     if (symptomPick) {
       event.preventDefault();

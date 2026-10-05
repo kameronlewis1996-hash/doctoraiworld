@@ -4219,50 +4219,8 @@ dialog.quick-modal:not([open]) { display: none; }
 dialog.quick-modal[open] { display: flex; flex-direction: column; overflow: hidden; z-index: 90; }
 dialog.quick-modal[open] > #modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(84px, env(safe-area-inset-bottom)); }
 #quick-modal #modal-eyebrow { color: #075ca8; }
-.symptom-guidance-form { gap: 16px; }
-.symptom-guidance-intro {
-  padding: 13px 14px;
-  border: 1px solid #f0c7c0;
-  border-radius: 12px;
-  background: #fff5f1;
-  color: #80524d;
-  font-size: 10px;
-  line-height: 1.55;
-}
-.symptom-guidance-intro b { display: block; color: #69352f; font-size: 11px; }
-.symptom-guidance-intro p { margin: 4px 0 0; }
-.symptom-guidance-fieldset { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
-.symptom-guidance-fieldset legend { margin-bottom: 9px; color: var(--navy); font-size: 12px; font-weight: 800; line-height: 1.35; }
-.symptom-guidance-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.symptom-guidance-option {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 43px;
-  padding: 0 10px;
-  border: 1px solid #cfe0e8;
-  border-radius: 9px;
-  background: #fff;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 700;
-}
-.symptom-guidance-option:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px #e2f5fc; }
-.symptom-guidance-option input { width: 16px; height: 16px; margin: 0; accent-color: var(--blue); }
-.symptom-guidance-option:has(input:checked) { border-color: #8bcfe0; background: #effbfe; color: var(--blue-strong); }
-.symptom-guidance-result { padding: 13px 14px; border: 1px solid #cde5ef; border-radius: 12px; background: #f3fbfe; color: var(--navy); }
-.symptom-guidance-result b { display: block; font-size: 12px; }
-.symptom-guidance-result p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
-.symptom-guidance-result small { display: block; margin-top: 6px; color: var(--muted-light); font-size: 8px; line-height: 1.45; }
-.symptom-guidance-result.emergency { border-color: #e8b8a3; background: #fff0e7; color: #69352f; }
-.symptom-guidance-result.emergency p { color: #805d57; }
-.symptom-guidance-result.urgent { border-color: #edd3a4; background: #fff8e9; color: #6f5318; }
-.symptom-guidance-result.urgent p { color: #78643a; }
-.symptom-guidance-result.monitor { border-color: #bce3ed; background: #effbfe; }
-
 @media (max-width: 620px) {
-  #view-symptoms .symptom-page-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #view-symptoms .symptom-page-actions { width: 100%; }
   #view-symptoms .symptom-page-actions > button { width: 100%; min-width: 0; }
   #view-symptoms .symptom-more-details .modal-form-grid { grid-template-columns: 1fr; }
   #view-symptoms .symptom-entry-details { grid-template-columns: 1fr; }
@@ -4270,14 +4228,6 @@ dialog.quick-modal[open] > #modal-body { min-height: 0; overflow-y: auto; oversc
   #view-symptoms .symptom-pattern-heading h2 { font-size: 15px; }
   #view-symptoms .symptom-pattern-item { padding: 10px; }
   #view-symptoms .symptom-quick-chip { min-height: 34px; padding-inline: 8px; }
-  .symptom-guidance-options { gap: 6px; }
-  .symptom-guidance-option { padding: 0 7px; font-size: 9px; }
-}
-
-@media (max-width: 380px) {
-  #view-symptoms .symptom-page-actions { grid-template-columns: 1fr; }
-  .symptom-guidance-options { grid-template-columns: 1fr; }
-  .symptom-guidance-option { min-height: 40px; }
 }
 
 /* Profile shortcuts: a calm, editable home for the tools people use most. */

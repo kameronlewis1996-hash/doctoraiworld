@@ -64,8 +64,8 @@ function responseRecorder() {
   assert.match(app, /\.\.\.\(existingMedication \|\| \{\}\)/, 'Medication edits must retain unknown legacy record fields');
   assert.match(app, /activeIngredientsManuallyConfirmed === true/, 'Legacy provider-derived ingredient confirmation must not be treated as user-confirmed');
   assert.match(app, /older provider match details remain in this private record but are not used/i);
-  assert.match(html, /health-hub\.css\?v=68/);
-  assert.match(html, /health-hub\.js\?v=63/);
+  assert.match(html, /health-hub\.css\?v=69/);
+  assert.match(html, /health-hub\.js\?v=64/);
 
   console.log('Medication provider retirement verified: retired routes are no-store 410s with zero outbound calls; the local endpoint, scan route, and inert legacy record preservation remain.');
 })().catch(error => {

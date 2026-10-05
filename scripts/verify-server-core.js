@@ -31,6 +31,8 @@ const request = { headers: { 'x-forwarded-for': '203.0.113.10' }, socket: {} };
   assert.equal(core.validHealthState({ medications: [], appointments: [], timeline: [], documents: [], measurements: [], tasks: [], memoryDetails: [] }), true);
   assert.equal(core.validHealthState({ timeline: [{ id: 'symptom-test', type: 'symptom', source: 'symptom-diary', date: '2026-09-08', title: 'Symptom recorded', description: 'Intensity 5/10', severity: 5, status: 'ongoing' }] }), true, 'Symptom Diary entries must sync through the canonical timeline store.');
   assert.equal(core.validHealthState({ timeline: [], symptoms: [] }), false, 'A second symptom store would break compatibility with existing clients.');
+  assert.equal(core.validHealthState({ providers: [{ id: 'provider-test', name: 'Synthetic GP' }] }), true, 'Client care providers must sync.');
+  assert.equal(core.validHealthState({ providers: 'invalid' }), false);
   assert.equal(core.validHealthState({ medications: [], unexpected: 'no' }), false);
   assert.equal(core.googleClientId(), process.env.AUTH_GOOGLE_ID, 'The browser and token verifier must receive the same authoritative Google client ID.');
   console.log('Server core verification passed (durable limits and health-state validation).');

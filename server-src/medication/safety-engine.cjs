@@ -52,7 +52,7 @@ function conditionMatches(rule, conditions) {
   const terms = (rule.conditionTerms || []).map(norm).filter(Boolean);
   return conditions.some(condition => terms.some(term => condition.includes(term) || term.includes(condition)));
 }
-function review({ medications = [], allergies = [], conditions = [] } = {}) {
+function review({ medications = [], allergies = [], conditions = [], hasConditions = false } = {}) {
   const resolved = medications.map(medication => resolveMedication(typeof medication === 'string' ? medication : medication?.name));
   const alerts = [];
   for (let leftIndex = 0; leftIndex < resolved.length; leftIndex += 1) {
@@ -74,8 +74,9 @@ function review({ medications = [], allergies = [], conditions = [] } = {}) {
     for (const rule of db.allergyRules || []) if (ingredient.classes.includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id });
   }
   const conditionText = conditions.map(norm).filter(Boolean);
+  const hasRecordedConditions = hasConditions === true || conditionText.length > 0;
   for (const medication of resolved) for (const ingredient of medication.ingredients) for (const rule of db.contraindicationRules || []) if (matchesSide(ingredient, rule.medicine) && conditionMatches(rule, conditionText)) alerts.push({ type: 'contraindication', severity: rule.severity, title: 'Condition and medicine need review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id });
-  if (conditionText.length && !(db.contraindicationRules || []).length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Condition risks are not covered', message: 'DoctorAI has no verified medicine-condition rules in its current database, so risks related to recorded conditions could not be checked.', source: { publisher: 'DoctorAI medication database' } });
+  if (hasRecordedConditions && !(db.contraindicationRules || []).length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Condition risks are not covered', message: 'DoctorAI has no verified medicine-condition rules in its current database, so risks related to recorded conditions could not be checked.', source: { publisher: 'DoctorAI medication database' } });
   const unknown = resolved.filter(item => item.status === 'unknown').map(item => item.name || '(missing medicine name)');
   if (unknown.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Medicine data incomplete', message: `No verified ingredient mapping is available yet for: ${unknown.join(', ')}. DoctorAI cannot determine whether these medicines clash.`, source: { publisher: 'DoctorAI medication database' } });
   alerts.push({ type: 'coverage', severity: 'unknown', title: 'Interaction coverage is limited', message: `Medicine names are checked against NZ terminology, but only ${db.interactionRules.length} curated interaction rules are available. Other clashes, dose, timing, route, pregnancy, and condition risks may be missing. Matching every medicine does not make this a complete safety check.`, source: { publisher: 'DoctorAI medication database' } });

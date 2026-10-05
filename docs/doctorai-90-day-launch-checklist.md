@@ -1,0 +1,202 @@
+# DoctorAI World 90-day launch checklist
+
+**Updated:** 5 October 2026 (New Zealand time)  
+**State:** Active preparation; the current public Production deployment is on commit `f182faa`. The older protected candidate is based on `c478c7f`, is behind current mainline, and must not be promoted.  
+**Plan source:** [Promotion research and the 90-day plan](doctorai-promotion-research.md)
+
+## Launch objective
+
+Prepare three release tracks together:
+
+1. Make the website ready for a reviewed public release and a first campaign.
+2. Prepare the native Android app for Google Play.
+3. Verify the product, support, privacy, billing and measurement paths before advertising.
+
+The original plan treats New Zealand as a first-market hypothesis because the free appointment checklist and current search activity are New Zealand-specific. Confirm the first sales market and legal operator before choosing final terms, privacy, price, store availability or paid targeting. Iceland/EEA remains a separate route with its own localization, privacy, device-classification and consumer-law reviews.
+
+## Current readiness and release order — 5 October 2026
+
+- **Website:** current Production is `dpl_HNJ3VbJoah7sXJCSfgphDpSwtnrB` on `main` commit `f182faa`; the public homepage returns 200 with the older Health Hub headline and `/account-deletion` returns 404 on both domains. Older Preview/Production candidates use commit `c478c7f` and must not be promoted. A separate review worktree now carries the reconciled release changes on current mainline. Static and synthetic checks pass, but a fresh protected Preview has not been built or tested yet. See the [current site release review](doctorai-site-release-review.md); full provider rehearsal and owner reviews remain open.
+- **Preview setup:** Preview has a separate Stripe restricted test key and matching monthly/annual test prices; Production key and prices are scoped to Production. The temporary sandbox expires 11 October 2026 unless claimed. Webhook delivery still needs a Preview signing secret and Vercel automation bypass. The Vercel connection returned 403 when asked to create a private Blob store; the connected Stripe account exposes only its live-mode Doctoraiworld context, so its Stripe tools cannot create a test-mode webhook for the separate temporary sandbox. Redis/Blob credentials remain physically shared pending owner setup. See the [Preview setup checklist](doctorai-preview-setup.md).
+- **Preview billing:** the older protected Preview recognizes Stripe's `rkcs_test_` restricted-key format, and its plans endpoint reports the monthly and annual sandbox prices available. This evidence comes from the older `c478c7f` candidate and must be repeated on a fresh Preview built from current mainline. Checkout, cancellation, signed webhook delivery and entitlement checks with synthetic accounts remain unverified. Production billing is still scoped separately, and the temporary sandbox expires 11 October 2026 unless claimed or replaced.
+- **Promotion research:** the [promotion research note](doctorai-promotion-research.md) recommends the free appointment checklist as the first acquisition task, privacy-safe Search Console review, no health-derived remarketing, and a capped contextual Search pilot only after market and review gates are green. NZ ASA's updated therapeutic/health advertising code applies to owned channels as well as paid ads.
+- **Android / Google Play:** Expo/EAS access is restored as `doctoraiworld`. The signed 1.0.8 (12) [store build 1b130dfb](https://expo.dev/accounts/doctoraiworld/projects/doctorai-mobile/builds/1b130dfb-4e5d-408c-b93a-009af1e74017) succeeded. Its AAB signature, package identity, runtime, API 36 target, permissions and SecureStore backup exclusions passed inspection; 27 isolated mobile scenarios and TypeScript passed again on 5 October. Device review remains open. Play Console has no app entry; the form is populated and the package is available. Google's current guidance directs health-app developers to an Organization developer account, while this account is Personal. The owner must complete the official conversion and 72-hour wait, then resolve declarations, current screenshots/graphics, review access and any account-specific testing requirements. No Play submission or Google review result is claimed. See the [current Android review record](doctorai-android-release-review.md).
+- **Advertising:** use only the free checklist offer for the initial discovery plan. Paid campaigns remain off until the operator and market, reviewed product claims and data flows, public deletion resource, support and incident coverage, end-to-end billing where Pro is offered, Play approval where app installs are advertised, and privacy-safe measurement/budget are approved.
+
+**Release order:** finish local fixes, signed-build inspection and Preview rehearsals while the owner confirms market/operator and obtains clinical, privacy and billing review. Promote the exact reviewed website artifact after its release checks and copy approval, then verify public privacy/deletion routes. Complete installed-app checks, truthful Play declarations and the required testing/review path. Start discovery and a capped campaign only after the applicable advertising gates are green. The 90-day schedule below begins with market confirmation; preparation already completed is listed separately, so the day count does not imply a launch date.
+
+## Work completed locally in this pass
+
+- Prepared Android 1.0.8 with a separate native runtime for the new sharing/viewer modules. Added serialized, journaled SecureStore writes and deletion recovery; a failed chunk write preserves the last committed record. Loading and save failures now have retry controls. Account-sync deadlines preserve local access during an outage. Updates wait for “Save and restart.” User-controlled JSON export and authenticated document opening clean up app-owned temporary files. Late callbacks are invalidated during data deletion; pending upload/sync work must settle before deletion, and the account document list is fetched afresh. Camera and document-picker temporary copies are cleaned up after use and on startup/deletion. Strict TypeScript, Expo package compatibility, 27 isolated synthetic scenarios and Android/web exports passed. These changes are in the new EAS build and still require packaged and installed-device review.
+
+- Homepage primary action now opens the free New Zealand appointment checklist; the free Health Hub remains an immediate secondary action.
+- Aligned the homepage headline, title and search/social descriptions, share message and header call-to-action to the checklist route so the first campaign offer is consistent across the page. The Health Hub remains available as a secondary path.
+- Homepage, checklist, medication-list and Pro page titles now use the full DoctorAI World brand. The medication-list snippet identifies its New Zealand scope.
+- The Android app's candidate launcher name and Play listing draft now use “DoctorAI World” to match the website; the 14-character draft name is within Play's 30-character field limit. Owner approval of the final listing name and description is still required.
+- Removed the Pro page's unsupported time-saving and ease-of-use claims, and replaced them with feature descriptions and a neutral comparison heading.
+- Added a prominent account-deletion request section to the Privacy Notice. It distinguishes deleting health data from deleting the account.
+- Added a dedicated `/account-deletion` page with an email-request button, plain instructions on what to include, and limits covering local device data, subscriptions, provider records, and the Google sign-in account. Linked it from Privacy and the footer, added the Vercel route, sitemap entry, and offline cache entry. This is a local release candidate; the public production URL remains a separate deployment and review gate.
+- Implemented a staff-only account-deletion tool that blocks sessions and new account writes, expires tracked open Stripe Checkout links, checks stored subscriptions, Stripe customer-scoped records and account-email metadata matches, removes health state, entitlements, all private blobs under the account prefix (including orphaned files), metadata, free grants, pending-checkout references, matching session records and account audit entries, and prevents matching Stripe webhooks from recreating entitlements. Its server workflow is disabled unless `ACCOUNT_DELETION_WORKFLOW_ENABLED=true`; synthetic interruption/retry and gated staff-route tests passed, including a changed billing-email case. Stripe metadata search may lag, so the staff panel requires an independent Stripe review for recent subscriptions and legacy Checkout links. It has not yet been exercised against a configured Preview Stripe/Blob account or a real support request. The implementation retains a pseudonymous account-deletion marker and blocks same-email reactivation; the owner/privacy reviewer must approve that retention and account policy before enablement.
+- Added in-app Privacy Notice and Terms links. Android Settings now has a direct link to `/account-deletion` plus a prefilled email request that includes the signed-in account email when available, warns against sending health/card details, and shows instructions if no email handler is available. The Settings panel is height-limited and scrollable so the deletion choices remain reachable on short screens. The Expo display name and Play listing draft now say “DoctorAI World.” Timestamped backups are recorded under `C:\doctorai-launch-checkpoints\android-account-deletion-link-20261004-193939`, `C:\doctorai-launch-checkpoints\android-deletion-resource-link-20261004-2002`, `C:\doctorai-launch-checkpoints\android-settings-scroll-20261004-2016`, and `C:\doctorai-launch-checkpoints\android-app-name-20261004-2020`. TypeScript passed and a fresh 690-module, 2.36 MB Android bundle exported to `C:\doctorai-launch-checkpoints\android-export-20261004-doctorai-world-name`. The email handoff, web link and short-screen Settings layout still need physical-device verification; Production must serve the reviewed resource before a Play submission.
+- Fixed the Android Home layout found in a 390 px browser preview: the hero now stacks at phone width, the title keeps its full width, and the Home content scrolls above the fixed bottom navigation. At 320 × 720 with Larger text enabled, the document stayed within the viewport and the heading stayed within its 292 px content column. Home, Chat, Health and Profile navigation also opened without entering health data.
+- Removed the Android app's link to the website account page and its upgrade prompt. The initial Android release is being prepared as a consumption-only app: it can recognize an entitlement already active on a signed-in DoctorAI account, but it has no checkout link. This is an implementation assumption for the first release; adding in-app Pro sales later requires a billing-policy review and likely Google Play Billing work for the selected markets.
+- Updated the mobile README with the current Google Play gates and the observed EAS internal-testing track.
+- Repaired SDK 54 Android edge-to-edge safe areas in the main app and briefing modal, and added the missing `expo-system-ui` plugin so the configured light theme applies on Android. Tightened generated manifest permissions: broad photo-library read, microphone, overlay and vibration permissions now have merge-removal directives; camera access stays enabled, and legacy storage write remains for Expo camera capture on Android versions before 10. `expo prebuild --platform android --no-install` completed. The actual signed AAB manifest and camera/document flows still require packaged-manifest review and physical-device checks.
+- Drafted a conservative Play Store listing and marked the medical-device disclaimer, account details, imagery, Data safety and reviewer access as unresolved release gates.
+- Created a source-based [Google Play data and Health Apps worksheet](google-play-data-safety-worksheet.md). While mapping the Android request path, fixed the missing explicit consent flag in the native medication-label scan and set the OpenAI chat Responses API request to `store: false`; the Privacy Notice now describes the remaining up-to-30-day abuse-log retention. Research searches now use a bounded POST/no-store route through DoctorAI with an in-app disclosure, instead of exposing the topic in the DoctorAI request URL or calling Europe PMC directly from the website. TypeScript, Android export, medication-scan, site JavaScript and static verification passed. These changes still need to be tested on a physical device and reviewed against the final Play artifact.
+- Created a draft [operating launch runbook](doctorai-operating-launch-runbook.md) covering support, deletion, incident response, monitoring, recovery, release sign-off and ad pause rules. The deletion tool now has synthetic retry coverage, but owner identity verification, legal/provider retention handling, Stripe/Blob Preview rehearsal, support staffing, backups and alert coverage remain open gates.
+- Fixed an individual document-deletion failure path: if private Blob removal fails, the API now retains the metadata and returns an error so the existing Health Hub control can report incomplete deletion and the user can retry. The new account-wide workflow builds on this retryable behavior; the separate Android device-local data path still needs real-device verification.
+- Corrected the Android health-data deletion flow: it keeps local data available when signed-in cloud deletion is incomplete, treats an already-removed document as a successful retry, cancels queued sync and waits for submitted upload/sync work before deletion, and does not imply a cloud copy was deleted when signed out. Late callbacks cannot repopulate the cleared record. This remains separate from full account deletion.
+- Fixed sign-out reporting across web and Android: the API now returns an error if server-side session revocation cannot be confirmed, and each client reports local sign-out separately from confirmed server revocation.
+- Removed the Health Hub's interactive symptom-urgency questionnaire and its emergency/urgent/monitor classifications from this release candidate. The symptom diary remains a personal note-taking feature with a static emergency warning. Clinical and regulatory review is still required for symptom features and for the separate Android app outputs.
+- Re-ran the Android strict TypeScript check and Expo Android bundle export after that change; both passed (690 modules, 2.36 MB Hermes bundle). This does not replace installed-app or Play review.
+- Rechecked the current Android snapshot on 4 October: SDK 54 / version 1.0.7 / package `com.doctoraiworld.healthhub`; `expo prebuild --platform android --no-install` succeeds. The generated main manifest declares CAMERA, INTERNET and WRITE_EXTERNAL_STORAGE, with merge-removal directives for READ_EXTERNAL_STORAGE, RECORD_AUDIO, SYSTEM_ALERT_WINDOW and VIBRATE. Expo's camera implementation requests legacy write permission only on Android versions before 10; the app's document flow uses Android's `ACTION_OPEN_DOCUMENT`. TypeScript, `expo install --check`, Android export (699 modules, 2.37 MB) and web export (426 modules, 1.18 MB) now pass after the final config edit. These source-level findings do not replace inspection of the merged signed AAB manifest. Android SDK/ADB and Java are unavailable. At that earlier snapshot EAS was unauthenticated. Access is now restored, a historical signed build was found, and the signed 1.0.8 (12) build has passed packaged review; see the current Android review record. No installed-device run is claimed.
+- Fixed JavaScript parse errors in the public MCP service. Updated static verification to include the appointment checklist and to recognize its local-only fields and the medication lookup's non-saving behavior.
+- Closed a server-side gap in the DoctorAI limited medication rules check: it now requires sign-in, active Pro, one-time consent, and a per-account rate limit. Its request sends medicine names, allergy terms and a yes/no condition-presence flag; condition names are not sent. The in-app consent, Privacy Notice, Pro description, medication template and Terms now describe that payload and its limits. External NZF/NZULM and DrugBank checks remain disabled pending their provider, licence and market approvals.
+- Deployed the current source to a protected Vercel preview after production and preview builds passed. The preview routes for the homepage, Health Hub, Privacy, Terms, Pro, appointment checklist and medication-list resource returned the expected content. The public JavaScript asset returned 200 with JavaScript MIME; unauthenticated health-state and medication-rule requests were denied. At 390 px, the local Hub, Pro, and Terms pages had no horizontal overflow and the browser showed no console or page errors.
+- The preview Stripe plans API returns a safe 503, so Preview pricing and checkout still need valid test-mode configuration and an end-to-end review. Vercel withholds 13 secret values from local pulls. The production plans API returned 200 in an earlier read-only check; no checkout was started.
+- Use `npm run build:vercel:preview` or `npm run build:vercel:production`; each command runs the pinned Vercel build and then packages the private Blob and Stripe dependencies into the serverless functions. The static verifier now checks that release workflow. Without dependency packaging, the first preview returned a Stripe function error; the current preview was redeployed after packaging and its medication auth gate responds correctly.
+- Created timestamped checkpoints before the release-readiness edits: `C:\doctorai-launch-checkpoints\release-readiness-20261004-133833` and `C:\doctorai-launch-checkpoints\release-readiness-20261004-0220-medication-api-review`.
+
+These are local drafts and code changes; the protected Vercel preview is the only deployment. Nothing has been promoted to production or submitted to Google Play, and qualified clinical, privacy and legal review remains open.
+
+## Checks run locally
+
+- Static website verification passed: 82 required files and 12 public pages, including the standalone account-deletion resource.
+- JavaScript syntax verification passed for 63 files; `git diff --check` passed (Git reported only its configured LF-to-CRLF notices).
+- JavaScript syntax passed for 63 files.
+- The synthetic account-deletion core and staff-route verifications passed for interrupted Blob removal and retry, orphaned private blobs, session revocation, scoped record removal, preservation of another account, Stripe subscription tombstones, metadata-linked subscriptions after a billing-email change (including a later search page), the search page cap failing closed, feature-flag gating, billing blocks and owner-attestation enforcement. They mock Stripe/Blob and do not exercise configured provider accounts or a real support request.
+- Server-core, medication-scan, NZ FHIR, medication-database, medication-safety, local medication UI, Stripe-pricing and bounded-input/access-control verification all passed with synthetic data.
+- Android strict TypeScript check passed. Expo resolved package `com.doctoraiworld.healthhub`, version 1.0.7 and the configured EAS project. Metro exported an Android JavaScript bundle with 690 modules.
+- After the Home fix, Expo web previews at 390 × 844 and 320 × 720 showed no horizontal overflow and a scrollable Home area. The 320 × 720 check also passed with Larger text enabled. Chat, Health and Profile opened; Profile showed the Privacy, Terms, email deletion request and account-deletion page links. Initial preview warnings led to moving image `resizeMode` onto the Image component; the final reload had no page errors. The new direct link now type-checks and bundles, but has not yet been exercised on a physical Android device.
+- Re-ran TypeScript and Android Metro export after the Home fix; both passed. The Android Hermes bundle is 2.36 MB with 690 modules.
+- Current Android checks pass strict TypeScript, Expo package compatibility, 27 synthetic scenarios, Android export (708 modules, 2.43 MB) and web export (435 modules, 1.21 MB). The reviewed EAS archive contains 23 files with matching source/asset hashes and excludes `.env*`, dependencies and generated native folders. The signed 1.0.8 (12) build succeeded and passed packaged identity/runtime, SDK/permissions, signature/integrity and SecureStore backup-exclusion review. Android SDK/ADB and Java are unavailable locally. The latest browser layout review was blocked by the browser with `ERR_BLOCKED_BY_CLIENT`; earlier phone-width layout checks remain historical evidence, not verification of every new control. No installed-device or Play review result is claimed.
+- These checks exercise source and bundle behavior only; they do not replace clinical, privacy, legal, accessibility, real-account or real-device review.
+
+## Workstream A — website release readiness
+
+### Complete locally
+
+- Lead with appointment preparation and route awareness traffic to the checklist.
+- Keep the free Hub available as the next step.
+- Use the same brand name in key search and sharing metadata.
+- Keep performance claims off the Pro page until there is evidence to support them.
+- Provide an account-deletion request path linked from Android and a standalone public URL; keep the release gate open until the request workflow and public route are approved and live.
+
+### Still required
+
+- Earlier protected Preview evidence: [doctorai-health-lu3xqunrb](https://doctorai-health-lu3xqunrb-kameronlewis1996-3703s-projects.vercel.app), deployment `dpl_2G9WKLA1xsjovQpFf3PXRSEHuPB3` (Ready; Vercel authentication protection enabled). Authenticated requests returned expected content for the checklist-focused homepage, `/appointment-checklist` HTML/CSS/JS, `/account-deletion`, Privacy and sitemap; the checklist displays the 4 October 2026 source-check date, and an anonymous account-deletion API request returned 403. Static verification passed at 82 required files and 12 public pages. The account-deletion workflow remains disabled and was not exercised as an authenticated staff admin. Stripe metadata search can lag, so independent staff review of recent and legacy billing records remains required. On 5 October, current Preview pricing became available with a temporary test sandbox; the new staged Production artifact passes read-only page, plans and auth checks. The public domains still serve the earlier release and `/account-deletion` returns 404. The candidates have not been promoted.
+- Direct production check on 4 October confirms the public homepage still leads with “Open the free Health Hub,” with the NZ appointment checklist farther down the page; the current local candidate makes the checklist the primary route. Production Privacy (last updated 2 October) names Europe PMC among providers but does not explain that research topics are forwarded, has no account-deletion section/anchor, and has no dedicated `/account-deletion` URL (404). Production Terms are still dated 18 September. The Android source now opens a prefilled deletion-request email from Settings instead of sending users to the missing anchor; its separate public Privacy link still lacks the required deletion instructions in production. The Android change is now in the signed 1.0.8 (12) candidate; installed-device and Play review remain open. The latest website copy is in the protected Preview; do not treat it as public until the reviewed artifact is promoted.
+- Confirm launch country/countries, legal operator name and address, support/privacy owner, adult age scope and supported languages.
+- Have a qualified clinician and regulatory adviser review the symptom, urgency, medication, AI and scan features and all related claims. The current product and ad claims must match the reviewed intended purpose.
+- Have a qualified clinician and privacy/regulatory adviser review the DoctorAI limited medication rule set and its intended purpose before offering or advertising the feature. Reconcile its claims, incomplete coverage, minimized data flow and pharmacist/prescriber follow-up across the Health Hub, Pro page, medication resources, Privacy Notice, Terms and all future ads. The latest local changes make the UI and server request more consistent, but this review gate remains open.
+- Have privacy counsel review the actual data map, consent, processors, retention, transfer, deletion and any required impact assessment for the confirmed markets.
+- Confirm local-market price, currency, tax display, seller identity, renewal/cancellation/refund terms and the real Stripe checkout and entitlement paths before promoting Pro.
+- Approve and document the account-owner verification protocol, legal/provider retention policy, pseudonymous deletion-marker retention, same-email reactivation policy, device-local data instructions, support owner and handling for Stripe renewal before setting `ACCOUNT_DELETION_WORKFLOW_ENABLED=true`. The staff API's fresh billing check blocks deletion while any subscription is unresolved; verify provider deletion requests and retained payment records separately.
+- Review the real Google sign-in, document upload/download, chat and deletion paths with a test account and fictional health information.
+- Finish accessibility review on real Android/iOS devices, especially screen readers, scalable text, keyboard, contrast and touch targets.
+
+## Workstream B — Google Play Android app
+
+### Current source facts
+
+- The Expo app is at SDK 54, version 1.0.8, package name `com.doctoraiworld.healthhub`; EAS assigned version code 12 and runtime 1.0.8.
+- Expo's SDK 54 reference lists Android compile and target API 36. This meets Google's current API 36 minimum for new app submissions, effective 31 August 2026; re-check the policy at submission.
+- EAS production selects `distribution: store`, `android.buildType: app-bundle`, auto-increment and the existing signing credentials. The submit profile targets **internal testing**; that configuration is not a Play release or approval. Expo/EAS CLI sign-in is restored. Play Console has no app yet; its form is populated, but the account is Personal while current Google guidance directs health-app publishers to Organization accounts. The owner must complete the official conversion (verified organization website, organization payment profile, D‑U‑N‑S and account details) and wait 72 hours before submitting an app. The Play policy, signing and export declarations remain unchecked. The current signed-build status and packaged review are tracked in the Android release record. See [EAS Android submission](https://docs.expo.dev/submit/android/), the [eas.json reference](https://docs.expo.dev/eas/json/) and [Google's conversion instructions](https://support.google.com/googleplay/android-developer/answer/16260648).
+- The app stores health data on-device in Expo Secure Store and syncs to the account API after sign-in when durable account storage is available. Verify the production account-storage configuration; the app falls back to device storage when it is unavailable.
+- The Android source currently sits in a separate OneDrive snapshot and is not tracked in the website Git repository. Establish the canonical, backed-up Android source location before ongoing release work.
+
+### Required before public Play distribution
+
+- Verify app signing/build configuration, package ownership, EAS credentials, the developer account and Android developer verification in Play Console. Confirm the Organization account conversion before creating the Play app.
+- The owner must complete the documented Personal-to-Organization conversion and allow the 72-hour processing period before submitting an app. Current Play guidance also says personal accounts created after 13 November 2023 need a closed test with 12 continuously opted-in testers for 14 days before production access; the current account's creation date and its test requirement after conversion must be checked in Console.
+- If the account remains Personal and qualifies as a new personal account, its owner must verify access to a non-rooted physical Android 10+ device in the Play Console mobile app before public distribution.
+- Complete Play's Health Apps declaration and Data safety form from the actual app and SDK data flows. The app includes health records, medication and appointment management, Google sign-in, user-selected images/documents, API calls and an AI provider flow; confirm exact collection, sharing, security and retention details rather than copying a generic template.
+- Keep the Privacy Notice active, public and linked in-app and in the Play listing. The app now has in-app Privacy and Terms links.
+- Complete account deletion end to end. A gated staff tool now implements server-side deletion; Android Settings links to the standalone `/account-deletion` page and offers a prefilled email request; and the site candidate contains the page. Google requires an in-app path and a working public web resource for apps that enable account creation. Production still returns 404 for this route. Keep the gate open until the owner approves request verification and retention, support is staffed, Preview Stripe/Blob deletion is rehearsed with synthetic records, both Android links and device-local behavior are tested on a physical device, and the reviewed public URL is deployed and verified.
+- Decide the exact store description after the product's intended purpose is reviewed. If the app is not a regulated medical device, Google requires the store description to say it is not a medical device and does not diagnose, treat, cure or prevent a medical condition, and to remind users to consult a healthcare professional. If it is regulated, prepare the applicable regulatory information instead.
+- Provide Play reviewers with necessary sign-in instructions and an owner-approved synthetic demo account; Play requires valid reusable review access for gated functionality. Do not include real health data.
+- Complete the required current Play assets: 512×512 PNG app icon (max 1 MiB), 1024×500 feature graphic and at least two current app screenshots across device types. Do not submit the older browser previews.
+- Run installed-app checks for sign-in, offline/local storage, configured and unavailable cloud storage, AI consent, image selection, data export/deletion, account-deletion request, entitlement status, large text and accessibility.
+- Use internal testing first. If the Play developer account is a personal account created after 13 November 2023, run the required closed test with at least 12 testers continuously opted in for 14 days, then apply for production access.
+- Submit and wait for Google's approval before advertising the app as available. Until then, promote the web app only.
+
+### Billing decision for the first Android release
+
+Current working assumption: publish Android as consumption-only, with no direct website checkout link or in-app purchase flow. Google permits a consumption-only app to provide access to a paid service purchased elsewhere, but the app must not enable purchase from within the app. The website subscription route is intentionally removed from the Android UI. Confirm this model before the Play listing is finalized. If Android will sell Pro, pause that path and implement the eligible Google Play Billing/alternative-billing program for each market before adding a purchase CTA.
+
+## Workstream C — operating readiness and promotion
+
+- First campaign route, if New Zealand is confirmed: the free New Zealand appointment checklist, followed by a voluntary choice to open the Health Hub.
+- First message: help people write down questions and what to bring to their next appointment. Do not claim diagnosis, triage, safe medication combinations, improved health outcomes, clinical endorsement, or proven time savings.
+- Collect directional feedback from 5–10 adults in the chosen market using fictional information. Observe the checklist, printing, Hub storage choice and explanation of what happens after Send. Do not collect diagnoses, real medicine names or health records.
+- Prepare one source-checked resource per month and one or two short posts per week on an owner-controlled profile. Get permission before using partner logos, photos, clinic distribution or testimonials; do not imply endorsement.
+- Keep health pages free of ad pixels and health-derived audiences. Use aggregate platform reporting and a separately reviewed, privacy-compatible first-party count only.
+- Keep paid ads off until market, operator, clinical/privacy/legal review, support, Pro pricing/checkout and measurement gates are cleared. Then consider a small capped Search pilot for task-intent checklist queries; inspect search terms and do not scale on clicks alone.
+
+## 90-day sequence
+
+### Days 0–7 — resolve launch blockers
+
+- Confirm the launch market, legal operator, adult age scope, support owner and first Android billing model.
+- Finish the homepage/checklist entry point and reconcile the medication feature claims and privacy flow.
+- Approve the account-deletion support process and response owner; make sure account deletion also addresses Pro renewal and provider retention.
+- Confirm the developer account's legal operator and complete Google's Personal-to-Organization conversion for the health app. Verify its organization website, D‑U‑N‑S and payment-profile details; allow the documented 72-hour processing time.
+- After account conversion, create the app, register the package, complete the owner-only policy/signing/export declarations, and draft the Health Apps and Data safety forms from reviewed evidence. Finish the [working store listing](google-play-listing-draft.md) after clinical/regulatory review and owner details are confirmed.
+- Complete any applicable Play Console device-verification and testing requirements; start required closed testing early because a qualifying personal account needs 12 testers for 14 continuous days. Finish the Play signing and signed AAB path.
+- Exercise site sign-in, chat, document, payment and deletion flows with fictional information. Record any missing configuration without publishing claims that imply the path passed.
+
+### Days 8–28 (weeks 2–4) — validate the free task
+
+- Run 5–10 short usability sessions for the checklist and Hub using fictional data.
+- Correct the largest comprehension and accessibility issues.
+- Start internal Android testing after the app access, data and deletion disclosures are accurate.
+- Ask Healthify whether it will review the stable web app; submit only after its screening evidence and privacy information are ready.
+
+### Days 29–56 (weeks 5–8) — improve discovery and reliability
+
+- Publish one source-checked appointment-preparation resource per month and reuse it in short posts.
+- Review Search Console monthly; separate branded demand from non-brand questions and compare mobile/desktop.
+- Resolve operational monitoring, backup, support and incident ownership.
+- If required by the Play account type, complete the 12-tester/14-day closed test and address feedback before requesting production access.
+
+### Days 57–84 (weeks 9–12) — make a paid-search decision
+
+- Continue organic distribution and review useful checklist engagement through aggregate, privacy-approved measures.
+- Launch a small capped Search pilot only after every legal, privacy, clinical, product, pricing, support and measurement gate is green.
+- Use task-intent terms such as “New Zealand doctor appointment checklist,” with the checklist as the landing page. Exclude diagnosis, symptoms, medication safety/interactions and “AI doctor” intent.
+- Do not scale until the team can judge useful activity, repeat use, paid conversion and allowable acquisition cost without health-derived targeting.
+
+### Days 85–90 — review and reset
+
+- Reconcile spend, relevant searches, checklist use, user-comprehension feedback, support load and open safety/privacy issues against owner-approved thresholds.
+- Record the final claims, audience settings, data flows and campaign decisions. Remove expired ads or access that is no longer needed.
+- Decide in writing to stop, revise or continue within a newly approved cap. Keep campaigns paused if a release gate regressed or no owner is available to monitor them.
+
+## Advertising go/no-go checklist
+
+- [ ] First market and legal operator confirmed; support/privacy owner named.
+- [ ] Product purpose and all health/medication claims reviewed by qualified people.
+- [ ] Privacy notices, consent, processor map, retention and deletion process reviewed for the launch market.
+- [ ] Qualified clinician and privacy/regulatory review approve the limited medication rule set, intended purpose, consent, minimized data flow, incomplete coverage and consistent copy.
+- [ ] Account-deletion request path works in-app and on a public web URL; billing and processor deletion are accounted for.
+- [ ] Real-account Google sign-in, chat, upload/download, deletion and subscription journeys reviewed with non-real health data.
+- [ ] Android Health Apps, Data safety, store access and content disclosures are accurate; Play approval obtained before app-install ads.
+- [ ] Pro price, currency, seller, renewal, cancellation, refund and support are complete for the launch market.
+- [ ] Measurement is aggregate and privacy-approved; no health-data pixels, custom audiences or retargeting.
+- [ ] Campaign text, landing page and creative make the same claims; owner-approved budget cap and pause rule exist.
+
+## Official Google Play references
+
+- [Target API-level requirements](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en)
+- [Health Content and Services policy](https://support.google.com/googleplay/android-developer/answer/16679511?hl=en)
+- [Health Apps declaration](https://support.google.com/googleplay/android-developer/answer/14738291?hl=en)
+- [Data safety form](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)
+- [Account-deletion requirements](https://support.google.com/googleplay/android-developer/answer/13327111?hl=en)
+- [Testing requirements for newer personal developer accounts](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en)
+- [Device verification for new developer accounts](https://support.google.com/googleplay/android-developer/answer/14316361?hl=en)
+- [Play Console account type requirements for health apps](https://support.google.com/googleplay/android-developer/answer/10788890?hl=en)
+- [Convert a Personal Play developer account to an Organization account](https://support.google.com/googleplay/android-developer/answer/16260648)
+- [Play listing preview-asset requirements](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en)
+- [Payments policy](https://support.google.com/googleplay/android-developer/answer/10281818?hl=en)
+- [Expo SDK 54 reference](https://docs.expo.dev/versions/v54.0.0/)

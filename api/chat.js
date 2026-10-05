@@ -92,6 +92,7 @@ module.exports = async function chat(req, res) {
   if (req.method !== 'POST') return core.json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account) return core.json(res, 401, { error: 'Please sign in with Google before using DoctorAI chat.' });
+  if (await core.isAccountDeletionBlocked(account)) return core.json(res, 409, { error: 'This account is being deleted.' });
   if (!process.env.OPENAI_API_KEY) return core.json(res, 503, { error: 'DoctorAI chat is not configured yet.' });
   const limit = await core.rateLimit(req, `chat:${core.accountKey(account)}`, 12, 60_000);
   if (!limit.allowed) {
@@ -122,7 +123,7 @@ module.exports = async function chat(req, res) {
   const responseStyle = responseStyles[responseLength];
   const instructions = `${safetyPrompt}\n\nResponse length requested by the user: ${responseLength}. ${responseStyle.instruction}${memoryPrompt}`;
   const wantsStream = body.stream === true;
-  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream };
+  const providerPayload = { model: process.env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: messages, max_output_tokens: responseStyle.maxOutputTokens, stream: wantsStream, store: false };
   const fetchFallbackAnswer = async () => {
     const fallbackResponse = await requestProvider({ ...providerPayload, stream: false }, { retry: false });
     if (!fallbackResponse.ok) return '';
@@ -130,6 +131,7 @@ module.exports = async function chat(req, res) {
   };
 
   try {
+    if (await core.isAccountDeletionBlocked(account)) return core.json(res, 409, { error: 'This account is being deleted.' });
     const response = await requestProvider(providerPayload);
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));

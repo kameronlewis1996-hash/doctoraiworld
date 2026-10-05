@@ -13,7 +13,7 @@ function createHandler(StripeClient = Stripe) {
 
     const secretKey = String(process.env.STRIPE_SECRET_KEY || '');
     const mode = keyMode(secretKey);
-    if (!secretKey || !mode || !environmentModeMatches(secretKey, process.env.VERCEL_ENV)) {
+    if (!secretKey || !mode || !environmentModeMatches(secretKey, process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV)) {
       return core.json(response, 503, { error: 'Subscription pricing is temporarily unavailable.' });
     }
 

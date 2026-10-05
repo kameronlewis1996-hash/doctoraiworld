@@ -30,7 +30,7 @@ These are terminology records, not 3,419 independently approved treatments. Gene
 
 Broad ingredient-class coverage and clinician approval are not established by this import. Salt equivalences are explicit; no general salt stripping, substring brand matching or fuzzy automatic selection is used. Different ingredient sets sharing a brand/manufacturer remain ambiguous. Full imported product names are available in name suggestions. Strength suffix matching identifies ingredients only and does not validate the strength or route.
 
-Every result reports limited interaction coverage and `completeForRequest: false`, even if all names match. Existing and newly sourced rules flag potential risks for professional review; they do not provide treatment directions. Source URLs accompany each rule in the seed database. Conditions, dose, timing, route, pregnancy and unlisted interactions remain outside complete coverage.
+Every result reports limited interaction coverage and `completeForRequest: false`, even if all names match. Existing and newly sourced rules flag potential risks for professional review; they do not provide treatment directions. Source URLs accompany each rule in the seed database. Conditions, dose, timing, route, pregnancy and unlisted interactions remain outside complete coverage; the current dataset has no medicine-condition rules. The DoctorAI rules endpoint requires a signed-in account, active Pro entitlement, one-time consent, and a per-account request limit. It sends medicine names, allergy terms, and only a yes/no flag for whether condition details exist; condition names are not sent. Requests are not forwarded to NZF/NZULM or DrugBank.
 
 ## Updating and testing
 

@@ -20,7 +20,7 @@ module.exports = async function grantPro(request, response) {
   const payload = Buffer.from(JSON.stringify({ tier: 'pro', source: 'staff-grant', email, exp, issuedBy: core.normaliseEmail(session.email) }), 'utf8').toString('base64url');
   const token = `${payload}.${sign(payload)}`;
   const issuedAt = new Date().toISOString();
-  await core.recordFreeGrant({ email }, {
+  const recorded = await core.recordFreeGrant({ email }, {
     email,
     source: 'staff-grant',
     issuedAt,
@@ -30,6 +30,7 @@ module.exports = async function grantPro(request, response) {
     actor: core.normaliseEmail(session.email),
     tokenHash: crypto.createHash('sha256').update(token).digest('base64url')
   });
+  if (!recorded) return json(response, 409, { error: 'This account is closed or being deleted and cannot receive complimentary access.' });
   const origin = String(process.env.NEXT_PUBLIC_APP_URL || 'https://www.doctoraiworld.com').replace(/\/$/, '');
   const redeemUrl = `${origin}/subscription?access_code=${encodeURIComponent(token)}#plans`;
   let emailed = false;

@@ -2,7 +2,7 @@ const Stripe = require('stripe');
 const core = require('../_lib/doctorai-core.cjs');
 const { plans, keyMode, environmentModeMatches, isValidPlanPrice } = require('./plan-catalog.cjs');
 
-const appUrl = () => String(process.env.NEXT_PUBLIC_APP_URL || 'https://www.doctoraiworld.com').replace(/\/$/, '');
+const appUrl = require('./app-url.cjs');
 
 const json = core.json;
 
@@ -10,12 +10,13 @@ module.exports = async function createCheckoutSession(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account?.email) return json(res, 401, { error: 'Please sign in with Google before starting a Pro subscription.' });
+  if (await core.isAccountDeletionBlocked(account)) return json(res, 409, { error: 'This account is being deleted.' });
   const limit = await core.rateLimit(req, `stripe-checkout:${core.accountKey(account)}`, 12, 60 * 60 * 1000);
   if (!limit.allowed) { res.setHeader('Retry-After', String(limit.retryAfter)); return json(res, 429, { error: 'Too many checkout requests. Please try again later.' }); }
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) return json(res, 503, { error: 'Stripe checkout is not configured yet.' });
-  if (!environmentModeMatches(secretKey, process.env.VERCEL_ENV)) return json(res, 503, { error: 'Stripe checkout is not configured for this environment.' });
+  if (!environmentModeMatches(secretKey, process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV)) return json(res, 503, { error: 'Stripe checkout is not configured for this environment.' });
   if (!core.storageConfigured()) return json(res, 503, { error: 'Secure subscription storage is not connected yet. Add KV_REST_API_URL and KV_REST_API_TOKEN before taking payments.' });
 
   let body = {};
@@ -40,6 +41,8 @@ module.exports = async function createCheckoutSession(req, res) {
       core.reportError('stripe_checkout_price_mismatch', { route: '/api/stripe/create-checkout-session', plan });
       return json(res, 503, { error: 'DoctorAI Pro pricing is being updated. Please try again later or contact support.' });
     }
+
+    if (await core.isAccountDeletionBlocked(account)) return json(res, 409, { error: 'This account is being deleted.' });
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -68,6 +71,13 @@ module.exports = async function createCheckoutSession(req, res) {
         }
       }
     });
+
+    const pending = await core.savePendingCheckoutSession(account, session.id);
+    if (!pending || await core.isAccountDeletionBlocked(account)) {
+      await stripe.checkout.sessions.expire(session.id).catch(() => {});
+      await core.deletePendingCheckoutSession(account, session.id).catch(() => {});
+      return json(res, 409, { error: 'This account is being deleted and cannot start a new subscription.' });
+    }
 
     return json(res, 200, { url: session.url });
   } catch (error) {

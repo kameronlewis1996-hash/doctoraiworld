@@ -15,7 +15,10 @@
     "verify:medication-database": "node scripts/verify-medication-database.cjs",
     "verify:medication-safety": "node scripts/verify-medication-safety.js",
     "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
-    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs"
+    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs",
+    "verify:preview-isolation": "node scripts/verify-preview-isolation.cjs",
+    "verify:account-deletion": "node scripts/verify-account-deletion.cjs",
+    "verify:account-deletion-route": "node scripts/verify-account-deletion-route.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

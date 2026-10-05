@@ -2,6 +2,7 @@ const handlers = {
   'grant-pro': () => require('../../server-src/staff/grant-pro.js'),
   'redeem-pro': () => require('../../server-src/staff/redeem-pro.js'),
   'revoke-pro': () => import('../../server-src/staff/revoke-pro.mjs').then(module => module.default || module),
+  'delete-account': () => require('../../server-src/staff/delete-account.js'),
 };
 
 module.exports = async function staffAction(request, response) {

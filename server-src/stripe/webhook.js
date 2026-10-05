@@ -1,4 +1,5 @@
 const Stripe = require('stripe');
+const { environmentModeMatches, keyMode } = require('./plan-catalog.cjs');
 const core = require('../_lib/doctorai-core.cjs');
 
 const readRawBody = req => new Promise((resolve, reject) => {
@@ -24,7 +25,7 @@ async function recordEntitlementEvent(event, stripe) {
   const active = status === 'active' || status === 'trialing';
   const currentPeriodEnd = Number(subscription.current_period_end || 0);
   const exp = active ? Math.max(currentPeriodEnd, core.nowSeconds()) : core.nowSeconds();
-  await core.saveEntitlement(account, {
+  const saved = await core.saveEntitlement(account, {
     tier: active ? 'pro' : 'free', source: 'stripe', plan: metadata.plan || null, email,
     customerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id || null,
     subscriptionId: subscription.id || null, status, cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
@@ -32,11 +33,12 @@ async function recordEntitlementEvent(event, stripe) {
     cancelledAt: subscription.canceled_at ? new Date(Number(subscription.canceled_at) * 1000).toISOString() : null,
     currentPeriodEnd: currentPeriodEnd || null, exp
   });
+  return saved;
 }
 
 async function stripeWebhook(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!environmentModeMatches(process.env.STRIPE_SECRET_KEY, process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV) || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(503).json({ error: 'Stripe webhook is not configured yet.' });
   }
   if (!core.storageConfigured()) {
@@ -48,6 +50,7 @@ async function stripeWebhook(req, res) {
     const signature = req.headers['stripe-signature'];
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    if (event.livemode !== (keyMode(process.env.STRIPE_SECRET_KEY) === 'live')) return res.status(400).json({ error: 'Stripe webhook mode does not match this environment.' });
 
     if (['checkout.session.completed', 'customer.subscription.updated', 'customer.subscription.deleted', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) await recordEntitlementEvent(event, stripe);
 

@@ -24,14 +24,20 @@ const researchQuery = (topic, start, end, broad = false) => {
 };
 
 module.exports = async function handler(request, response) {
-  const query = request.query || {};
+  core.noStore(response);
+  if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
+  let query = request.body || {};
+  try { query = typeof query === 'string' ? JSON.parse(query) : query; }
+  catch { return response.status(400).json({ error: 'Invalid research search request.' }); }
+  const topic = String(query.topic || '').trim();
+  if (topic.length > 80) return response.status(400).json({ error: 'Research topics must be 80 characters or fewer.' });
   const today = new Date().toISOString().slice(0, 10);
   const start = validDate(query.start, DEFAULT_START);
   const end = validDate(query.end, today);
   const pageSize = Math.min(Math.max(Number.parseInt(query.pageSize, 10) || 30, 1), 50);
   const requestIndex = async broad => {
     const params = new URLSearchParams({
-      query: researchQuery(query.topic, start, end, broad),
+      query: researchQuery(topic, start, end, broad),
       format: 'json',
       pageSize: String(pageSize),
       resultType: 'core'
@@ -48,14 +54,13 @@ module.exports = async function handler(request, response) {
   try {
     let payload = await requestIndex(false);
     let fallback = false;
-    if (topicTerms(query.topic).length > 1 && !(Array.isArray(payload.resultList?.result) && payload.resultList.result.length)) {
+    if (topicTerms(topic).length > 1 && !(Array.isArray(payload.resultList?.result) && payload.resultList.result.length)) {
       payload = await requestIndex(true);
       fallback = true;
     }
-    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
     return response.status(200).json({
       source: 'Europe PMC',
-      query: { topic: String(query.topic || '').slice(0, 80), start, end, fallback },
+      query: { topic, start, end, fallback },
       results: Array.isArray(payload.resultList?.result) ? payload.resultList.result : []
     });
   } catch (error) {

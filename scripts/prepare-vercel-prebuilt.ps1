@@ -3,7 +3,8 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $functionRoots = @(
   '.vercel\output\functions\api\documents.func',
-  '.vercel\output\functions\api\stripe\[...action].func'
+  '.vercel\output\functions\api\stripe\[...action].func',
+  '.vercel\output\functions\api\staff\[...action].func'
 )
 
 $npmCommand = Get-Command npm.cmd -ErrorAction SilentlyContinue
@@ -39,7 +40,11 @@ foreach ($relativeRoot in $functionRoots) {
 
 $blobModule = Join-Path $projectRoot '.vercel\output\functions\api\documents.func\node_modules\@vercel\blob\package.json'
 $stripeModule = Join-Path $projectRoot '.vercel\output\functions\api\stripe\[...action].func\node_modules\stripe\package.json'
+$staffBlobModule = Join-Path $projectRoot '.vercel\output\functions\api\staff\[...action].func\node_modules\@vercel\blob\package.json'
+$staffStripeModule = Join-Path $projectRoot '.vercel\output\functions\api\staff\[...action].func\node_modules\stripe\package.json'
 if (-not (Test-Path -LiteralPath $blobModule)) { throw 'The private Blob dependency was not packaged.' }
 if (-not (Test-Path -LiteralPath $stripeModule)) { throw 'The Stripe dependency was not packaged.' }
+if (-not (Test-Path -LiteralPath $staffBlobModule)) { throw 'The staff private Blob dependency was not packaged.' }
+if (-not (Test-Path -LiteralPath $staffStripeModule)) { throw 'The staff Stripe dependency was not packaged.' }
 
 Write-Output 'Prepared private-document and Stripe dependencies inside the Vercel function artifacts.'
