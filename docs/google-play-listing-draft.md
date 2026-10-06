@@ -1,10 +1,10 @@
 # DoctorAI Google Play listing draft
 
 **Status:** Working copy for review; not ready to paste into Play Console.  
-**App version:** 1.0.8 (12) (`com.doctoraiworld.healthhub`)  
+**Current upload candidate:** 1.0.8 (13), package `com.doctoraiworld.healthhub`; signed EAS production/store AAB build `e07a2c3b-a10a-4d0a-b3db-e9b6f0083e5e`, built from source `82c862c`. Its SHA-256 is `9DBE483C86703262CDB6285FA3EBC726E0AEB1CD1972BE659F4E6CD5DE298172`. It has not been installed on a device or uploaded to Play.
 **Release track configured in EAS:** Internal testing.
 
-**Publisher access:** Expo/EAS restored as `doctoraiworld`; DoctorAI World personal Play developer account is accessible but has no app yet. The non-binding create-app form is populated, but Google's current account guidance directs health-app developers to use an Organization developer account. Owner-led account conversion and verification must happen before app creation/submission. The form also requires policy, Play App Signing and export declarations, none of which have been accepted. See the [Android release review](doctorai-android-release-review.md) for details.
+**Publisher access:** Expo/EAS access is restored as `doctoraiworld`. The Play Console was checked on 6 October 2026: it shows a Personal developer account and “Create your first app”; no DoctorAI app entry exists. Google's current account guidance directs health-app developers to use an Organization developer account. Owner-led account conversion and verification remain the next Play step before app creation and submission. Health, Data safety, Play App Signing and export declarations have not been submitted. See the [Android release review](doctorai-android-release-review.md) for details.
 
 ## Listing text
 
