@@ -32,6 +32,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import VisitBrief from "./VisitBrief";
 import { createPrivateStateStore } from "./private-state-store";
+import { createAccountPrivateStateStoreResolver } from "./account-private-state";
 import { createPrivateFileActions } from "./private-file-actions";
 import { requestAccountResource, SessionExpiredError } from "./account-resource";
 import { createHealthDataCoordinator } from "./health-data-coordinator";
@@ -59,16 +60,11 @@ const createScopedPrivateStateStore = (scope: string, medicationAckKey: string) 
   auxiliaryKeys: [medicationAckKey],
 });
 const privateStateStore = createScopedPrivateStateStore("device", MEDICATION_ACK_KEY);
-const accountStateStores = new Map<string, ReturnType<typeof createPrivateStateStore>>();
-async function privateStateStoreForAccount(subject: string) {
-  const normalizedSubject = String(subject || "").trim();
-  if (!normalizedSubject) throw new Error("DoctorAI could not identify the signed-in account.");
-  const digest = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, normalizedSubject)).toLowerCase();
-  const scope = `account-${digest}`;
-  const medicationAckKey = `${MEDICATION_ACK_KEY}-${digest}`;
-  if (!accountStateStores.has(scope)) accountStateStores.set(scope, createScopedPrivateStateStore(scope, medicationAckKey));
-  return { scope, medicationAckKey, store: accountStateStores.get(scope)! };
-}
+const privateStateStoreForAccount = createAccountPrivateStateStoreResolver({
+  digestSubject: subject => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, subject),
+  medicationAckKeyForDigest: digest => `${MEDICATION_ACK_KEY}-${digest}`,
+  createStore: createScopedPrivateStateStore,
+});
 const pickerCache = Platform.OS !== "web" && FileSystem.cacheDirectory
   ? createPickerCache(FileSystem.cacheDirectory, uri => FileSystem.deleteAsync(uri, { idempotent: true })) : null;
 const privateFiles = Platform.OS !== "web" && FileSystem.cacheDirectory ? createPrivateFileActions({
@@ -358,6 +354,7 @@ export default function App() {
 
   const apiFetch = (path: string, init: RequestInit = {}) => fetch(`${API}${path}`, {
     ...init,
+    credentials: "omit",
     headers: {
       accept: "application/json",
       ...(init.headers || {}),
@@ -1468,7 +1465,7 @@ function Today({ theme, scale, state, open, toggle, apiFetch, signedIn, signIn, 
     if (!duplicateAlertKey || presentedMedicationAlert.current === duplicateAlertKey) return;
     presentedMedicationAlert.current = duplicateAlertKey;
     let active = true;
-    stateStore.readAuxiliary(medicationAckKey).then(acknowledged => {
+    stateStore.readAuxiliary(medicationAckKey).then((acknowledged: string | null) => {
       if (!active || acknowledged === duplicateAlertKey) return;
       const acknowledge = async () => { if (active) await stateStore.writeAuxiliary(medicationAckKey, duplicateAlertKey).catch(() => {}); };
       Alert.alert(
