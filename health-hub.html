@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f5faff">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="description" content="DoctorAI is a private Personal AI Health Hub for daily health organisation: track medications, appointments, symptoms, results, documents and measurements, prepare for care conversations, and ask safety-led AI questions.">
+  <meta name="description" content="Prepare a personal visit brief from the appointment, medicines, allergies, questions and optional notes you choose. Review it before copying or printing.">
   <link rel="canonical" href="https://www.doctoraiworld.com/health-hub">
-  <title>Today · DoctorAI Personal Health Hub</title>
+  <title>Visit preparation · DoctorAI Health Hub</title>
   <link rel="icon" type="image/png" href="/doctorai-app-icon.png?v=10">
   <link rel="apple-touch-icon" type="image/png" href="/doctorai-app-icon.png?v=10">
   <meta property="og:title" content="DoctorAI — Personal Health Hub">
-  <meta property="og:description" content="A private Personal AI Health Hub for organising daily health information, understanding results, preparing for appointments and keeping your care story in one place.">
+  <meta property="og:description" content="Prepare a personal visit brief from the appointment, medicines, allergies, questions and optional notes you choose. Review it before copying or printing.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.doctoraiworld.com/health-hub">
   <meta property="og:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
@@ -19,12 +19,12 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="DoctorAI — Personal Health Hub">
-  <meta name="twitter:description" content="A private Personal AI Health Hub for organising daily health information, understanding results, preparing for appointments and keeping your care story in one place.">
+  <meta name="twitter:description" content="Prepare a personal visit brief from the appointment, medicines, allergies, questions and optional notes you choose. Review it before copying or printing.">
   <meta name="twitter:image" content="https://www.doctoraiworld.com/doctorai-social-preview.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=78">
+  <link rel="stylesheet" href="/health-hub.css?v=79">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -47,16 +47,21 @@
 
       <p class="sidebar-label">Personal health hub</p>
       <nav class="primary-nav" aria-label="Primary">
-        <button class="nav-item active" type="button" data-view="today"><span class="nav-icon">⌂</span><span>Today</span></button>
-        <button class="nav-item" type="button" data-view="ask"><span class="nav-icon nav-spark">✦</span><span>Ask DoctorAI</span></button>
-        <button class="nav-item" type="button" data-view="health"><span class="nav-icon">♡</span><span>My Health</span></button>
-        <button class="nav-item" type="button" data-view="symptoms"><span class="nav-icon">≈</span><span>Symptom Diary</span></button>
-        <button class="nav-item" type="button" data-view="medications"><span class="nav-icon">▣</span><span>Medications</span></button>
+        <button class="nav-item active" type="button" data-view="today"><span class="nav-icon">▤</span><span>Visit prep</span></button>
         <button class="nav-item" type="button" data-view="appointments"><span class="nav-icon">◷</span><span>Appointments</span></button>
-        <button class="nav-item" type="button" data-view="results"><span class="nav-icon">⌁</span><span>Results</span></button>
-        <button class="nav-item" type="button" data-view="timeline"><span class="nav-icon">☷</span><span>Timeline</span></button>
-        <button class="nav-item" type="button" data-view="documents"><span class="nav-icon">▤</span><span>Documents</span></button>
-        <a class="nav-item research-nav-highlight" href="/research"><span class="nav-icon">✧</span><span>Latest Research</span><small>G.L. evidence library</small></a>
+        <button class="nav-item" type="button" data-view="medications"><span class="nav-icon">▣</span><span>Medicines</span></button>
+        <button class="nav-item" type="button" data-view="health"><span class="nav-icon">♡</span><span>My Health</span></button>
+        <details class="sidebar-tools">
+          <summary><span class="nav-icon">＋</span><span>More tools</span></summary>
+          <div class="sidebar-tools-menu">
+            <button class="nav-item" type="button" data-view="ask"><span class="nav-icon nav-spark">✦</span><span>Ask DoctorAI</span></button>
+            <button class="nav-item" type="button" data-view="symptoms"><span class="nav-icon">≈</span><span>Optional notes</span></button>
+            <button class="nav-item" type="button" data-view="results"><span class="nav-icon">⌁</span><span>Results</span></button>
+            <button class="nav-item" type="button" data-view="timeline"><span class="nav-icon">☷</span><span>Timeline</span></button>
+            <button class="nav-item" type="button" data-view="documents"><span class="nav-icon">▤</span><span>Documents</span></button>
+            <a class="nav-item" href="/research"><span class="nav-icon">✧</span><span>Research</span></a>
+          </div>
+        </details>
       </nav>
 
       <div class="sidebar-bottom">
@@ -93,19 +98,20 @@
       <nav class="category-bar" id="category-bar" aria-label="Health hub categories">
         <div class="category-bar-scroll">
           <span class="category-bar-label">Quick access</span>
-          <button class="category-tab active" type="button" data-view="today" aria-current="page"><span aria-hidden="true">⌂</span> Today</button>
-          <button class="category-tab" type="button" data-view="ask"><span aria-hidden="true">✦</span> Ask DoctorAI</button>
-          <button class="category-tab" type="button" data-view="health"><span aria-hidden="true">♡</span> My Health</button>
-          <button class="category-tab" type="button" data-view="medications"><span aria-hidden="true">▣</span> Medications</button>
+          <button class="category-tab active" type="button" data-view="today" aria-current="page"><span aria-hidden="true">▤</span> Visit prep</button>
           <button class="category-tab" type="button" data-view="appointments"><span aria-hidden="true">◷</span> Appointments</button>
-          <a class="category-tab research-nav-highlight" href="/research"><span aria-hidden="true">✧</span> G.L. Research</a>
+          <button class="category-tab" type="button" data-view="medications"><span aria-hidden="true">▣</span> Medicines</button>
+          <button class="category-tab" type="button" data-view="health"><span aria-hidden="true">♡</span> My Health</button>
           <div class="category-more">
-            <button class="category-tab" type="button" data-more-menu aria-expanded="false" aria-controls="category-more-menu"><span aria-hidden="true">＋</span> More</button>
+            <button class="category-tab" type="button" data-more-menu aria-expanded="false" aria-controls="category-more-menu"><span aria-hidden="true">＋</span> More tools</button>
             <div class="category-more-menu" id="category-more-menu" hidden>
-              <button type="button" data-view="symptoms"><span aria-hidden="true">≈</span><span><b>Symptom Diary</b><small>Track changes over time</small></span></button>
+              <p class="category-more-label">More tools</p>
+              <button type="button" data-view="ask"><span aria-hidden="true">✦</span><span><b>Ask DoctorAI</b><small>Optional education and organisation</small></span></button>
+              <button type="button" data-view="symptoms"><span aria-hidden="true">≈</span><span><b>Optional notes</b><small>Review or add personal observations</small></span></button>
               <button type="button" data-view="results"><span aria-hidden="true">⌁</span><span><b>Results</b><small>Tests and measurements</small></span></button>
               <button type="button" data-view="timeline"><span aria-hidden="true">☷</span><span><b>Timeline</b><small>Your health history</small></span></button>
               <button type="button" data-view="documents"><span aria-hidden="true">▤</span><span><b>Documents</b><small>Secure health files</small></span></button>
+              <a href="/research"><span aria-hidden="true">✧</span><span><b>Research</b><small>Evidence library</small></span></a>
             </div>
           </div>
         </div>
@@ -116,17 +122,17 @@
           <section class="colour-hero-live" aria-label="Quick access">
             <div class="hub-hero-intro">
               <div class="hub-hero-copy">
-                <p class="hub-hero-greeting" id="today-greeting">Welcome back.</p>
-                <h1 id="today-title">Your health, <span>today.</span></h1>
-                <p class="hub-hero-subtitle">Your medicines, symptoms, appointments, documents and results — organised around you.</p>
+                <p class="hub-hero-greeting" id="today-greeting">Prepare at your pace.</p>
+                <h1 id="today-title">Get ready for your <span>next visit.</span></h1>
+                <p class="hub-hero-subtitle">Bring your appointment, medicines, allergies, questions and optional notes together. Review your brief before copying or printing.</p>
               </div>
-              <button type="button" class="hub-ask-prompt" data-open-today-plan aria-haspopup="dialog" aria-label="Open your private health briefing">
+              <button type="button" class="hub-ask-prompt" data-open-today-plan aria-haspopup="dialog" aria-label="Open your private saved overview">
                 <span class="hub-ask-prompt-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/><path d="M18.5 3v3M20 4.5h-3"/></svg></span>
-                <span class="hub-ask-prompt-copy"><b>Open my health briefing</b><small>Medicines, symptoms and today’s safest next steps—together in one place.</small></span>
+                <span class="hub-ask-prompt-copy"><b>Review saved information</b><small>Open a private overview of the details you have chosen to keep.</small></span>
                 <span class="hub-ask-prompt-arrow" aria-hidden="true">→</span>
               </button>
             </div>
-            <section class="care-visit-card" aria-labelledby="care-visit-title"><div><p class="care-kicker">Since my last visit</p><h2 id="care-visit-title">Walk in with your story ready</h2><p>Your recent notes, main concern and questions. One brief you review before sharing.</p><button type="button" data-open-summary>Build my visit brief <span aria-hidden="true">→</span></button></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5 3 3 5-5"/></svg></section>
+            <section class="care-visit-card" aria-labelledby="care-visit-title"><div><p class="care-kicker">VISIT PREPARATION</p><h2 id="care-visit-title">Build a brief in your own words</h2><p>Choose appointment details, saved medicines and allergies, optional notes and questions. Review the brief yourself before copying or printing.</p><button type="button" data-open-summary>Build my visit brief <span aria-hidden="true">→</span></button></div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5 3 3 5-5"/></svg></section>
             <div class="colour-orbit" id="quick-access-orbit" role="group" aria-label="Quick access to DoctorAI features">
               <div class="colour-orbit-ring colour-ring-one"></div>
               <div class="colour-orbit-ring colour-ring-two"></div>
@@ -135,7 +141,7 @@
                 <img class="orbit-doctorai-mark" src="/doctorai-head-logo-transparent.png?v=10" alt="DoctorAI">
               </div>
               <button class="orbit-action orbit-action-ask" type="button" data-open-medication-scanner data-orbit-action data-orbit-tone="cyan" aria-label="Prescriptions and medications — scan a prescription"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M6.5 3.5h8l3 3v14h-11z"/><path d="M6.5 3.5h8l3 3v14h-11zM14.5 3.5v4h4M9.5 11.5h5M12 9v5M9.5 17h5"/></svg></span><span class="orbit-scan-badge" aria-hidden="true">Scan</span><b>Prescriptions &amp; medications</b><small>Photograph a prescription or medicine label, then review the details before saving</small></button>
-              <button class="orbit-action orbit-action-medicines" type="button" data-view="symptoms" data-orbit-action data-orbit-tone="blue"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M4 12h3l2-5 4 10 2.2-5H20v7H4z"/><path d="M3 12h4l2-5 4 10 2.2-5H21M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/></svg></span><b>Symptom Diary</b><small>Record what changed and notice repeated patterns</small></button>
+              <button class="orbit-action orbit-action-medicines" type="button" data-view="symptoms" data-orbit-action data-orbit-tone="blue"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M4 12h3l2-5 4 10 2.2-5H20v7H4z"/><path d="M3 12h4l2-5 4 10 2.2-5H21M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/></svg></span><b>Optional notes</b><small>Record details in your own words to review for your brief</small></button>
               <button class="orbit-action orbit-action-appointments" type="button" data-view="appointments" data-orbit-action data-orbit-tone="violet"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect class="icon-fill" x="3.5" y="5.5" width="17" height="15" rx="3"/><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17M8 15l2 2 4-4"/><circle class="icon-solid" cx="17.5" cy="15.5" r="1"/></svg></span><b>Appointments</b><small>Manage your appointments</small></button>
               <button class="orbit-action orbit-action-health" type="button" data-view="documents" data-orbit-action data-orbit-tone="mint"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h4"/><circle class="icon-solid" cx="9.5" cy="18" r="1"/></svg></span><b>Documents</b><small>Store &amp; access your health documents</small></button>
               <button class="orbit-action orbit-action-symptoms" type="button" data-view="results" data-orbit-action data-orbit-tone="coral"><span class="orbit-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="icon-fill" d="M4 19.5V13l5-5 4 3 6-7v15.5z"/><path d="M4 19.5V5M4 19.5h16M7 16l3.5-4 3 2 5-7"/></svg></span><b>Results</b><small>Keep measurements and test information together</small></button>
@@ -144,8 +150,8 @@
             </div>
           </section>
 
-          <section class="care-pattern-card" aria-labelledby="care-pattern-heading"><div><p class="care-kicker">Your observations</p><h2 id="care-pattern-heading">Patterns to explore</h2><p id="care-pattern-copy">Log symptoms and what was happening around them. Repeated observations can help you prepare questions.</p><small>An observation is not a confirmed cause.</small></div><button type="button" data-view="symptoms">Review your log <span aria-hidden="true">→</span></button></section>
-          <div class="care-secondary"><button type="button" data-view="ask">Ask DoctorAI <span aria-hidden="true">→</span></button><a href="/research">Explore research <span aria-hidden="true">→</span></a></div>
+          <section class="care-pattern-card" aria-labelledby="care-pattern-heading"><div><p class="care-kicker">OPTIONAL · YOUR WORDS</p><h2 id="care-pattern-heading">Add a note for your visit brief</h2><p id="care-pattern-copy">Record a question, symptom or routine detail in your own words. You choose whether to include it in your brief.</p><small>Notes are observations, not confirmed causes.</small></div><button type="button" data-view="symptoms">Add or review notes <span aria-hidden="true">→</span></button></section>
+          <div class="care-secondary"><button type="button" data-open-personal-overview>My saved overview <span aria-hidden="true">→</span></button><button type="button" data-open-today-plan>Open daily overview <span aria-hidden="true">→</span></button><button type="button" data-view="ask">Ask DoctorAI <span aria-hidden="true">→</span></button></div>
           <p class="care-emergency">Not for emergencies. If you may be in immediate danger, contact your local emergency service. Do not wait for DoctorAI.</p>
 
           <div class="daily-insight">
@@ -309,7 +315,7 @@
         </section>
 
         <section class="view" id="view-appointments" data-view-panel="appointments" aria-labelledby="appointments-title" hidden>
-          <div class="page-heading"><div><p class="eyebrow">Prepare, remember, follow up</p><h1 id="appointments-title">Appointments</h1><p class="page-subtitle">Keep the reason, questions, notes and next actions in one place.</p></div><button class="primary-button" type="button" data-modal="appointment">＋ Add appointment</button></div>
+          <div class="page-heading"><div><p class="eyebrow">VISIT PREPARATION</p><h1 id="appointments-title">Appointments</h1><p class="page-subtitle">Keep visit details together, then choose what to include in your personal brief.</p></div><div class="page-heading-actions"><button class="secondary-button" type="button" data-open-summary>Build my visit brief <span aria-hidden="true">→</span></button><button class="primary-button" type="button" data-modal="appointment">＋ Add appointment</button></div></div>
           <div class="appointments-layout"><section class="panel-card upcoming-card"><div class="card-heading"><div><p class="card-kicker">Next up</p><h2>Upcoming appointments</h2></div><span class="soft-count" id="appointments-count">0 scheduled</span></div><div id="upcoming-appointments-list"><div class="empty-inline">No upcoming appointments yet.</div></div></section><aside class="panel-card past-appointments"><div class="card-heading"><div><p class="card-kicker">Archive</p><h2>Previous</h2></div><a href="#timeline" data-view="timeline">Timeline <span>→</span></a></div><div id="past-appointments-list"><div class="empty-inline">Previous appointments will appear here.</div></div></aside></div>
         </section>
 
@@ -338,7 +344,7 @@
   </div>
 
   <nav class="mobile-bottom-nav" aria-label="Primary mobile navigation">
-    <button type="button" data-view="today" class="mobile-bottom-nav-item active"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3.5 10 8.5-7 8.5 7v10.5h-6v-6h-5v6h-5z"/></svg></span><b>Home</b></button>
+    <button type="button" data-view="today" class="mobile-bottom-nav-item active"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3.5 10 8.5-7 8.5 7v10.5h-6v-6h-5v6h-5z"/></svg></span><b>Visit prep</b></button>
     <button type="button" data-view="ask" class="mobile-bottom-nav-item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/></svg></span><b>Chat</b></button>
     <button type="button" data-add-menu class="mobile-bottom-nav-orb" aria-label="Add a health item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg></span><b>Add</b></button>
     <button type="button" data-view="health" class="mobile-bottom-nav-item"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.6 5.7c-2.3-2.4-6.2-1.8-8.6 1.1-2.4-2.9-6.3-3.5-8.6-1.1-2.4 2.5-1.2 6.2.7 8.3L12 21l7.9-7c1.9-2.1 3.1-5.8.7-8.3Z"/></svg></span><b>Health</b></button>
@@ -401,6 +407,6 @@
   <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy, clearly</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy information">×</button></div><div class="privacy-copy"><div class="privacy-highlight"><span>♢</span><p><b>Your health information belongs to you.</b> You choose whether this browser keeps health-hub entries between visits. When signed in, approved hub data is also encrypted for your account.</p></div><h3>DoctorAI can organise and explain</h3><p>It is not a doctor, does not diagnose, and should not be used to start, stop or change prescribed treatment. Health Memory is optional and you can edit or delete saved details.</p><h3>Urgent or emergency situations</h3><p>Contact your local emergency service or an appropriate crisis service now. Do not wait for an AI response.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep data on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><button type="button" class="secondary-button" data-export-health>Export my hub data</button><button type="button" class="danger-button" data-delete-health>Delete my hub data</button><button type="button" class="secondary-button" data-close-privacy>Close</button><a href="/privacy" class="text-button">Read privacy notice <span>→</span></a><a href="/terms" class="text-button">Read terms</a></div></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="medication-check-controller.js?v=2"></script>
-  <script src="health-hub.js?v=74"></script>
+  <script src="health-hub.js?v=75"></script>
 </body>
 </html>
