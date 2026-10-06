@@ -27,12 +27,12 @@
           <span></span><span></span><span></span>
         </button>
         <nav class="doctorai-site-menu" id="doctorai-site-menu" aria-label="Main navigation">
-          <a data-site-nav="hub" href="${returnHref}">Health Hub</a>
-          <a data-site-nav="chat" href="/health-hub#ask">Ask DoctorAI</a>
-          <a data-site-nav="research" href="/research">Research</a>
+          <a data-site-nav="home" href="/">Home</a>
+          <a href="/#how-it-works">How it works</a>
+          <a data-site-nav="hub" href="/health-hub#summary">Visit preparation</a>
           <a data-site-nav="pro" href="/subscription">Pro</a>
-          <a data-site-nav="download" href="/download">Get the app</a>
-          <a class="doctorai-site-primary" href="${returnHref}">Open my hub <span aria-hidden="true">→</span></a>
+          <a href="/health-hub#profile">Sign in</a>
+          <a class="doctorai-site-primary" href="/health-hub#summary">Build a visit brief <span aria-hidden="true">→</span></a>
         </nav>
       </div>`;
 
@@ -42,7 +42,7 @@
       <div class="doctorai-site-footer-inner">
         <a class="doctorai-site-footer-brand" href="${returnHref}"><img src="/doctorai-head-logo-transparent.png?v=10" alt=""><span><b>DoctorAI</b><small>Personal health organisation</small></span></a>
         <p>For education and organisation only — DoctorAI does not diagnose, prescribe, or replace professional medical care.</p>
-        <nav aria-label="Legal, support and social"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer" aria-label="Follow DoctorAI World on LinkedIn (opens in a new tab)">LinkedIn</a></nav>
+        <nav aria-label="Resources, legal, support and social"><a href="/appointment-checklist">Free visit checklist</a><a href="/medication-list-template">Medicine list template</a><a href="/research">Research</a><a href="/download">Get the app</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer" aria-label="Follow DoctorAI World on LinkedIn (opens in a new tab)">LinkedIn</a></nav>
       </div>`;
 
     document.body.prepend(header);
