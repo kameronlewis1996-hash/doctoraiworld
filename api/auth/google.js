@@ -8,7 +8,7 @@ module.exports = async function handler(request, response) {
   if (request.method === 'GET') {
     const session = await core.identityFromRequest(request);
     return session
-      ? response.status(200).json({ authenticated: true, medicationLoginId: medicationLoginId(session), user: { email: session.email, name: session.name, picture: session.picture } })
+      ? response.status(200).json({ authenticated: true, medicationLoginId: medicationLoginId(session), user: { sub: session.sub, email: session.email, name: session.name, picture: session.picture } })
       : response.status(401).json({ authenticated: false });
   }
   if (request.method === 'DELETE') {
@@ -53,7 +53,7 @@ module.exports = async function handler(request, response) {
     const activated = await core.activateSession(session);
     if (!activated) return response.status(503).json({ error: 'Secure account storage is temporarily unavailable.' });
     core.sessionCookie(response, session);
-    return response.status(200).json({ ok: true, medicationLoginId: medicationLoginId(session), user: { email: session.email, name: session.name, picture: session.picture } });
+    return response.status(200).json({ ok: true, medicationLoginId: medicationLoginId(session), user: { sub: session.sub, email: session.email, name: session.name, picture: session.picture } });
   } catch (error) {
     const message = String(error?.message || '');
     const status = /credential|verification/i.test(message) ? 401 : /configured/i.test(message) ? 503 : 500;
