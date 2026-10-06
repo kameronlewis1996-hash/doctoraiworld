@@ -3036,31 +3036,6 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     let destinationView = '';
     let postSaveToast = '';
     let focusMedicationSafetyPanel = false;
-    if (form.dataset.modalForm === 'symptom-guidance') {
-      const result = form.querySelector('[data-guidance-result]');
-      const immediate = String(values['guidance-immediate'] || '');
-      if (!['yes', 'no', 'unsure'].includes(immediate)) {
-        showToast('Choose an answer before continuing.');
-        form.querySelector('input[name="guidance-immediate"]')?.focus();
-        return;
-      }
-      if (immediate !== 'no') {
-        setSymptomGuidanceResult(result, 'emergency', 'Seek emergency help now', 'Call your local emergency service now and do not wait for an AI response.', 'DoctorAI cannot assess or monitor emergencies.');
-        return;
-      }
-      const worsening = String(values['guidance-worsening'] || '');
-      if (!['yes', 'no', 'unsure'].includes(worsening)) {
-        showToast('Choose an answer about how the symptom is changing.');
-        form.querySelector('[data-guidance-worsening-fieldset] input')?.focus();
-        return;
-      }
-      if (worsening !== 'no') {
-        setSymptomGuidanceResult(result, 'urgent', 'Seek prompt professional advice', 'Contact an urgent-care service or your clinician today. If you may be in immediate danger, call your local emergency service.', 'This check cannot rule out a serious problem.');
-        return;
-      }
-      setSymptomGuidanceResult(result, 'monitor', 'Keep tracking and arrange care if needed', 'Record changes in your diary and contact a qualified healthcare professional if the symptom persists, worsens or concerns you.', 'No serious problem has been ruled out.');
-      return;
-    }
     if (form.dataset.modalForm === 'medication') {
       const editingId = String(form.dataset.editMedicationId || '');
       const existingIndex = editingId ? state.medications.findIndex(item => String(item.id) === editingId) : -1;
