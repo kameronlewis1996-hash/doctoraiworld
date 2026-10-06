@@ -51,7 +51,7 @@ function responseRecorder() {
   const safetyApi = fs.readFileSync(path.join(root, 'api/medication/safety.js'), 'utf8');
   const safetyProvider = fs.readFileSync(path.join(root, 'server-src/medication/safety-provider.cjs'), 'utf8');
   assert.match(dispatcher, /scan:/, 'The consented label-photo route remains available');
-  assert.match(app, /fetch\('\/api\/medication\/safety'/, 'The limited local rules path stays active');
+  assert.match(app, /accountFetch\('\/api\/medication\/safety'/, 'The limited local rules path stays active with the signed-in account identity guard');
   assert.match(safetyApi, /server-src\/medication\/safety-provider\.cjs/, 'The limited safety endpoint must use the replaceable local provider interface');
   assert.match(safetyProvider, /require\(['"]\.\/safety-engine\.cjs['"]\)/, 'The default provider must delegate to the existing local rule engine');
   for (const retired of ['/api/medication/nzf-product-search', '/api/medication/nzf-interactions', '/api/medication/ingredient-search', '/api/medication/safety-check']) {
