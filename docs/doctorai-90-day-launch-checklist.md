@@ -196,6 +196,7 @@ Current working assumption: publish Android as consumption-only, with no direct 
 ## Advertising go/no-go checklist
 
 - [ ] First market and legal operator confirmed; support/privacy owner named.
+- [ ] `support@doctoraiworld.com` mailbox/alias verified and staffed; non-sensitive send/receive test passes; authorized senders and SPF/DKIM/DMARC configuration reviewed by the mail administrator.
 - [ ] Product purpose and all health/medication claims reviewed by qualified people.
 - [ ] Privacy notices, consent, processor map, retention and deletion process reviewed for the launch market.
 - [ ] Qualified clinician and privacy/regulatory review approve the limited medication rule set, intended purpose, consent, minimized data flow, incomplete coverage and consistent copy.
