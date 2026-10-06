@@ -5316,6 +5316,12 @@ body[data-hub-theme] #view-medications > .page-heading .secondary-button {
 .today-verified-card.urgent b { color: #8b302b; }
 .today-ai-briefing { border-color: #bcdcec; background: linear-gradient(145deg, #f7fcff, #eef9fe); }
 .today-ai-briefing .today-dashboard-heading > span { background: #e9efff; color: #385fb0; }
+.today-ai-consent, .today-checkin-consent { display: flex; align-items: flex-start; gap: 10px; color: #36556c; font-size: 13px; line-height: 1.55; }
+.today-ai-consent input, .today-checkin-consent input, .today-checkin-sharing input { flex: 0 0 auto; width: 18px; height: 18px; margin: 1px 0 0; accent-color: #138db8; }
+.today-checkin-sharing { display: grid; gap: 10px; margin: 16px 0; padding: 14px; border: 1px solid #d5e6ee; border-radius: 13px; background: #f7fbfd; }
+.today-checkin-sharing legend { padding: 0 5px; color: #193e56; font-size: 14px; font-weight: 700; }
+.today-checkin-sharing p { margin: 0 0 3px; color: #60798a; font-size: 12px; line-height: 1.5; }
+.today-checkin-sharing label { display: flex; align-items: flex-start; gap: 9px; color: #36556c; font-size: 13px; line-height: 1.45; }
 .today-ai-output { min-height: 86px; padding: 13px 14px; border: 1px solid #d6e9f2; border-radius: 13px; background: #fff; color: #35576e; font-size: 11px; line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
 .today-ai-output.loading { display: flex; align-items: center; gap: 12px; }
 .today-ai-output.loading p { margin: 0; }

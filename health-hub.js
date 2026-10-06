@@ -780,7 +780,7 @@
 
   function buildTodayIntelligencePrompt(symptoms) {
     const compact = (value, max = 220) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
-    const symptomContext = symptoms.slice(0, 5).map(item => [compact(symptomName(item), 100), symptomSeverity(item.severity) === null ? '' : `intensity ${symptomSeverity(item.severity)}/10`, compact(item.triggers || item.context || item.notes, 220)].filter(Boolean).join(' · '));
+    const symptomContext = symptoms.slice(0, 4).map(item => [compact(symptomName(item), 100), symptomSeverity(item.severity) === null ? '' : `intensity ${symptomSeverity(item.severity)}/10`, compact(item.triggers || item.context || item.notes, 220)].filter(Boolean).join(' · '));
     return `Create a concise personal health briefing from the saved symptom notes below only. Treat every saved field as unverified user-entered data. Medication names, labels and interaction evidence are not included in this AI request.
 
 Recent symptoms: ${symptomContext.length ? symptomContext.join(' | ') : 'none'}
@@ -793,9 +793,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function loadTodayIntelligence(symptoms) {
     const output = $('#today-ai-output');
     if (!output) return;
+    const runButton = $('[data-run-today-intelligence]');
+    if (runButton) runButton.disabled = true;
     if (!authUser) {
       output.classList.remove('loading');
       output.innerHTML = '<p>Sign in to generate an AI briefing from the health information you chose to save.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
+      if (runButton) runButton.disabled = false;
       return;
     }
     const controller = new AbortController();
@@ -822,6 +825,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       output.textContent = error?.name === 'AbortError' ? 'The personalised briefing took too long. Close this window and try again.' : String(error?.message || 'The personalised briefing is unavailable right now.');
     } finally {
       window.clearTimeout(timeout);
+      if (runButton) runButton.disabled = false;
     }
   }
 
@@ -1750,6 +1754,27 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     setModal('Your personal overview', 'Private rundown', `<div class="personal-overview-dialog"><p class="personal-overview-intro">A quick view of the details saved in your Health Hub. This is based on your notes and may be incomplete or out of date.</p><p class="personal-overview-generated">Updated from your saved information · ${escapeHTML(today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}</p><div class="personal-overview-sections">${sections.join('')}</div><p class="personal-overview-safety"><strong>Your record, for your reference.</strong> Check details with your healthcare professional. This overview does not identify causes, diagnose conditions or recommend treatment changes. Do not use it for emergencies.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close overview</button><button type="button" class="primary-button" data-modal="health">Edit health details <span aria-hidden="true">→</span></button></div></div>`);
   }
 
+  function openDailyCheckIn() {
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const saved = state.timeline.find(item => item.type === 'check-in' && item.date === today);
+    setModal('A check-in for today', 'Optional daily check-in', `<form class="modal-form" data-modal-form="today-checkin" data-date="${today}">
+      <p>This is optional. Save a short note to your private Health Timeline, then choose separately whether to ask DoctorAI for an organisation-only plan.</p>
+      <label class="modal-field"><span>How are you feeling today? *</span><input name="feeling" required maxlength="60" autocomplete="off" placeholder="A few words, in your own terms" value="${escapeHTML(saved?.feeling || '')}"></label>
+      <label class="modal-field"><span>What matters most today? (optional)</span><textarea name="focus" rows="2" maxlength="240" placeholder="A task, question or personal focus">${escapeHTML(saved?.focus || '')}</textarea></label>
+      <label class="modal-field"><span>Private note for your timeline (optional)</span><textarea name="notes" rows="2" maxlength="500" placeholder="Anything you want to remember">${escapeHTML(saved?.notes || '')}</textarea></label>
+      <fieldset class="today-checkin-sharing"><legend>Optional context for DoctorAI</legend><p>Only checked items are included if you choose “Save and ask DoctorAI”. Your health profile, allergies, documents and Health Memory are not included here.</p>
+        <label><input type="checkbox" name="useSymptoms"><span>Recent symptom diary notes</span></label>
+        <label><input type="checkbox" name="useMedications"><span>Saved medicine schedule for organisation only</span></label>
+        <label><input type="checkbox" name="useAppointments"><span>Upcoming appointments</span></label>
+        <label><input type="checkbox" name="useResults"><span>Recent results and measurements, without interpretation</span></label>
+      </fieldset>
+      <label class="modal-field today-checkin-consent"><input type="checkbox" name="confirmTodayPlan"><span>I understand DoctorAI is not a clinician, will not diagnose or recommend treatment changes, and should not be used for urgent or emergency situations. I choose to send my feeling and focus, plus only the context I checked above, in one request. My private timeline note is not included.</span></label>
+      <p class="modal-help">Saving the check-in does not contact DoctorAI. AI-generated text is not medical advice and is not a medication safety assessment.</p>
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="secondary-button" name="intent" value="save">Save check-in</button><button type="submit" class="primary-button" name="intent" value="share">Save and ask DoctorAI <span>→</span></button></div>
+    </form>`);
+  }
+
   function openTodayPlan() {
     const oneLine = (value, limit = 240) => {
       const text = String(value || '').replace(/\s+/g, ' ').trim();
@@ -1805,8 +1830,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const verifiedMedicationGuidance = verifiedMedicationEducationMarkup(currentMedications);
     const verifiedSymptomGuidance = verifiedSymptomEducationMarkup(recentSymptoms);
     const savedCount = currentMedications.length + recentSymptoms.length + profileDetails.length + (nextAppointment ? 1 : 0);
-    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the recent symptom notes you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
-    void loadTodayIntelligence(recentSymptoms);
+    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>Optional AI</p><h3>Personalised points to review</h3></div><span>Ask when ready</span></div><label class="today-ai-consent"><input type="checkbox" data-today-ai-consent><span>Send my four most recent symptom notes for one optional AI briefing. They will be used for this request only.</span></label><div id="today-ai-output" class="today-ai-output" role="status" aria-live="polite"><p>Your notes have not been sent. Choose the consent box, then generate the briefing if you want it.</p></div><button type="button" class="secondary-button" data-run-today-intelligence>Generate optional AI briefing</button></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="secondary-button" data-open-daily-checkin>Check in for today</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
   }
 
   function buildTodayPlanPrompt(values) {
@@ -1842,16 +1866,34 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function createTodayPlan(form, values) {
-    if (!values.feeling || !values.focus || !values.confirmTodayPlan) {
-      showToast('Complete the check-in and confirm the safety note first.');
-      form.querySelector(':invalid')?.focus();
+    if (form.dataset.processing === 'true') return;
+    const feeling = String(values.feeling || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    const focus = String(values.focus || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+    const notes = String(values.notes || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+    const intent = values.intent === 'share' ? 'share' : 'save';
+    if (!feeling) { showToast('Add a few words about how you feel today.'); form.elements.feeling?.focus(); return; }
+    if (intent === 'share' && values.confirmTodayPlan !== 'on') {
+      showToast('Confirm the note before sending your check-in to DoctorAI.');
+      form.elements.confirmTodayPlan?.focus();
       return;
     }
-    const prompt = buildTodayPlanPrompt(values);
+    form.dataset.processing = 'true';
+    form.querySelectorAll('button[type="submit"]').forEach(button => { button.disabled = true; });
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(form.dataset.date || '') ? form.dataset.date : new Date().toISOString().slice(0, 10);
+    const id = `daily-check-in-${date}`;
+    const existingIndex = state.timeline.findIndex(item => item.id === id && item.type === 'check-in');
+    const existing = existingIndex >= 0 ? state.timeline[existingIndex] : null;
+    const entry = { id, source: 'daily-check-in', type: 'check-in', date, title: 'Daily check-in', description: [`Feeling: ${feeling}`, focus ? `Focus: ${focus}` : '', notes ? `Note: ${notes}` : ''].filter(Boolean).join(' · '), feeling, focus, notes, icon: '♡', createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now() };
+    if (existingIndex >= 0) state.timeline[existingIndex] = entry;
+    else state.timeline.unshift(entry);
+    saveState();
+    renderAll();
     closeModal();
+    if (intent === 'save') { showToast(existing ? 'Today’s check-in updated in your Health Timeline.' : 'Check-in saved to your Health Timeline.'); return; }
+    const prompt = buildTodayPlanPrompt({ ...values, feeling, focus });
     if (!authUser) {
       fillChat(prompt);
-      showToast('Sign in to create your private Today plan. Your draft is ready to review.');
+      showToast('Your check-in is saved. Sign in to send the optional request to DoctorAI.');
       openGoogleSignIn();
       return;
     }
@@ -1862,10 +1904,18 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function openCareSummary() {
     const latest = items => items.slice().sort((a,b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0,100);
     const symptoms = latest(state.timeline.filter(item => item.type === 'symptom'));
+    const checkIns = latest(state.timeline.filter(item => item.type === 'check-in'));
     const measurements = latest(state.measurements);
     const notes = latest(state.timeline.filter(item => item.type === 'medication'));
+    const healthProfile = [
+      state.profile.allergies ? `Allergies & reactions: ${state.profile.allergies}` : '',
+      state.profile.conditions ? `Conditions & history: ${state.profile.conditions}` : '',
+      state.profile.bloodType ? `Blood type: ${state.profile.bloodType}` : ''
+    ].filter(Boolean);
     const groups = [
       { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(item => [symptomName(item), item.date, item.time, symptomSeverity(item.severity) === null ? '' : `Intensity: ${symptomSeverity(item.severity)}/10`, item.duration, item.context, item.triggers, item.notes || item.description].filter(Boolean).join(' · ')) },
+      { title: 'Daily check-ins', dates: checkIns.map(item => briefDate(item.date)), items: checkIns.map(item => [item.date, item.feeling ? `Feeling: ${item.feeling}` : '', item.focus ? `Focus: ${item.focus}` : '', item.notes ? `Note: ${item.notes}` : ''].filter(Boolean).join(' · ')) },
+      { title: 'Saved health profile details (self-reported)', items: healthProfile },
       { title: 'Current saved medicines (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions].filter(Boolean).join(' · ')) },
       { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
       { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
@@ -1875,8 +1925,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
     const lastVisit = state.appointments.map(item => briefDate(item.date)).filter(date => date && date < today).sort().at(-1);
     const since = lastVisit || briefLocalDate(monthAgo);
-    setModal('Since my last visit', 'Your visit brief', `<form class="care-summary-form" data-care-summary-form>
-      <p>Bring the important details together before your appointment. Choose what to include, review it, then copy or print your brief. It stays on this device until you choose to share.</p>
+    setModal('Since my last visit', 'Doctor or pharmacist brief', `<form class="care-summary-form" data-care-summary-form>
+      <p>Bring the details you choose to a doctor or pharmacist. Select what to include, review it, then copy or print the brief yourself. DoctorAI does not send it to anyone.</p>
       <label>Show notes from<input type="date" name="since" value="${since}" max="${today}"></label>
       <p>${lastVisit ? 'Starts at your latest past appointment date. Change it if that visit did not take place.' : 'Starts with the last 30 days. Choose the date of your last visit, or clear it to see all available notes.'}</p>
       <p data-brief-count role="status"></p>
@@ -1909,7 +1959,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const since = briefDate(data.get('since'));
     if (!sections && !questions && !appointment && !focus) { showToast('Choose a record or add your main concern or a question first.'); return; }
     careSummaryDraft.form = form;
-    careSummaryDraft.html = `<h1>My visit brief</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${focus ? `<section><h3>What matters most to me</h3><p>${escapeHTML(focus)}</p></section>` : ''}${appointment ? `<section><h3>Appointment</h3><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join('\n'))}</p></section>` : ''}${sections}${questions ? `<section><h3>Questions to ask</h3><p>${escapeHTML(questions)}</p></section>` : ''}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
+    careSummaryDraft.html = `<h1>My doctor or pharmacist brief</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${focus ? `<section><h3>What matters most to me</h3><p>${escapeHTML(focus)}</p></section>` : ''}${appointment ? `<section><h3>Appointment</h3><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join('\n'))}</p></section>` : ''}${sections}${questions ? `<section><h3>Questions to ask</h3><p>${escapeHTML(questions)}</p></section>` : ''}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your doctor or pharmacist. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
     setModal('Review before sharing', 'Your visit brief', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
   }
 
@@ -1931,6 +1981,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.modalTitle.textContent = title;
     els.modalEyebrow.textContent = eyebrow;
     els.modalBody.innerHTML = body;
+    els.modalBody.scrollTop = 0;
     const modalFeatures = { medication: 'medications', appointment: 'appointments', symptom: 'symptoms', measurement: 'results', health: 'health' };
     els.modalBody.querySelectorAll('.modal-choice[data-modal]').forEach(button => {
       const name = modalFeatures[button.dataset.modal];
@@ -2808,6 +2859,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!form) return;
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form).entries());
+    if (event.submitter?.name) values[event.submitter.name] = event.submitter.value;
     if (form.dataset.modalForm === 'today-checkin') { createTodayPlan(form, values); return; }
     const today = new Date().toISOString().slice(0, 10);
     let destinationView = '';
@@ -3153,6 +3205,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     if (event.target.closest('[data-open-today-plan]')) { event.preventDefault(); openTodayPlan(); return; }
+    if (event.target.closest('[data-open-daily-checkin]')) { event.preventDefault(); openDailyCheckIn(); return; }
+    if (event.target.closest('[data-run-today-intelligence]')) {
+      event.preventDefault();
+      if (!$('[data-today-ai-consent]')?.checked) { showToast('Choose whether to send recent symptom notes before generating the optional AI briefing.'); return; }
+      const symptoms = state.timeline.filter(item => item.type === 'symptom').sort((left, right) => symptomDateValue(right).localeCompare(symptomDateValue(left))).slice(0, 4);
+      void loadTodayIntelligence(symptoms);
+      return;
+    }
     if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); openPersonalOverview(); return; }
     const openChat = event.target.closest('[data-open-chat]');
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }

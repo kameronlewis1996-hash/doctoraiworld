@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=70">
+  <link rel="stylesheet" href="/health-hub.css?v=71">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -319,7 +319,7 @@
 
         <section class="view" id="view-timeline" data-view-panel="timeline" aria-labelledby="timeline-title" hidden>
           <div class="page-heading"><div><p class="eyebrow">A connected view of your health</p><h1 id="timeline-title">Health Timeline</h1><p class="page-subtitle">Symptoms, visits, results, prescriptions and documents in chronological order.</p></div><button class="primary-button" type="button" data-modal="timeline">＋ Add entry</button></div>
-          <div class="timeline-toolbar"><div class="filter-tabs" aria-label="Filter timeline"><button class="active" type="button" data-timeline-filter="all">All activity</button><button type="button" data-timeline-filter="medication">Medications</button><button type="button" data-timeline-filter="appointment">Appointments</button><button type="button" data-timeline-filter="result">Results</button><button type="button" data-timeline-filter="symptom">Symptoms</button></div><span class="timeline-note"><i></i> Automatically organised</span></div>
+          <div class="timeline-toolbar"><div class="filter-tabs" aria-label="Filter timeline"><button class="active" type="button" data-timeline-filter="all">All activity</button><button type="button" data-timeline-filter="medication">Medications</button><button type="button" data-timeline-filter="appointment">Appointments</button><button type="button" data-timeline-filter="result">Results</button><button type="button" data-timeline-filter="symptom">Symptoms</button><button type="button" data-timeline-filter="check-in">Daily check-ins</button></div><span class="timeline-note"><i></i> Automatically organised</span></div>
           <section class="panel-card timeline-card"><div class="timeline-list" id="timeline-list"></div></section>
         </section>
 
@@ -392,6 +392,6 @@
   <dialog class="privacy-modal" id="privacy-modal" aria-labelledby="privacy-title"><div class="modal-header"><div><p class="eyebrow">Trust &amp; control</p><h2 id="privacy-title">Your privacy, clearly</h2></div><button class="icon-button" type="button" data-close-privacy aria-label="Close privacy information">×</button></div><div class="privacy-copy"><div class="privacy-highlight"><span>♢</span><p><b>Your health information belongs to you.</b> You choose whether this browser keeps health-hub entries between visits. When signed in, approved hub data is also encrypted for your account.</p></div><h3>DoctorAI can organise and explain</h3><p>It is not a doctor, does not diagnose, and should not be used to start, stop or change prescribed treatment. Health Memory is optional and you can edit or delete saved details.</p><h3>Urgent or emergency situations</h3><p>Contact your local emergency service or an appropriate crisis service now. Do not wait for an AI response.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-device-storage-allow>Keep data on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><button type="button" class="secondary-button" data-export-health>Export my hub data</button><button type="button" class="danger-button" data-delete-health>Delete my hub data</button><button type="button" class="secondary-button" data-close-privacy>Close</button><a href="/privacy" class="text-button">Read privacy notice <span>→</span></a><a href="/terms" class="text-button">Read terms</a></div></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="medication-check-controller.js?v=2"></script>
-  <script src="health-hub.js?v=66"></script>
+  <script src="health-hub.js?v=67"></script>
 </body>
 </html>

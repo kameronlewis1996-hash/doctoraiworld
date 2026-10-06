@@ -174,7 +174,11 @@ async function run() {
   assert.match(dailyPrompt, /Medication names, labels and interaction evidence are not included/i);
   assert.doesNotMatch(dailyPrompt, /POSSIBLE OVERLAPS TO CHECK|medicineContext/);
   assert.match(hubSource, /buildTodayIntelligencePrompt\(symptoms\)/);
-  assert.match(hubSource, /void loadTodayIntelligence\(recentSymptoms\);/);
+  assert.doesNotMatch(hubSource, /void loadTodayIntelligence\(recentSymptoms\);/);
+  assert.match(hubSource, /data-today-ai-consent/);
+  assert.match(hubSource, /Choose whether to send recent symptom notes before generating the optional AI briefing/i);
+  assert.match(hubSource, /data-open-daily-checkin/);
+  assert.match(hubSource, /type: 'check-in'/);
   assert.match(hubSource, /the saved medicine schedule is for organisation only/i);
   counts.chatPolicyGuards = 8;
   const promptFunction = dailyPrompt.trim();
@@ -199,11 +203,11 @@ async function run() {
   assert.deepEqual(splitDetails('ibuprofen, paracetamol'), ['ibuprofen', 'paracetamol']);
   counts.labelTranscriptionUsabilityGuards = 11;
 
-  assert.match(hubHtml, /health-hub\.js\?v=66/);
-  assert.match(hubHtml, /health-hub\.css\?v=70/);
-  assert.match(serviceWorker, /doctorai-shell-v111/);
-  assert.match(serviceWorker, /health-hub\.js\?v=66/);
-  assert.match(serviceWorker, /health-hub\.css\?v=70/);
+  assert.match(hubHtml, /health-hub\.js\?v=67/);
+  assert.match(hubHtml, /health-hub\.css\?v=71/);
+  assert.match(serviceWorker, /doctorai-shell-v112/);
+  assert.match(serviceWorker, /health-hub\.js\?v=67/);
+  assert.match(serviceWorker, /health-hub\.css\?v=71/);
   counts.cacheVersionGuards = 5;
 
   process.stdout.write(JSON.stringify({
