@@ -5,12 +5,15 @@ const core = require('../server-src/_lib/doctorai-core.cjs');
 const catalog = require('../server-src/stripe/plan-catalog.cjs');
 const plansHandler = require('../server-src/stripe/public-plans.js');
 
-const envNames = ['STRIPE_SECRET_KEY', 'STRIPE_PRO_MONTHLY_PRICE_ID', 'STRIPE_PRO_ANNUAL_PRICE_ID', 'VERCEL_ENV'];
+const envNames = ['STRIPE_SECRET_KEY', 'STRIPE_PRO_MONTHLY_PRICE_ID', 'STRIPE_PRO_ANNUAL_PRICE_ID', 'VERCEL_ENV', 'VERCEL_TARGET_ENV', 'VERCEL_URL', 'NEXT_PUBLIC_APP_URL'];
 const originalEnv = Object.fromEntries(envNames.map(name => [name, process.env[name]]));
 const originalReportError = core.reportError;
 const originalIdentity = core.identityFromRequest;
 const originalStorage = core.storageConfigured;
 const originalRateLimit = core.rateLimit;
+const originalDeletionBlocked = core.isAccountDeletionBlocked;
+const originalSavePendingCheckout = core.savePendingCheckoutSession;
+const originalDeletePendingCheckout = core.deletePendingCheckoutSession;
 const stripeModulePath = require.resolve('stripe');
 const stripeModule = require.cache[stripeModulePath];
 const originalStripeExport = stripeModule?.exports;
@@ -43,15 +46,17 @@ class FakeStripe {
     } };
     this.checkout = { sessions: { create: async options => {
       FakeStripe.checkoutOptions = options;
-      return { url: 'https://checkout.stripe.test/session' };
-    } } };
+      return { id: 'cs_test_checkout', url: 'https://checkout.stripe.test/session' };
+    }, expire: async id => { FakeStripe.expiredCheckoutSessionId = id; } } };
   }
 }
 
 async function run() {
   assert.equal(catalog.keyMode('sk_test_fake'), 'test');
   assert.equal(catalog.keyMode('sk_live_fake'), 'live');
+  assert.equal(catalog.keyMode('rkcs_test_fake'), 'test');
   assert.equal(catalog.environmentModeMatches('sk_test_fake', 'preview'), true);
+  assert.equal(catalog.environmentModeMatches('rkcs_test_fake', 'preview'), true);
   assert.equal(catalog.environmentModeMatches('sk_live_fake', 'preview'), false);
   assert.equal(catalog.environmentModeMatches('sk_live_fake', 'production'), true);
   assert.equal(catalog.environmentModeMatches('sk_test_fake', 'production'), false);
@@ -64,6 +69,9 @@ async function run() {
   core.reportError = (name, details) => logged.push({ name, details });
   process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
   process.env.VERCEL_ENV = 'preview';
+  delete process.env.VERCEL_TARGET_ENV;
+  process.env.VERCEL_URL = 'doctorai-synthetic-preview.vercel.app';
+  process.env.NEXT_PUBLIC_APP_URL = 'https://www.doctoraiworld.com';
   process.env.STRIPE_PRO_MONTHLY_PRICE_ID = 'price_monthly_test';
   process.env.STRIPE_PRO_ANNUAL_PRICE_ID = 'price_annual_test';
   const handler = plansHandler.createHandler(FakeStripe);
@@ -77,6 +85,9 @@ async function run() {
   core.identityFromRequest = async () => ({ email: 'buyer@example.test', sub: 'test-account' });
   core.storageConfigured = () => true;
   core.rateLimit = async () => ({ allowed: true, retryAfter: 0 });
+  core.isAccountDeletionBlocked = async () => false;
+  core.savePendingCheckoutSession = async () => true;
+  core.deletePendingCheckoutSession = async () => true;
   stripeModule.exports = FakeStripe;
   delete require.cache[require.resolve('../server-src/stripe/create-checkout-session.js')];
   const checkoutHandler = require('../server-src/stripe/create-checkout-session.js');
@@ -86,6 +97,11 @@ async function run() {
   assert.equal(checkout.statusCode, 200, 'Checkout must accept the current active monthly Stripe amount instead of a stale hard-coded website amount.');
   assert.equal(checkout.body.url, 'https://checkout.stripe.test/session');
   assert.equal(FakeStripe.checkoutOptions.line_items[0].price, 'price_monthly_test');
+  assert.equal(FakeStripe.checkoutOptions.success_url, 'https://doctorai-synthetic-preview.vercel.app/subscription?checkout=success&session_id={CHECKOUT_SESSION_ID}');
+  assert.equal(FakeStripe.checkoutOptions.cancel_url, 'https://doctorai-synthetic-preview.vercel.app/subscription?checkout=cancelled&plan=monthly');
+  delete process.env.VERCEL_URL;
+  assert.throws(() => require('../server-src/stripe/app-url.cjs')(), /Preview return address/);
+  process.env.VERCEL_URL = 'doctorai-synthetic-preview.vercel.app';
 
   stripePrices.monthly = { ...stripePrices.monthly, livemode: true };
   const modeMismatch = responseRecorder();
@@ -133,6 +149,9 @@ run().catch(error => { console.error(error); process.exitCode = 1; }).finally(()
   core.identityFromRequest = originalIdentity;
   core.storageConfigured = originalStorage;
   core.rateLimit = originalRateLimit;
+  core.isAccountDeletionBlocked = originalDeletionBlocked;
+  core.savePendingCheckoutSession = originalSavePendingCheckout;
+  core.deletePendingCheckoutSession = originalDeletePendingCheckout;
   core.reportError = originalReportError;
   if (stripeModule && originalStripeExport) stripeModule.exports = originalStripeExport;
   delete require.cache[require.resolve('../server-src/stripe/create-checkout-session.js')];

@@ -4,6 +4,7 @@ module.exports = async function handler(request, response) {
   core.noStore(response);
   const account = await core.identityFromRequest(request);
   if (!account) return response.status(401).json({ error: 'Sign in is required to access private health data.' });
+  if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
   if (!core.storageConfigured()) return response.status(503).json({
     error: 'Secure shared health storage is not connected yet.',
     code: 'secure_storage_not_configured',
@@ -17,6 +18,7 @@ module.exports = async function handler(request, response) {
   try {
     if (request.method === 'GET') {
       const record = await core.readHealthState(account);
+      if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
       return response.status(200).json({ configured: true, updatedAt: record?.updatedAt || null, state: record?.state || null });
     }
     if (request.method === 'PUT') {
@@ -24,7 +26,8 @@ module.exports = async function handler(request, response) {
       try { body = typeof body === 'string' ? JSON.parse(body) : body; } catch { return response.status(400).json({ error: 'Invalid private health data request.' }); }
       const state = body?.state;
       if (!core.validHealthState(state)) return response.status(400).json({ error: 'The health update was not valid.' });
-      await core.saveHealthState(account, state);
+      const saved = await core.saveHealthState(account, state);
+      if (!saved) return response.status(409).json({ error: 'This account is being deleted, so the health update was not saved.' });
       return response.status(200).json({ ok: true, updatedAt: Date.now() });
     }
     if (request.method === 'DELETE') {

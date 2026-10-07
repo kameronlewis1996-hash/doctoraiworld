@@ -7,8 +7,8 @@ const plans = Object.freeze({
 
 function keyMode(secretKey) {
   const value = String(secretKey || '');
-  if (/^(?:sk|rk)_live_/.test(value)) return 'live';
-  if (/^(?:sk|rk)_test_/.test(value)) return 'test';
+  if (/^(?:sk|rk|rkcs)_live_/.test(value)) return 'live';
+  if (/^(?:sk|rk|rkcs)_test_/.test(value)) return 'test';
   return '';
 }
 
@@ -16,9 +16,7 @@ function environmentModeMatches(secretKey, environment) {
   const mode = keyMode(secretKey);
   const target = environment === 'production'
     ? 'live'
-    : environment === 'preview' || environment === 'development'
-      ? 'test'
-      : mode;
+    : environment ? 'test' : mode;
   return Boolean(mode && mode === target);
 }
 

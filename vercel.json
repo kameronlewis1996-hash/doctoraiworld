@@ -103,6 +103,10 @@
     {
       "source": "/privacy",
       "destination": "/privacy.html"
+    },
+    {
+      "source": "/account-deletion",
+      "destination": "/account-deletion.html"
     }
   ],
   "headers": [

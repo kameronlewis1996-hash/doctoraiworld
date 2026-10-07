@@ -1,0 +1,103 @@
+.account-deletion-main {
+  width: min(900px, calc(100% - 32px));
+  margin: clamp(30px, 6vw, 68px) auto;
+}
+
+.account-deletion-panel {
+  padding: clamp(24px, 5vw, 52px);
+  border: 1px solid var(--dai-line);
+  border-radius: 28px;
+  background: var(--dai-surface);
+  box-shadow: var(--dai-shadow);
+}
+
+.account-deletion-eyebrow {
+  margin: 0;
+  color: var(--dai-blue-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.account-deletion-panel h1 {
+  margin: 10px 0 16px;
+  color: var(--dai-ink);
+  font-size: clamp(34px, 6vw, 58px);
+  letter-spacing: -.04em;
+  line-height: 1.04;
+}
+
+.account-deletion-panel h2 {
+  margin: 0 0 10px;
+  color: var(--dai-ink);
+  font-size: 19px;
+  letter-spacing: -.025em;
+}
+
+.account-deletion-panel p {
+  color: var(--dai-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.account-deletion-lead {
+  max-width: 720px;
+  margin: 0;
+  font-size: 16px !important;
+}
+
+.account-deletion-request {
+  margin-top: 30px;
+  padding: 22px;
+  border: 1px solid #cfe8f3;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f4fcff, #fff);
+}
+
+.account-deletion-button {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 5px;
+  padding: 0 18px;
+  border-radius: 12px;
+  background: linear-gradient(115deg, #075ed9, #0787b8);
+  box-shadow: 0 10px 24px rgba(7, 94, 217, .2);
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.account-deletion-button:hover { filter: brightness(1.06); }
+.account-deletion-button:focus-visible { outline: 3px solid rgba(13, 117, 245, .34); outline-offset: 3px; }
+.account-deletion-note { margin: 14px 0 0; font-size: 12px !important; }
+.account-deletion-note a, .account-deletion-panel section a { color: var(--dai-blue-dark); font-weight: 750; }
+
+.account-deletion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 24px;
+}
+
+.account-deletion-grid section {
+  padding-top: 20px;
+  border-top: 1px solid var(--dai-line);
+}
+
+.account-deletion-grid p { margin: 0 0 12px; }
+.account-deletion-grid p:last-child { margin-bottom: 0; }
+.account-deletion-full { grid-column: 1 / -1; }
+.account-deletion-footer-note { margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--dai-line); font-size: 12px !important; }
+
+@media (max-width: 640px) {
+  .account-deletion-main { width: calc(100% - 24px); margin: 24px auto; }
+  .account-deletion-panel { padding: 22px; }
+  .account-deletion-grid { grid-template-columns: 1fr; gap: 20px; }
+  .account-deletion-full { grid-column: auto; }
+  .account-deletion-button { width: 100%; padding: 0 12px; font-size: 13px; }
+}

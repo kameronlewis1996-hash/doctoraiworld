@@ -7,7 +7,7 @@ module.exports = async function handler(request, response) {
   if (!session) return response.status(401).json({ allowed: false, reason: 'Sign in with Google to continue.' });
   const email = String(session.email || '').toLowerCase();
   if (!core.isAdmin(session)) return response.status(403).json({ allowed: false, reason: 'Staff access is restricted.' });
-  const result = { allowed: true, role: 'staff-admin', email, admins: [...core.ADMIN_EMAILS], capabilities: ['site-editing', 'deployments', 'traffic-analytics', 'environment-settings', 'free-pro-management', 'free-pro-revocation', 'audit-log'] };
+  const result = { allowed: true, role: 'staff-admin', email, admins: [...core.ADMIN_EMAILS], capabilities: ['site-editing', 'deployments', 'traffic-analytics', 'environment-settings', 'free-pro-management', 'free-pro-revocation', 'audit-log', 'account-deletion-inspection', 'account-deletion-fulfillment-gated'] };
   if (request.query?.stats === '1') {
     try {
       const grants = await core.listFreeGrants();

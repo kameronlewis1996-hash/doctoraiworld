@@ -42,11 +42,6 @@
     }
   };
 
-  const topicQuery = topic => {
-    const terms = cleanTopic(topic).toLowerCase().split(/[^a-z0-9]+/).filter(term => term.length > 1).slice(0, 8);
-    return terms.map(term => `"${term}"`).join(' OR ');
-  };
-
   const fetchWithTimeout = async (url, options = {}, timeout = 10_000) => {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), timeout);
@@ -71,23 +66,18 @@
   });
 
   async function fetchPapers(topic, start, end, pageSize = 30) {
-    const topicPart = topicQuery(topic);
-    const query = `${topicPart ? `${topicPart} AND ` : ''}FIRST_PDATE:[${start} TO ${end}] AND HAS_ABSTRACT:Y`;
-    const params = new URLSearchParams({ query, format: 'json', pageSize: String(pageSize), resultType: 'core' });
     const readJson = async response => {
       if (!response.ok) throw new Error('Research updates are unavailable.');
       const contentType = response.headers?.get?.('content-type') || '';
       if (contentType && !contentType.includes('json')) throw new Error('Research source returned a non-JSON response.');
       return response.json();
     };
-    let payload;
-    try {
-      const response = await fetchWithTimeout(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?${params}`, { headers: { accept: 'application/json' } });
-      payload = await readJson(response);
-    } catch (_) {
-      const response = await fetchWithTimeout(`/api/research?topic=${encodeURIComponent(topic)}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&pageSize=${encodeURIComponent(pageSize)}`, { headers: { accept: 'application/json' } });
-      payload = await readJson(response);
-    }
+    const response = await fetchWithTimeout('/api/research', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify({ topic, start, end, pageSize })
+    });
+    const payload = await readJson(response);
     return (payload.results || payload.resultList?.result || []).map(normalise);
   }
 

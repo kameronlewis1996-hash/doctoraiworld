@@ -17,7 +17,7 @@ const allowedTypes = new Set([
 ]);
 const safeCategory = value => ['prescription', 'result', 'referral', 'discharge', 'specialist', 'certificate', 'imaging', 'letter', 'other'].includes(value) ? value : 'other';
 const safeName = value => String(value || 'health-document').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 140) || 'health-document';
-const storageReady = () => core.storageConfigured() && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const storageReady = () => core.storageConfigured() && core.documentStorageConfigured();
 const noCache = response => core.noStore(response);
 
 async function requireIdentity(request, response) {
@@ -67,6 +67,7 @@ module.exports = async function handler(request, response) {
   noCache(response);
   const account = await requireIdentity(request, response);
   if (!account) return;
+  if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
   const limit = await core.rateLimit(request, `documents:${core.accountKey(account)}`, 40, 60 * 1000);
   if (!limit.allowed) {
     response.setHeader('Retry-After', String(limit.retryAfter));
@@ -79,15 +80,17 @@ module.exports = async function handler(request, response) {
       const id = String(request.query?.id || '').trim();
       if (!id) {
         const documents = await core.listDocumentMetadata(account);
+        if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
         return response.status(200).json({ documents: documents.map(serialiseMetadata) });
       }
       const document = await core.readDocumentMetadata(account, id);
-      if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      const stored = await get(document.blobPath, { access: 'private', useCache: false });
+      if (!core.documentPathIsOwned(account, document?.blobPath)) return response.status(404).json({ error: 'This private document could not be found.' });
+      const stored = await get(document.blobPath, { ...await core.documentBlobOptions(), useCache: false });
       if (!stored?.stream) return response.status(404).json({ error: 'This private document could not be found.' });
       const encrypted = Buffer.from(await new Response(stored.stream).arrayBuffer());
       const bytes = core.unsealBuffer(encrypted);
       if (!bytes) return response.status(500).json({ error: 'This private document could not be opened safely.' });
+      if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
       const download = String(request.query?.download || '') === '1';
       response.setHeader('Content-Type', document.contentType || 'application/octet-stream');
       response.setHeader('Content-Length', String(bytes.length));
@@ -116,17 +119,21 @@ module.exports = async function handler(request, response) {
         size: bytes.length,
         createdAt: now,
         updatedAt: now,
-        blobPath: `doctorai-private/${core.accountKey(account)}/${id}.enc`
+        blobPath: `${core.documentBlobPrefix(account)}${id}.enc`
       };
       await put(document.blobPath, core.sealBuffer(bytes), {
-        access: 'private',
+        ...await core.documentBlobOptions(),
         addRandomSuffix: false,
         contentType: 'application/octet-stream'
       });
       try {
-        await core.saveDocumentMetadata(account, document);
+        const saved = await core.saveDocumentMetadata(account, document);
+        if (!saved) {
+          await del(document.blobPath, await core.documentBlobOptions());
+          return response.status(409).json({ error: 'This account is being deleted, so the document was not saved.' });
+        }
       } catch (error) {
-        await del(document.blobPath).catch(() => {});
+        await del(document.blobPath, await core.documentBlobOptions()).catch(() => {});
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
@@ -135,9 +142,12 @@ module.exports = async function handler(request, response) {
     if (request.method === 'DELETE') {
       const id = String(request.query?.id || request.body?.id || '').trim();
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
+      if (await core.isAccountDeletionBlocked(account)) return response.status(409).json({ error: 'This account is being deleted.' });
       const document = await core.readDocumentMetadata(account, id);
-      if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath).catch(() => {});
+      if (!core.documentPathIsOwned(account, document?.blobPath)) return response.status(404).json({ error: 'This private document could not be found.' });
+      // Keep the metadata when Blob deletion fails so the document remains
+      // visible and the user can retry instead of receiving a false success.
+      await del(document.blobPath, await core.documentBlobOptions());
       await core.deleteDocumentMetadata(account, id);
       return response.status(200).json({ ok: true, id });
     }

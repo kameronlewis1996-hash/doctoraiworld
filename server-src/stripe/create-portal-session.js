@@ -1,7 +1,8 @@
 const Stripe = require('stripe');
+const { environmentModeMatches } = require('./plan-catalog.cjs');
 const core = require('../_lib/doctorai-core.cjs');
 
-const appUrl = () => String(process.env.NEXT_PUBLIC_APP_URL || 'https://www.doctoraiworld.com').replace(/\/$/, '');
+const appUrl = require('./app-url.cjs');
 
 const json = core.json;
 
@@ -9,9 +10,10 @@ module.exports = async function createPortalSession(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed.' });
   const account = await core.identityFromRequest(req);
   if (!account?.email) return json(res, 401, { error: 'Please sign in with Google before managing Pro billing.' });
+  if (await core.isAccountDeletionBlocked(account)) return json(res, 409, { error: 'This account is being deleted.' });
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) return json(res, 503, { error: 'Stripe billing is not configured yet.' });
+  if (!environmentModeMatches(secretKey, process.env.VERCEL_TARGET_ENV || process.env.VERCEL_ENV)) return json(res, 503, { error: 'Stripe billing is not configured for this environment.' });
   if (!core.storageConfigured()) return json(res, 503, { error: 'Secure subscription storage is not connected yet. Add KV_REST_API_URL and KV_REST_API_TOKEN before managing billing.' });
 
   let body = {};

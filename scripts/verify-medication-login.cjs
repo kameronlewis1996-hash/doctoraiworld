@@ -75,26 +75,34 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
   let finishGet, finishPost, posts = 0; const rendered = [];
-  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, entitlementReady: false, authUser: null, googleCredentialInFlight: false,
-    renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
-    closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
+  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionRequestRevision: 0, accountSessionReady: false, entitlementReady: false, authUser: null, googleCredentialInFlight: false,
+    renderAccountSession: async user => { rendered.push(user?.email || ''); if (user) await sandbox.loadEntitlement(); }, refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
+    prepareAccountChange: async () => { sandbox.accountSessionRequestRevision++; return ++sandbox.accountSessionRevision; },
+    resumeCloudSync() {}, closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });
   vm.runInContext(source.slice(source.indexOf('  async function loadAccountSession('), source.indexOf('  async function loadEntitlement(')) + source.slice(source.indexOf('  async function handleGoogleCredential('), source.indexOf('  function openGoogleSignIn(')), sandbox);
   const oldGet = sandbox.loadAccountSession();
   const login = sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' });
-  await sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' }); assert.equal(posts, 1);
-  finishPost({ ok: true, json: async () => ({ user: { email: 'new-fictional@example.invalid' }, medicationLoginId: 'b'.repeat(64) }) }); await login;
-  finishGet({ ok: true, json: async () => ({ authenticated: true, user: { email: 'old-fictional@example.invalid' }, medicationLoginId: 'a'.repeat(64) }) }); await oldGet;
+  await sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' }); await settleUntil(() => posts === 1); assert.equal(posts, 1);
+  finishPost({ ok: true, json: async () => ({ user: { email: 'new-fictional@example.invalid', sub: 'synthetic-new-sub' }, medicationLoginId: 'b'.repeat(64) }) }); await login;
+  finishGet({ ok: true, json: async () => ({ authenticated: true, user: { email: 'old-fictional@example.invalid', sub: 'synthetic-old-sub' }, medicationLoginId: 'a'.repeat(64) }) }); await oldGet;
   assert.deepEqual(rendered, ['new-fictional@example.invalid']); assert.equal(sandbox.googleCredentialInFlight, false);
-  // Sign-out during either auth POST or entitlement refresh must suppress late login rendering.
+  // Sign-out during auth must suppress rendering. During entitlement refresh, the sign-out render must remain final.
+  let successToasts = 0;
+  sandbox.showToast = message => { if (message === 'Signed in to your DoctorAI account.') successToasts++; };
   for (const phase of ['auth', 'entitlement']) {
-    rendered.length = 0; sandbox.authUser = { email: 'same-fictional@example.invalid' };
-    let finishEntitlement; sandbox.loadEntitlement = () => new Promise(resolve => { finishEntitlement = resolve; });
+    rendered.length = 0; successToasts = 0; sandbox.authUser = { email: 'same-fictional@example.invalid', sub: 'synthetic-same-sub' };
+    finishPost = null;
+    let finishEntitlement; sandbox.loadEntitlement = () => phase === 'entitlement' ? new Promise(resolve => { finishEntitlement = resolve; }) : Promise.resolve();
     const pendingLogin = sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' });
+    await settleUntil(() => !!finishPost);
     if (phase === 'auth') sandbox.accountSessionRevision++;
-    finishPost({ ok: true, json: async () => ({ user: { email: 'same-fictional@example.invalid' }, medicationLoginId: 'c'.repeat(64) }) });
-    if (phase === 'entitlement') { await settleUntil(() => !!finishEntitlement); sandbox.accountSessionRevision++; finishEntitlement(); }
-    await pendingLogin; assert.deepEqual(rendered, [], 'Late login cannot restore the account after sign-out');
+    finishPost({ ok: true, json: async () => ({ user: { email: 'same-fictional@example.invalid', sub: 'synthetic-same-sub' }, medicationLoginId: 'c'.repeat(64) }) });
+    if (phase === 'entitlement') { await settleUntil(() => !!finishEntitlement); sandbox.accountSessionRevision++; await sandbox.renderAccountSession(null); finishEntitlement(); }
+    await pendingLogin;
+    if (phase === 'auth') assert.deepEqual(rendered, [], 'A late auth response cannot render an account after sign-out');
+    else assert.equal(rendered.at(-1), '', 'The sign-out state remains final after a late entitlement refresh');
+    assert.equal(successToasts, 0, 'A stale login cannot show success after sign-out');
   }
   console.log('Medication login verification passed: one check per session, new login refresh, prior warning while updating, fresh time, failure/reload, consent/account/profile isolation, stale-response races, non-credential marker and duplicate auth callbacks.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

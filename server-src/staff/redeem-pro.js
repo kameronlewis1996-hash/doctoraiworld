@@ -70,8 +70,10 @@ module.exports = async function redeemPro(request, response) {
     exp,
     actor: source === 'staff-grant' ? (storedGrant?.issuedBy || 'staff-grant') : 'self'
   };
-  await core.saveEntitlement(account, { tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true });
-  await core.recordFreeGrant(account, entry);
+  const saved = await core.saveEntitlement(account, { tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true });
+  if (!saved) return json(response, 409, { error: 'This account is closed or being deleted and cannot receive complimentary access.' });
+  const recorded = await core.recordFreeGrant(account, entry);
+  if (!recorded) return json(response, 409, { error: 'This account is closed or being deleted and cannot receive complimentary access.' });
   core.setEntitlementCookie(response, { tier: 'pro', source, email: entry.email, exp }, 'doctorai_free_pro');
   return json(response, 200, { active: true, expiresAt: exp, email: entry.email });
 };
