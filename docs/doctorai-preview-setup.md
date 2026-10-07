@@ -1,6 +1,6 @@
 # DoctorAI Preview setup
 
-Updated 6 October 2026. This checklist supplies the settings needed for a real provider rehearsal. Local synthetic checks cannot establish that Stripe, Google login, storage and deletion work together on the deployed site.
+Updated 8 October 2026. This checklist supplies the settings needed for a real provider rehearsal. Local synthetic checks cannot establish that Stripe, Google login, storage and deletion work together on the deployed site.
 
 ## Current setup status
 
@@ -10,6 +10,7 @@ Updated 6 October 2026. This checklist supplies the settings needed for a real p
 - Preview and Production still use the same Redis database. The production Blob token is still scoped to Preview and Development for now; remove those targets after the OIDC document smoke checks pass.
 - Checked Vercel's Upstash provisioning flow on 6 October: the lowest displayed Redis plan was Pay as You Go at **US$0.20 per 100,000 commands**; the next fixed option was **US$10/month plus US$5 per read region**. Upstash's current pricing page also lists a Free plan with 256 MB and 500,000 commands/month; its plan comparison says one Free database, while its FAQ says up to ten databases can be created free. The existing Free Redis remains shared with Production, so a second free slot is not confirmed for this account. No new database was selected or created. Confirm free-slot availability, or approve a PAYG monthly budget cap before provisioning; Upstash says reaching that cap stops database operations. Keep Preview data synthetic. [Upstash Redis pricing](https://upstash.com/pricing/redis).
 - Rechecked 6 October after the user authorized handling the API-key task: the connected Stripe account list still exposes only the live-mode `Doctoraiworld` context; no test-mode/sandbox context is available in this session. No live-mode Stripe write was attempted. The separate restricted test key and prices remain configured in Vercel Preview, but the sandbox webhook signing secret must be created from the sandbox's event destination and entered in Vercel Preview by an authorized dashboard user. Creating another private Blob store through the connected Vercel API also returned 403 (`You don't have permission to create the blob`).
+- On 8 October, the exact-head Preview deployment `dpl_3eyY2hcGq4QpGvxp7ubagtExjgq3` returned 200 from `/api/auth/config`, but `ready` remains false because `subscriptions` is false. The plans endpoint returns both USD test prices as available. No Stripe account-list call was made in this turn because the secure Stripe account authorization has not been completed. The user has authorized handling this test-key setup; continue after they open the secure Stripe connection link from this conversation and confirm the connection. Do not request secret values in chat.
 
 ## 1. Separate the Vercel environments
 

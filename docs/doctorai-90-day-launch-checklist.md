@@ -2,10 +2,14 @@
 
 **Updated:** 8 October 2026 (New Zealand time)
 
-**State:** Active preparation; Production remains on `main` at `adfe2db`. Draft PR 48 includes the reviewed Google-subject response fix from `4a8cc6a`. The 8 October exact-head Preview `dpl_ELZmNRQpmrG8jUQUpjpcGNCBn7wn`, built from `98ec732`, is READY and passed the Vercel status check. No Production deployment or promotion was made.
+**State:** Active preparation; Production remains on `main` at `adfe2db`. Draft PR 48 is at exact head `4a2439bf82c2049b10959d994cb0997cdc3dab71`; its exact-head Preview `dpl_3eyY2hcGq4QpGvxp7ubagtExjgq3` is READY and the Vercel status check succeeds. Subscriptions remain unconfigured in Preview. No Production deployment or promotion was made.
 **Plan source:** [Promotion research and the 90-day plan](doctorai-promotion-research.md)
 
-## Fresh release check — 8 October 2026
+## Exact-head review — 8 October 2026
+
+On the current PR head `4a2439bf82c2049b10959d994cb0997cdc3dab71`, the READY Preview `dpl_3eyY2hcGq4QpGvxp7ubagtExjgq3` passed the Vercel status check. Protected fetches of `/`, `/appointment-checklist`, `/account-deletion`, `/api/auth/config`, `/api/stripe/plans` and `/sitemap.xml` all returned 200; the sitemap contains ten URLs including account deletion. Preview auth config reports `ready: false`: authentication, account storage, document storage and AI are enabled, but subscriptions is false. Test prices are USD 9.99/month and USD 79/year. The PR is open, draft and mergeable with no submitted human reviews or inline review threads. This current commit changes documentation only; the reviewed application tree has 17 passing synthetic verification scripts, a passing Android TypeScript check and a successful 709-module Expo export. No checkout, signed webhook, authenticated document operation, deletion rehearsal or installed-device check has passed. No Production promotion was made.
+
+## Earlier 8 October release snapshot — superseded by exact-head review above
 
 This check supersedes earlier deployment and branch positions recorded below; detailed older entries remain historical. On 8 October, public `www.doctoraiworld.com` returned 200 with the older Health Hub title and copy; `/account-deletion` returned 404; `/api/auth/config` returned 200 with `ready: true` and all five service flags enabled; `/api/stripe/plans` returned 200 with live USD 9.99/month and USD 79/year prices. The Production sitemap returned 200 with nine URLs and does not include `/account-deletion`. The latest Production deployment remains `dpl_5L3V3KTBhtT4yUb8oNA8YzuMU26T`, from `main` at `adfe2db`. The intended New Zealand monthly price is NZ$6.99; annual pricing, checkout currency and regional presentation remain unverified.
 

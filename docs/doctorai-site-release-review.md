@@ -2,7 +2,13 @@
 
 Updated 8 October 2026, New Zealand time. **Status: public release remains open; do not promote to Production or begin paid promotion.**
 
-## Fresh verification — 8 October 2026
+## Exact-head verification — 8 October 2026
+
+PR 48 remains open, draft, and mergeable at head 4a2439bf82c2049b10959d994cb0997cdc3dab71. The exact-head Preview deployment dpl_3eyY2hcGq4QpGvxp7ubagtExjgq3 is READY, and GitHub reports the Vercel status check successful. Protected fetches from this deployment returned 200 for /, /appointment-checklist, /account-deletion, /api/auth/config, /api/stripe/plans, and /sitemap.xml; the sitemap contains ten URLs including account deletion. Auth config is not ready: authentication, account storage, document storage, and AI are enabled, while subscriptions is false. The plans endpoint returns USD 9.99/month and USD 79/year. No checkout, signed webhook, authenticated document operation, or account-deletion rehearsal was performed.
+
+This head adds documentation only after the reviewed application-source head. On that unchanged application tree, 17 existing synthetic verification scripts, Android strict TypeScript, and a fresh 709-module Expo Android export passed. No Android SDK or ADB is available for installed-device review. The PR has no submitted human reviews or inline review threads. No Production deployment or promotion was made.
+
+## Earlier same-day snapshot — superseded by exact-head verification above
 
 Production remains on `main` commit `adfe2db` (latest deployment `dpl_5L3V3KTBhtT4yUb8oNA8YzuMU26T`). On 8 October, `www.doctoraiworld.com/` returned 200 with the older Health Hub title and copy; `/account-deletion` returned 404; `/api/auth/config` returned 200 with `ready: true` and all five service flags enabled; `/api/stripe/plans` returned 200 with live prices of USD 9.99/month and USD 79/year. The Production sitemap returned 200 with nine URLs and does not include `/account-deletion`. These prices do not match the intended NZ$6.99 monthly price, and the annual amount is undecided. No Production deployment or promotion was made.
 
@@ -10,7 +16,7 @@ PR 48 is open and draft at head `98ec732f251e4b0ed0e1ec5d8c3e54ae4e30178a`; the 
 
 Browser and Android local records now use verified Google `sub`, and protected API calls include an expected-subject guard. Server cloud records still use normalized email, so cross-account isolation cannot be called complete until a reviewed, data-preserving migration or a verified account-identity policy is in place. Google's identity guidance says `sub` is the stable, never-reused user identifier and warns that email can change or be non-unique ([Google OpenID Connect reference](https://developers.google.com/identity/openid-connect/reference)). Existing records must not be silently moved or discarded. The signed Android 1.0.8 (13) AAB now contains the client-side identity fix; it still needs installed-device review and Play owner/review gates.
 
-The detailed deployment and code-review entries below are retained as historical snapshots; use this section for the current release state.
+The detailed deployment and code-review entries below are retained as historical snapshots; use the exact-head verification above for current Preview and PR state.
 
 ## Historical live release snapshot — 6 October 2026 (superseded above)
 
