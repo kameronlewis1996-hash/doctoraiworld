@@ -1,6 +1,14 @@
 # DoctorAI Android 1.0.8 release review
 
-**Updated:** 6 October 2026, New Zealand time. **Status:** a replacement production AAB (1.0.8, version code 13) completed and its signature, all 791 bundled entry digests, package/version and Android manifest were reviewed. It contains the account-isolation source fix. Installed-device review, the server identity migration, Play account conversion, app entry, owner declarations and submission remain open.
+**Updated:** 8 October 2026, New Zealand time. **Status:** the signed production AAB (1.0.8, version code 13) remains an upload candidate. Its signature, all 791 bundled entry digests, package/version and Android manifest were reviewed. Fresh local source checks pass; installed-device review, server identity migration, Play account conversion, app entry, owner declarations and submission remain open.
+
+## Current-source verification — 8 October 2026
+
+- Seventeen existing local verification scripts passed for JavaScript syntax, static pages, server core, Preview isolation, account deletion, Stripe pricing, medication database/safety/evidence/pipeline/login/controller/provider retirement, and the Android private-state, file and account-deletion flows. These use synthetic or mocked data; they do not establish real provider integrations.
+- Android TypeScript passed with `tsc --noEmit -p tsconfig.json`.
+- Expo produced a fresh Android JavaScript export from the current app source, bundling 709 modules into a 2.44 MB Hermes bundle. The export is in `%TEMP%\doctorai-mobile-export-review-98ec732`; it is not a newly signed AAB.
+- The existing signed AAB remains build `e07a2c3b-a10a-4d0a-b3db-e9b6f0083e5e`, version 1.0.8 (13), source snapshot `82c862c`. No new store artifact was signed in this verification pass.
+- `adb` and the Android SDK are unavailable in this environment. No emulator or physical-device install was reviewed; native UI, Google sign-in, device storage, cloud sync, and interruption journeys still need device evidence.
 
 ## Latest signed store candidate — 6 October 2026
 
@@ -55,7 +63,7 @@ The Android health-sync payload includes `providers`, which the earlier public s
 | SecureStore synthetic scenarios | Re-run 5 October; all 12 passed: migration, Unicode byte limits, failed commit preservation, ordering, interruption/retry, deletion, auxiliary marker and capacity/corruption failures. |
 | Private file synthetic scenarios | Re-run 5 October; all 8 passed: token header handling, MIME checks, viewer/share failure cleanup, export allowlist and cleanup retry. |
 | Account/deletion/cache synthetic scenarios | 6 October: all 8 passed, including Account A → sign-out → Account B after a cloud 404, distinct subject-hashed SecureStore partitions, legacy unassigned-record preservation, expected-subject header and cookie omission. No live account or health data used. |
-| Android JavaScript export | 6 October: final Expo Android export passed, 709 modules; 2.44 MB Hermes bundle. Local output: `%TEMP%\doctorai-android-export-20261006-final`. This is a JS bundle export, not a signed build or device test. |
+| Android JavaScript export | 8 October: a fresh Expo Android export passed from the current app source, 709 modules; 2.44 MB Hermes bundle. Local output: `%TEMP%\doctorai-mobile-export-review-98ec732`. This is a JS bundle export, not a signed build or device test. |
 | Web JavaScript export | 435 modules; 1.21 MB bundle; `C:\doctorai-launch-checkpoints\android-web-review-20261004-2222`. |
 | EAS archive inspection | 23 files; required source/assets have matching SHA-256 hashes; `.env*`, dependencies and generated native folders excluded. Archive: `C:\doctorai-launch-checkpoints\android-eas-source-20261004-2220`. |
 | Latest browser layout review | Browser blocked local preview with `ERR_BLOCKED_BY_CLIENT`. Earlier phone-width checks are historical, not verification of all new controls. |
@@ -64,7 +72,7 @@ The Android health-sync payload includes `providers`, which the earlier public s
 | Packaged SDK/permissions | Current AAB: min SDK 24 / target SDK 36. CAMERA, INTERNET, WRITE_EXTERNAL_STORAGE, ACCESS_NETWORK_STATE, USE_BIOMETRIC, USE_FINGERPRINT and the app's signature-protected dynamic-receiver permission. No READ_EXTERNAL_STORAGE, READ_MEDIA_IMAGES/VIDEO, RECORD_AUDIO, SYSTEM_ALERT_WINDOW or VIBRATE. Biometrics permissions come from the SecureStore dependency; current source does not request biometric authentication. |
 | Packaged release/backup settings | Current AAB manifest has no enabled debug or cleartext flags. SecureStore is excluded in the actual legacy backup, cloud backup and device-transfer XML rules. |
 | Packaged signature/integrity | Current 1.0.8 (13) CMS signature verified using .NET; signed manifest digest and SHA-256 digests for all 791 entries match. Bundle SHA-256 `9DBE483C86703262CDB6285FA3EBC726E0AEB1CD1972BE659F4E6CD5DE298172`; signer certificate SHA-256 `6498F61F158B4974615176332E13B9CBD158815BDA8D34CF73E7E947F391D2E5`. This verifies artifact integrity, not installation or Play approval. |
-| Installed-device journeys | Not run; `adb` is absent from PATH and the standard SDK locations, and Android Studio is not installed. Required before submission. |
+| Installed-device journeys | Not run; `adb` and the Android SDK are absent from this environment. Required before submission. |
 
 Source checkpoint before these edits: `C:\doctorai-launch-checkpoints\android-storage-runtime-20261004-215211`. Tests used isolated memory/filesystem adapters and fictional values; no real account or device health data was deleted.
 
