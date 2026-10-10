@@ -17,7 +17,7 @@ const allowedTypes = new Set([
 ]);
 const safeCategory = value => ['prescription', 'result', 'referral', 'discharge', 'specialist', 'certificate', 'imaging', 'letter', 'other'].includes(value) ? value : 'other';
 const safeName = value => String(value || 'health-document').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 140) || 'health-document';
-const storageReady = () => core.storageConfigured() && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+const storageReady = () => core.storageConfigured() && core.documentStorageConfigured();
 const noCache = response => core.noStore(response);
 
 async function requireIdentity(request, response) {
@@ -83,7 +83,7 @@ module.exports = async function handler(request, response) {
       }
       const document = await core.readDocumentMetadata(account, id);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      const stored = await get(document.blobPath, { access: 'private', useCache: false });
+      const stored = await get(document.blobPath, { access: 'private', useCache: false, token: core.documentStorageToken() });
       if (!stored?.stream) return response.status(404).json({ error: 'This private document could not be found.' });
       const encrypted = Buffer.from(await new Response(stored.stream).arrayBuffer());
       const bytes = core.unsealBuffer(encrypted);
@@ -121,12 +121,13 @@ module.exports = async function handler(request, response) {
       await put(document.blobPath, core.sealBuffer(bytes), {
         access: 'private',
         addRandomSuffix: false,
-        contentType: 'application/octet-stream'
+        contentType: 'application/octet-stream',
+        token: core.documentStorageToken()
       });
       try {
         await core.saveDocumentMetadata(account, document);
       } catch (error) {
-        await del(document.blobPath).catch(() => {});
+        await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
@@ -137,7 +138,7 @@ module.exports = async function handler(request, response) {
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
       const document = await core.readDocumentMetadata(account, id);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath).catch(() => {});
+      await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
       await core.deleteDocumentMetadata(account, id);
       return response.status(200).json({ ok: true, id });
     }

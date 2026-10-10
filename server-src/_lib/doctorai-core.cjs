@@ -213,15 +213,27 @@ function clearEntitlementCookies(response) {
   response.setHeader('Set-Cookie', ENTITLEMENT_COOKIES.map(name => `${name}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`));
 }
 
-const storageConfigured = () => Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN && configured());
-const redisUrl = () => String(process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const isProductionRuntime = () => String(process.env.VERCEL_ENV || '').toLowerCase() === 'production';
+const storageSettings = () => isProductionRuntime()
+  ? { url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN }
+  : { url: process.env.DOCTORAI_TEST_KV_REST_API_URL, token: process.env.DOCTORAI_TEST_KV_REST_API_TOKEN };
+const documentStorageToken = () => String(isProductionRuntime()
+  ? process.env.BLOB_READ_WRITE_TOKEN || ''
+  : process.env.DOCTORAI_TEST_BLOB_READ_WRITE_TOKEN || '').trim();
+const documentStorageConfigured = () => Boolean(documentStorageToken());
+const storageConfigured = () => {
+  const settings = storageSettings();
+  return Boolean(settings.url && settings.token && configured());
+};
+const redisUrl = () => String(storageSettings().url || '').replace(/\/$/, '');
 
 async function redis(path, options = {}) {
   if (!storageConfigured()) return { configured: false, result: null };
+  const settings = storageSettings();
   const response = await fetch(`${redisUrl()}/${path}`, {
     ...options,
     headers: {
-      authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      authorization: `Bearer ${settings.token}`,
       ...(options.headers || {})
     },
     signal: options.signal || AbortSignal.timeout(7000)
@@ -500,6 +512,8 @@ module.exports = {
   createSession,
   deleteDocumentMetadata,
   deleteHealthState,
+  documentStorageConfigured,
+  documentStorageToken,
   entitlementFromCookies,
   hdel,
   hget,
