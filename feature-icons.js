@@ -1,32 +1,177 @@
 (function () {
   'use strict';
-  // Canonical Home artwork for public-page feature illustrations.
+
+  // Small, original DoctorAI symbols: one clear idea per feature, with the
+  // familiar soft-filled line treatment used throughout the Health Hub.
   const artwork = {
-  "cyan": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path class=\"icon-fill\" d=\"M12 2.9c.7 4.5 2.6 6.4 7.1 7.1-4.5.7-6.4 2.6-7.1 7.1-.7-4.5-2.6-6.4-7.1-7.1 4.5-.7 6.4-2.6 7.1-7.1Z\"/><path d=\"M12 2.9c.7 4.5 2.6 6.4 7.1 7.1-4.5.7-6.4 2.6-7.1 7.1-.7-4.5-2.6-6.4-7.1-7.1 4.5-.7 6.4-2.6 7.1-7.1Z\"/><path d=\"M18.8 3.5v3M20.3 5h-3M4.5 16.6V19M5.7 17.8H3.3\"/></svg>",
-  "blue": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><rect class=\"icon-fill\" x=\"3.5\" y=\"8\" width=\"17\" height=\"8\" rx=\"4\" transform=\"rotate(-45 12 12)\"/><rect x=\"3.5\" y=\"8\" width=\"17\" height=\"8\" rx=\"4\" transform=\"rotate(-45 12 12)\"/><path d=\"m9.2 14.8 5.6-5.6M17.4 4.2v3M18.9 5.7h-3.1\"/></svg>",
-  "violet": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><rect class=\"icon-fill\" x=\"3.5\" y=\"5.5\" width=\"17\" height=\"15\" rx=\"3\"/><rect x=\"3.5\" y=\"5.5\" width=\"17\" height=\"15\" rx=\"3\"/><path d=\"M8 3.5v4M16 3.5v4M3.5 10h17M8 15l2 2 4-4\"/><circle class=\"icon-solid\" cx=\"17.5\" cy=\"15.5\" r=\"1\"/></svg>",
-  "mint": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path class=\"icon-fill\" d=\"M6 3.5h8l4 4v13H6z\"/><path d=\"M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h4\"/><circle class=\"icon-solid\" cx=\"9.5\" cy=\"18\" r=\"1\"/></svg>",
-  "coral": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path class=\"icon-fill\" d=\"M4 12h3l2-5 4 10 2.2-5H20v7H4z\"/><path d=\"M3 12h4l2-5 4 10 2.2-5H21M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z\"/></svg>",
-  "yellow": "<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><circle class=\"icon-fill\" cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"m15.4 15.4 5.1 5.1M8.2 10.5h4.6M10.5 8.2v4.6M18 3.4v3.2M19.6 5h-3.2\"/></svg>"
-};
+    spark: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M12 2.8c.7 5 3.4 7.7 8.4 8.4-5 .7-7.7 3.4-8.4 8.4-.7-5-3.4-7.7-8.4-8.4 5-.7 7.7-3.4 8.4-8.4Z"/><path d="M12 2.8c.7 5 3.4 7.7 8.4 8.4-5 .7-7.7 3.4-8.4 8.4-.7-5-3.4-7.7-8.4-8.4 5-.7 7.7-3.4 8.4-8.4Z"/><path d="M19.4 3.1v3.2M21 4.7h-3.2M3.3 17v3.1M4.9 18.6H1.8"/></svg>',
+    capsule: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M5.2 18.8a4.8 4.8 0 0 1 0-6.8l6.8-6.8a4.8 4.8 0 0 1 6.8 6.8L12 18.8a4.8 4.8 0 0 1-6.8 0Z"/><path d="M5.2 18.8a4.8 4.8 0 0 1 0-6.8l6.8-6.8a4.8 4.8 0 0 1 6.8 6.8L12 18.8a4.8 4.8 0 0 1-6.8 0Z"/><path d="m8.7 8.7 6.6 6.6M17.9 3.3v3M19.4 4.8h-3"/></svg>',
+    calendar: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="3.5" y="5" width="17" height="16" rx="3"/><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m8.2 15.3 2.1 2.1 4.7-4.7"/></svg>',
+    document: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6M9 19h3"/><path d="M4 6v15h12"/></svg>',
+    carePack: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h4M9 15.5h3"/><path d="m17.3 13.4.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3.9-1.9Z"/></svg>',
+    memory: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 4.5h12a2 2 0 0 1 2 2v13l-8-4-8 4v-13a2 2 0 0 1 2-2Z"/><path d="M6 4.5h12a2 2 0 0 1 2 2v13l-8-4-8 4v-13a2 2 0 0 1 2-2Z"/><path d="M12 7v5M9.5 9.5h5"/></svg>',
+    pulse: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="3" y="4" width="18" height="16" rx="4"/><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M5.5 12h3l2-4.5 3.2 9 2.1-4.5h2.7"/></svg>',
+    chart: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M4 19.5V13l5-5 4 3 6-7v15.5z"/><path d="M4 19.5V5M4 19.5h16M7 16l3.5-4 3 2 5-7"/><circle class="icon-solid" cx="18.5" cy="7" r="1.2"/></svg>',
+    timeline: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 4v16"/><circle class="icon-fill" cx="7" cy="6" r="2.5"/><circle cx="7" cy="6" r="2.5"/><circle class="icon-fill" cx="7" cy="12" r="2.5"/><circle cx="7" cy="12" r="2.5"/><circle class="icon-fill" cx="7" cy="18" r="2.5"/><circle cx="7" cy="18" r="2.5"/><path d="M12 6h6M12 12h8M12 18h5"/></svg>',
+    research: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M12 6.5c-2-2-5-2.5-8-1.5v13c3-1 6-.5 8 1.5 2-2 5-2.5 8-1.5V5c-3-1-6-.5-8 1.5Z"/><path d="M12 6.5c-2-2-5-2.5-8-1.5v13c3-1 6-.5 8 1.5 2-2 5-2.5 8-1.5V5c-3-1-6-.5-8 1.5ZM12 6.5v13"/><path d="M6.5 9h3M6.5 12h3M14.5 9h3M14.5 12h3"/></svg>',
+    scan: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path class="icon-fill" d="M8 11.5a4 4 0 0 1 8 0v1a4 4 0 0 1-8 0z"/><path d="M8 11.5a4 4 0 0 1 8 0v1a4 4 0 0 1-8 0zM10 12h4"/></svg>',
+    add: '<svg aria-hidden="true" viewBox="0 0 24 24"><circle class="icon-fill" cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg>',
+    home: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="m3.5 10.5 8.5-7 8.5 7v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="m3.5 10.5 8.5-7 8.5 7v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5zM9 21v-5a3 3 0 0 1 6 0v5"/><path d="M12 8v4M10 10h4"/></svg>',
+    today: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M4 17a8 8 0 0 1 16 0z"/><path d="M3 18h18M5 14a7 7 0 0 1 14 0M12 3v3M4.9 6l2.2 2.2M19.1 6l-2.2 2.2M3 11h3M18 11h3"/></svg>',
+    chat: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M4 5.5h16v12H11l-5 3v-3H4z"/><path d="M4 5.5h16v12H11l-5 3v-3H4z"/><path d="m12.7 8.2.8 1.8 1.9.3-1.4 1.3.4 1.9-1.7-.9-1.7.9.4-1.9L10 10.3l1.9-.3.8-1.8Z"/></svg>',
+    overview: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="4" y="4" width="16" height="16" rx="3"/><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8h8M8 12h5M8 16h3M16 13.5l1 1 2-2"/></svg>',
+    provider: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12Z"/><path d="M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/><path d="M8.8 14.5a3.2 3.2 0 0 1 6.4 0"/></svg>',
+    alert: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="m12 3 9 16H3z"/><path d="m12 3 9 16H3zM12 9v4M12 16.5v.1"/></svg>',
+    shield: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M12 3 20 6v5c0 5-3.3 8.5-8 10-4.7-1.5-8-5-8-10V6z"/><path d="M12 3 20 6v5c0 5-3.3 8.5-8 10-4.7-1.5-8-5-8-10V6zM12 8v7M8.5 11.5h7"/></svg>',
+    refill: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19 8a8 8 0 0 0-13.8-2L4 8M5 16a8 8 0 0 0 13.8 2L20 16"/><path d="M4 4v4h4M20 20v-4h-4"/><path class="icon-fill" d="M9 9h6v6H9z"/><path d="M9 9h6v6H9zM12 10.5v3M10.5 12h3"/></svg>',
+    search: '<svg aria-hidden="true" viewBox="0 0 24 24"><circle class="icon-fill" cx="10.8" cy="10.8" r="6.8"/><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5M8.4 10.8h4.8M10.8 8.4v4.8"/></svg>'
+  };
+
+  // Health Hub action marks use a dedicated set so marketing and research
+  // feature artwork retains its established symbols.
+  const hubArtwork = {
+    hubHome: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="m4 10.2 8-6.3 8 6.3v8a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 18.2z"/><path d="m4 10.2 8-6.3 8 6.3v8a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 18.2zM8.2 20v-4.4a3.8 3.8 0 0 1 7.6 0V20"/><path d="M8.1 12.4h2l1.1-2.1 1.8 4.7 1.2-2.6h1.7"/></svg>',
+    hubMedicationScan: '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 4H5.8A1.8 1.8 0 0 0 4 5.8v1.7M16.5 4h1.7A1.8 1.8 0 0 1 20 5.8v1.7M20 16.5v1.7a1.8 1.8 0 0 1-1.8 1.8h-1.7M7.5 20H5.8A1.8 1.8 0 0 1 4 18.2v-1.7"/><path class="icon-fill" d="M9 8V6.2h6V8l1.6 1.7v8.1a1.8 1.8 0 0 1-1.8 1.8h-5.6a1.8 1.8 0 0 1-1.8-1.8V9.7z"/><path d="M9 8V6.2h6V8l1.6 1.7v8.1a1.8 1.8 0 0 1-1.8 1.8h-5.6a1.8 1.8 0 0 1-1.8-1.8V9.7zM9 12h6M11 15h2M10.5 4.2h3"/></svg>',
+    hubAddDetails: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M5 3.5h8l3.5 3.6v12.4H5z"/><path d="M5 3.5h8l3.5 3.6v12.4H5zM13 3.5v3.6h3.5M8 10.5h5.8M8 13.5h4"/><circle class="icon-fill" cx="17.5" cy="17.5" r="4"/><circle cx="17.5" cy="17.5" r="4"/><path d="M17.5 15.5v4M15.5 17.5h4"/></svg>',
+    hubVisitPrep: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="3.5" y="4.5" width="17" height="16" rx="3"/><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 9.5h17"/><circle class="icon-solid" cx="7.8" cy="13" r=".8"/><path d="M10.2 13h6M10.2 16.2h4.2M7.8 16.2l.7.7 1.3-1.4"/></svg>'
+  };
+
+  const artworkMarkup = (symbol, size) => {
+      const template = document.createElement('template');
+      template.innerHTML = hubArtwork[symbol] || artwork[symbol] || artwork.spark;
+    const svg = template.content.firstElementChild;
+    if (!svg) return '';
+    svg.classList.add('doctorai-feature-mark');
+    if (size === 'flex') {
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+    } else {
+      svg.setAttribute('width', `${size}px`);
+      svg.setAttribute('height', `${size}px`);
+    }
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2.2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.querySelectorAll('.icon-fill').forEach(shape => {
+      shape.setAttribute('fill', 'currentColor');
+      shape.setAttribute('stroke', 'none');
+      shape.setAttribute('opacity', '.18');
+    });
+    svg.querySelectorAll('.icon-solid').forEach(shape => {
+      shape.setAttribute('fill', 'currentColor');
+      shape.setAttribute('stroke', 'none');
+    });
+    return svg.outerHTML;
+  };
+
+  const applyHubArtwork = () => {
+    const replaceMark = (selector, tone, size, symbol = tone) => document.querySelectorAll(selector).forEach(icon => {
+      const markup = artworkMarkup(symbol, size);
+      if (icon.namespaceURI === 'http://www.w3.org/2000/svg' && icon.localName === 'svg') {
+        const template = document.createElement('template');
+        template.innerHTML = markup;
+        icon.replaceWith(template.content.firstElementChild);
+      } else {
+        icon.innerHTML = markup;
+        icon.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    const navMarks = [
+      ['.primary-nav > .nav-item[data-view="health"] .nav-icon', 'cyan', 20, 'hubHome'],
+      ['.primary-nav > .nav-item[data-open-medication-scanner] .nav-icon', 'blue', 20, 'hubMedicationScan'],
+      ['.primary-nav > .nav-item[data-add-menu] .nav-icon', 'yellow', 20, 'hubAddDetails'],
+      ['.primary-nav > .nav-item[data-open-summary] .nav-icon', 'violet', 20, 'hubVisitPrep'],
+      ['.sidebar-more-toggle .nav-icon', 'yellow', 20, 'overview'],
+      ['.sidebar-more-links [data-view="today"] .nav-icon', 'cyan', 20, 'today'],
+      ['.sidebar-more-links [data-view="ask"] .nav-icon', 'cyan', 20, 'chat'],
+      ['.sidebar-more-links [data-view="medications"] .nav-icon', 'blue', 20, 'capsule'],
+      ['.sidebar-more-links [data-view="appointments"] .nav-icon', 'violet', 20, 'calendar'],
+      ['.sidebar-more-links [data-view="symptoms"] .nav-icon', 'coral', 20, 'pulse'],
+      ['.sidebar-more-links [data-view="results"] .nav-icon', 'yellow', 20, 'chart'],
+      ['.sidebar-more-links [data-view="timeline"] .nav-icon', 'mint', 20, 'timeline'],
+      ['.sidebar-more-links [data-view="documents"] .nav-icon', 'mint', 20, 'document'],
+      ['.sidebar-more-links .research-nav-highlight .nav-icon', 'yellow', 20, 'research']
+    ];
+    navMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
+
+    const categoryMarks = [
+      ['.category-bar [data-view="health"] > span:first-child', 'cyan', 17, 'hubHome'],
+      ['.category-bar [data-open-medication-scanner] > span:first-child', 'blue', 17, 'hubMedicationScan'],
+      ['.category-bar [data-add-menu] > span:first-child', 'yellow', 17, 'hubAddDetails'],
+      ['.category-bar [data-open-summary] > span:first-child', 'violet', 17, 'hubVisitPrep'],
+      ['.category-bar [data-more-menu] > span:first-child', 'yellow', 17, 'overview'],
+      ['.category-more-menu [data-view="today"] > span:first-child', 'cyan', 16, 'today'],
+      ['.category-more-menu [data-view="ask"] > span:first-child', 'cyan', 16, 'chat'],
+      ['.category-more-menu [data-view="medications"] > span:first-child', 'blue', 16, 'capsule'],
+      ['.category-more-menu [data-view="appointments"] > span:first-child', 'violet', 16, 'calendar'],
+      ['.category-more-menu [data-view="symptoms"] > span:first-child', 'coral', 16, 'pulse'],
+      ['.category-more-menu [data-view="results"] > span:first-child', 'yellow', 16, 'chart'],
+      ['.category-more-menu [data-view="timeline"] > span:first-child', 'mint', 16, 'timeline'],
+      ['.category-more-menu [data-view="documents"] > span:first-child', 'mint', 16, 'document'],
+      ['.category-more-menu .research-nav-highlight > span:first-child', 'yellow', 16, 'research']
+    ];
+    categoryMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
+
+    const mobileMarks = [
+      ['.mobile-bottom-nav [data-view="health"] > span', 'cyan', 22, 'hubHome'],
+      ['.mobile-bottom-nav [data-open-medication-scanner] > span', 'blue', 22, 'hubMedicationScan'],
+      ['.mobile-bottom-nav [data-add-menu] > span', 'yellow', 22, 'hubAddDetails'],
+      ['.mobile-bottom-nav [data-open-summary] > span', 'violet', 22, 'hubVisitPrep'],
+      ['.mobile-bottom-nav [data-view="medications"] > span', 'blue', 22, 'capsule']
+    ];
+    mobileMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
+
+    replaceMark('.sidebar-bottom .upgrade-icon', 'cyan', 17, 'spark');
+    replaceMark('.sidebar-bottom .memory-mini-icon', 'mint', 17, 'memory');
+    replaceMark('.topbar-actions .pro-button > span', 'cyan', 17, 'spark');
+    replaceMark('.topbar-actions [data-add-menu] > span', 'yellow', 17, 'add');
+
+    replaceMark('#view-health .care-visit-card > svg', 'violet', 48, 'hubVisitPrep');
+    replaceMark('#view-health .memory-large-icon', 'mint', 20, 'memory');
+    replaceMark('#view-health .personal-overview-icon', 'mint', 24, 'overview');
+    replaceMark('#view-health .health-info-grid .info-icon.blue', 'mint', 17, 'overview');
+    replaceMark('#view-health .health-info-grid .info-icon.coral', 'coral', 17, 'alert');
+    replaceMark('#view-health .health-info-grid .info-icon.purple', 'violet', 17, 'provider');
+    replaceMark('#view-health .health-info-grid .info-icon.dark', 'yellow', 17, 'shield');
+
+    replaceMark('#view-today .hub-ask-prompt-icon', 'cyan', 'flex', 'chat');
+    replaceMark('#view-today .care-visit-card > svg', 'violet', 48, 'hubVisitPrep');
+    replaceMark('#view-today .orbit-action-ask .orbit-action-icon', 'blue', 'flex', 'scan');
+    replaceMark('#view-today .orbit-action-medicines .orbit-action-icon', 'coral', 'flex', 'pulse');
+    replaceMark('#view-today .orbit-action-appointments .orbit-action-icon', 'violet', 'flex', 'calendar');
+    replaceMark('#view-today .orbit-action-health .orbit-action-icon', 'mint', 'flex', 'document');
+    replaceMark('#view-today .orbit-action-symptoms .orbit-action-icon', 'yellow', 'flex', 'chart');
+    replaceMark('#view-today .orbit-action-research .orbit-action-icon', 'cyan', 'flex', 'overview');
+    replaceMark('#view-today .daily-insight .insight-icon', 'cyan', 19, 'spark');
+    replaceMark('#view-today .overview-stat:nth-child(1) .overview-icon', 'blue', 17, 'capsule');
+    replaceMark('#view-today .overview-stat:nth-child(2) .overview-icon', 'violet', 17, 'calendar');
+    replaceMark('#view-today .overview-stat:nth-child(3) .overview-icon', 'blue', 17, 'refill');
+    replaceMark('#view-today .overview-stat:nth-child(4) .overview-icon', 'mint', 17, 'memory');
+  };
+
   const apply = () => {
-    const replace = (selector, tone) => document.querySelectorAll(selector).forEach(icon => {
-      icon.innerHTML = artwork[tone];
+    const replace = (selector, tone, symbol) => document.querySelectorAll(selector).forEach(icon => {
+      icon.innerHTML = artwork[symbol];
       icon.classList.add('feature-icon', 'tone-' + tone);
       icon.setAttribute('aria-hidden', 'true');
     });
-    replace('.preview-appointment > .preview-icon', 'violet');
-    replace('.preview-grid > div:nth-child(1) > .preview-icon', 'mint');
-    replace('.preview-grid > div:nth-child(2) > .preview-icon', 'cyan');
-    replace('.preview-grid > div:nth-child(3) > .preview-icon', 'blue');
-    replace('.preview-grid > div:nth-child(4) > .preview-icon', 'yellow');
-    replace('[data-research-tab="highlights"] > span', 'cyan');
-    replace('[data-research-tab="explore"] > span', 'yellow');
-    replace('.feature-card > .feature-icon.blue', 'cyan');
-    replace('.feature-card > .feature-icon.purple', 'violet');
-    replace('.feature-card > .feature-icon.orange', 'blue');
-    replace('.feature-card > .feature-icon.green', 'mint');
+    replace('.preview-appointment > .preview-icon', 'violet', 'calendar');
+    replace('.preview-grid > div:nth-child(1) > .preview-icon', 'mint', 'document');
+    replace('.preview-grid > div:nth-child(2) > .preview-icon', 'cyan', 'memory');
+    replace('.preview-grid > div:nth-child(3) > .preview-icon', 'blue', 'capsule');
+    replace('.preview-grid > div:nth-child(4) > .preview-icon', 'yellow', 'chart');
+    replace('[data-research-tab="highlights"] > span', 'cyan', 'research');
+    replace('[data-research-tab="explore"] > span', 'yellow', 'search');
+    replace('.feature-card > .feature-icon.blue', 'cyan', 'carePack');
+    replace('.feature-card > .feature-icon.purple', 'violet', 'calendar');
+    replace('.feature-card > .feature-icon.orange', 'blue', 'document');
+    replace('.feature-card > .feature-icon.green', 'mint', 'chart');
+    applyHubArtwork();
   };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
   else apply();
 })();

@@ -4,7 +4,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const viewNames = ['today', 'ask', 'health', 'profile', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
-  const viewLabels = { today: 'Today', ask: 'Ask DoctorAI', health: 'My Health', profile: 'Profile', symptoms: 'Symptom Diary', medications: 'Medications', appointments: 'Appointments', results: 'Results', timeline: 'Timeline', documents: 'Documents' };
+  const viewLabels = { today: 'Today overview', ask: 'Ask DoctorAI', health: 'My Health', profile: 'Profile', symptoms: 'Symptom Diary', medications: 'Medications', appointments: 'Appointments', results: 'Results', timeline: 'Timeline', documents: 'Documents' };
   const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
   const storagePrefix = 'doctorai-health-hub-';
   const storageConsentKey = storagePrefix + 'device-storage-consent';
@@ -516,10 +516,16 @@
     const button = document.querySelector('[data-mobile-menu]');
     const mobileFullMenu = window.matchMedia('(max-width: 620px)').matches;
     const moreMenu = document.querySelector('.category-more-menu');
+    const moreToggle = document.querySelector('[data-more-menu]');
     document.body.classList.toggle('mobile-category-open', open);
     button?.setAttribute('aria-expanded', String(open));
     button?.setAttribute('aria-label', open ? 'Close health hub navigation' : 'Open health hub navigation');
-    if (mobileFullMenu && moreMenu) moreMenu.hidden = !open;
+    const secondaryView = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(currentView);
+    if (mobileFullMenu && moreMenu) {
+      const showSecondaryTools = open && secondaryView;
+      moreMenu.hidden = !showSecondaryTools;
+      moreToggle?.setAttribute('aria-expanded', String(showSecondaryTools));
+    }
     if (open) {
       closeProfile();
       requestAnimationFrame(() => document.querySelector('#category-bar [data-view]')?.focus({ preventScroll: true }));
@@ -527,7 +533,7 @@
   }
 
   function showView(name, updateHash = true, moveFocus = false) {
-    const next = viewNames.includes(name) ? name : 'today';
+    const next = viewNames.includes(name) ? name : 'health';
     currentView = next;
     if (next === 'medications' || next === 'today') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
@@ -551,6 +557,8 @@
       view.classList.toggle('active', active);
     });
     els.nav.forEach(item => item.classList.toggle('active', item.dataset.view === next));
+    const sidebarMoreTools = document.querySelector('.sidebar-more-tools');
+    if (sidebarMoreTools) sidebarMoreTools.open = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(next);
     document.querySelectorAll('.mobile-bottom-nav [data-view]').forEach(item => {
       const exact = item.dataset.view === next;
       const grouped = item.dataset.view === 'health' && groupedHealthViews.includes(next);
@@ -577,12 +585,12 @@
       else item.removeAttribute('aria-current');
     });
     const moreButton = document.querySelector('[data-more-menu]');
-    const secondaryActive = ['symptoms', 'results', 'timeline', 'documents'].includes(next);
+    const secondaryActive = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(next);
     moreButton?.classList.toggle('active', secondaryActive);
-    moreButton?.setAttribute('aria-label', secondaryActive ? `More sections, ${viewLabels[next]} selected` : 'More health hub sections');
+    moreButton?.setAttribute('aria-label', secondaryActive ? `More tools, ${viewLabels[next]} selected` : 'More health tools');
     document.title = `${viewLabels[next]} · DoctorAI Personal Health Hub`;
     if (updateHash && location.hash !== `#${next}`) history.pushState({ view: next }, '', `#${next}`);
-    else if (!viewNames.includes(name) && location.hash) history.replaceState({ view: 'today' }, '', '#today');
+    else if (!viewNames.includes(name) && location.hash) history.replaceState({ view: 'health' }, '', '#health');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
     if (moveFocus) {
@@ -1875,8 +1883,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
     const lastVisit = state.appointments.map(item => briefDate(item.date)).filter(date => date && date < today).sort().at(-1);
     const since = lastVisit || briefLocalDate(monthAgo);
-    setModal('Since my last visit', 'Your visit brief', `<form class="care-summary-form" data-care-summary-form>
-      <p>Bring the important details together before your appointment. Choose what to include, review it, then copy or print your brief. It stays on this device until you choose to share.</p>
+    setModal('Prepare for my appointment', 'Build your discussion checklist', `<form class="care-summary-form" data-care-summary-form>
+      <p>Choose the health details you want to discuss, add your own questions, then review the checklist before copying or printing it. Nothing is selected automatically, and it stays on this device until you choose to share.</p>
       <label>Show notes from<input type="date" name="since" value="${since}" max="${today}"></label>
       <p>${lastVisit ? 'Starts at your latest past appointment date. Change it if that visit did not take place.' : 'Starts with the last 30 days. Choose the date of your last visit, or clear it to see all available notes.'}</p>
       <p data-brief-count role="status"></p>
@@ -1885,9 +1893,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ${groups.map((group,g) => `<fieldset><legend>${escapeHTML(group.title)}</legend>${group.items.map((text,i) => `<label class="care-summary-choice"${group.dates ? ` data-brief-date="${group.dates[i]}"` : ''}><input type="checkbox" name="entry" value="${g}:${i}"><span>${escapeHTML(text || 'Saved entry — check details before sharing')}</span></label>`).join('')}<p data-brief-empty>No saved records in this date range. You can still add your main concern and questions.</p></fieldset>`).join('')}
       <p data-brief-empty-all>No saved records in this period yet. Start with what matters most and the questions you want to ask.</p>
       <p>Nothing is selected automatically. Up to 100 recent records per dated section are available. Clear the date to include records with missing or older date formats. Medicine details are your saved notes, not verified prescription instructions.</p>
-      <label>Questions to ask<textarea name="questions" rows="3" maxlength="2000" placeholder="What would I like explained? What should I record before our next visit?"></textarea></label>
+      <label>Questions or topics to discuss<textarea name="questions" rows="3" maxlength="2000" placeholder="Add one question or discussion point per line."></textarea></label>
       <p>Check dates, names and doses before sharing. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>
-      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my brief →</button></div></form>`);
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my checklist →</button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
     updateBriefPeriod(form);
@@ -1900,17 +1908,25 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const chosen = new Set([...form.querySelectorAll('.care-summary-choice:not([hidden]) input:checked')].map(input => input.value));
     const selectedAppointment = data.get('appointment');
     const appointment = selectedAppointment === '' ? null : careSummaryDraft.appointments[Number(selectedAppointment)];
-    const sections = careSummaryDraft.groups.map((group,g) => {
-      const lines = group.items.filter((_,i) => chosen.has(`${g}:${i}`));
-      return lines.length ? `<section><h3>${escapeHTML(group.title)}</h3><ul>${lines.map(text => `<li>${escapeHTML(text)}</li>`).join('')}</ul></section>` : '';
-    }).join('');
+    const groupPrompts = ['Discuss symptoms', 'Review saved medicine details', 'Discuss measurements', 'Review medicine notes'];
+    const discussionItems = [];
+    const focusItems = String(data.get('focus') || '').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+    focusItems.forEach(value => discussionItems.push(`Main concern: ${value}`));
+    careSummaryDraft.groups.forEach((group, g) => group.items.forEach((value, i) => {
+      if (chosen.has(`${g}:${i}`)) discussionItems.push(`${groupPrompts[g] || 'Discuss this detail'}: ${value}`);
+    }));
     const questions = String(data.get('questions') || '').trim().slice(0,2000);
-    const focus = String(data.get('focus') || '').trim().slice(0,500);
+    const questionItems = questions.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+    questionItems.forEach(value => discussionItems.push(`Ask: ${value}`));
     const since = briefDate(data.get('since'));
-    if (!sections && !questions && !appointment && !focus) { showToast('Choose a record or add your main concern or a question first.'); return; }
+    if (!discussionItems.length && appointment) {
+      const appointmentLabel = [appointment.title, appointment.date].filter(Boolean).join(' · ');
+      if (appointmentLabel) discussionItems.push(`Appointment: ${appointmentLabel}`);
+    }
+    if (!discussionItems.length) { showToast('Select a health detail or add a question to build your discussion checklist first.'); return; }
     careSummaryDraft.form = form;
-    careSummaryDraft.html = `<h1>My visit brief</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${focus ? `<section><h3>What matters most to me</h3><p>${escapeHTML(focus)}</p></section>` : ''}${appointment ? `<section><h3>Appointment</h3><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join('\n'))}</p></section>` : ''}${sections}${questions ? `<section><h3>Questions to ask</h3><p>${escapeHTML(questions)}</p></section>` : ''}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
-    setModal('Review before sharing', 'Your visit brief', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${appointment ? `<section><h2>Appointment</h2><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join(' · '))}</p></section>` : ''}<section><h2>My discussion checklist</h2><ul>${discussionItems.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section><hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
+    setModal('Review my appointment checklist', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this checklist and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy checklist</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
   }
 
   function printCareSummary() {
@@ -3156,7 +3172,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); openPersonalOverview(); return; }
     const openChat = event.target.closest('[data-open-chat]');
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }
-    if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); await openMedicationScanner(); return; }
+    if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); await openMedicationScanner(); return; }
     if (event.target.closest('[data-close-medication-scanner]')) { event.preventDefault(); closeMedicationScanner(); return; }
     if (event.target.closest('[data-medication-capture]')) { event.preventDefault(); await medicationPhotoCaptured(); return; }
     if (event.target.closest('[data-medication-photo]')) {
@@ -3208,10 +3224,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
     if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
-    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); openCareSummary(); return; }
+    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); openCareSummary(); return; }
     if (event.target.closest('[data-edit-care-summary]') && careSummaryDraft?.form) {
       event.preventDefault();
-      setModal('Since my last visit', 'Your visit brief', '');
+      setModal('Prepare for my appointment', 'Build your discussion checklist', '');
       els.modalBody.append(careSummaryDraft.form);
       return;
     }
@@ -3370,7 +3386,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       return;
     }
-    if (event.target.closest('[data-add-menu]')) { event.preventDefault(); openAddMenu(); return; }
+    if (event.target.closest('[data-add-menu]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); openAddMenu(); return; }
     if (event.target.closest('[data-api-permissions]')) { event.preventDefault(); openApiPermissions(); return; }
     const medToggle = event.target.closest('[data-med-toggle]');
     if (medToggle) {
@@ -3654,9 +3670,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   renderAll();
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
-  else if (initialView === 'privacy') { showView('today', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('today', false); openCareSummary(); }
-  else showView(viewNames.includes(initialView) ? initialView : 'today', false);
+  else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
+  else if (initialView === 'summary') { showView('health', false); openCareSummary(); }
+  else showView(viewNames.includes(initialView) ? initialView : 'health', false);
   document.addEventListener('change', event => {
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });
