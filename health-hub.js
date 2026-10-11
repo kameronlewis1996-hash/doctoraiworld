@@ -3,9 +3,16 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const viewNames = ['today', 'ask', 'health', 'profile', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
-  const viewLabels = { today: 'Today overview', ask: 'Ask DoctorAI', health: 'My Health', profile: 'Profile', symptoms: 'Symptom Diary', medications: 'Medications', appointments: 'Appointments', results: 'Results', timeline: 'Timeline', documents: 'Documents' };
-  const groupedHealthViews = ['health', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'];
+  const viewNames = ['health', 'scan', 'add', 'diary', 'alerts'];
+  const viewLabels = { health: 'My Health', scan: 'Scan Medication', add: 'Add Health Details', diary: 'My Diary', alerts: 'Alerts' };
+  const hubPanels = { health: ['details', 'ask', 'profile'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
+  const legacyHubRoutes = { today: ['health', 'details'], ask: ['health', 'ask'], profile: ['health', 'profile'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['diary', 'results'], timeline: ['diary', 'timeline'], documents: ['add', 'documents'], medications: ['add', 'medications'], memory: ['health', 'profile'], summary: ['diary', 'appointments'], privacy: ['health', 'details'] };
+  function resolveHubRoute(name, requestedPanel = '') {
+    const legacy = legacyHubRoutes[name];
+    const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'health';
+    const preferred = requestedPanel || (legacy ? legacy[1] : '');
+    return { view, panel: hubPanels[view].includes(preferred) ? preferred : (hubPanels[view][0] || '') };
+  }
   const storagePrefix = 'doctorai-health-hub-';
   const storageConsentKey = storagePrefix + 'device-storage-consent';
   let deviceStorageChoice = '';
@@ -173,7 +180,8 @@
   };
   const storageConsent = $('#storage-consent');
 
-  let currentView = 'today';
+  let currentView = 'health';
+  let currentHubPanel = 'details';
   let timelineFilter = 'all';
   let symptomMode = 'entries';
   let documentFilter = 'all';
@@ -217,7 +225,7 @@
     load: () => read('medication-check', null),
     save: value => write('medication-check', value),
     remove: () => { try { localStorage.removeItem(storagePrefix + 'medication-check'); } catch {} },
-    onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); }
+    onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); renderHealthAlerts(); }
   });
 
   const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
@@ -340,6 +348,7 @@
     write('updated-at', localStateUpdatedAt);
     queueCloudSave();
     refreshMedicationCheckContext().catch(() => {});
+    renderHealthAlerts();
   };
 
   const serialiseHealthState = () => ({
@@ -439,7 +448,7 @@
     document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .category-more-menu [data-view]').forEach(item => {
       const target = item.matches('.nav-item') ? item.querySelector('.nav-icon') : item.querySelector(':scope > span:first-child');
       if (!target) return;
-      target.dataset.doctoraiIcon = item.dataset.view === 'health' ? 'hubHome' : (healthIconNames[item.dataset.view] || 'overview');
+      target.dataset.doctoraiIcon = ({ health: 'hubHome', scan: 'hubMedicationScan', add: 'hubAddDetails', diary: 'diary', alerts: 'alerts' })[item.dataset.view] || healthIconNames[item.dataset.view] || 'overview';
       target.classList.add('feature-icon', `tone-${profileShortcutDefinition(item.dataset.view)?.tone || 'blue'}`);
       target.setAttribute('aria-hidden', 'true');
     });
@@ -460,12 +469,12 @@
       ['#view-health .info-icon.coral', 'allergies'],
       ['#view-health .info-icon.purple', 'providers'],
       ['#view-health .info-icon.dark', 'blood'],
-      ['.drawer-pro-status .drawer-row-icon', 'spark'],
+      ['.drawer-pro-status .drawer-row-icon', 'pro'],
       ['.drawer-row[data-view="health"] .drawer-row-icon', 'memory'],
       ['.drawer-row[data-show-privacy] .drawer-row-icon, .profile-trust-icon.tone-cyan', 'privacy'],
       ['.profile-trust-icon.tone-violet', 'health']
     ];
-    const supportingTones = { spark: 'cyan', refill: 'cyan', memory: 'mint', allergies: 'coral', providers: 'violet', blood: 'coral' };
+    const supportingTones = { pro: 'cyan', spark: 'cyan', refill: 'cyan', memory: 'mint', allergies: 'coral', providers: 'violet', blood: 'coral' };
     featureTargets.forEach(([selector, name]) => document.querySelectorAll(selector).forEach(icon => {
       icon.dataset.doctoraiIcon = healthIconNames[name] || name;
       icon.classList.add('feature-icon', `tone-${profileShortcutDefinition(name)?.tone || supportingTones[name] || 'blue'}`);
@@ -475,92 +484,37 @@
   }
   function setMobileMenuOpen(open, restoreFocus = false) {
     const button = document.querySelector('[data-mobile-menu]');
-    const mobileFullMenu = window.matchMedia('(max-width: 620px)').matches;
-    const moreMenu = document.querySelector('.category-more-menu');
-    const moreToggle = document.querySelector('[data-more-menu]');
     document.body.classList.toggle('mobile-category-open', open);
     button?.setAttribute('aria-expanded', String(open));
     button?.setAttribute('aria-label', open ? 'Close health hub navigation' : 'Open health hub navigation');
-    const secondaryView = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(currentView);
-    if (mobileFullMenu && moreMenu) {
-      const showSecondaryTools = open && secondaryView;
-      moreMenu.hidden = !showSecondaryTools;
-      moreToggle?.setAttribute('aria-expanded', String(showSecondaryTools));
-    }
-    if (open) {
-      closeProfile();
-      requestAnimationFrame(() => document.querySelector('#category-bar [data-view]')?.focus({ preventScroll: true }));
-    } else if (restoreFocus) button?.focus({ preventScroll: true });
+    if (open) { closeProfile(); requestAnimationFrame(() => document.querySelector('#category-bar [data-view]')?.focus({ preventScroll: true })); }
+    else if (restoreFocus) button?.focus({ preventScroll: true });
   }
-
-  function showView(name, updateHash = true, moveFocus = false) {
-    const next = viewNames.includes(name) ? name : 'health';
-    currentView = next;
-    if (next === 'medications' || next === 'today') refreshMedicationCheckContext().catch(() => {});
+  function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
+    const route = resolveHubRoute(name, requestedPanel);
+    const next = route.view; currentView = next; currentHubPanel = route.panel;
+    if (route.panel === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
-    document.body.dataset.hubTheme = next;
-    document.body.dataset.activeFeature = next;
-    const signatureOrbit = document.getElementById('quick-access-orbit');
-    if (signatureOrbit) {
-      signatureOrbit.dataset.activeFeature = next;
-      signatureOrbit.querySelectorAll('[data-orbit-action]').forEach(action => {
-        action.classList.toggle('is-selected', action.dataset.view === next || (next === 'research' && action.getAttribute('href') === '/research'));
-      });
-      signatureOrbit.classList.remove('is-pulsing');
-      window.requestAnimationFrame(() => {
-        signatureOrbit.classList.add('is-pulsing');
-        window.setTimeout(() => signatureOrbit.classList.remove('is-pulsing'), 900);
-      });
-    }
+    document.body.dataset.hubTheme = next; document.body.dataset.activeFeature = route.panel || next; document.body.dataset.hubPanel = route.panel;
     els.views.forEach(view => {
-      const active = view.dataset.viewPanel === next;
-      view.hidden = !active;
-      view.classList.toggle('active', active);
+      const active = view.dataset.viewPanel === next; view.hidden = !active; view.classList.toggle('active', active);
+      view.querySelectorAll('[data-hub-panel]').forEach(panel => { const selected = panel.dataset.hubPanel === route.panel; panel.hidden = !selected; panel.classList.toggle('active', selected); });
     });
-    els.nav.forEach(item => item.classList.toggle('active', item.dataset.view === next));
-    const sidebarMoreTools = document.querySelector('.sidebar-more-tools');
-    if (sidebarMoreTools) sidebarMoreTools.open = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(next);
-    document.querySelectorAll('.mobile-bottom-nav [data-view]').forEach(item => {
-      const exact = item.dataset.view === next;
-      const grouped = item.dataset.view === 'health' && groupedHealthViews.includes(next);
-      item.classList.toggle('active', exact || grouped);
-      if (exact) item.setAttribute('aria-current', 'page');
-      else if (grouped) item.setAttribute('aria-current', 'location');
-      else item.removeAttribute('aria-current');
+    document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view]').forEach(item => {
+      const active = item.dataset.view === next; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
-    els.nav.forEach(item => {
-      if (item.dataset.view === next) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
+    document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
+      const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
-    els.categories.forEach(item => {
-      const active = item.dataset.view === next;
-      item.classList.toggle('active', active);
-      if (active) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
-    });
-    const secondaryItems = document.querySelectorAll('.category-more-menu [data-view]');
-    secondaryItems.forEach(item => {
-      const active = item.dataset.view === next;
-      item.classList.toggle('active', active);
-      if (active) item.setAttribute('aria-current', 'page');
-      else item.removeAttribute('aria-current');
-    });
-    const moreButton = document.querySelector('[data-more-menu]');
-    const secondaryActive = ['today', 'ask', 'symptoms', 'medications', 'appointments', 'results', 'timeline', 'documents'].includes(next);
-    moreButton?.classList.toggle('active', secondaryActive);
-    moreButton?.setAttribute('aria-label', secondaryActive ? `More tools, ${viewLabels[next]} selected` : 'More health tools');
-    document.title = `${viewLabels[next]} · DoctorAI Personal Health Hub`;
-    if (updateHash && location.hash !== `#${next}`) history.pushState({ view: next }, '', `#${next}`);
-    else if (!viewNames.includes(name) && location.hash) history.replaceState({ view: 'health' }, '', '#health');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
-    if (moveFocus) {
-      const heading = document.querySelector(`[data-view-panel="${next}"] h1, [data-view-panel="${next}"] h2`);
-      if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); }
-    }
+    document.title = viewLabels[next] + ' · DoctorAI Personal Health Hub';
+    const routeState = { view: next, panel: route.panel }, canonicalHash = '#' + next;
+    if (updateHash && (location.hash !== canonicalHash || history.state?.panel !== route.panel)) history.pushState(routeState, '', canonicalHash);
+    else if (!updateHash || location.hash !== canonicalHash) history.replaceState(routeState, '', canonicalHash);
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    if (moveFocus) { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
     window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
+    window.dispatchEvent(new CustomEvent('doctorai:panel-shown', { detail: { view: next, panel: route.panel } }));
   }
-
   function renderTodayMedications() {
     if (!els.medicationToday) return;
     const medications = state.medications.slice(0, 2);
@@ -1336,6 +1290,58 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     $$('[data-range]').forEach(button => button.classList.toggle('active', button.dataset.range === range));
   }
 
+  function renderHealthAlerts() {
+    const list = $('#alerts-list'), status = $('#alerts-status'), count = $('#alerts-count'), controls = $('#alerts-controls');
+    if (!list || !status || !count) return;
+    if (!window.DoctorAIHealthAlerts?.evaluate) {
+      count.textContent = 'Checks unavailable';
+      status.textContent = 'Local alert rules could not load. Your records have not been assessed. Reload or discuss your concerns with a healthcare professional.';
+      list.replaceChildren();
+      controls?.replaceChildren();
+      return;
+    }
+    let result;
+    try {
+      result = window.DoctorAIHealthAlerts.evaluate({ profile: state.profile, medications: state.medications, timeline: state.timeline, symptoms: state.timeline.filter(entry => entry?.type === 'symptom'), measurements: state.measurements, memoryDetails: state.memoryDetails, existingCheck: medicationCheckController.snapshot(), now: Date.now() });
+    } catch {
+      count.textContent = 'Checks unavailable';
+      status.textContent = 'These saved details could not be checked. No current alert result is available. A pharmacist or clinician can help review your concerns.';
+      list.replaceChildren();
+      controls?.replaceChildren();
+      return;
+    }
+    const alerts = result.alerts || [], coverage = result.coverage || {};
+    count.textContent = `${alerts.length} ${alerts.length === 1 ? 'notice' : 'notices'} to review`;
+    status.textContent = `Recalculated from your current saved details on this device. ${coverage.medications?.resolved || 0} of ${coverage.medications?.requested || 0} medicine entries matched the local catalogue. Coverage remains limited.`;
+    list.innerHTML = alerts.length ? alerts.map(alert => {
+      const severity = ['urgent', 'high', 'moderate', 'low', 'info'].includes(alert.severity) ? alert.severity : 'info';
+      const sources = (alert.sources || []).map(source => {
+        const label = source.title || source.publisher || 'Rule information';
+        const url = String(source.url || '');
+        const reference = /^https:\/\/[^\s]+$/i.test(url) ? `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(label)}</a>` : `<span>${escapeHTML(label)}</span>`;
+        const note = source.currentnessNote || source.sourceStatus || '';
+        const checkedOn = source.checkedOn || source.linkCheckAttemptedOn || '';
+        return `<li>${reference}${checkedOn ? `<small>Source checked: ${escapeHTML(checkedOn)}</small>` : ''}${note ? `<small>${escapeHTML(note)}</small>` : ''}</li>`;
+      }).join('');
+      return `<article class="hub-alert-card" data-severity="${severity}"><header><span class="hub-alert-icon" aria-hidden="true">${iconMarkup(severity === 'urgent' || severity === 'high' ? 'alert' : 'info')}</span><div><p class="card-kicker">${severity === 'urgent' ? 'Urgent concern in a recent entry' : 'Saved details to review'}</p><h2 class="hub-alert-title">${escapeHTML(alert.title)}</h2></div></header><p>${escapeHTML(alert.message)}</p><div class="hub-alert-triggers"><b>What triggered this</b><ul>${(alert.triggers || []).map(trigger => `<li><span>${escapeHTML(trigger.label || trigger.kind)}:</span> ${escapeHTML(trigger.value)}</li>`).join('')}</ul></div><div class="hub-alert-next-action"><b>Next step</b><p>${escapeHTML(alert.nextAction)}</p></div>${sources ? `<details class="hub-alert-source"><summary>Rule and source information</summary><ul>${sources}</ul><small>Limited rule: ${escapeHTML(alert.ruleId)}. This notice does not establish a diagnosis or cause.</small></details>` : ''}</article>`;
+    }).join('') : '<div class="empty-state"><b>No matching notices in the limited checks</b><p>This result does not confirm safety. Missing, unrecognised and unassessed details remain unknown. Add accurate details and ask a pharmacist or clinician about concerns.</p></div>';
+    if (controls) {
+      const amount = value => Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : 0;
+      const medicines = coverage.medications || {}, allergies = coverage.allergyMedication || {}, conditions = coverage.conditionMedication || {}, symptoms = coverage.symptoms || {};
+      const rows = [['Saved medicines', `${amount(medicines.requested)} entries recorded; ${amount(medicines.checked)} assessed for catalogue matching; ${amount(medicines.resolved)} recognised. ${amount(medicines.excludedInactiveOrOutOfDate)} inactive or out-of-date entries excluded; ${amount(medicines.omittedByLimit)} omitted by the input limit.`], ['Medicine combinations', coverage.medicationMedication?.limitation || `${coverage.medicationMedication?.ruleCount || 0} curated combination rules; dose, route and timing are not assessed.`], ['Allergies and medicines', `${allergies.limitation || 'Not assessed by the current rules.'} ${amount(allergies.recorded)} allergy entries recorded; ${amount(allergies.affirmative)} affirmative; ${amount(allergies.excludedOrUncertain)} excluded or uncertain; ${amount(allergies.omittedByLimit)} omitted by the input limit.`], ['Conditions and medicines', `${conditions.limitation || 'Not assessed by the current rules.'} ${amount(conditions.recorded)} condition entries recorded; ${amount(conditions.affirmative)} affirmative; ${amount(conditions.omittedByLimit)} omitted by the input limit.`], ['Recent symptom entries', `${symptoms.limitation || 'Not assessed by the current rules.'} ${amount(symptoms.recorded)} entries recorded; ${amount(symptoms.recent)} recent; ${amount(symptoms.matched)} matched. ${amount(symptoms.excludedHistoricalOrInactive)} historical or inactive entries excluded; ${amount(symptoms.undated)} undated; ${amount(symptoms.omittedByLimit)} omitted by the input limit.`], ['Symptoms and medicines', coverage.symptomMedication?.limitation], ['Conditions and symptoms', coverage.conditionSymptoms?.limitation], ['Other saved health details', coverage.healthDetails?.limitation], ['Measurements and results', coverage.results?.limitation]];
+      const unknown = (coverage.medications?.unknown || []).map(item => String(item.name || 'Unnamed medicine'));
+      const unmatched = [['Conditions outside the current rules', conditions.unmatched], ['Symptoms outside the current rules', symptoms.unmatched]].filter(([, values]) => Array.isArray(values) && values.length).map(([label, values]) => `<p><b>${escapeHTML(label)}:</b> ${escapeHTML(values.map(value => typeof value === 'string' ? value : value.name || value.label || 'Unrecognised entry').join(', '))}.</p>`).join('');
+      const catalogue = coverage.catalogue || {}, catalogueUrl = String(catalogue.sourceUrl || '');
+      const catalogueLink = /^https:\/\/[^\s]+$/i.test(catalogueUrl) ? `<a href="${escapeHTML(catalogueUrl)}" target="_blank" rel="noopener noreferrer">${escapeHTML(catalogue.publisher || 'Catalogue source')}</a>` : escapeHTML(catalogue.publisher || 'Catalogue source');
+      const licenceName = typeof catalogue.licence === 'string' ? catalogue.licence : catalogue.licence?.name || '';
+      const licenceUrl = typeof catalogue.licence === 'object' ? String(catalogue.licence?.url || '') : '';
+      const licence = /^https:\/\/[^\s]+$/i.test(licenceUrl) ? `<a href="${escapeHTML(licenceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHTML(licenceName)}</a>` : escapeHTML(licenceName);
+      const attribution = catalogue.attribution ? `<p class="hub-alert-catalogue">${catalogueLink}: ${escapeHTML(catalogue.attribution)}${catalogue.effectiveDate ? ` Effective ${escapeHTML(catalogue.effectiveDate)}.` : ''}${licenceName ? ` ${licence}.` : ''} ${escapeHTML(catalogue.disclaimer || '')}</p>` : '';
+      controls.innerHTML = `<details class="hub-alert-coverage"><summary>What these checks cover</summary><dl>${rows.map(([label, detail]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(detail || 'Not assessed by the current rules.')}</dd></div>`).join('')}</dl>${unknown.length ? `<p><b>Unrecognised medicines:</b> ${escapeHTML(unknown.join(', '))}. Ask a pharmacist to verify the full list.</p>` : ''}${unmatched}${coverage.missing?.length ? `<p><b>Missing details:</b> ${escapeHTML(coverage.missing.join(', '))}.</p>` : ''}<p>${escapeHTML(coverage.limitation)}</p>${attribution}<small>Local rule version ${escapeHTML(coverage.contextRulesetVersion || coverage.rulesetVersion || 'unknown')}. Context source URLs checked ${escapeHTML(coverage.contextEvidenceCheckedOn || 'not recorded')}. Your data is recalculated when details change; the app does not monitor symptoms continuously.</small></details>`;
+    }
+    window.DoctorAIIcons?.hydrate(document);
+  }
+
   function renderAll() {
     applyBrandTheme();
     updateDate();
@@ -1358,6 +1364,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     renderAppointments();
     renderMeasurement(trendRange);
     renderProControls();
+    renderHealthAlerts();
     window.DoctorAIIcons.hydrate(document);
   }
 
@@ -1408,7 +1415,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!root || !image) return;
     root.classList.toggle('google-avatar', !signedIn);
     root.classList.toggle('initials-avatar', signedIn);
-    image.src = signedIn ? initialsAvatar(user) : 'google-g-logo.svg';
+    const profileSurface = Boolean(root.closest('.profile-trigger, #profile-page-avatar, .drawer-profile'));
+    image.src = signedIn ? initialsAvatar(user) : profileSurface && window.DoctorAIIcons?.userAvatarSource ? window.DoctorAIIcons.userAvatarSource(24) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
   function renderAccountSession(user, loginId = '') {
@@ -3086,6 +3094,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    if (event.target.closest('[data-refresh-alerts]')) { event.preventDefault(); renderHealthAlerts(); showToast('Local notices refreshed from your saved details.'); return; }
     if (event.target.closest('#profile-drawer [data-install-app]')) closeProfile(true);
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }
     if (event.target.closest('[data-device-storage-session]')) { event.preventDefault(); setDeviceStorage(false); return; }
@@ -3121,7 +3130,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       event.preventDefault();
       setMobileMenuOpen(false);
       closeProfile();
-      showView('health', true, true);
+      showView('profile', true, true);
       const memoryDetails = $('#health-memory-details');
       if (memoryDetails) {
         memoryDetails.open = true;
@@ -3132,6 +3141,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       return;
     }
+    const nestedTarget = event.target.closest('[data-hub-panel-target]');
+    if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, false, nestedTarget.dataset.hubPanelTarget); return; }
     const viewTarget = event.target.closest('[data-view]');
     if (viewTarget) {
       event.preventDefault();
@@ -3150,7 +3161,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); openPersonalOverview(); return; }
     const openChat = event.target.closest('[data-open-chat]');
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }
-    if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); await openMedicationScanner(); return; }
+    if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); setMobileMenuOpen(false); showView('scan'); await openMedicationScanner(); return; }
     if (event.target.closest('[data-close-medication-scanner]')) { event.preventDefault(); closeMedicationScanner(); return; }
     if (event.target.closest('[data-medication-capture]')) { event.preventDefault(); await medicationPhotoCaptured(); return; }
     if (event.target.closest('[data-medication-photo]')) {
@@ -3202,7 +3213,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
     if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
-    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); openCareSummary(); return; }
+    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('appointments'); openCareSummary(); return; }
     if (event.target.closest('[data-edit-care-summary]') && careSummaryDraft?.form) {
       event.preventDefault();
       setModal('Prepare for my appointment', 'Build your discussion checklist', '');
@@ -3364,7 +3375,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       return;
     }
-    if (event.target.closest('[data-add-menu]')) { event.preventDefault(); if (document.body.classList.contains('mobile-category-open')) setMobileMenuOpen(false); openAddMenu(); return; }
+    if (event.target.closest('[data-add-menu]')) { event.preventDefault(); setMobileMenuOpen(false); closeProfile(); showView('add', true, true); return; }
     if (event.target.closest('[data-api-permissions]')) { event.preventDefault(); openApiPermissions(); return; }
     const medToggle = event.target.closest('[data-med-toggle]');
     if (medToggle) {
@@ -3626,14 +3637,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   els.medicationScannerModal?.addEventListener('close', () => stopMedicationScannerCamera());
   els.privacyModal.addEventListener('click', event => { if (event.target === els.privacyModal) closePrivacy(); });
   els.googleSigninModal?.addEventListener('click', event => { if (event.target === els.googleSigninModal) closeGoogleSignIn(); });
-  window.addEventListener('hashchange', () => {
-    closeMedicationScanner();
-    const hash = location.hash.slice(1);
-    if (hash === 'privacy') { showView('today', false); openPrivacy(); return; }
-    if (hash === 'summary') { showView('today', false); openCareSummary(); return; }
+  function restoreHubLocation() {
+    closeMedicationScanner(); const hash = location.hash.slice(1);
     if (hash === 'terms') { location.assign('/terms'); return; }
-    showView(hash, false, true);
-  });
+    if (hash === 'privacy') { showView('health', false); openPrivacy(); return; }
+    if (hash === 'summary') { showView('appointments', false); openCareSummary(); return; }
+    showView(hash || 'health', false, true, history.state?.view === hash ? history.state.panel : '');
+  }
+  window.addEventListener('hashchange', restoreHubLocation);
+  window.addEventListener('popstate', restoreHubLocation);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && els.medicationScannerModal?.open) {
       stopMedicationScannerCamera();
@@ -3649,8 +3661,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('health', false); openCareSummary(); }
-  else showView(viewNames.includes(initialView) ? initialView : 'health', false);
+  else if (initialView === 'summary') { showView('appointments', false); openCareSummary(); }
+  else showView(initialView || 'health', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });
