@@ -20,7 +20,12 @@
     "verify:medication-login": "node scripts/verify-medication-login.cjs",
     "verify:local-medication-ui": "node scripts/verify-local-medication-ui.cjs",
     "measure:medication-pipeline": "node scripts/measure-medication-pipeline.cjs",
-    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs"
+    "verify:medication-provider-retirement": "node scripts/verify-retired-medication-providers.cjs",
+    "build:alerts": "node scripts/build-health-alerts.cjs",
+    "verify:alerts": "node scripts/verify-health-alerts.cjs",
+    "verify:alerts-presentation": "node scripts/verify-alerts-presentation.cjs",
+    "verify:five-tabs": "node scripts/verify-five-tabs.cjs",
+    "verify:stripe": "node scripts/verify-stripe-pricing.js"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

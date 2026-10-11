@@ -6,6 +6,9 @@
   const artwork = {
     spark: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M12 2.8c.7 5 3.4 7.7 8.4 8.4-5 .7-7.7 3.4-8.4 8.4-.7-5-3.4-7.7-8.4-8.4 5-.7 7.7-3.4 8.4-8.4Z"/><path d="M12 2.8c.7 5 3.4 7.7 8.4 8.4-5 .7-7.7 3.4-8.4 8.4-.7-5-3.4-7.7-8.4-8.4 5-.7 7.7-3.4 8.4-8.4Z"/><path d="M19.4 3.1v3.2M21 4.7h-3.2M3.3 17v3.1M4.9 18.6H1.8"/></svg>',
     capsule: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M5.2 18.8a4.8 4.8 0 0 1 0-6.8l6.8-6.8a4.8 4.8 0 0 1 6.8 6.8L12 18.8a4.8 4.8 0 0 1-6.8 0Z"/><path d="M5.2 18.8a4.8 4.8 0 0 1 0-6.8l6.8-6.8a4.8 4.8 0 0 1 6.8 6.8L12 18.8a4.8 4.8 0 0 1-6.8 0Z"/><path d="m8.7 8.7 6.6 6.6M17.9 3.3v3M19.4 4.8h-3"/></svg>',
+    pro: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 4h12l3 5-9 11L3 9z"/><path d="M6 4h12l3 5-9 11L3 9zM3 9h18M9 4l-2 5 5 11 5-11-2-5"/></svg>',
+    diary: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="4.5" y="3.5" width="15" height="17" rx="2.5"/><rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/><path d="M8 7.5h8M8 10.5h3M7.5 15h3l1.2-2 1.8 4 1.2-2h2.3"/></svg>',
+    alerts: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M5 17h14l-1.8-2.2v-4.6a5.2 5.2 0 0 0-10.4 0v4.6z"/><path d="M5 17h14l-1.8-2.2v-4.6a5.2 5.2 0 0 0-10.4 0v4.6zM10 19a2 2 0 0 0 4 0"/><path d="M19 5.5h2M20 4.5v2"/></svg>',
     calendar: '<svg aria-hidden="true" viewBox="0 0 24 24"><rect class="icon-fill" x="3.5" y="5" width="17" height="16" rx="3"/><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="m8.2 15.3 2.1 2.1 4.7-4.7"/></svg>',
     document: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6M9 19h3"/><path d="M4 6v15h12"/></svg>',
     carePack: '<svg aria-hidden="true" viewBox="0 0 24 24"><path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h4M9 15.5h3"/><path d="m17.3 13.4.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3.9-1.9Z"/></svg>',
@@ -93,6 +96,20 @@
     return svg.outerHTML;
   };
 
+  const userAvatarSource = (size = 24) => {
+    const markup = artworkMarkup('person', size)
+      .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+      .replace(/currentColor/g, '#0e6eb7');
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(markup)}`;
+  };
+
+  const applyProfileFallback = image => {
+    if (!image || image.localName !== 'img' || !image.classList.contains('google-mark')) return;
+    const size = image.closest('.avatar-large') ? 26 : image.closest('.avatar-small') ? 17 : 20;
+    image.dataset.doctoraiProfileFallback = 'true';
+    image.src = userAvatarSource(size);
+  };
+
   // Static pages and newly rendered menus use the same trusted symbol catalog.
   const hydrate = (root = document) => {
     const markers = [...root.querySelectorAll('[data-doctorai-icon]')];
@@ -115,15 +132,19 @@
       marker.classList.add('doctorai-icon-slot');
     });
   };
-  window.DoctorAIIcons = Object.freeze({ markup: artworkMarkup, hydrate });
+  window.DoctorAIIcons = Object.freeze({ markup: artworkMarkup, userAvatarSource, hydrate });
 
   const applyHubArtwork = () => {
     const replaceMark = (selector, tone, size, symbol = tone) => document.querySelectorAll(selector).forEach(icon => {
       const markup = artworkMarkup(symbol, size);
-      if (icon.namespaceURI === 'http://www.w3.org/2000/svg' && icon.localName === 'svg') {
+      if (icon.localName === 'img' && icon.classList.contains('google-mark')) {
+        icon.dataset.doctoraiProfileSymbol = symbol;
+        applyProfileFallback(icon);
+      } else if (icon.namespaceURI === 'http://www.w3.org/2000/svg' && icon.localName === 'svg') {
         const template = document.createElement('template');
         template.innerHTML = markup;
-        icon.replaceWith(template.content.firstElementChild);
+        const replacement = template.content.firstElementChild;
+        icon.replaceWith(replacement);
       } else {
         icon.dataset.doctoraiIcon = symbol;
         icon.dataset.iconSize = String(size);
@@ -134,52 +155,51 @@
 
     const navMarks = [
       ['.primary-nav > .nav-item[data-view="health"] .nav-icon', 'cyan', 20, 'hubHome'],
-      ['.primary-nav > .nav-item[data-open-medication-scanner] .nav-icon', 'blue', 20, 'hubMedicationScan'],
-      ['.primary-nav > .nav-item[data-add-menu] .nav-icon', 'yellow', 20, 'hubAddDetails'],
-      ['.primary-nav > .nav-item[data-open-summary] .nav-icon', 'violet', 20, 'hubVisitPrep'],
-      ['.sidebar-more-toggle .nav-icon', 'yellow', 20, 'overview'],
-      ['.sidebar-more-links [data-view="today"] .nav-icon', 'cyan', 20, 'today'],
-      ['.sidebar-more-links [data-view="ask"] .nav-icon', 'cyan', 20, 'chat'],
-      ['.sidebar-more-links [data-view="medications"] .nav-icon', 'blue', 20, 'capsule'],
-      ['.sidebar-more-links [data-view="appointments"] .nav-icon', 'violet', 20, 'calendar'],
-      ['.sidebar-more-links [data-view="symptoms"] .nav-icon', 'coral', 20, 'pulse'],
-      ['.sidebar-more-links [data-view="results"] .nav-icon', 'yellow', 20, 'chart'],
-      ['.sidebar-more-links [data-view="timeline"] .nav-icon', 'mint', 20, 'timeline'],
-      ['.sidebar-more-links [data-view="documents"] .nav-icon', 'mint', 20, 'document'],
-      ['.sidebar-more-links .research-nav-highlight .nav-icon', 'yellow', 20, 'research']
+      ['.primary-nav > .nav-item[data-view="scan"] .nav-icon, .primary-nav > .nav-item[data-open-medication-scanner] .nav-icon', 'blue', 20, 'hubMedicationScan'],
+      ['.primary-nav > .nav-item[data-view="add"] .nav-icon, .primary-nav > .nav-item[data-add-menu] .nav-icon', 'cyan', 20, 'hubAddDetails'],
+      ['.primary-nav > .nav-item[data-view="diary"] .nav-icon', 'blue', 20, 'diary'],
+      ['.primary-nav > .nav-item[data-view="alerts"] .nav-icon', 'cyan', 20, 'alerts']
     ];
     navMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
 
+    const nestedPanelMarks = [
+      ['.hub-panel-nav [data-hub-panel-target="details"] > span:first-child', 'cyan', 18, 'health'],
+      ['.hub-panel-nav [data-hub-panel-target="ask"] > span:first-child', 'cyan', 18, 'chat'],
+      ['.hub-panel-nav [data-hub-panel-target="profile"] > span:first-child', 'blue', 18, 'person'],
+      ['.hub-panel-nav [data-hub-panel-target="briefing"] > span:first-child', 'cyan', 18, 'document'],
+      ['.hub-panel-nav [data-hub-panel-target="quick-add"] > span:first-child', 'cyan', 18, 'add'],
+      ['.hub-panel-nav [data-hub-panel-target="medications"] > span:first-child', 'blue', 18, 'capsule'],
+      ['.hub-panel-nav [data-hub-panel-target="documents"] > span:first-child', 'cyan', 18, 'document'],
+      ['.hub-panel-nav [data-hub-panel-target="symptoms"] > span:first-child', 'blue', 18, 'diary'],
+      ['.hub-panel-nav [data-hub-panel-target="appointments"] > span:first-child', 'cyan', 18, 'calendar'],
+      ['.hub-panel-nav [data-hub-panel-target="results"] > span:first-child', 'blue', 18, 'chart'],
+      ['.hub-panel-nav [data-hub-panel-target="timeline"] > span:first-child', 'cyan', 18, 'timeline']
+    ];
+    nestedPanelMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
+
     const categoryMarks = [
       ['.category-bar [data-view="health"] > span:first-child', 'cyan', 17, 'hubHome'],
-      ['.category-bar [data-open-medication-scanner] > span:first-child', 'blue', 17, 'hubMedicationScan'],
-      ['.category-bar [data-add-menu] > span:first-child', 'yellow', 17, 'hubAddDetails'],
-      ['.category-bar [data-open-summary] > span:first-child', 'violet', 17, 'hubVisitPrep'],
-      ['.category-bar [data-more-menu] > span:first-child', 'yellow', 17, 'overview'],
-      ['.category-more-menu [data-view="today"] > span:first-child', 'cyan', 16, 'today'],
-      ['.category-more-menu [data-view="ask"] > span:first-child', 'cyan', 16, 'chat'],
-      ['.category-more-menu [data-view="medications"] > span:first-child', 'blue', 16, 'capsule'],
-      ['.category-more-menu [data-view="appointments"] > span:first-child', 'violet', 16, 'calendar'],
-      ['.category-more-menu [data-view="symptoms"] > span:first-child', 'coral', 16, 'pulse'],
-      ['.category-more-menu [data-view="results"] > span:first-child', 'yellow', 16, 'chart'],
-      ['.category-more-menu [data-view="timeline"] > span:first-child', 'mint', 16, 'timeline'],
-      ['.category-more-menu [data-view="documents"] > span:first-child', 'mint', 16, 'document'],
-      ['.category-more-menu .research-nav-highlight > span:first-child', 'yellow', 16, 'research']
+      ['.category-bar [data-view="scan"] > span:first-child', 'blue', 17, 'hubMedicationScan'],
+      ['.category-bar [data-view="add"] > span:first-child', 'cyan', 17, 'hubAddDetails'],
+      ['.category-bar [data-view="diary"] > span:first-child', 'blue', 17, 'diary'],
+      ['.category-bar [data-view="alerts"] > span:first-child', 'cyan', 17, 'alerts']
     ];
     categoryMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
 
     const mobileMarks = [
       ['.mobile-bottom-nav [data-view="health"] > span', 'cyan', 22, 'hubHome'],
-      ['.mobile-bottom-nav [data-open-medication-scanner] > span', 'blue', 22, 'hubMedicationScan'],
-      ['.mobile-bottom-nav [data-add-menu] > span', 'yellow', 22, 'hubAddDetails'],
-      ['.mobile-bottom-nav [data-open-summary] > span', 'violet', 22, 'hubVisitPrep'],
-      ['.mobile-bottom-nav [data-view="medications"] > span', 'blue', 22, 'capsule']
+      ['.mobile-bottom-nav [data-view="scan"] > span, .mobile-bottom-nav [data-open-medication-scanner] > span', 'blue', 22, 'hubMedicationScan'],
+      ['.mobile-bottom-nav [data-view="add"] > span, .mobile-bottom-nav [data-add-menu] > span', 'cyan', 22, 'hubAddDetails'],
+      ['.mobile-bottom-nav [data-view="diary"] > span', 'blue', 22, 'diary'],
+      ['.mobile-bottom-nav [data-view="alerts"] > span', 'cyan', 22, 'alerts']
     ];
     mobileMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
 
-    replaceMark('.sidebar-bottom .upgrade-icon', 'cyan', 17, 'spark');
+    replaceMark('.sidebar-bottom .upgrade-icon', 'cyan', 17, 'pro');
     replaceMark('.sidebar-bottom .memory-mini-icon', 'mint', 17, 'memory');
-    replaceMark('.topbar-actions .pro-button > span', 'cyan', 17, 'spark');
+    replaceMark('.topbar-actions .pro-button > span, .pro-status-section .drawer-row-icon', 'cyan', 17, 'pro');
+    replaceMark('.topbar-actions .profile-trigger .google-mark, #profile-page-avatar .google-mark, #profile-drawer .drawer-profile .google-mark', 'blue', 26, 'person');
+    replaceMark('.mobile-notifications-button > svg', 'blue', 20, 'person');
     replaceMark('.topbar-actions [data-add-menu] > span', 'yellow', 17, 'add');
 
     replaceMark('#view-health .care-visit-card > svg', 'violet', 48, 'hubVisitPrep');
@@ -231,6 +251,13 @@
       }));
     });
     observer.observe(document.body, { childList: true, subtree: true });
+    const profileAvatarObserver = new MutationObserver(records => records.forEach(record => {
+      const imagePath = record.target.getAttribute('src')?.split('?')[0] || '';
+      if (imagePath.endsWith('google-g-logo.svg')) applyProfileFallback(record.target);
+    }));
+    document.querySelectorAll('img[data-doctorai-profile-fallback="true"]').forEach(image => {
+      profileAvatarObserver.observe(image, { attributes: true, attributeFilter: ['src'] });
+    });
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
