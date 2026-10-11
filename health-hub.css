@@ -6384,3 +6384,100 @@ html body[data-hub-theme] { background:#f7f9fc; }
   #hub-shell #view-symptoms .symptom-page-actions { grid-template-columns: minmax(0, 1fr); }
   #hub-shell #view-symptoms .diary-detail-disclosure > .symptom-summary { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Restore DoctorAI colour while preserving the five-tab layout and spacing. */
+html body[data-hub-theme] { background: linear-gradient(135deg, #edf7ff, #f3fbff 55%, #e9f8fc); }
+#hub-shell .view-stack { overflow: visible; }
+#hub-shell .sidebar { background: linear-gradient(180deg, #f0faff, #fff 38%, #edf8ff); border-right-color: #b6d9ef; }
+#hub-shell .hub-topbar { background: #e5f5ff; border-bottom-color: #a8d8ed; }
+#hub-shell .primary-nav > .nav-item[data-view]:hover { background: #dcefff; color: #0759b6; }
+#hub-shell .primary-nav > .nav-item[data-view].active,
+#hub-shell .primary-nav > .nav-item[data-view][aria-current="page"] {
+  background: linear-gradient(110deg, #0865df, #007b97);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(8,101,223,.18);
+}
+#hub-shell .primary-nav > .nav-item[data-view]:is(.active, [aria-current="page"]) > .nav-icon { color: #fff; }
+#hub-shell .primary-nav > .nav-item[data-view]:is(.active, [aria-current="page"]) > span:not(.nav-icon) { color: #fff; }
+
+/* Painted backplates add colour without moving headings or their controls. */
+#hub-shell :is(#view-health, #view-scan, #view-add, #view-diary, #view-alerts) > .page-heading {
+  position: relative;
+  isolation: isolate;
+  border-bottom-color: transparent;
+}
+#hub-shell :is(#view-health, #view-scan, #view-add, #view-diary, #view-alerts) > .page-heading::before {
+  content: "";
+  position: absolute;
+  inset: -12px -12px 0;
+  z-index: -1;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #0759c7, #076bd5 52%, #00798e);
+  box-shadow: 0 8px 22px rgba(8,101,223,.14), inset 0 1px 0 rgba(255,255,255,.2);
+  pointer-events: none;
+}
+#hub-shell [data-view-panel]:is(#view-health, #view-scan, #view-add, #view-diary, #view-alerts) > .page-heading h1 { color: #fff; }
+#hub-shell :is(#view-health, #view-scan, #view-add, #view-diary, #view-alerts) > .page-heading :is(.eyebrow, .page-subtitle) { color: #e2f5ff; }
+#hub-shell #view-health .health-page-heading .primary-button,
+#hub-shell :is(#view-diary, #view-alerts) > .page-heading .secondary-button {
+  border-color: #b8eaff;
+  background: #fff;
+  color: #0759b6;
+  box-shadow: 0 5px 16px rgba(0,35,92,.13);
+}
+#hub-shell #view-health .health-page-heading .primary-button:hover,
+#hub-shell :is(#view-diary, #view-alerts) > .page-heading .secondary-button:hover { background: #e8f8ff; color: #064c96; }
+#hub-shell .hub-panel-nav { border-bottom-color: #acd4ee; }
+#hub-shell .hub-panel-nav > [data-hub-panel-target]:is(.active, [aria-current="page"]) { background: #dcefff; border-bottom-color: #087bc9; color: #064f99; }
+
+#hub-shell #view-health .care-visit-card { border-color: #65bedb; background: linear-gradient(110deg, #ccefff, #e1f8fb); box-shadow: inset 4px 0 #087cb8; }
+#hub-shell #view-health .care-visit-card button { border-color: #0865ce; background: linear-gradient(110deg, #075dce, #007997); color: #fff; }
+#hub-shell #view-health .care-visit-card button:hover { background: #0759b6; color: #fff; }
+#hub-shell #view-health .health-snapshot,
+#hub-shell #view-health .health-snapshot:hover { border-color: #8fbde6; background: linear-gradient(120deg, #e4f3ff, #f3faff); box-shadow: inset 4px 0 #147fd1; }
+#hub-shell #view-health .profile-fact { border-top-color: #c6e0f2; }
+#hub-shell #view-health .health-info-grid { border-color: #a8cbe5; }
+#hub-shell #view-health .health-info-grid > .info-card:nth-child(1) { background: #e8f3ff; border-bottom-color: #bfd7ed; box-shadow: inset 4px 0 #3785d8; }
+#hub-shell #view-health .health-info-grid > .info-card:nth-child(2) { background: #fff0ec; border-bottom-color: #efd0c6; box-shadow: inset 4px 0 #d1745a; }
+#hub-shell #view-health .health-info-grid > .info-card:nth-child(3) { background: #e7f8f3; border-bottom-color: #bcded3; box-shadow: inset 4px 0 #26866f; }
+#hub-shell #view-health .health-info-grid > .emergency-card { background: linear-gradient(110deg, #103452, #0c4968); color: #fff; box-shadow: inset 4px 0 #29c4df; }
+#hub-shell #view-health .emergency-card .info-card-heading h3,
+#hub-shell #view-health .emergency-card .emergency-facts b { color: #fff; }
+#hub-shell #view-health .emergency-card .info-card-heading small,
+#hub-shell #view-health .emergency-card .emergency-facts small { color: #c4e8f4; }
+#hub-shell #view-health .emergency-card .info-card-heading > button { color: #a0edff; }
+#hub-shell #view-health .health-reminders-disclosure { border-color: #a9d8e7; background: #eaf8fc; }
+#hub-shell #view-health .health-reminders-disclosure > summary:hover { background: #dcf2fa; }
+
+#hub-shell #view-add .add-detail-choice { border-color: var(--choice-border, #98cce9); background: var(--choice-bg, #e6f4ff); box-shadow: inset 4px 0 var(--choice-accent, #267dc9); }
+#hub-shell #view-add .add-detail-choice:hover { border-color: var(--choice-accent, #267dc9); background: var(--choice-bg, #e6f4ff); }
+#hub-shell #view-add .add-detail-choice > span:first-child { background: var(--choice-icon-bg, #c8e8ff); color: var(--choice-ink, #075b9b); }
+#hub-shell #view-add .add-detail-choice[data-modal="health"] { --choice-bg: #e3f7f4; --choice-border: #8dcdc1; --choice-accent: #208576; --choice-icon-bg: #bdebe2; --choice-ink: #116958; }
+#hub-shell #view-add .add-detail-choice[data-modal="symptom"] { --choice-bg: #fff0e9; --choice-border: #e6b5a1; --choice-accent: #c46c50; --choice-icon-bg: #ffddd0; --choice-ink: #944730; }
+#hub-shell #view-add .add-detail-choice[data-modal="appointment"] { --choice-bg: #f0ebff; --choice-border: #b9a8e0; --choice-accent: #7957b3; --choice-icon-bg: #ddd0ff; --choice-ink: #644198; }
+#hub-shell #view-add .add-detail-choice[data-modal="measurement"] { --choice-bg: #fff7df; --choice-border: #d8bf73; --choice-accent: #a88022; --choice-icon-bg: #f7e4a8; --choice-ink: #7a5b12; }
+#hub-shell #view-add .add-detail-choice[data-view="documents"] { --choice-bg: #e3f8ff; --choice-border: #8dcddd; --choice-accent: #137e9a; --choice-icon-bg: #bceaf7; --choice-ink: #08657e; }
+#hub-shell #view-scan .scan-start-card { border-color: #89c8e5; background: linear-gradient(125deg, #e1f3ff, #e2f8f9); box-shadow: inset 4px 0 #1586c6; }
+#hub-shell #view-scan .scan-start-card > span:first-child { background: linear-gradient(135deg, #0865df, #007b97); color: #fff; }
+#hub-shell #view-scan .scan-start-card > .primary-button { background: linear-gradient(110deg, #075dce, #007997); }
+#hub-shell #view-symptoms .diary-detail-disclosure { border-color: #b6c7e5; background: #edf2ff; }
+#hub-shell #view-symptoms .diary-detail-disclosure > summary:hover { background: #e1eaff; }
+#hub-shell #view-alerts .alerts-summary { border-color: #a1c9e5; background: linear-gradient(115deg, #dceeff, #e1f7fa); }
+#hub-shell #view-alerts .hub-alert-coverage { border-color: #9acddf; background: #eaf8fc; }
+#hub-shell #view-alerts .hub-alert-coverage > summary:hover { background: #daf1f8; }
+
+#hub-shell .sidebar-bottom .upgrade-card { background: linear-gradient(120deg, #103452, #075bad); box-shadow: 0 5px 16px rgba(12,58,103,.13); }
+#hub-shell .sidebar-bottom .upgrade-card:hover { background: linear-gradient(120deg, #143f62, #086dcc); }
+#hub-shell .upgrade-card b { color: #fff; }
+#hub-shell .upgrade-card small { color: #d4edff; }
+#hub-shell .upgrade-card .upgrade-icon { background: #d2f3ff; color: #0764a8; }
+#hub-shell .upgrade-card .upgrade-arrow { color: #9ae9ff; }
+#hub-shell :is(.profile-trigger .google-avatar, #profile-page-avatar, #profile-drawer .drawer-profile .google-avatar) { border-color: #73bddf; background: #ceefff; }
+
+@media (max-width: 620px) {
+  #hub-shell :is(#view-health, #view-scan, #view-add, #view-diary, #view-alerts) > .page-heading::before { inset-inline: -8px; border-radius: 12px; }
+  #hub-shell .hub-topbar { background: #e5f5ff; }
+  body[data-hub-theme] .mobile-bottom-nav { border-top-color: #a8cee8; background: #e5f3ff; box-shadow: 0 -4px 18px rgba(12,72,122,.1); }
+  body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) { background: linear-gradient(125deg, #0865df, #007b97); color: #fff; }
+  body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) :is(span, svg, b) { color: #fff; }
+}
