@@ -22,8 +22,9 @@
   <style>body{min-height:100vh;display:grid;place-items:center;padding:24px;background:#f4fbfe;color:#153452;font-family:Arial,sans-serif}.shell{width:min(620px,100%);padding:34px;border:1px solid #d6e9f0;border-radius:24px;background:#fff;box-shadow:0 18px 55px #15345218;text-align:center}.logo{width:220px;height:125px;object-fit:contain}.eyebrow{margin:20px 0 8px;color:#176bd0;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.shell h1{margin:0;font-size:clamp(30px,6vw,48px);letter-spacing:-.04em}.shell p{color:#526d7e;line-height:1.6}.app-actions{display:grid;gap:10px;justify-items:center;margin:12px 0 0}.install{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin:0;padding:0 20px;border:0;border-radius:12px;background:#153452;color:#fff;font-size:15px;font-weight:800;cursor:pointer}.hub-link{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:min(100%,320px);min-height:48px;padding:0 20px;border:2px solid #153452;border-radius:12px;background:#fff;color:#153452;font-size:15px;font-weight:800;text-decoration:none}.stores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:26px 0 18px}.badge{display:flex;align-items:center;gap:10px;min-height:64px;padding:12px 14px;border:1px solid #d6e9f0;border-radius:14px;background:#f8fbfd;color:#153452;text-align:left}.badge-logo{font-size:28px;line-height:1}.badge b,.badge small{display:block}.badge b{font-size:14px}.badge small{margin-top:4px;color:#176bd0;font-size:11px;font-weight:800}.note{margin:0;font-size:13px}.back{display:inline-block;margin-top:18px;color:#176bd0;font-weight:700;text-decoration:none}a:focus-visible,button:focus-visible{outline:3px solid #0b76c5;outline-offset:3px}@media(max-width:520px){.shell{padding:25px 18px}.stores{grid-template-columns:1fr}}</style>
   <link rel="stylesheet" href="/site-shell.css?v=2">
   <script defer src="/site-shell.js?v=4"></script>
-  <link rel="stylesheet" href="/accessibility.css?v=6">
+  <link rel="stylesheet" href="/accessibility.css?v=11">
   <link rel="stylesheet" href="/resource-share.css?v=1">
+  <script defer src="/feature-icons.js?v=6"></script>
 </head>
 <body class="doctorai-public-page">
   <main class="shell">
@@ -38,9 +39,9 @@
       <p class="resource-share-status" data-share-status role="status" aria-live="polite">Sharing offers only this public page link and a fixed description.</p>
       <input class="resource-share-link" data-share-link type="text" aria-label="Public download page link to share" readonly hidden>
     </div>
-    <div class="stores"><div class="badge"><span class="badge-logo" aria-hidden="true"></span><span><b>App Store</b><small>COMING SOON</small></span></div><div class="badge"><span class="badge-logo" aria-hidden="true">▶</span><span><b>Google Play</b><small>COMING SOON</small></span></div></div>
+    <div class="stores"><div class="badge"><span class="badge-logo" data-doctorai-icon="phone" aria-hidden="true"></span><span><b>App Store</b><small>COMING SOON</small></span></div><div class="badge"><span class="badge-logo" data-doctorai-icon="phone" aria-hidden="true"></span><span><b>Google Play</b><small>COMING SOON</small></span></div></div>
     <p class="note">This permanent page will point to the latest approved release. Website and web-app updates arrive automatically; native app changes require a new store release.</p>
-    <a class="back" href="/health-hub">← Back to DoctorAI</a>
+    <a class="back" href="/health-hub"><span data-doctorai-icon="arrowLeft" aria-hidden="true"></span> Back to DoctorAI</a>
   </main><script src="/resource-share.js?v=1"></script><script src="/pwa.js?v=15"></script>
 </body>
 </html>

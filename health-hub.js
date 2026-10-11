@@ -266,7 +266,7 @@
     if (theme) theme.content = '#173550';
   }
   const isDocumentEntry = entry => entry?.source === 'document' || entry?.title === 'Health document uploaded';
-  const proFeatureGate = (title, copy) => `<div class="pro-gate" role="note"><span class="pro-gate-icon">✦</span><div class="pro-gate-copy"><b>${escapeHTML(title)}</b><p>${escapeHTML(copy)}</p></div><a href="/subscription#plans">See DoctorAI Pro <span>→</span></a></div>`;
+  const proFeatureGate = (title, copy) => `<div class="pro-gate" role="note"><span class="pro-gate-icon" aria-hidden="true">${iconMarkup('spark')}</span><div class="pro-gate-copy"><b>${escapeHTML(title)}</b><p>${escapeHTML(copy)}</p></div><a href="/subscription#plans">See DoctorAI Pro <span aria-hidden="true">${iconMarkup('arrow')}</span></a></div>`;
   const formatDate = value => {
     if (!value) return '';
     const date = new Date(`${value}T12:00:00`);
@@ -431,60 +431,21 @@
     if (els.date) els.date.textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  const navigationIcons = {
-    today: '<path d="m3.5 10 8.5-7 8.5 7v10.5h-6v-6h-5v6h-5z"/>',
-    ask: '<path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/>',
-    health: '<path d="M20.6 5.7c-2.3-2.4-6.2-1.8-8.6 1.1-2.4-2.9-6.3-3.5-8.6-1.1-2.4 2.5-1.2 6.2.7 8.3L12 21l7.9-7c1.9-2.1 3.1-5.8.7-8.3Z"/>',
-    profile: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.5-4.4 3.2-6.8 7.5-6.8s7 2.4 7.5 6.8"/>',
-    symptoms: '<path d="M3 12h4l2-5 4 10 2.2-5H21"/><path d="M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/>',
-    medications: '<rect x="3.5" y="8" width="17" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="m9.2 9.2 5.6 5.6"/>',
-    appointments: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17M8 14h3M13.5 14H16M8 17h3"/>',
-    results: '<path d="M4 19.5V5M4 19.5h16M7 16l3.5-4 3 2 5-7"/>',
-    timeline: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>',
-    documents: '<path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6"/>',
-    research: '<path d="M4.5 5.5A3.5 3.5 0 0 1 8 3h4v16H8a3.5 3.5 0 0 0-3.5 2.2ZM19.5 5.5A3.5 3.5 0 0 0 16 3h-4v16h4a3.5 3.5 0 0 1 3.5 2.2Z"/>'
-  };
-  const iconMarkup = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${navigationIcons[name] || navigationIcons.today}</svg>`;
-  // Profile shortcuts use the same outlined, duotone pictograms as the Home orbit.
-  // These bodies are static app-owned markup; no user content is interpolated.
-  const profileShortcutIconBodies = {
-    ask: '<path class="icon-fill" d="M12 2.9c.7 4.5 2.6 6.4 7.1 7.1-4.5.7-6.4 2.6-7.1 7.1-.7-4.5-2.6-6.4-7.1-7.1 4.5-.7 6.4-2.6 7.1-7.1Z"/><path d="M12 2.9c.7 4.5 2.6 6.4 7.1 7.1-4.5.7-6.4 2.6-7.1 7.1-.7-4.5-2.6-6.4-7.1-7.1 4.5-.7 6.4-2.6 7.1-7.1Z"/><path d="M18.8 3.5v3M20.3 5h-3M4.5 16.6V19M5.7 17.8H3.3"/>',
-    medications: '<rect class="icon-fill" x="3.5" y="8" width="17" height="8" rx="4" transform="rotate(-45 12 12)"/><rect x="3.5" y="8" width="17" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="m9.2 14.8 5.6-5.6M17.4 4.2v3M18.9 5.7h-3.1"/>',
-    appointments: '<rect class="icon-fill" x="3.5" y="5.5" width="17" height="15" rx="3"/><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M8 3.5v4M16 3.5v4M3.5 10h17M8 15l2 2 4-4"/><circle class="icon-solid" cx="17.5" cy="15.5" r="1"/>',
-    documents: '<path class="icon-fill" d="M6 3.5h8l4 4v13H6z"/><path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h4"/><circle class="icon-solid" cx="9.5" cy="18" r="1"/>',
-    symptoms: '<path class="icon-fill" d="M4 12h3l2-5 4 10 2.2-5H20v7H4z"/><path d="M3 12h4l2-5 4 10 2.2-5H21M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/>',
-    results: '<path d="M4 19.5V5M4 19.5h16M7 16l3.5-4 3 2 5-7"/>',
-    health: navigationIcons.health,
-    privacy: '<path class="icon-fill" d="m12 3 7 8.5-7 9-7-9Z"/><path d="m12 3 7 8.5-7 9-7-9Z"/><path d="M12 8v6"/>',
-    person: navigationIcons.profile,
-    blood: '<path class="icon-fill" d="M12 2.5C9.4 6.4 5.5 10 5.5 14a6.5 6.5 0 0 0 13 0c0-4-3.9-7.6-6.5-11.5Z"/><path d="M12 2.5C9.4 6.4 5.5 10 5.5 14a6.5 6.5 0 0 0 13 0c0-4-3.9-7.6-6.5-11.5Z"/><path d="M9 15.5a3 3 0 0 0 3 3"/>',
-    allergies: '<path class="icon-fill" d="M12 3 2.5 20h19Z"/><path d="M12 3 2.5 20h19Z"/><path d="M12 9v5m0 3h.01"/>',
-    providers: '<path class="icon-fill" d="M5 17c1.3-2 3.6-3 7-3s5.7 1 7 3v3H5Z"/><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20v-3c1.3-2 3.6-3 7-3s5.7 1 7 3v3H5Z"/><path d="M18 4v5m-2.5-2.5h5"/>',
-    refill: '<path class="icon-fill" d="M5 5h12v6H5z"/><path d="M5 5h12v6H5zM8 14a5 5 0 1 0 9 4M8 14v4h4"/>',
-    memory: '<path class="icon-fill" d="M5 4.5h14v15H5z"/><path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V6A1.5 1.5 0 0 1 5 4.5ZM8 8h8M8 12h8M8 16h5"/>'
-  };
-  const profileShortcutIconMarkup = name => `<svg viewBox="0 0 24 24" aria-hidden="true">${profileShortcutIconBodies[name] || navigationIcons.today}</svg>`;
+  const healthIconNames = { today: 'today', ask: 'chat', health: 'health', profile: 'person', symptoms: 'pulse', medications: 'capsule', appointments: 'calendar', results: 'chart', timeline: 'timeline', documents: 'document', research: 'research', privacy: 'shield', blood: 'drop', allergies: 'allergy', providers: 'provider', refill: 'refill', memory: 'memory', person: 'person' };
+  const iconMarkup = (name, size = 20) => window.DoctorAIIcons.markup(healthIconNames[name] || name, size);
+  const profileShortcutIconMarkup = name => iconMarkup(name);
+  const timelineIconMarkup = entry => iconMarkup(isDocumentEntry(entry) ? 'documents' : ({ symptom: 'symptoms', medication: 'medications', appointment: 'appointments', result: 'results' }[entry?.type] || 'timeline'));
   function setupNavigationIcons() {
-    // Reuse Home's artwork everywhere, including the dynamically rendered menus.
-    document.querySelectorAll('#view-today [data-orbit-action][data-view]').forEach(item => {
-      const svg = item.querySelector('svg');
-      if (svg) profileShortcutIconBodies[item.dataset.view] = svg.innerHTML;
-    });
-    const prescriptionIcon = document.querySelector('#view-today [data-open-medication-scanner] svg');
-    if (prescriptionIcon) profileShortcutIconBodies.medications = prescriptionIcon.innerHTML;
-    const askIcon = document.querySelector('#view-today .hub-ask-prompt-icon svg');
-    if (askIcon) profileShortcutIconBodies.ask = askIcon.innerHTML;
     document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .category-more-menu [data-view]').forEach(item => {
       const target = item.matches('.nav-item') ? item.querySelector('.nav-icon') : item.querySelector(':scope > span:first-child');
-      if (target) {
-        target.innerHTML = profileShortcutIconMarkup(item.dataset.view);
-        target.setAttribute('aria-hidden', 'true');
-        target.classList.add('feature-icon', `tone-${profileShortcutDefinition(item.dataset.view)?.tone || 'blue'}`);
-      }
+      if (!target) return;
+      target.dataset.doctoraiIcon = item.dataset.view === 'health' ? 'hubHome' : (healthIconNames[item.dataset.view] || 'overview');
+      target.classList.add('feature-icon', `tone-${profileShortcutDefinition(item.dataset.view)?.tone || 'blue'}`);
+      target.setAttribute('aria-hidden', 'true');
     });
     document.querySelectorAll('.research-nav-highlight').forEach(item => {
       const target = item.querySelector('.nav-icon, :scope > span:first-child');
-      if (target) target.innerHTML = iconMarkup('research');
+      if (target) target.dataset.doctoraiIcon = 'research';
     });
     const featureTargets = [
       ['.quick-asks button:nth-of-type(1) .quick-ask-icon', 'appointments'],
@@ -499,19 +460,19 @@
       ['#view-health .info-icon.coral', 'allergies'],
       ['#view-health .info-icon.purple', 'providers'],
       ['#view-health .info-icon.dark', 'blood'],
-      ['.drawer-pro-status .drawer-row-icon', 'ask'],
-      ['.drawer-row[data-view="health"] .drawer-row-icon', 'health'],
+      ['.drawer-pro-status .drawer-row-icon', 'spark'],
+      ['.drawer-row[data-view="health"] .drawer-row-icon', 'memory'],
       ['.drawer-row[data-show-privacy] .drawer-row-icon, .profile-trust-icon.tone-cyan', 'privacy'],
       ['.profile-trust-icon.tone-violet', 'health']
     ];
-    const supportingTones = { refill: 'cyan', memory: 'mint', allergies: 'coral', providers: 'violet', blood: 'coral' };
+    const supportingTones = { spark: 'cyan', refill: 'cyan', memory: 'mint', allergies: 'coral', providers: 'violet', blood: 'coral' };
     featureTargets.forEach(([selector, name]) => document.querySelectorAll(selector).forEach(icon => {
-      icon.innerHTML = profileShortcutIconMarkup(name);
+      icon.dataset.doctoraiIcon = healthIconNames[name] || name;
       icon.classList.add('feature-icon', `tone-${profileShortcutDefinition(name)?.tone || supportingTones[name] || 'blue'}`);
       icon.setAttribute('aria-hidden', 'true');
     }));
+    window.DoctorAIIcons.hydrate(document);
   }
-
   function setMobileMenuOpen(open, restoreFocus = false) {
     const button = document.querySelector('[data-mobile-menu]');
     const mobileFullMenu = window.matchMedia('(max-width: 620px)').matches;
@@ -614,7 +575,7 @@
       const medicationName = escapeHTML(medication.name || 'medication');
       const safety = medicationSafetyMarkup(medication);
       return `<article class="medication-row-wrap ${safety ? 'has-safety-alert' : ''}"><div class="medication-row ${isTaken ? 'taken' : ''} ${isMissed ? 'missed' : ''}">
-        <button class="medication-check" type="button" data-med-toggle="${escapeHTML(medication.id)}" aria-label="${isTaken ? `Mark ${medicationName} as due` : `Mark ${medicationName} as taken`}">${isTaken ? '✓' : isMissed ? '!' : ''}</button>
+        <button class="medication-check" type="button" data-med-toggle="${escapeHTML(medication.id)}" aria-label="${isTaken ? `Mark ${medicationName} as due` : `Mark ${medicationName} as taken`}">${isTaken ? iconMarkup('check', 16) : isMissed ? iconMarkup('alert', 16) : ''}</button>
         <span class="medication-time">${escapeHTML(medication.time)}</span>
         <div class="medication-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)}</span><small>${escapeHTML(medication.instructions)}</small></div>
         <div class="medication-actions"><span class="medication-status">${statusText}</span>${!isTaken && !isMissed ? `<button class="missed-button" type="button" data-med-missed="${escapeHTML(medication.id)}" aria-label="Mark ${medicationName} as missed">Mark missed</button>` : ''}<button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div>
@@ -646,7 +607,7 @@
       const supplyText = supply === null ? 'Remaining supply not recorded' : `Recorded remaining: ${escapeHTML(supply)}`;
       const supplyStatus = supply === null ? 'Supply not set' : supply === 0 ? 'Verify amount' : supply <= 14 ? 'Low supply' : 'Active';
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
-        <span class="medicine-icon">▣</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
+        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
         <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
       </div>${safety}</article>`;
     }).join('') : '<div class="empty-state">No medications added yet. Your prescription reminders will appear here.</div>';
@@ -705,10 +666,10 @@
     const alerts = state.medications.flatMap(medication => medicationSafetyAlerts(medication));
     const caution = alerts.filter(alert => alert.severity === 'caution');
     status.innerHTML = !state.medications.length
-      ? '<div class="clash-box clash-box-note"><span>i</span><div><b>No medicines saved yet</b><p>Add your medicines to see if any local name or label-text match needs review.</p></div></div>'
+      ? '<div class="clash-box clash-box-note"><span data-doctorai-icon="info" aria-hidden="true"></span><div><b>No medicines saved yet</b><p>Add your medicines to see if any local name or label-text match needs review.</p></div></div>'
       : caution.length
-        ? '<div class="clash-box clash-box-caution"><span>⚠</span><div><b>Possible text match to review</b><p>' + escapeHTML(caution[0].message) + ' This has not been checked against a medicine database.</p></div></div>'
-        : '<div class="clash-box clash-box-note"><span>i</span><div><b>Interaction check not run</b><p>No interaction check has been run for this list. Consent and choose Check saved medicines to start the limited check.</p></div></div>';
+        ? '<div class="clash-box clash-box-caution"><span data-doctorai-icon="alert" aria-hidden="true"></span><div><b>Possible text match to review</b><p>' + escapeHTML(caution[0].message) + ' This has not been checked against a medicine database.</p></div></div>'
+        : '<div class="clash-box clash-box-note"><span data-doctorai-icon="info" aria-hidden="true"></span><div><b>Interaction check not run</b><p>No interaction check has been run for this list. Consent and choose Check saved medicines to start the limited check.</p></div></div>';
     renderMedicationCheckState();
   }
 
@@ -746,7 +707,7 @@
   function medicationSafetyMarkup(medication) {
     const alerts = medicationSafetyAlerts(medication);
     if (!alerts.length) return '';
-    return `<div class="medication-safety-alerts" role="alert">${alerts.map(alert => `<div class="medication-safety-alert ${alert.severity === 'critical' ? 'critical' : 'caution'}"><span class="safety-alert-icon">${alert.severity === 'critical' ? '!' : '⚠'}</span><div><b>${escapeHTML(alert.title)}</b><p>${escapeHTML(alert.message)}</p><small>${escapeHTML(alert.source)} · Confirm with a pharmacist or clinician</small></div></div>`).join('')}</div>`;
+    return `<div class="medication-safety-alerts" role="alert">${alerts.map(alert => `<div class="medication-safety-alert ${alert.severity === 'critical' ? 'critical' : 'caution'}"><span class="safety-alert-icon" aria-hidden="true">${iconMarkup('alert', 16)}</span><div><b>${escapeHTML(alert.title)}</b><p>${escapeHTML(alert.message)}</p><small>${escapeHTML(alert.source)} · Confirm with a pharmacist or clinician</small></div></div>`).join('')}</div>`;
   }
 
   function medicationGuidanceMarkup(medications) {
@@ -760,7 +721,7 @@
       const instructionText = instructions && !/^follow the prescription label$/i.test(instructions)
         ? `Saved label direction: ${instructions}`
         : 'No detailed label direction saved yet. Check the prescription label before taking it.';
-      return `<li><span class="today-medication-guidance-icon" aria-hidden="true">✓</span><div><b>${escapeHTML(shorten(medication.name) || 'Saved medication')}</b><p>${escapeHTML(instructionText)}</p><small>Before taking: check food/timing instructions and ask a pharmacist what to avoid with this medicine, including alcohol, driving or other medicines. Never double a missed dose or change/stop treatment without professional advice.</small></div></li>`;
+      return `<li><span class="today-medication-guidance-icon" aria-hidden="true">${iconMarkup('document')}</span><div><b>${escapeHTML(shorten(medication.name) || 'Saved medication')}</b><p>${escapeHTML(instructionText)}</p><small>Before taking: check food/timing instructions and ask a pharmacist what to avoid with this medicine, including alcohol, driving or other medicines. Never double a missed dose or change/stop treatment without professional advice.</small></div></li>`;
     }).join('');
     return `<ul class="today-medication-guidance-list">${guidance}</ul><p class="today-medication-guidance-note"><strong>Personalised from your saved notes—not a drug database.</strong> These reminders do not verify interactions or replace the label. Confirm medicine-specific food, drink, supplement and activity advice with your pharmacist or prescriber.</p>`;
   }
@@ -772,7 +733,7 @@
       if (/\bcodeine\b/.test(name) && !recognised.includes('codeine')) recognised.push('codeine');
     });
     if (!recognised.length) return '';
-    return `<section class="today-dashboard-section today-verified-guidance" aria-labelledby="verified-medicine-title"><div class="today-dashboard-heading"><div><p>Recognised medicine</p><h3 id="verified-medicine-title">Verified patient guidance</h3></div><span>Source checked</span></div>${recognised.includes('codeine') ? `<article class="today-verified-card"><div><b>Codeine</b><small>General NHS guidance—your specific product and label still take priority.</small></div><ul><li>Codeine itself can usually be taken with or without food. Combination products can have different directions, so check the full product name and leaflet.</li><li>Avoid alcohol because it can increase sleepiness and serious side effects. Do not drive, cycle or use machinery if it makes you sleepy, dizzy or unable to concentrate.</li><li>Common effects include constipation, nausea and sleepiness. Slow, weak or shallow breathing, severe confusion, or difficulty waking needs urgent medical help.</li><li>Do not take an extra dose to make up for a missed dose, and do not stop long-term codeine suddenly without advice.</li></ul><a href="https://www.nhs.uk/medicines/codeine/" target="_blank" rel="noopener noreferrer">Read NHS codeine guidance <span aria-hidden="true">↗</span></a></article>` : ''}</section>`;
+    return `<section class="today-dashboard-section today-verified-guidance" aria-labelledby="verified-medicine-title"><div class="today-dashboard-heading"><div><p>Recognised medicine</p><h3 id="verified-medicine-title">Verified patient guidance</h3></div><span>Source checked</span></div>${recognised.includes('codeine') ? `<article class="today-verified-card"><div><b>Codeine</b><small>General NHS guidance—your specific product and label still take priority.</small></div><ul><li>Codeine itself can usually be taken with or without food. Combination products can have different directions, so check the full product name and leaflet.</li><li>Avoid alcohol because it can increase sleepiness and serious side effects. Do not drive, cycle or use machinery if it makes you sleepy, dizzy or unable to concentrate.</li><li>Common effects include constipation, nausea and sleepiness. Slow, weak or shallow breathing, severe confusion, or difficulty waking needs urgent medical help.</li><li>Do not take an extra dose to make up for a missed dose, and do not stop long-term codeine suddenly without advice.</li></ul><a href="https://www.nhs.uk/medicines/codeine/" target="_blank" rel="noopener noreferrer">Read NHS codeine guidance <span aria-hidden="true">${iconMarkup('external')}</span></a></article>` : ''}</section>`;
   }
 
   function verifiedSymptomEducationMarkup(symptoms) {
@@ -781,7 +742,7 @@
     const hasBreathingConcern = names.some(name => /breath|shortness|wheez|cannot breathe|can't breathe/.test(name));
     if (!hasHeadache && !hasBreathingConcern) return '';
     const sections = [];
-    if (hasHeadache) sections.push(`<article class="today-verified-card symptom"><div><b>Headache</b><small>Low-risk steps while you monitor what you notice.</small></div><ul><li>Drink water, eat regular meals, rest and reduce prolonged screen strain.</li><li>Record timing, intensity and possible context such as missed meals, sleep, stress or exercise—these are observations, not confirmed causes.</li><li>Seek urgent help for a sudden extremely painful headache, weakness or numbness, confusion, seizure, loss of vision, trouble speaking or walking, or a severe headache after a head injury.</li></ul><a href="https://www.nhs.uk/symptoms/headaches/" target="_blank" rel="noopener noreferrer">Read NHS headache guidance <span aria-hidden="true">↗</span></a></article>`);
+    if (hasHeadache) sections.push(`<article class="today-verified-card symptom"><div><b>Headache</b><small>Low-risk steps while you monitor what you notice.</small></div><ul><li>Drink water, eat regular meals, rest and reduce prolonged screen strain.</li><li>Record timing, intensity and possible context such as missed meals, sleep, stress or exercise—these are observations, not confirmed causes.</li><li>Seek urgent help for a sudden extremely painful headache, weakness or numbness, confusion, seizure, loss of vision, trouble speaking or walking, or a severe headache after a head injury.</li></ul><a href="https://www.nhs.uk/symptoms/headaches/" target="_blank" rel="noopener noreferrer">Read NHS headache guidance <span aria-hidden="true">${iconMarkup('external')}</span></a></article>`);
     if (hasBreathingConcern) sections.push(`<article class="today-verified-card urgent"><div><b>Breathing symptoms need caution</b><small>Fitness advice is not appropriate until the symptom is understood.</small></div><ul><li>Do not use exercise as a test or treatment for unexplained breathing difficulty.</li><li>Stop activity and seek prompt clinical advice. Severe breathlessness, blue/grey lips or skin, chest pain, confusion, collapse, or being unable to speak normally requires local emergency help now.</li></ul></article>`);
     return `<section class="today-dashboard-section today-verified-guidance"><div class="today-dashboard-heading"><div><p>Symptom support</p><h3>Safe things to consider</h3></div><span>Not a diagnosis</span></div><div class="today-verified-grid">${sections.join('')}</div></section>`;
   }
@@ -858,7 +819,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderTasks() {
     if (!els.taskList) return;
     els.taskList.innerHTML = state.tasks.length ? state.tasks.map(task => `<div class="task-row ${task.done ? 'done' : ''}">
-      <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? '✓' : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : 'Today'}</span>
+      <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : 'Today'}</span>
     </div>`).join('') : '<div class="empty-state">No health tasks yet. Add a small next step when you need one.</div>';
     const complete = state.tasks.filter(task => task.done).length;
     if (els.taskCount) els.taskCount.textContent = state.tasks.length ? `${complete} of ${state.tasks.length} complete` : 'No tasks yet';
@@ -867,7 +828,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderActivity() {
     if (!els.activity) return;
     const activity = state.timeline.filter(entry => hasProAccess() || !isDocumentEntry(entry));
-    els.activity.innerHTML = activity.length ? activity.slice(0, 3).map(entry => `<div class="mini-activity-row"><span class="activity-icon">${escapeHTML(entry.icon || '•')}</span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><time>${formatShortDate(entry.date)}</time></div>`).join('') : '<div class="empty-state">No recent activity yet. Your saved health events will appear here.</div>';
+    els.activity.innerHTML = activity.length ? activity.slice(0, 3).map(entry => `<div class="mini-activity-row"><span class="activity-icon">${timelineIconMarkup(entry)}</span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><time>${formatShortDate(entry.date)}</time></div>`).join('') : '<div class="empty-state">No recent activity yet. Your saved health events will appear here.</div>';
   }
 
   const upcomingAppointments = () => state.appointments.filter(item => item.status !== 'past').sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
@@ -905,7 +866,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const parts = appointmentParts(appointment.date);
-    els.todayAppointmentPreview.innerHTML = `<div class="appointment-date"><b>${escapeHTML(parts.day)}</b><span>${escapeHTML(parts.month)}</span></div><div class="appointment-details"><b>${escapeHTML(appointment.provider || 'Provider to confirm')}</b><span>${escapeHTML(appointment.title)}</span><small><i>◷</i> ${escapeHTML(parts.weekday)} · ${escapeHTML(formatTime(appointment.time))}</small><small><i>⌖</i> ${escapeHTML(appointment.location || 'Location to confirm')}</small></div>`;
+    els.todayAppointmentPreview.innerHTML = `<div class="appointment-date"><b>${escapeHTML(parts.day)}</b><span>${escapeHTML(parts.month)}</span></div><div class="appointment-details"><b>${escapeHTML(appointment.provider || 'Provider to confirm')}</b><span>${escapeHTML(appointment.title)}</span><small><i aria-hidden="true">${iconMarkup('clock')}</i> ${escapeHTML(parts.weekday)} · ${escapeHTML(formatTime(appointment.time))}</small><small><i aria-hidden="true">${iconMarkup('location')}</i> ${escapeHTML(appointment.location || 'Location to confirm')}</small></div>`;
   }
 
   function renderTodayTrend() {
@@ -917,7 +878,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (els.todayMiniChart) els.todayMiniChart.hidden = true;
     } else {
       if (els.todayBpValue) els.todayBpValue.innerHTML = escapeHTML(latest.value).replace(' / ', ' <small>/</small> ');
-      if (els.todayBpStatus) els.todayBpStatus.innerHTML = '<i>↘</i> Your latest saved reading';
+      if (els.todayBpStatus) els.todayBpStatus.innerHTML = '<i data-doctorai-icon="chart" aria-hidden="true"></i> Your latest saved reading';
       if (els.todayBpUpdated) els.todayBpUpdated.textContent = `Updated ${formatShortDate(latest.date)}`;
       if (els.todayMiniChart) els.todayMiniChart.hidden = false;
     }
@@ -940,7 +901,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list to review saved details.', detail: 'The optional local rules check covers only a small set of medicine risks; it cannot confirm medicines are safe together.' }
         : { className: 'status-note', icon: 'i', label: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Check incomplete' : 'Limited check: no interaction alert found') : check.status === 'unavailable' ? 'Check unavailable' : 'Interaction check not run', message: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Some medicines could not be assessed. Review the coverage details.' : 'No covered interaction alert was found. This does not confirm safety.') : 'No current interaction assessment is available.', detail: 'The limited rules cannot confirm safety. Confirm your full list with a pharmacist or clinician.' };
     els.homePrescriptionAlert.className = `prescription-alert-status ${status.className}`;
-    els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">${status.icon}</span><div><b>${escapeHTML(status.label)}</b><p>${escapeHTML(status.message)}</p><small>${escapeHTML(status.detail)}</small></div><button type="button" data-view="medications">View details <span aria-hidden="true">→</span></button>`;
+    els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">${iconMarkup(['status-danger', 'status-caution'].includes(status.className) ? 'alert' : 'info')}</span><div><b>${escapeHTML(status.label)}</b><p>${escapeHTML(status.message)}</p><small>${escapeHTML(status.detail)}</small></div><button type="button" data-view="medications">View details <span aria-hidden="true">${iconMarkup('arrow')}</span></button>`;
     if (els.homePrescriptionLastChecked) els.homePrescriptionLastChecked.textContent = check.checkedAt ? (check.status === 'pending' ? 'Previous check · updating: ' : 'Last checked: ') + new Date(check.checkedAt).toLocaleString() : 'No current interaction check';
     if (status.concern) queueMedicationSafetyAlert(status);
     else closeMedicationSafetyAlert(false);
@@ -998,7 +959,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (els.refillProgress) els.refillProgress.hidden = true;
       if (els.refillMeta) els.refillMeta.hidden = true;
       if (els.refillAction) {
-        els.refillAction.innerHTML = 'Review medicines <span>→</span>';
+        els.refillAction.innerHTML = 'Review medicines <span data-doctorai-icon="arrow" aria-hidden="true"></span>';
         els.refillAction.dataset.view = 'medications';
         delete els.refillAction.dataset.chatPrompt;
       }
@@ -1010,7 +971,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (els.refillProgress) els.refillProgress.hidden = true;
       if (els.refillMeta) els.refillMeta.hidden = true;
       if (els.refillAction) {
-        els.refillAction.innerHTML = '＋ Add medication <span>→</span>';
+        els.refillAction.innerHTML = '<span data-doctorai-icon="add" aria-hidden="true"></span> Add medication <span data-doctorai-icon="arrow" aria-hidden="true"></span>';
         els.refillAction.dataset.view = 'medications';
         delete els.refillAction.dataset.chatPrompt;
       }
@@ -1029,7 +990,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       els.refillMeta.querySelector('b').textContent = refill.refill;
     }
     if (els.refillAction) {
-      els.refillAction.innerHTML = 'Ask about a refill <span>✦</span>';
+      els.refillAction.innerHTML = 'Ask about a refill <span data-doctorai-icon="spark" aria-hidden="true"></span>';
       els.refillAction.dataset.view = 'ask';
       els.refillAction.dataset.chatPrompt = `Help me prepare a question for my pharmacy about refilling my ${refill.name} prescription.`;
     }
@@ -1038,7 +999,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderMedicationHistory() {
     if (!els.medicationHistory) return;
     const history = state.timeline.filter(entry => entry.type === 'medication');
-    els.medicationHistory.innerHTML = history.length ? history.slice(0, 4).map(entry => `<div class="history-item"><span class="history-dot changed"></span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><span>›</span></div>`).join('') : '<div class="empty-inline">Medication changes will appear here.</div>';
+    els.medicationHistory.innerHTML = history.length ? history.slice(0, 4).map(entry => `<div class="history-item"><span class="history-dot changed"></span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><span aria-hidden="true">${iconMarkup('arrow')}</span></div>`).join('') : '<div class="empty-inline">Medication changes will appear here.</div>';
   }
 
   function renderAppointments() {
@@ -1048,7 +1009,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.upcomingAppointments) {
       els.upcomingAppointments.innerHTML = upcoming.length ? upcoming.map(appointment => {
         const parts = appointmentParts(appointment.date);
-        return `<article class="appointment-large"><div class="large-date"><span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small></div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span>◷</span> ${escapeHTML(formatTime(appointment.time))} &nbsp; <span>⌖</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions"><button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span>✦</span></button><button class="quiet-button" type="button" data-modal="appointment">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
+        return `<article class="appointment-large"><div class="large-date"><span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small></div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span aria-hidden="true">${iconMarkup('clock')}</span> ${escapeHTML(formatTime(appointment.time))} &nbsp; <span aria-hidden="true">${iconMarkup('location')}</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions"><button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button class="quiet-button" type="button" data-modal="appointment">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
       }).join('') : '<div class="empty-state">No upcoming appointments yet. Add one when you are ready.</div>';
     }
     if (els.pastAppointments) els.pastAppointments.innerHTML = past.length ? past.map(appointment => `<div class="past-item"><div><b>${escapeHTML(appointment.title)}</b><span>${escapeHTML(appointment.provider || 'Provider to confirm')}</span></div><time>${escapeHTML(formatDate(appointment.date))}</time><small>${escapeHTML(appointment.note || 'Saved in your health history')}</small><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div>`).join('') : '<div class="empty-inline">Previous appointments will appear here.</div>';
@@ -1057,10 +1018,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderProfileShortcuts() {
     if (!els.profileShortcutGrid) return;
     const items = profileShortcuts.map(profileShortcutDefinition).filter(Boolean);
-    const cards = items.map(item => `<div class="profile-shortcut-item"><button type="button" class="profile-shortcut-card" data-profile-shortcut="${escapeHTML(item.id)}" aria-label="Open ${escapeHTML(item.label)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span class="profile-shortcut-copy"><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span class="profile-shortcut-arrow" aria-hidden="true">→</span></button>${profileShortcutEditing ? `<button type="button" class="profile-shortcut-remove" data-profile-shortcut-remove="${escapeHTML(item.id)}" aria-label="Remove ${escapeHTML(item.label)} shortcut">−</button>` : ''}</div>`).join('');
-    const addCard = profileShortcutEditing ? '<button type="button" class="profile-shortcut-add" data-profile-add-shortcut><span aria-hidden="true">＋</span><b>Add shortcut</b><small>Choose another DoctorAI tool</small></button>' : '';
+    const cards = items.map(item => `<div class="profile-shortcut-item"><button type="button" class="profile-shortcut-card" data-profile-shortcut="${escapeHTML(item.id)}" aria-label="Open ${escapeHTML(item.label)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span class="profile-shortcut-copy"><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span class="profile-shortcut-arrow" aria-hidden="true">${iconMarkup('arrow')}</span></button>${profileShortcutEditing ? `<button type="button" class="profile-shortcut-remove" data-profile-shortcut-remove="${escapeHTML(item.id)}" aria-label="Remove ${escapeHTML(item.label)} shortcut"><span aria-hidden="true">${iconMarkup('close')}</span></button>` : ''}</div>`).join('');
+    const addCard = profileShortcutEditing ? '<button type="button" class="profile-shortcut-add" data-profile-add-shortcut><span data-doctorai-icon="add" aria-hidden="true"></span><b>Add shortcut</b><small>Choose another DoctorAI tool</small></button>' : '';
     els.profileShortcutGrid.innerHTML = cards || '<div class="profile-shortcuts-empty">No shortcuts pinned yet. Choose Add shortcut to build your personal list.</div>';
     if (profileShortcutEditing) els.profileShortcutGrid.insertAdjacentHTML('beforeend', addCard);
+    window.DoctorAIIcons.hydrate(els.profileShortcutGrid);
     if (els.profileShortcutEdit) {
       els.profileShortcutEdit.textContent = profileShortcutEditing ? 'Done' : 'Edit shortcuts';
       els.profileShortcutEdit.setAttribute('aria-pressed', String(profileShortcutEditing));
@@ -1082,7 +1044,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.profileFacts.innerHTML = facts.map(([label, value, icon, tone]) => `<div class="profile-fact"><span class="profile-fact-label"><span class="profile-fact-icon feature-icon tone-${tone}" aria-hidden="true">${profileShortcutIconMarkup(icon)}</span><small>${escapeHTML(label)}</small></span><b title="${escapeHTML(value)}">${escapeHTML(value)}</b></div>`).join('');
     if (els.conditionsTags) {
       const conditions = splitDetails(state.profile.conditions);
-      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition)}</span>`).join('')}<span class="muted-tag">＋ Add condition</span>` : '<span class="muted-tag">＋ Add condition</span>';
+      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition)}</span>`).join('')}<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>` : `<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>`;
     }
     if (els.allergiesList) {
       const allergies = splitDetails(state.profile.allergies);
@@ -1115,7 +1077,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const results = state.documents.filter(doc => doc.category === 'result');
-    els.resultList.innerHTML = results.length ? results.map(result => `<article class="result-item"><span class="result-file-icon">⌁</span><div class="result-copy"><b>${escapeHTML(result.title)}</b><span>${escapeHTML(result.description)}</span><small>${escapeHTML(result.date)} · ${escapeHTML(result.size)}</small></div><div class="result-actions"><button type="button" data-document-view="${escapeHTML(result.id)}">View</button><button type="button" data-explain-result="${escapeHTML(result.title)}">Explain <span>✦</span></button><button type="button" data-document-download="${escapeHTML(result.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(result.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No results saved yet. Upload a report when you are ready.</div>';
+    els.resultList.innerHTML = results.length ? results.map(result => `<article class="result-item"><span class="result-file-icon" aria-hidden="true">${iconMarkup('document')}</span><div class="result-copy"><b>${escapeHTML(result.title)}</b><span>${escapeHTML(result.description)}</span><small>${escapeHTML(result.date)} · ${escapeHTML(result.size)}</small></div><div class="result-actions"><button type="button" data-document-view="${escapeHTML(result.id)}">View</button><button type="button" data-explain-result="${escapeHTML(result.title)}">Explain <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(result.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(result.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No results saved yet. Upload a report when you are ready.</div>';
   }
 
   const symptomImpactLabels = {
@@ -1134,9 +1096,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     return severity === null ? 'Symptom recorded' : `Intensity ${severity}/10`;
   };
   const symptomDateValue = entry => `${entry?.date || ''}T${entry?.time || '00:00'}-${String(entry?.createdAt || '')}`;
-  const symptomEmptyIcon = kind => kind === 'filtered'
-    ? '<svg class="symptom-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>'
-    : '<svg class="symptom-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2.2-5H21"/></svg>';
+  const symptomEmptyIcon = kind => iconMarkup(kind === 'filtered' ? 'search' : 'pulse');
 
   const commonSymptomPicks = ['Headache', 'Tiredness', 'Nausea', 'Dizziness', 'Cough', 'Pain', 'Sleep difficulty'];
   const commonContextPicks = ['After a workout', 'After a meal', 'Poor sleep', 'Stressful day', 'New medicine', 'Not enough water', 'Travel', 'Long screen time'];
@@ -1209,7 +1169,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const observations = entries.flatMap(entry => symptomObservationItems(entry).map(observation => ({ entry, ...observation })));
     if (!observations.length) {
       const hasEntries = entries.length > 0;
-      els.symptomTriggers.innerHTML = `<div class="symptom-triggers-empty"><span class="symptom-trigger-empty-icon" aria-hidden="true">✦</span><h3>${hasEntries ? 'No observations recorded yet' : 'Start with what you notice'}</h3><p>${hasEntries ? 'Edit a diary entry and add a possible trigger or context note. Your observations will appear here.' : 'Add a symptom and note what was happening around it. Your notes will stay private to this hub.'}</p><button type="button" class="primary-button" data-modal="symptom">＋ ${hasEntries ? 'Add an observation' : 'Add your first symptom'}</button></div>`;
+      els.symptomTriggers.innerHTML = `<div class="symptom-triggers-empty"><span class="symptom-trigger-empty-icon" aria-hidden="true">${iconMarkup('pulse')}</span><h3>${hasEntries ? 'No observations recorded yet' : 'Start with what you notice'}</h3><p>${hasEntries ? 'Edit a diary entry and add a possible trigger or context note. Your observations will appear here.' : 'Add a symptom and note what was happening around it. Your notes will stay private to this hub.'}</p><button type="button" class="primary-button" data-modal="symptom"> <span aria-hidden="true">${iconMarkup('add')}</span> ${hasEntries ? 'Add an observation' : 'Add your first symptom'}</button></div>`;
       return;
     }
     const grouped = new Map();
@@ -1223,13 +1183,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (right.entries.length !== left.entries.length) return right.entries.length - left.entries.length;
       return symptomDateValue(right.entries[0]).localeCompare(symptomDateValue(left.entries[0]));
     });
-    els.symptomTriggers.innerHTML = `<div class="symptom-triggers-intro"><span class="symptom-trigger-mark" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><path d="M12 3.5c.7 4.6 3.2 7.1 7.8 7.8-4.6.7-7.1 3.2-7.8 7.8-.7-4.6-3.2-7.1-7.8-7.8 4.6-.7 7.1-3.2 7.8-7.8Z"/></svg></span><div><h3>Recorded observations</h3><p>These are patterns you wrote down near a symptom — not a diagnosis or proof of cause.</p></div></div><div class="symptom-trigger-list">${groups.map(group => {
+    els.symptomTriggers.innerHTML = `<div class="symptom-triggers-intro"><span class="symptom-trigger-mark" aria-hidden="true">${iconMarkup('pulse', 18)}</span><div><h3>Recorded observations</h3><p>These are patterns you wrote down near a symptom — not a diagnosis or proof of cause.</p></div></div><div class="symptom-trigger-list">${groups.map(group => {
       const names = Array.from(new Set(group.entries.map(symptomName))).slice(0, 3);
       const nameSummary = names.join(', ') + (group.entries.length > names.length ? ` +${group.entries.length - names.length} more` : '');
       const latest = group.entries.slice().sort((left, right) => symptomDateValue(right).localeCompare(symptomDateValue(left)))[0];
       const countLabel = `${group.entries.length} ${group.entries.length === 1 ? 'entry' : 'entries'}`;
-      return `<article class="symptom-trigger-item"><span class="symptom-trigger-icon" aria-hidden="true"><svg class="symptom-icon-svg" viewBox="0 0 24 24"><path d="M7 5.5h10M7 9.5h10M7 13.5h6M5 3.5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z"/></svg></span><div class="symptom-trigger-copy"><div class="symptom-trigger-heading"><b>${escapeHTML(group.label)}</b><small>${countLabel}</small></div><p>${escapeHTML(group.text)}</p><small class="symptom-trigger-meta">Near: ${escapeHTML(nameSummary)} · Last noted ${escapeHTML(formatShortDate(latest.date))}</small></div></article>`;
-    }).join('')}</div><p class="symptom-triggers-note"><span aria-hidden="true">i</span> Keep noting what you experience in your own words. A qualified healthcare professional can help interpret patterns in context.</p>`;
+      return `<article class="symptom-trigger-item"><span class="symptom-trigger-icon" aria-hidden="true">${iconMarkup('clipboard', 18)}</span><div class="symptom-trigger-copy"><div class="symptom-trigger-heading"><b>${escapeHTML(group.label)}</b><small>${countLabel}</small></div><p>${escapeHTML(group.text)}</p><small class="symptom-trigger-meta">Near: ${escapeHTML(nameSummary)} · Last noted ${escapeHTML(formatShortDate(latest.date))}</small></div></article>`;
+    }).join('')}</div><p class="symptom-triggers-note"><span aria-hidden="true">${iconMarkup('info')}</span> Keep noting what you experience in your own words. A qualified healthcare professional can help interpret patterns in context.</p>`;
   }
 
   function renderSymptomInsights(entries) {
@@ -1248,7 +1208,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     els.symptomPatternList.innerHTML = insights.slice(0, 3).map(insight => {
       const noteLabel = `${insight.count} ${insight.count === 1 ? 'note' : 'notes'} on different days in the last 45 days`;
-      return `<article class="symptom-pattern-item"><span class="symptom-pattern-item-icon" aria-hidden="true">≈</span><div><b>${escapeHTML(insight.family.label)} recorded near ${escapeHTML(insight.context.label)}</b><p>${escapeHTML(noteLabel)}. This is a grouping of your notes, not evidence that one thing caused another. You may choose to discuss it with a qualified healthcare professional.</p><small>Last noted ${escapeHTML(formatShortDate(insight.latestDate))}</small></div></article>`;
+      return `<article class="symptom-pattern-item"><span class="symptom-pattern-item-icon" aria-hidden="true">${iconMarkup('pulse')}</span><div><b>${escapeHTML(insight.family.label)} recorded near ${escapeHTML(insight.context.label)}</b><p>${escapeHTML(noteLabel)}. This is a grouping of your notes, not evidence that one thing caused another. You may choose to discuss it with a qualified healthcare professional.</p><small>Last noted ${escapeHTML(formatShortDate(insight.latestDate))}</small></div></article>`;
     }).join('');
   }
 
@@ -1291,7 +1251,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.symptomList.hidden = symptomMode === 'triggers';
     if (symptomMode === 'triggers') return;
     if (!entries.length) {
-      els.symptomList.innerHTML = `<div class="symptom-empty"><span aria-hidden="true">${symptomEmptyIcon('empty')}</span><h3>Start with what you notice</h3><p>Add a note in your own words, then include timing, intensity or context if useful.</p><button type="button" class="primary-button" data-modal="symptom">＋ Add your first symptom</button></div>`;
+      els.symptomList.innerHTML = `<div class="symptom-empty"><span aria-hidden="true">${symptomEmptyIcon('empty')}</span><h3>Start with what you notice</h3><p>Add a note in your own words, then include timing, intensity or context if useful.</p><button type="button" class="primary-button" data-modal="symptom"> <span aria-hidden="true">${iconMarkup('add')}</span> Add your first symptom</button></div>`;
       return;
     }
     els.symptomList.innerHTML = entries.map(entry => {
@@ -1320,7 +1280,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
           ${context ? `<p class="symptom-context"><b>Context</b>${escapeHTML(context)}</p>` : ''}
           ${notes ? `<p class="symptom-notes">${escapeHTML(notes)}</p>` : ''}
           ${detailMarkup}
-          <div class="symptom-entry-actions"><button type="button" data-prepare-symptom="${escapeHTML(entry.id)}">Prepare for care <span>✦</span></button><button type="button" data-edit-symptom="${escapeHTML(entry.id)}">Edit</button><button type="button" class="delete-item" data-delete-symptom="${escapeHTML(entry.id)}">Delete</button></div>
+          <div class="symptom-entry-actions"><button type="button" data-prepare-symptom="${escapeHTML(entry.id)}">Prepare for care <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-edit-symptom="${escapeHTML(entry.id)}">Edit</button><button type="button" class="delete-item" data-delete-symptom="${escapeHTML(entry.id)}">Delete</button></div>
         </div>
       </article>`;
     }).join('');
@@ -1332,7 +1292,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const entries = visibleTimeline.filter(entry => timelineFilter === 'all' || entry.type === timelineFilter);
     els.timelineList.innerHTML = entries.length ? entries.map(entry => {
       const description = entry.type === 'symptom' ? symptomLogDescription(entry) : entry.description;
-      return `<article class="timeline-entry ${escapeHTML(entry.type)}"><span class="timeline-dot">${escapeHTML(entry.icon || '•')}</span><div><h3>${escapeHTML(entry.title)}</h3><p>${escapeHTML(description)}</p></div><time>${formatDate(entry.date)}</time></article>`;
+      return `<article class="timeline-entry ${escapeHTML(entry.type)}"><span class="timeline-dot">${timelineIconMarkup(entry)}</span><div><h3>${escapeHTML(entry.title)}</h3><p>${escapeHTML(description)}</p></div><time>${formatDate(entry.date)}</time></article>`;
     }).join('') : '<div class="empty-state">No entries match this filter yet.</div>';
   }
 
@@ -1343,7 +1303,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const docs = state.documents.filter(doc => documentFilter === 'all' || doc.category === documentFilter);
-    els.documentsGrid.innerHTML = docs.length ? docs.map(doc => `<article class="document-card"><span class="document-type">${escapeHTML(doc.type)}</span><h3>${escapeHTML(doc.title)}</h3><p>${escapeHTML(doc.description)}</p><small>${escapeHTML(doc.date)} · ${escapeHTML(doc.size)}</small><div class="document-card-actions"><button type="button" data-document-view="${escapeHTML(doc.id)}">View document</button><button type="button" data-explain-document="${escapeHTML(doc.title)}">Explain with AI <span>✦</span></button><button type="button" data-document-download="${escapeHTML(doc.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(doc.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No documents in this category yet.</div>';
+    els.documentsGrid.innerHTML = docs.length ? docs.map(doc => `<article class="document-card"><span class="document-type">${escapeHTML(doc.type)}</span><h3>${escapeHTML(doc.title)}</h3><p>${escapeHTML(doc.description)}</p><small>${escapeHTML(doc.date)} · ${escapeHTML(doc.size)}</small><div class="document-card-actions"><button type="button" data-document-view="${escapeHTML(doc.id)}">View document</button><button type="button" data-explain-document="${escapeHTML(doc.title)}">Explain with AI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(doc.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(doc.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No documents in this category yet.</div>';
   }
 
   function renderProControls() {
@@ -1399,6 +1359,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     renderAppointments();
     renderMeasurement(trendRange);
     renderProControls();
+    window.DoctorAIIcons.hydrate(document);
   }
 
   function setMemory(enabled) {
@@ -1494,7 +1455,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (accountAction) {
       accountAction.toggleAttribute('data-google-signout', signedIn);
       accountAction.toggleAttribute('data-google-signin', !signedIn);
-      accountAction.innerHTML = signedIn ? 'Sign out <span>→</span>' : 'Sign in with Google <span>→</span>';
+      accountAction.innerHTML = signedIn ? 'Sign out <span data-doctorai-icon="arrow" aria-hidden="true"></span>' : 'Sign in with Google <span data-doctorai-icon="arrow" aria-hidden="true"></span>';
     }
     if (signedIn) loadCloudState().catch(() => {});
     else setSyncStatus(deviceStorageStatus());
@@ -1755,7 +1716,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     );
     if (!hasSavedDetails) sections.unshift('<section class="personal-overview-section personal-overview-start"><h3>Your overview is ready to build</h3><p>Add only the health details you want to keep. They will appear here when saved.</p><button type="button" class="secondary-button" data-modal="health">Add health details</button></section>');
 
-    setModal('Your personal overview', 'Private rundown', `<div class="personal-overview-dialog"><p class="personal-overview-intro">A quick view of the details saved in your Health Hub. This is based on your notes and may be incomplete or out of date.</p><p class="personal-overview-generated">Updated from your saved information · ${escapeHTML(today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}</p><div class="personal-overview-sections">${sections.join('')}</div><p class="personal-overview-safety"><strong>Your record, for your reference.</strong> Check details with your healthcare professional. This overview does not identify causes, diagnose conditions or recommend treatment changes. Do not use it for emergencies.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close overview</button><button type="button" class="primary-button" data-modal="health">Edit health details <span aria-hidden="true">→</span></button></div></div>`);
+    setModal('Your personal overview', 'Private rundown', `<div class="personal-overview-dialog"><p class="personal-overview-intro">A quick view of the details saved in your Health Hub. This is based on your notes and may be incomplete or out of date.</p><p class="personal-overview-generated">Updated from your saved information · ${escapeHTML(today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}</p><div class="personal-overview-sections">${sections.join('')}</div><p class="personal-overview-safety"><strong>Your record, for your reference.</strong> Check details with your healthcare professional. This overview does not identify causes, diagnose conditions or recommend treatment changes. Do not use it for emergencies.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close overview</button><button type="button" class="primary-button" data-modal="health">Edit health details <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></div>`);
   }
 
   function openTodayPlan() {
@@ -1780,16 +1741,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ? `<ul class="today-dashboard-list">${currentMedications.map(item => {
           const status = item.status === 'taken' ? 'Taken today' : item.status === 'missed' ? 'Marked missed' : 'To review today';
           const details = [item.dose, item.frequency, item.time ? formatTime(item.time) : ''].filter(Boolean).join(' · ');
-          return `<li><span class="today-dashboard-list-icon medicine" aria-hidden="true">+</span><span><b>${escapeHTML(oneLine(item.name, 100) || 'Saved medicine')}</b><small>${escapeHTML(details || 'Check the saved label instructions')}</small><em>${escapeHTML(status)}</em></span></li>`;
+          return `<li><span class="today-dashboard-list-icon medicine" aria-hidden="true">${iconMarkup('capsule')}</span><span><b>${escapeHTML(oneLine(item.name, 100) || 'Saved medicine')}</b><small>${escapeHTML(details || 'Check the saved label instructions')}</small><em>${escapeHTML(status)}</em></span></li>`;
         }).join('')}</ul>`
-      : '<div class="today-dashboard-empty"><p>No current medicines saved.</p><button type="button" class="secondary-button" data-modal="medication">＋ Add medication</button></div>';
+      : '<div class="today-dashboard-empty"><p>No current medicines saved.</p><button type="button" class="secondary-button" data-modal="medication"> <span data-doctorai-icon="add" aria-hidden="true"></span> Add medication</button></div>';
     const symptomMarkup = recentSymptoms.length
       ? `<ul class="today-dashboard-list">${recentSymptoms.map(item => {
           const severity = symptomSeverity(item.severity);
           const details = [formatDate(item.date), severity === null ? '' : `${severity}/10 intensity`, oneLine(item.triggers || item.context || item.notes, 120)].filter(Boolean).join(' · ');
-          return `<li><span class="today-dashboard-list-icon symptom" aria-hidden="true">≈</span><span><b>${escapeHTML(oneLine(symptomName(item), 100))}</b><small>${escapeHTML(details || 'Saved symptom note')}</small></span></li>`;
+          return `<li><span class="today-dashboard-list-icon symptom" aria-hidden="true">${iconMarkup('pulse')}</span><span><b>${escapeHTML(oneLine(symptomName(item), 100))}</b><small>${escapeHTML(details || 'Saved symptom note')}</small></span></li>`;
         }).join('')}</ul>`
-      : '<div class="today-dashboard-empty"><p>No recent symptoms recorded.</p><button type="button" class="secondary-button" data-modal="symptom">＋ Log a symptom</button></div>';
+      : '<div class="today-dashboard-empty"><p>No recent symptoms recorded.</p><button type="button" class="secondary-button" data-modal="symptom"> <span data-doctorai-icon="add" aria-hidden="true"></span> Log a symptom</button></div>';
     const profileMarkup = profileDetails.length
       ? `<dl class="today-dashboard-facts">${profileDetails.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>`
       : '<div class="today-dashboard-empty"><p>No personal health details saved yet.</p><button type="button" class="secondary-button" data-modal="health">Add health details</button></div>';
@@ -1807,13 +1768,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     plan.push(['wellbeing', 'Keep today manageable', 'Follow any advice already given by your healthcare team. Choose ordinary meals, fluids, rest or gentle activity only when appropriate for you and any restrictions you have.']);
     const planMarkup = plan.slice(0, 4).map(([tone, title, copy], index) => `<li class="today-dashboard-step ${escapeHTML(tone)}"><span>${index + 1}</span><div><b>${escapeHTML(title)}</b><p>${escapeHTML(copy)}</p></div></li>`).join('');
     const appointmentMarkup = nextAppointment
-      ? `<div class="today-dashboard-appointment"><span aria-hidden="true">◷</span><div><b>${escapeHTML(nextAppointment.title || 'Upcoming appointment')}</b><small>${escapeHTML([formatDate(nextAppointment.date), nextAppointment.time ? formatTime(nextAppointment.time) : '', nextAppointment.provider].filter(Boolean).join(' · '))}</small></div></div>`
+      ? `<div class="today-dashboard-appointment"><span aria-hidden="true">${iconMarkup('clock')}</span><div><b>${escapeHTML(nextAppointment.title || 'Upcoming appointment')}</b><small>${escapeHTML([formatDate(nextAppointment.date), nextAppointment.time ? formatTime(nextAppointment.time) : '', nextAppointment.provider].filter(Boolean).join(' · '))}</small></div></div>`
       : '<p class="today-dashboard-no-appointment">No upcoming appointment saved.</p>';
     const medicationGuidance = medicationGuidanceMarkup(currentMedications);
     const verifiedMedicationGuidance = verifiedMedicationEducationMarkup(currentMedications);
     const verifiedSymptomGuidance = verifiedSymptomEducationMarkup(recentSymptoms);
     const savedCount = currentMedications.length + recentSymptoms.length + profileDetails.length + (nextAppointment ? 1 : 0);
-    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">✓</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the recent symptom notes you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">→</span></button></div></div>`);
+    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">${iconMarkup('overview', 26)}</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the recent symptom notes you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></div>`);
     void loadTodayIntelligence(recentSymptoms);
   }
 
@@ -1895,7 +1856,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <p>Nothing is selected automatically. Up to 100 recent records per dated section are available. Clear the date to include records with missing or older date formats. Medicine details are your saved notes, not verified prescription instructions.</p>
       <label>Questions or topics to discuss<textarea name="questions" rows="3" maxlength="2000" placeholder="Add one question or discussion point per line."></textarea></label>
       <p>Check dates, names and doses before sharing. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>
-      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my checklist →</button></div></form>`);
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my checklist <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
     updateBriefPeriod(form);
@@ -1948,14 +1909,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.modalEyebrow.textContent = eyebrow;
     els.modalBody.innerHTML = body;
     const modalFeatures = { medication: 'medications', appointment: 'appointments', symptom: 'symptoms', measurement: 'results', health: 'health' };
-    els.modalBody.querySelectorAll('.modal-choice[data-modal]').forEach(button => {
-      const name = modalFeatures[button.dataset.modal];
+    els.modalBody.querySelectorAll('.modal-choice').forEach(button => {
+      const name = modalFeatures[button.dataset.modal] || (button.hasAttribute('data-close-modal') ? 'close' : '');
       const icon = button.querySelector(':scope > span:first-child');
       if (!name || !icon) return;
       icon.className = `feature-icon tone-${profileShortcutDefinition(name)?.tone || 'blue'}`;
       icon.setAttribute('aria-hidden', 'true');
+      icon.dataset.doctoraiIcon = healthIconNames[name] || name;
       icon.innerHTML = profileShortcutIconMarkup(name);
     });
+    window.DoctorAIIcons.hydrate(els.modalBody);
     if (!els.modal.open) els.modal.showModal();
   }
 
@@ -1970,7 +1933,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('All available shortcuts are already pinned.');
       return;
     }
-    const options = available.map(item => `<button type="button" class="profile-shortcut-choice" data-profile-shortcut-choice="${escapeHTML(item.id)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span aria-hidden="true">＋</span></button>`).join('');
+    const options = available.map(item => `<button type="button" class="profile-shortcut-choice" data-profile-shortcut-choice="${escapeHTML(item.id)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span aria-hidden="true">${iconMarkup('add')}</span></button>`).join('');
     setModal('Add a shortcut', 'Personal shortcuts', `<div class="profile-shortcut-picker" role="list">${options}</div><p class="profile-shortcut-picker-note">When device storage is enabled, shortcut choices are saved as a local preference. They never include health information.</p>`);
   }
 
@@ -1983,7 +1946,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openAddMenu() {
-    setModal('Add to your health hub', 'Quick add', '<div class="modal-choice-grid"><button class="modal-choice" type="button" data-modal="medication"><span>▣</span><b>Medication</b><small>Add a prescription reminder</small></button><button class="modal-choice" type="button" data-modal="appointment"><span>◷</span><b>Appointment</b><small>Save a visit or follow-up</small></button><button class="modal-choice" type="button" data-modal="symptom"><span>≈</span><b>Symptom</b><small>Add to your private diary</small></button><button class="modal-choice" type="button" data-modal="measurement"><span>⌁</span><b>Measurement</b><small>Log a health signal</small></button><button class="modal-choice" type="button" data-modal="health"><span>♡</span><b>Health detail</b><small>Update your profile</small></button><button class="modal-choice" type="button" data-close-modal><span>×</span><b>Cancel</b><small>Return to your hub</small></button></div>');
+    setModal('Add to your health hub', 'Quick add', '<div class="modal-choice-grid"><button class="modal-choice" type="button" data-modal="medication"><span data-doctorai-icon="capsule" aria-hidden="true"></span><b>Medication</b><small>Add a prescription reminder</small></button><button class="modal-choice" type="button" data-modal="appointment"><span data-doctorai-icon="clock" aria-hidden="true"></span><b>Appointment</b><small>Save a visit or follow-up</small></button><button class="modal-choice" type="button" data-modal="symptom"><span data-doctorai-icon="pulse" aria-hidden="true"></span><b>Symptom</b><small>Add to your private diary</small></button><button class="modal-choice" type="button" data-modal="measurement"><span data-doctorai-icon="chart" aria-hidden="true"></span><b>Measurement</b><small>Log a health signal</small></button><button class="modal-choice" type="button" data-modal="health"><span data-doctorai-icon="health" aria-hidden="true"></span><b>Health detail</b><small>Update your profile</small></button><button class="modal-choice" type="button" data-close-modal><span data-doctorai-icon="close" aria-hidden="true"></span><b>Cancel</b><small>Return to your hub</small></button></div>');
   }
 
   function openMedicationModal(prefill = {}) {
@@ -2003,7 +1966,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const hasLegacyMatch = Boolean(prefill.nzfProduct || prefill.nzfProductConfirmed || (Array.isArray(prefill.resolvedIngredients) && prefill.resolvedIngredients.length));
     const editNote = editing ? '<div class="modal-help scan-result-note"><b>Update saved medication details.</b><span>Leave the refill field blank to keep its current value' + (savedRefill && savedRefill !== 'Not set' ? ' (' + escapeHTML(savedRefill) + ')' : '') + '. Check “Clear saved refill date” to remove it.' + (hasLegacyMatch ? ' Older provider match details stay in this private record and are not used by the current check.' : '') + '</span></div>' : '';
     const requiresScanReview = Boolean(prefill.__scanned);
-    setModal('Add a medication', 'Medication manager', scanNote + '<form class="modal-form" data-modal-form="medication" data-scan-attempted="' + Boolean(prefill.__scanAttempted || prefill.__scanned) + '" data-scan-review-required="' + requiresScanReview + '"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="' + escapeHTML(prefill.name || '') + '"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="' + escapeHTML(prefill.dose || '') + '"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="' + escapeHTML(prefill.time || '') + '"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ' + (frequency === 'Once daily' ? 'selected' : '') + '>Once daily</option><option ' + (frequency === 'Twice daily' ? 'selected' : '') + '>Twice daily</option><option ' + (frequency === 'As needed' ? 'selected' : '') + '>As needed</option><option ' + (frequency === 'Weekly' ? 'selected' : '') + '>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="' + escapeHTML(prefill.startDate || '') + '"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="' + escapeHTML(prefill.endDate || '') + '"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="' + escapeHTML(prefill.supply ?? '') + '"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="' + escapeHTML(prefill.refill || '') + '"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="' + escapeHTML(prefill.prescriptionExpiry || '') + '"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="' + escapeHTML(prefill.repeats || '') + '"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">' + escapeHTML(prefill.instructions || '') + '</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span>→</span></button></div></form>');
+    setModal('Add a medication', 'Medication manager', scanNote + '<form class="modal-form" data-modal-form="medication" data-scan-attempted="' + Boolean(prefill.__scanAttempted || prefill.__scanned) + '" data-scan-review-required="' + requiresScanReview + '"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="' + escapeHTML(prefill.name || '') + '"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="' + escapeHTML(prefill.dose || '') + '"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="' + escapeHTML(prefill.time || '') + '"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ' + (frequency === 'Once daily' ? 'selected' : '') + '>Once daily</option><option ' + (frequency === 'Twice daily' ? 'selected' : '') + '>Twice daily</option><option ' + (frequency === 'As needed' ? 'selected' : '') + '>As needed</option><option ' + (frequency === 'Weekly' ? 'selected' : '') + '>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="' + escapeHTML(prefill.startDate || '') + '"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="' + escapeHTML(prefill.endDate || '') + '"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="' + escapeHTML(prefill.supply ?? '') + '"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="' + escapeHTML(prefill.refill || '') + '"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="' + escapeHTML(prefill.prescriptionExpiry || '') + '"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="' + escapeHTML(prefill.repeats || '') + '"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">' + escapeHTML(prefill.instructions || '') + '</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></div></form>');
     const medicationForm = document.querySelector('[data-modal-form="medication"]');
     if (medicationForm) attachLocalMedicineSuggestions(medicationForm);
     if (medicationForm && editing) {
@@ -2342,11 +2305,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openAppointmentModal() {
-    setModal('Add an appointment', 'Appointment manager', `<form class="modal-form" data-modal-form="appointment"><div class="modal-form-grid"><label class="modal-field"><span>Appointment reason *</span><input name="title" required placeholder="GP, dentist, review…"></label><label class="modal-field"><span>Provider</span><input name="provider" placeholder="Name or clinic"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Time *</span><input name="time" type="time" required></label><label class="modal-field full"><span>Location</span><input name="location" placeholder="Clinic or address"></label><label class="modal-field full"><span>Questions or preparation</span><textarea name="note" rows="3" placeholder="What do you want to remember or ask?"></textarea></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save appointment <span>→</span></button></div></form>`);
+    setModal('Add an appointment', 'Appointment manager', `<form class="modal-form" data-modal-form="appointment"><div class="modal-form-grid"><label class="modal-field"><span>Appointment reason *</span><input name="title" required placeholder="GP, dentist, review…"></label><label class="modal-field"><span>Provider</span><input name="provider" placeholder="Name or clinic"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Time *</span><input name="time" type="time" required></label><label class="modal-field full"><span>Location</span><input name="location" placeholder="Clinic or address"></label><label class="modal-field full"><span>Questions or preparation</span><textarea name="note" rows="3" placeholder="What do you want to remember or ask?"></textarea></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save appointment <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openProviderModal(existing = {}) {
-    setModal(existing.id ? 'Edit local doctor' : 'Add local doctor', 'Provider directory', `<form class="modal-form" data-modal-form="provider"><input type="hidden" name="id" value="${escapeHTML(existing.id || '')}"><div class="modal-form-grid"><label class="modal-field"><span>Doctor name *</span><input name="name" required maxlength="120" placeholder="e.g. Dr Alex Morgan" value="${escapeHTML(existing.name || '')}"></label><label class="modal-field"><span>Practice or clinic</span><input name="practice" maxlength="160" placeholder="Local surgery or clinic" value="${escapeHTML(existing.practice || '')}"></label><label class="modal-field"><span>Phone</span><input name="phone" type="tel" maxlength="40" autocomplete="tel" placeholder="Practice phone number" value="${escapeHTML(existing.phone || '')}"></label><label class="modal-field"><span>Email</span><input name="email" type="email" maxlength="160" autocomplete="email" placeholder="Practice email" value="${escapeHTML(existing.email || '')}"></label><label class="modal-field full"><span>Address</span><input name="address" maxlength="240" placeholder="Practice address" value="${escapeHTML(existing.address || '')}"></label><label class="modal-field full"><span>Notes</span><textarea name="notes" rows="2" maxlength="300" placeholder="Opening hours or anything useful to remember">${escapeHTML(existing.notes || '')}</textarea></label></div><p class="modal-help">Provider details are a private directory entry. They are not used to diagnose, prescribe or verify care.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save doctor <span>→</span></button></div></form>`);
+    setModal(existing.id ? 'Edit local doctor' : 'Add local doctor', 'Provider directory', `<form class="modal-form" data-modal-form="provider"><input type="hidden" name="id" value="${escapeHTML(existing.id || '')}"><div class="modal-form-grid"><label class="modal-field"><span>Doctor name *</span><input name="name" required maxlength="120" placeholder="e.g. Dr Alex Morgan" value="${escapeHTML(existing.name || '')}"></label><label class="modal-field"><span>Practice or clinic</span><input name="practice" maxlength="160" placeholder="Local surgery or clinic" value="${escapeHTML(existing.practice || '')}"></label><label class="modal-field"><span>Phone</span><input name="phone" type="tel" maxlength="40" autocomplete="tel" placeholder="Practice phone number" value="${escapeHTML(existing.phone || '')}"></label><label class="modal-field"><span>Email</span><input name="email" type="email" maxlength="160" autocomplete="email" placeholder="Practice email" value="${escapeHTML(existing.email || '')}"></label><label class="modal-field full"><span>Address</span><input name="address" maxlength="240" placeholder="Practice address" value="${escapeHTML(existing.address || '')}"></label><label class="modal-field full"><span>Notes</span><textarea name="notes" rows="2" maxlength="300" placeholder="Opening hours or anything useful to remember">${escapeHTML(existing.notes || '')}</textarea></label></div><p class="modal-help">Provider details are a private directory entry. They are not used to diagnose, prescribe or verify care.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save doctor <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openSymptomModal(entry = {}) {
@@ -2363,7 +2326,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const detailsOpen = ['location', 'frequency', 'quality', 'associatedSymptoms', 'impact', 'interventions', 'context', 'notes'].some(key => String(entry[key] || '').trim());
     const symptomPicks = commonSymptomPicks.map(label => `<button type="button" class="symptom-quick-chip" data-symptom-pick="${escapeHTML(label)}">${escapeHTML(label)}</button>`).join('');
     const contextPicks = commonContextPicks.map(label => `<button type="button" class="symptom-quick-chip" data-symptom-context="${escapeHTML(label)}">${escapeHTML(label)}</button>`).join('');
-    setModal(entry.id ? 'Edit symptom entry' : 'Add a symptom', 'Private symptom diary', `<form class="modal-form" data-modal-form="symptom"><input type="hidden" name="id" value="${escapeHTML(entry.id || '')}"><div class="modal-form-grid"><label class="modal-field full"><span>What did you notice? *</span><input name="name" required maxlength="100" autocomplete="off" placeholder="Use your own words, e.g. headache" value="${escapeHTML(entry.id ? symptomName(entry) : '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common symptoms <small>Tap one or write your own</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common symptoms">${symptomPicks}</div></div><label class="modal-field"><span>Intensity (optional)</span><select name="severity"><option value="" ${severity === null ? 'selected' : ''}>Not recorded / not sure</option>${severityOptions}</select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required max="${localDate}" value="${escapeHTML(entry.date || localDate)}"></label><label class="modal-field"><span>Approximate start time</span><input name="time" type="time" value="${escapeHTML(entry.time || '')}"></label><label class="modal-field"><span>How long? (optional)</span><input name="duration" maxlength="80" placeholder="e.g. 20 minutes or since Monday" value="${escapeHTML(entry.duration || '')}"></label><label class="modal-field full"><span>What was happening around it? <small>Optional · helps spot patterns</small></span><input name="triggers" maxlength="240" placeholder="e.g. after a workout" value="${escapeHTML(entry.triggers || '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common context <small>Tap one to add it</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common context">${contextPicks}</div></div></div><details class="symptom-more-details" ${detailsOpen ? 'open' : ''}><summary>More detail <span>Optional · helps you describe patterns</span></summary><div class="modal-form-grid"><label class="modal-field"><span>Where did you feel it?</span><input name="location" maxlength="120" placeholder="e.g. left shoulder" value="${escapeHTML(entry.location || '')}"></label><label class="modal-field"><span>Pattern or frequency</span><input name="frequency" maxlength="120" placeholder="e.g. on and off" value="${escapeHTML(entry.frequency || '')}"></label><label class="modal-field"><span>How did it feel?</span><input name="quality" maxlength="120" placeholder="e.g. pressure, burning, tight" value="${escapeHTML(entry.quality || '')}"></label><label class="modal-field"><span>Other symptoms alongside it</span><input name="associatedSymptoms" maxlength="180" placeholder="Use your own words" value="${escapeHTML(entry.associatedSymptoms || '')}"></label><label class="modal-field"><span>Impact on normal activities</span><select name="impact"><option value="">Not recorded</option>${impactOptions}</select></label><label class="modal-field"><span>What did you try?</span><input name="interventions" maxlength="180" placeholder="e.g. rested, drank water" value="${escapeHTML(entry.interventions || '')}"></label><label class="modal-field full"><span>Context note</span><textarea name="context" rows="2" maxlength="240" placeholder="What else were you doing or noticing?">${escapeHTML(entry.context || '')}</textarea></label><label class="modal-field full"><span>Notes</span><textarea name="notes" rows="3" maxlength="500" placeholder="Anything else you want to remember">${escapeHTML(notes)}</textarea></label></div></details><p class="modal-help">Record observations in your own words; this diary cannot identify the cause. For severe, sudden or rapidly worsening symptoms, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">${entry.id ? 'Save changes' : 'Add to diary'} <span>→</span></button></div></form>`);
+    setModal(entry.id ? 'Edit symptom entry' : 'Add a symptom', 'Private symptom diary', `<form class="modal-form" data-modal-form="symptom"><input type="hidden" name="id" value="${escapeHTML(entry.id || '')}"><div class="modal-form-grid"><label class="modal-field full"><span>What did you notice? *</span><input name="name" required maxlength="100" autocomplete="off" placeholder="Use your own words, e.g. headache" value="${escapeHTML(entry.id ? symptomName(entry) : '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common symptoms <small>Tap one or write your own</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common symptoms">${symptomPicks}</div></div><label class="modal-field"><span>Intensity (optional)</span><select name="severity"><option value="" ${severity === null ? 'selected' : ''}>Not recorded / not sure</option>${severityOptions}</select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required max="${localDate}" value="${escapeHTML(entry.date || localDate)}"></label><label class="modal-field"><span>Approximate start time</span><input name="time" type="time" value="${escapeHTML(entry.time || '')}"></label><label class="modal-field"><span>How long? (optional)</span><input name="duration" maxlength="80" placeholder="e.g. 20 minutes or since Monday" value="${escapeHTML(entry.duration || '')}"></label><label class="modal-field full"><span>What was happening around it? <small>Optional · helps spot patterns</small></span><input name="triggers" maxlength="240" placeholder="e.g. after a workout" value="${escapeHTML(entry.triggers || '')}"></label><div class="symptom-quick-picks full"><span class="symptom-quick-label">Common context <small>Tap one to add it</small></span><div class="symptom-quick-chip-list" role="group" aria-label="Common context">${contextPicks}</div></div></div><details class="symptom-more-details" ${detailsOpen ? 'open' : ''}><summary>More detail <span>Optional · helps you describe patterns</span></summary><div class="modal-form-grid"><label class="modal-field"><span>Where did you feel it?</span><input name="location" maxlength="120" placeholder="e.g. left shoulder" value="${escapeHTML(entry.location || '')}"></label><label class="modal-field"><span>Pattern or frequency</span><input name="frequency" maxlength="120" placeholder="e.g. on and off" value="${escapeHTML(entry.frequency || '')}"></label><label class="modal-field"><span>How did it feel?</span><input name="quality" maxlength="120" placeholder="e.g. pressure, burning, tight" value="${escapeHTML(entry.quality || '')}"></label><label class="modal-field"><span>Other symptoms alongside it</span><input name="associatedSymptoms" maxlength="180" placeholder="Use your own words" value="${escapeHTML(entry.associatedSymptoms || '')}"></label><label class="modal-field"><span>Impact on normal activities</span><select name="impact"><option value="">Not recorded</option>${impactOptions}</select></label><label class="modal-field"><span>What did you try?</span><input name="interventions" maxlength="180" placeholder="e.g. rested, drank water" value="${escapeHTML(entry.interventions || '')}"></label><label class="modal-field full"><span>Context note</span><textarea name="context" rows="2" maxlength="240" placeholder="What else were you doing or noticing?">${escapeHTML(entry.context || '')}</textarea></label><label class="modal-field full"><span>Notes</span><textarea name="notes" rows="3" maxlength="500" placeholder="Anything else you want to remember">${escapeHTML(notes)}</textarea></label></div></details><p class="modal-help">Record observations in your own words; this diary cannot identify the cause. For severe, sudden or rapidly worsening symptoms, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">${entry.id ? 'Save changes' : 'Add to diary'} <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function setSymptomGuidanceResult(result, tone, title, copy, note) {
@@ -2381,7 +2344,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openSymptomGuidanceModal() {
-    setModal('Check symptom urgency', 'Safety check', `<form class="modal-form symptom-guidance-form" data-modal-form="symptom-guidance"><div class="symptom-guidance-intro"><b>This is not a diagnosis.</b><p>Use this brief check to decide what to do next. If you may be in immediate danger, call your local emergency service now and do not wait for DoctorAI.</p></div><fieldset class="symptom-guidance-fieldset"><legend>Do you think you may be in immediate danger?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="yes" required><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="unsure"><span>Not sure</span></label></div></fieldset><fieldset class="symptom-guidance-fieldset" data-guidance-worsening-fieldset hidden><legend>Is it sudden, severe, rapidly worsening, or stopping normal activities?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="yes"><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="unsure"><span>Not sure</span></label></div></fieldset><div class="symptom-guidance-result" data-guidance-result role="status" aria-live="polite" hidden></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="submit" class="primary-button">Show next step <span>→</span></button></div></form>`);
+    setModal('Check symptom urgency', 'Safety check', `<form class="modal-form symptom-guidance-form" data-modal-form="symptom-guidance"><div class="symptom-guidance-intro"><b>This is not a diagnosis.</b><p>Use this brief check to decide what to do next. If you may be in immediate danger, call your local emergency service now and do not wait for DoctorAI.</p></div><fieldset class="symptom-guidance-fieldset"><legend>Do you think you may be in immediate danger?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="yes" required><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-immediate" value="unsure"><span>Not sure</span></label></div></fieldset><fieldset class="symptom-guidance-fieldset" data-guidance-worsening-fieldset hidden><legend>Is it sudden, severe, rapidly worsening, or stopping normal activities?</legend><div class="symptom-guidance-options"><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="yes"><span>Yes</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="no"><span>No</span></label><label class="symptom-guidance-option"><input type="radio" name="guidance-worsening" value="unsure"><span>Not sure</span></label></div></fieldset><div class="symptom-guidance-result" data-guidance-result role="status" aria-live="polite" hidden></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="submit" class="primary-button">Show next step <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = document.querySelector('[data-modal-form="symptom-guidance"]');
     const followup = form?.querySelector('[data-guidance-worsening-fieldset]');
     const syncFollowup = () => {
@@ -2394,19 +2357,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openMeasurementModal() {
-    setModal('Log a measurement', 'Health tracking', `<form class="modal-form" data-modal-form="measurement"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type"><option value="blood-pressure">Blood pressure</option><option value="sleep">Sleep</option><option value="weight">Weight</option><option value="heart-rate">Heart rate</option><option value="temperature">Temperature</option><option value="mood">Mood / wellbeing</option></select></label><label class="modal-field"><span>Value *</span><input name="value" required placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Optional note</span><input name="note" placeholder="Anything useful to remember"></label></div><p class="modal-help">Tracking is optional. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save measurement <span>→</span></button></div></form>`);
+    setModal('Log a measurement', 'Health tracking', `<form class="modal-form" data-modal-form="measurement"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type"><option value="blood-pressure">Blood pressure</option><option value="sleep">Sleep</option><option value="weight">Weight</option><option value="heart-rate">Heart rate</option><option value="temperature">Temperature</option><option value="mood">Mood / wellbeing</option></select></label><label class="modal-field"><span>Value *</span><input name="value" required placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Optional note</span><input name="note" placeholder="Anything useful to remember"></label></div><p class="modal-help">Tracking is optional. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save measurement <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openHealthModal() {
-    setModal('Edit your health profile', 'My Health', `<form class="modal-form" data-modal-form="health"><div class="modal-form-grid"><label class="modal-field"><span>Name</span><input name="name" value="${escapeHTML(state.profile.name)}"></label><label class="modal-field"><span>Blood type</span><input name="bloodType" value="${escapeHTML(state.profile.bloodType)}" placeholder="e.g. O positive"></label><label class="modal-field full"><span>Conditions and history</span><input name="conditions" value="${escapeHTML(state.profile.conditions)}" placeholder="Only what you choose to save"></label><label class="modal-field full"><span>Allergies and adverse reactions</span><input name="allergies" value="${escapeHTML(state.profile.allergies)}" placeholder="Include reaction if useful"></label><label class="modal-field full"><span>Relevant health notes</span><textarea name="notes" rows="3">${escapeHTML(state.profile.notes)}</textarea></label></div><p class="modal-help">You can delete these details by clearing a field, or remove all locally saved hub data from your browser settings.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save health profile <span>→</span></button></div></form>`);
+    setModal('Edit your health profile', 'My Health', `<form class="modal-form" data-modal-form="health"><div class="modal-form-grid"><label class="modal-field"><span>Name</span><input name="name" value="${escapeHTML(state.profile.name)}"></label><label class="modal-field"><span>Blood type</span><input name="bloodType" value="${escapeHTML(state.profile.bloodType)}" placeholder="e.g. O positive"></label><label class="modal-field full"><span>Conditions and history</span><input name="conditions" value="${escapeHTML(state.profile.conditions)}" placeholder="Only what you choose to save"></label><label class="modal-field full"><span>Allergies and adverse reactions</span><input name="allergies" value="${escapeHTML(state.profile.allergies)}" placeholder="Include reaction if useful"></label><label class="modal-field full"><span>Relevant health notes</span><textarea name="notes" rows="3">${escapeHTML(state.profile.notes)}</textarea></label></div><p class="modal-help">You can delete these details by clearing a field, or remove all locally saved hub data from your browser settings.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save health profile <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openTimelineModal() {
-    setModal('Add a timeline entry', 'Health Timeline', `<form class="modal-form" data-modal-form="timeline"><div class="modal-form-grid"><label class="modal-field"><span>Entry type</span><select name="type"><option value="medication">Medication</option><option value="appointment">Appointment</option><option value="result">Test or result</option></select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field full"><span>Title *</span><input name="title" required maxlength="100" placeholder="What happened?"></label><label class="modal-field full"><span>Short note</span><textarea name="description" rows="3" maxlength="500" placeholder="Add useful context without identifying details"></textarea></label></div><p class="modal-help">Use the dedicated Symptom Diary to record intensity and context in your own words.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Add to timeline <span>→</span></button></div></form>`);
+    setModal('Add a timeline entry', 'Health Timeline', `<form class="modal-form" data-modal-form="timeline"><div class="modal-form-grid"><label class="modal-field"><span>Entry type</span><select name="type"><option value="medication">Medication</option><option value="appointment">Appointment</option><option value="result">Test or result</option></select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field full"><span>Title *</span><input name="title" required maxlength="100" placeholder="What happened?"></label><label class="modal-field full"><span>Short note</span><textarea name="description" rows="3" maxlength="500" placeholder="Add useful context without identifying details"></textarea></label></div><p class="modal-help">Use the dedicated Symptom Diary to record intensity and context in your own words.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Add to timeline <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openApiPermissions() {
-    setModal('AI integrations', 'Privacy by design', `<div class="privacy-copy"><div class="privacy-highlight"><span>⌘</span><p><b>Authorised tools are off by default.</b> Future assistants will need authentication, explicit permission and a limited scope before they can access your health hub.</p></div><h3>What an integration could do</h3><p>Retrieve an upcoming appointment, read a medication schedule, add a timeline entry or prepare a visit summary — only for the specific account and data scope you approve.</p><h3>What it cannot do here</h3><p>No assistant can diagnose, prescribe, change treatment or access your documents without a separate permission check.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-api-ack>Keep integrations off</button></div></div>`);
+    setModal('AI integrations', 'Privacy by design', `<div class="privacy-copy"><div class="privacy-highlight"><span aria-hidden="true">${iconMarkup('settings')}</span><p><b>Authorised tools are off by default.</b> Future assistants will need authentication, explicit permission and a limited scope before they can access your health hub.</p></div><h3>What an integration could do</h3><p>Retrieve an upcoming appointment, read a medication schedule, add a timeline entry or prepare a visit summary — only for the specific account and data scope you approve.</p><h3>What it cannot do here</h3><p>No assistant can diagnose, prescribe, change treatment or access your documents without a separate permission check.</p><div class="privacy-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-api-ack>Keep integrations off</button></div></div>`);
   }
 
   function fillChat(prompt) {
@@ -2470,7 +2433,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const sendButton = $('#chat-send');
     if (sendButton) {
       sendButton.setAttribute('aria-label', 'DoctorAI is typing');
-      sendButton.innerHTML = 'Typing… <b aria-hidden="true">↑</b>';
+      sendButton.innerHTML = `Typing… <b aria-hidden="true">${iconMarkup('upload', 18)}</b>`;
     }
     setChatStatus('DoctorAI is writing the answer.', true);
   }
@@ -2566,7 +2529,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       sendButton.disabled = false;
       sendButton.removeAttribute('aria-busy');
       sendButton.setAttribute('aria-label', 'Send message');
-      sendButton.innerHTML = 'Send <b aria-hidden="true">↑</b>';
+      sendButton.innerHTML = `Send <b aria-hidden="true">${iconMarkup('upload', 18)}</b>`;
     }
     setChatStatus('New conversation ready.', false);
     if (notify) showToast('Conversation cleared from this browser session.');
@@ -2600,7 +2563,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       sendButton.disabled = true;
       sendButton.setAttribute('aria-busy', 'true');
       sendButton.setAttribute('aria-label', 'Sending message');
-      sendButton.innerHTML = 'Sending… <b aria-hidden="true">↑</b>';
+      sendButton.innerHTML = `Sending… <b aria-hidden="true">${iconMarkup('upload', 18)}</b>`;
     }
     if (els.chatInput) {
       els.chatInput.disabled = true;
@@ -2655,7 +2618,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         sendButton.disabled = false;
         sendButton.removeAttribute('aria-busy');
         sendButton.setAttribute('aria-label', 'Send message');
-        sendButton.innerHTML = 'Send <b aria-hidden="true">↑</b>';
+        sendButton.innerHTML = `Send <b aria-hidden="true">${iconMarkup('upload', 18)}</b>`;
       }
       scrollConversation();
     }
@@ -2980,7 +2943,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : String(alert.title || 'Medicine check notice');
       const icon = document.createElement('span');
       icon.className = 'medication-warning-icon';
-      icon.textContent = warning || caution ? '!' : 'i';
+      icon.innerHTML = iconMarkup(warning || caution ? 'alert' : 'info');
       icon.setAttribute('aria-hidden', 'true');
       heading.prepend(icon);
       const copy = document.createElement('p');

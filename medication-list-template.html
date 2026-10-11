@@ -25,11 +25,13 @@
   <link rel="icon" href="/doctorai-app-icon.png?v=10">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/medication-list-template.css">
-  <link rel="stylesheet" href="/resource-share.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/medication-list-template.css?v=2">
+  <link rel="stylesheet" href="/resource-share.css?v=1">
+  <link rel="stylesheet" href="/accessibility.css?v=11" media="screen">
   <script defer src="/medication-list-template.js"></script>
-  <script defer src="/resource-share.js"></script>
+  <script defer src="/resource-share.js?v=1"></script>
+  <script defer src="/feature-icons.js?v=6"></script>
 </head>
 <body class="medication-guide">
   <a class="guide-skip" href="#main">Skip to content</a>
@@ -55,7 +57,7 @@
           <button class="guide-button" id="download-csv" type="button">Download blank CSV</button>
           <button class="guide-button guide-button-secondary" data-share-resource data-share-title="Free Medication List Template" data-share-text="Share this blank template to organise medicine information for an appointment." type="button">Share this free template</button>
           <a class="guide-button guide-button-secondary" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.doctoraiworld.com%2Fmedication-list-template&amp;media=https%3A%2F%2Fwww.doctoraiworld.com%2Fmedication-list-social-preview.png&amp;description=Free%20blank%20medication%20list%20template%20for%20appointments." target="_blank" rel="noopener noreferrer" aria-label="Save this public medication template to Pinterest (opens in a new tab)">Save to Pinterest</a>
-          <a class="guide-button guide-button-secondary" href="/health-hub#medications">Open free medicines list <span aria-hidden="true">→</span></a>
+          <a class="guide-button guide-button-secondary" href="/health-hub#medications">Open free medicines list <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
           <input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public page link to share">
         </div>
         <p class="guide-utility-note">The CSV contains column headings only. The template does not collect or include your medicine details. Optional page counts are separate and off until you allow them below.</p>
@@ -138,7 +140,7 @@
           <p>Start a free list by typing the label details yourself. No account is needed to use it in this browser. Choose device or session storage when the Hub opens. Medicine label-photo scanning in the Health Hub requires Pro.</p>
           <p>Check every field against your label before saving. The scanner does not verify medicine safety or check drug interactions.</p>
         </div>
-        <a class="guide-button" href="/health-hub#medications">Open free medicines list <span aria-hidden="true">→</span></a>
+        <a class="guide-button" href="/health-hub#medications">Open free medicines list <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
       </section>
 
       <section class="guide-section guide-copy" aria-labelledby="faq-title">

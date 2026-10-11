@@ -157,13 +157,13 @@
     results.setAttribute('aria-busy', 'false');
     if (!items.length) { results.innerHTML = '<div class="state-card">No matching publications were found. Try a broader phrase such as “sleep”, “prevention” or “blood pressure”.</div>'; return; }
     const fallbackNotice = options.fallback ? `<div class="state-card research-fallback">No recent exact matches were indexed for “${escape(topic)}”. These are ${options.fallbackTopic ? `related results for “${escape(options.fallbackTopic)}”` : 'recent broader results'} to help you continue exploring.</div>` : '';
-    results.innerHTML = fallbackNotice + items.slice(0, 12).map(item => `<article class="paper-card"><span class="paper-label">${escape(item.journal)} · ${escape(item.date)}</span><h3>${escape(item.title)}</h3><div class="paper-meta">${escape(item.authors)}${item.openAccess ? '<span class="oa">Open access</span>' : ''}</div><p>${escape(item.abstract)}</p><a href="${escape(item.url)}" target="_blank" rel="noopener">Read original source →</a></article>`).join('');
+    results.innerHTML = fallbackNotice + items.slice(0, 12).map(item => `<article class="paper-card"><span class="paper-label">${escape(item.journal)} · ${escape(item.date)}</span><h3>${escape(item.title)}</h3><div class="paper-meta">${escape(item.authors)}${item.openAccess ? '<span class="oa">Open access</span>' : ''}</div><p>${escape(item.abstract)}</p><a href="${escape(item.url)}" target="_blank" rel="noopener">Read original source <span data-doctorai-icon="external" aria-hidden="true"></span></a></article>`).join('');
   };
 
   const renderError = topic => {
     results.setAttribute('aria-busy', 'false');
     const query = encodeURIComponent(topic || 'medical research');
-    results.innerHTML = `<div class="state-card error">The live research index is taking a moment to respond.<br><br><a href="https://europepmc.org/search?query=${query}" target="_blank" rel="noopener">Open the source search directly →</a></div>`;
+    results.innerHTML = `<div class="state-card error">The live research index is taking a moment to respond.<br><br><a href="https://europepmc.org/search?query=${query}" target="_blank" rel="noopener">Open the source search directly <span data-doctorai-icon="external" aria-hidden="true"></span></a></div>`;
     updated.textContent = 'Live updates unavailable';
   };
 
@@ -227,8 +227,8 @@
   const readDiscussions = () => { try { return JSON.parse(localStorage.getItem(discussionKey) || '[]'); } catch (_) { return []; } };
   const renderDiscussions = () => {
     const saved = readDiscussions();
-    const custom = saved.map(item => `<article class="discussion-card"><span class="discussion-topic">Your prompt</span><h3>${escape(item.title)}</h3><p>${escape(item.body)}</p><button type="button" data-topic="${escape(item.topic || '')}">Explore related research →</button></article>`).join('');
-    const seeded = seededDiscussions.map(item => `<article class="discussion-card"><span class="discussion-topic">${escape(item.topic)}</span><h3>${escape(item.title)}</h3><p>${escape(item.body)}</p><button type="button" data-topic="${escape(item.topic)}">Explore related research →</button></article>`).join('');
+    const custom = saved.map(item => `<article class="discussion-card"><span class="discussion-topic">Your prompt</span><h3>${escape(item.title)}</h3><p>${escape(item.body)}</p><button type="button" data-topic="${escape(item.topic || '')}">Explore related research <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></article>`).join('');
+    const seeded = seededDiscussions.map(item => `<article class="discussion-card"><span class="discussion-topic">${escape(item.topic)}</span><h3>${escape(item.title)}</h3><p>${escape(item.body)}</p><button type="button" data-topic="${escape(item.topic)}">Explore related research <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></article>`).join('');
     discussionList.innerHTML = custom + seeded;
   };
 
