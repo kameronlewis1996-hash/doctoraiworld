@@ -29,3 +29,19 @@
   .medication-guide .guide-header nav a { display: inline-flex; align-items: center; min-height: 44px; }
   .medication-guide .medicine-name-search-row input { min-height: 48px; border-color: #a7c4e7; border-radius: 12px; }
 }
+
+@media screen {
+  body.medication-guide {
+    --guide-line: #d5e5ef;
+    background: #f7fbff;
+  }
+  .medication-guide :is(.guide-hero, .guide-section, .guide-cta) {
+    border-width: 1px;
+    border-color: var(--guide-line);
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(23, 53, 80, .04);
+  }
+  .medication-guide .guide-hero { background: #fff; }
+  .medication-guide .guide-button-secondary { border-width: 1px; }
+  .medication-guide .medicine-name-search-row input { border-color: var(--guide-line); }
+}
