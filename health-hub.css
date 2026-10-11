@@ -6302,6 +6302,28 @@ html body[data-hub-theme] { background:#f7f9fc; }
 #hub-shell #view-symptoms .symptom-page-actions > :is(.primary-button, .secondary-button):focus-visible { outline: 3px solid #0784cf; outline-offset: 2px; }
 #hub-shell #view-symptoms .symptom-diary-layout { grid-template-columns: minmax(0, 1fr); }
 
+/* Keep navigation artwork full-size and routine actions in the shared blue palette. */
+#hub-shell .primary-nav > .nav-item[data-view] > .nav-icon {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+}
+#hub-shell .primary-nav > .nav-item[data-view] > .nav-icon svg { width: 20px; height: 20px; }
+#hub-shell #view-ask .quick-asks button { border-color: #d5e5ef; background: #f6fafc; color: #173550; }
+#hub-shell #view-ask .quick-asks button .quick-ask-icon { color: #0759b6; }
+#hub-shell #view-ask .quick-asks button:hover,
+#hub-shell #view-ask .quick-asks button:focus-visible { border-color: #0784cf; background: #edf6fb; color: #0759b6; }
+#hub-shell #view-medications .library-copy b { font-size: 14px; line-height: 1.4; }
+#hub-shell #view-medications .library-copy :is(span, small),
+#hub-shell #view-medications .library-meta :is(b, span) { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+#hub-shell #view-medications .library-meta :is(.delete-item, .medication-edit-link) { font-size: 12px; }
+
 /* Base mobile shells on the layout viewport, not 100vw including its scrollbar. */
 @media (max-width: 620px) {
   #hub-shell .hub-topbar { width: 100%; max-width: 100%; overflow: visible; }

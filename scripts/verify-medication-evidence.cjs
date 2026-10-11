@@ -200,10 +200,10 @@ async function run() {
   counts.labelTranscriptionUsabilityGuards = 11;
 
   assert.match(hubHtml, /health-hub\.js\?v=78/);
-  assert.match(hubHtml, /health-hub\.css\?v=82/);
-  assert.match(serviceWorker, /doctorai-shell-v130/);
+  assert.match(hubHtml, /health-hub\.css\?v=83/);
+  assert.match(serviceWorker, /doctorai-shell-v131/);
   assert.match(serviceWorker, /health-hub\.js\?v=78/);
-  assert.match(serviceWorker, /health-hub\.css\?v=82/);
+  assert.match(serviceWorker, /health-hub\.css\?v=83/);
   assert.match(serviceWorker, /feature-icons\.js\?v=8/);
   counts.cacheVersionGuards = 6;
 
