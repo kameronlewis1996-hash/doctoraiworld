@@ -25,12 +25,12 @@
   <link rel="icon" type="image/png" href="/doctorai-app-icon.png?v=10">
   <link rel="apple-touch-icon" type="image/png" href="/doctorai-app-icon.png?v=10">
   <link rel="stylesheet" href="/research.css?v=10">
-  <link rel="stylesheet" href="/resource-share.css">
+  <link rel="stylesheet" href="/resource-share.css?v=1">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/site-shell.css?v=2">
   <script defer src="/site-shell.js?v=4"></script>
-  <link rel="stylesheet" href="/accessibility.css?v=6">
-  <script defer src="/feature-icons.js?v=1"></script>
+  <link rel="stylesheet" href="/accessibility.css?v=11">
+  <script defer src="/feature-icons.js?v=6"></script>
 </head>
 <body class="doctorai-public-page" data-subscription="free">
   <header class="research-header">
@@ -43,25 +43,25 @@
 
   <main class="research-main">
     <section class="research-hero" aria-labelledby="research-title">
-      <div class="hero-badge"><span>✧</span> Evidence in motion</div>
+      <div class="hero-badge"><span data-doctorai-icon="research" aria-hidden="true"></span> Evidence in motion</div>
       <p class="eyebrow">DoctorAI evidence library</p>
       <h1 id="research-title">Research, without<br><em>the overload.</em></h1>
       <p class="hero-copy">A simpler way to find useful medical research, see what is gaining attention and save better questions for your care team.</p>
-      <div class="research-trust"><span>✧</span><span><b>Learn, don’t self-diagnose.</b> Every paper keeps its source, date and limitations visible.</span></div>
+      <div class="research-trust"><span data-doctorai-icon="shield" aria-hidden="true"></span><span><b>Learn, don’t self-diagnose.</b> Every paper keeps its source, date and limitations visible.</span></div>
     </section>
 
     <nav class="research-tabs" aria-label="Research sections" role="tablist">
-      <button class="research-tab active" id="tab-highlights" type="button" role="tab" aria-selected="true" aria-controls="research-panel-highlights" data-research-tab="highlights"><span>✦</span> Highlights</button>
-      <button class="research-tab" id="tab-explore" type="button" role="tab" aria-selected="false" aria-controls="research-panel-explore" data-research-tab="explore"><span>⌕</span> Explore</button>
-      <button class="research-tab" id="tab-discuss" type="button" role="tab" aria-selected="false" aria-controls="research-panel-discuss" data-research-tab="discuss"><span>◇</span> Discuss</button>
+      <button class="research-tab active" id="tab-highlights" type="button" role="tab" aria-selected="true" aria-controls="research-panel-highlights" data-research-tab="highlights"><span data-doctorai-icon="research" aria-hidden="true"></span> Highlights</button>
+      <button class="research-tab" id="tab-explore" type="button" role="tab" aria-selected="false" aria-controls="research-panel-explore" data-research-tab="explore"><span data-doctorai-icon="search" aria-hidden="true"></span> Explore</button>
+      <button class="research-tab" id="tab-discuss" type="button" role="tab" aria-selected="false" aria-controls="research-panel-discuss" data-research-tab="discuss"><span data-doctorai-icon="chat" aria-hidden="true"></span> Discuss</button>
     </nav>
 
     <section class="research-panel active" id="research-panel-highlights" role="tabpanel" aria-labelledby="tab-highlights" data-research-panel="highlights">
       <div class="panel-heading">
         <div><p class="eyebrow">Curated starting points</p><h2>Today’s evidence at a glance</h2><p>Three simple entry points, refreshed from the live Europe PMC index.</p></div>
-        <button class="quiet-action" id="refresh-highlights" type="button">Refresh picks <span>↻</span></button>
+        <button class="quiet-action" id="refresh-highlights" type="button">Refresh picks <span data-doctorai-icon="refresh" aria-hidden="true"></span></button>
       </div>
-      <div class="highlight-note"><span>✧</span><p><b>How picks are selected.</b> DoctorAI uses recency, citation signals, access and available study detail to surface a useful starting point. “Best” is not a medical recommendation.</p></div>
+      <div class="highlight-note"><span data-doctorai-icon="info" aria-hidden="true"></span><p><b>How picks are selected.</b> DoctorAI uses recency, citation signals, access and available study detail to surface a useful starting point. “Best” is not a medical recommendation.</p></div>
       <div class="highlight-grid" id="highlight-grid" aria-live="polite" aria-busy="true">
         <article class="highlight-card" data-period-card="day"><div class="highlight-card-head"><div><p class="card-kicker">Best paper of the day</p><h3>Today’s pick</h3></div><span class="period-pill">Daily</span></div><div class="highlight-content" id="highlight-day">Finding today’s pick…</div></article>
         <article class="highlight-card" data-period-card="month"><div class="highlight-card-head"><div><p class="card-kicker">Best paper of the month</p><h3>This month’s pick</h3></div><span class="period-pill">Monthly</span></div><div class="highlight-content" id="highlight-month">Finding this month’s pick…</div></article>
@@ -72,14 +72,14 @@
     <section class="research-panel" id="research-panel-explore" role="tabpanel" aria-labelledby="tab-explore" data-research-panel="explore" hidden>
       <section class="research-controls" aria-label="Research search">
         <div class="control-heading"><div><p class="card-kicker">Optional search</p><h2>Find a topic you care about</h2><p>Choose a suggested topic or search the live research index yourself.</p></div><span class="pro-pill" id="research-tier">Free library</span></div>
-        <div class="search-row"><label class="sr-only" for="research-topic">Search a research topic</label><input id="research-topic" type="search" autocomplete="off" placeholder="Try sleep, blood pressure or wellbeing"><button id="research-search" type="button">Search research <span>→</span></button></div>
+        <div class="search-row"><label class="sr-only" for="research-topic">Search a research topic</label><input id="research-topic" type="search" autocomplete="off" placeholder="Try sleep, blood pressure or wellbeing"><button id="research-search" type="button">Search research <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></div>
         <p class="search-hint" id="research-search-status">Search is optional. Pick a topic below to get started.</p>
         <div class="topic-grid" aria-label="Suggested research topics">
-          <button type="button" data-topic="Ozempic GLP-1"><span class="topic-icon cyan">✦</span><span><b>Ozempic &amp; GLP-1s</b><small>Medicines, outcomes and safety</small></span><span class="topic-arrow">→</span></button>
-          <button type="button" data-topic="weight loss diabetes"><span class="topic-icon blue">⌁</span><span><b>Weight loss &amp; diabetes</b><small>Evidence, prevention and care</small></span><span class="topic-arrow">→</span></button>
-          <button type="button" data-topic="cosmetic plastic surgery"><span class="topic-icon rose">◇</span><span><b>Cosmetics &amp; plastic surgery</b><small>Procedures, risks and recovery</small></span><span class="topic-arrow">→</span></button>
-          <button type="button" data-topic="mental health wellbeing"><span class="topic-icon purple">♡</span><span><b>Mental health &amp; wellbeing</b><small>Mood, stress, sleep and support</small></span><span class="topic-arrow">→</span></button>
-          <button type="button" data-topic="new medicines drug development"><span class="topic-icon gold">＋</span><span><b>New medicines</b><small>Trials, approvals and discoveries</small></span><span class="topic-arrow">→</span></button>
+          <button type="button" data-topic="Ozempic GLP-1"><span class="topic-icon cyan" data-doctorai-icon="capsule" aria-hidden="true"></span><span><b>Ozempic &amp; GLP-1s</b><small>Medicines, outcomes and safety</small></span><span class="topic-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></button>
+          <button type="button" data-topic="weight loss diabetes"><span class="topic-icon blue" data-doctorai-icon="chart" aria-hidden="true"></span><span><b>Weight loss &amp; diabetes</b><small>Evidence, prevention and care</small></span><span class="topic-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></button>
+          <button type="button" data-topic="cosmetic plastic surgery"><span class="topic-icon rose" data-doctorai-icon="person" aria-hidden="true"></span><span><b>Cosmetics &amp; plastic surgery</b><small>Procedures, risks and recovery</small></span><span class="topic-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></button>
+          <button type="button" data-topic="mental health wellbeing"><span class="topic-icon purple" data-doctorai-icon="health" aria-hidden="true"></span><span><b>Mental health &amp; wellbeing</b><small>Mood, stress, sleep and support</small></span><span class="topic-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></button>
+          <button type="button" data-topic="new medicines drug development"><span class="topic-icon gold" data-doctorai-icon="add" aria-hidden="true"></span><span><b>New medicines</b><small>Trials, approvals and discoveries</small></span><span class="topic-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></button>
         </div>
       </section>
       <section class="research-meta"><div><p class="eyebrow">Freshly indexed</p><h2 id="research-heading">Latest research</h2></div><p id="research-updated">Choose a topic to begin.</p></section>
@@ -95,12 +95,12 @@
     </section>
 
     <section class="research-method">
-      <div class="method-icon" aria-hidden="true">✓</div>
+      <div class="method-icon" data-doctorai-icon="check" aria-hidden="true"></div>
       <div>
         <h2>Use research as a conversation starter</h2>
         <p>Open the original paper before drawing conclusions. Research can be early, limited or updated over time.</p>
         <p class="source-note">Primary index: <a href="https://europepmc.org/" target="_blank" rel="noopener">Europe PMC</a>. DoctorAI provides education and organisation—not diagnosis or treatment.</p>
-        <a class="hub-button research-method-cta" href="/health-hub#appointments">Open the free Health Hub <span aria-hidden="true">→</span></a>
+        <a class="hub-button research-method-cta" href="/health-hub#appointments">Open the free Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
         <section class="research-share" aria-labelledby="research-share-title">
           <div class="research-share-copy">
             <h3 id="research-share-title">Share this research explorer</h3>
@@ -116,7 +116,7 @@
 
   <script src="/branding.js?v=10"></script>
   <script src="/logo-loader.js?v=10"></script>
-  <script src="/research.js?v=8"></script>
-  <script src="/resource-share.js"></script>
+  <script src="/research.js?v=9"></script>
+  <script src="/resource-share.js?v=1"></script>
 </body>
 </html>

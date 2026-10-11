@@ -199,12 +199,12 @@ async function run() {
   assert.deepEqual(splitDetails('ibuprofen, paracetamol'), ['ibuprofen', 'paracetamol']);
   counts.labelTranscriptionUsabilityGuards = 11;
 
-  assert.match(hubHtml, /health-hub\.js\?v=73/);
-  assert.match(hubHtml, /health-hub\.css\?v=77/);
-  assert.match(serviceWorker, /doctorai-shell-v125/);
-  assert.match(serviceWorker, /health-hub\.js\?v=73/);
-  assert.match(serviceWorker, /health-hub\.css\?v=77/);
-  assert.match(serviceWorker, /feature-icons\.js\?v=5/);
+  assert.match(hubHtml, /health-hub\.js\?v=74/);
+  assert.match(hubHtml, /health-hub\.css\?v=78/);
+  assert.match(serviceWorker, /doctorai-shell-v126/);
+  assert.match(serviceWorker, /health-hub\.js\?v=74/);
+  assert.match(serviceWorker, /health-hub\.css\?v=78/);
+  assert.match(serviceWorker, /feature-icons\.js\?v=6/);
   counts.cacheVersionGuards = 6;
 
   process.stdout.write(JSON.stringify({

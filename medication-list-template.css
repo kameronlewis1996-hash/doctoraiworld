@@ -5,3 +5,27 @@
 .guide-name-lookup form{max-width:680px}.guide-name-lookup form>label{display:block;margin:0 0 7px;font-weight:700}.medicine-name-search-row{display:flex;gap:10px}.medicine-name-search-row input{min-width:0;flex:1;padding:12px 14px;border:1px solid #9eb8ce;border-radius:10px;background:#fff;color:var(--guide-ink);font:inherit}.medicine-name-search-status{min-height:1.6em;margin:12px 0;color:var(--guide-muted);font-size:14px}.medicine-name-search-results{display:grid;gap:8px;max-width:760px;padding:0;list-style:none}.medicine-name-search-results:empty{display:none}.medicine-name-search-results li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;border:1px solid var(--guide-line);border-radius:10px;background:#fff}.medicine-name-copy{flex:0 0 auto;padding:7px 10px;border:1px solid var(--guide-line);border-radius:8px;background:#eef7fd;color:var(--guide-ink);font:600 13px "DM Sans",Arial,sans-serif;cursor:pointer}.medicine-name-source{margin:14px 0 0;color:var(--guide-muted);font-size:13px}.medicine-name-source a{color:var(--guide-blue);font-weight:700}.medicine-name-lookup :focus-visible{outline:3px solid #0e679e;outline-offset:3px}@media(max-width:500px){.medicine-name-search-row{align-items:stretch;flex-direction:column}.medicine-name-search-row .guide-button{width:100%}.medicine-name-search-results li{align-items:flex-start;flex-direction:column}.medicine-name-copy{width:100%}}@media print{.guide-name-lookup{display:none!important}}
 .guide-print-hub-link{display:none}@media print{.guide-print-hub-link{display:block;margin:3mm 0 0;color:#111;font-size:9pt}.guide-print-hub-link a{color:#111;font-weight:400}}
 .guide-print-hub-link img{width:20mm;height:20mm}.guide-print-hub-link p{margin:0}@media print{.guide-print-hub-link{display:flex;align-items:center;gap:4mm}}
+
+/* Match the DoctorAI page theme on screen; printable output stays unchanged. */
+@media screen {
+  body.medication-guide {
+    --guide-ink: #173550;
+    --guide-blue: #0060df;
+    --guide-line: #a7c4e7;
+    --guide-muted: #465f73;
+    --guide-bg: #f7fbff;
+    background: radial-gradient(circle at 8% 2%, rgba(0,137,194,.10), transparent 28rem), linear-gradient(180deg,#f7fbff,#f1f9ff 54%,#fbfdff);
+    -webkit-font-smoothing: antialiased;
+  }
+  .medication-guide :is(.guide-hero, .guide-section, .guide-cta) {
+    border: 2px solid var(--guide-line);
+    border-radius: 20px;
+    box-shadow: 0 10px 28px rgba(23,53,80,.06);
+  }
+  .medication-guide .guide-hero { background: linear-gradient(145deg,#edf6ff,#fff 72%); }
+  .medication-guide :is(.guide-button, .guide-nav-cta) { border-radius: 12px; }
+  .medication-guide .guide-button { background: linear-gradient(115deg,#0060df,#0072a8); }
+  .medication-guide .guide-button-secondary { border: 2px solid var(--guide-line); background: #fff; color: var(--guide-ink); }
+  .medication-guide .guide-header nav a { display: inline-flex; align-items: center; min-height: 44px; }
+  .medication-guide .medicine-name-search-row input { min-height: 48px; border-color: #a7c4e7; border-radius: 12px; }
+}

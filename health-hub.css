@@ -4639,10 +4639,10 @@ body[data-hub-theme] #view-health .health-page-heading .primary-button:hover { b
   background: #25a5c2;
 }
 #view-health .profile-fact:nth-child(2)::before,
-#view-health .profile-fact:nth-child(5)::before { background: #7460c6; }
+#view-health .profile-fact:nth-child(5)::before { background: #3166b5; }
 #view-health .profile-fact:nth-child(3)::before,
-#view-health .profile-fact:nth-child(6)::before { background: #248f70; }
-#view-health .profile-fact:nth-child(4)::before { background: #d56658; }
+#view-health .profile-fact:nth-child(6)::before { background: #087997; }
+#view-health .profile-fact:nth-child(4)::before { background: #076b94; }
 #view-health .profile-fact small { color: #587083; font-size: 12px !important; font-weight: 700; }
 #view-health .profile-fact-label { display: flex; align-items: center; gap: 7px; min-width: 0; }
 #view-health .profile-fact-icon { width: 24px; height: 24px; flex: 0 0 24px; padding: 4px; border-radius: 7px; }
@@ -5491,8 +5491,8 @@ body #hub-shell .clash-actions button { min-height:48px; }
 #view-health .memory-card { border-color: #5fbcd2; }
 #view-health .personal-overview-card { border-color: #70aee0; }
 #view-health .health-info-grid > .info-card:nth-child(1) { border-color: #78b7e7; }
-#view-health .health-info-grid > .info-card:nth-child(2) { border-color: #e6a79d; }
-#view-health .health-info-grid > .info-card:nth-child(3) { border-color: #b7a1db; }
+#view-health .health-info-grid > .info-card:nth-child(2) { border-color: #78b7d4; }
+#view-health .health-info-grid > .info-card:nth-child(3) { border-color: #8ab0df; }
 #view-health .health-info-grid > .emergency-card { border-color: #45a2d5; }
 body[data-hub-theme] #view-health .health-info-grid > .emergency-card { background: var(--navy); }
 #view-health .care-visit-card {
@@ -5534,4 +5534,24 @@ body[data-hub-theme] #view-health .health-info-grid > .emergency-card { backgrou
 @media (max-width: 620px) {
   #view-health .health-page-heading { border-width: 3px; }
   #view-health .care-visit-card { outline-offset: 2px; }
+}
+
+/* Shared feature framing across Today, My Health and the action menu. */
+#view-today .orbit-action { border-width: 2px; box-shadow: 0 8px 20px rgba(23,53,80,.08); }
+#view-today .orbit-action[data-orbit-tone="violet"] { --orbit-border: #8eb5e1; --orbit-bg: #f1f6ff; }
+#view-today .orbit-action[data-orbit-tone="mint"] { --orbit-border: #7cbacf; --orbit-bg: #effaff; }
+#view-today .orbit-action[data-orbit-tone="coral"] { --orbit-border: #7eb4d4; --orbit-bg: #eff9ff; }
+#view-today .orbit-action[data-orbit-tone="yellow"] { --orbit-border: #91aecf; --orbit-bg: #f2f7ff; }
+#view-today .orbit-action-icon { color: #0759b6; box-shadow: 0 5px 12px rgba(8,101,223,.10), inset 0 0 0 1px #b9d7ee; }
+#view-today .orbit-action[data-orbit-tone] .orbit-action-icon { color: #0759b6; box-shadow: 0 5px 12px rgba(8,101,223,.10), inset 0 0 0 1px #b9d7ee; }
+#view-health .care-visit-card button { border-radius: 12px; background: linear-gradient(115deg,#0060df,#0072a8); }
+body[data-hub-theme] .modal-choice > span { color: #0759b6; background: #eaf5ff; }
+body[data-hub-theme] .modal-choice { border-color: #a3c7e2; }
+#view-documents .documents-grid > .pro-gate { grid-column: 1 / -1; }
+#view-timeline .timeline-entry { grid-template-columns: 28px minmax(0, 1fr) auto; }
+#view-timeline .timeline-list::before { left: 14px; }
+#view-timeline .timeline-dot { width: 28px; height: 28px; border: 1px solid #a7c4e7; border-radius: 9px; background: #edf6ff; color: #0759b6; }
+#view-timeline .timeline-dot svg { width: 20px; height: 20px; }
+@media (max-width: 620px) {
+  #view-timeline .timeline-entry { grid-template-columns: 28px minmax(0, 1fr); }
 }

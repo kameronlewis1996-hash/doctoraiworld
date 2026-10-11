@@ -12,7 +12,7 @@
 #view-today .care-visit-card h2{font-size:clamp(26px,3vw,36px);line-height:1.13;letter-spacing:-.03em;color:#fff;margin:10px 0 12px;max-width:420px}
 #view-today .care-visit-card p{color:#fff;font-size:16px;margin:0 0 18px}
 #view-today .care-visit-card .care-kicker{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#e0f5ff;margin:0}
-#view-today .care-visit-card button{background:#fff;color:#143851;border:0;border-radius:28px;min-height:48px;padding:13px 21px;font:700 16px 'DM Sans',sans-serif;display:inline-flex;gap:22px;align-items:center}
+#view-today .care-visit-card button{background:#fff;color:#143851;border:0;border-radius:12px;min-height:48px;padding:13px 21px;font:700 16px 'DM Sans',sans-serif;display:inline-flex;gap:22px;align-items:center}
 #view-today .care-visit-card>svg{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.5;flex-shrink:0}
 #view-today .colour-orbit{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;padding:0!important;margin:0!important;min-height:0!important;height:auto!important;overflow:visible!important;transform:none!important}
 #view-today .orbit-action{position:relative!important;inset:auto!important;transform:none!important;min-width:0!important;width:auto!important;height:auto!important;min-height:112px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;padding:20px!important;border-radius:18px!important;box-shadow:none!important;gap:12px!important}
@@ -21,10 +21,10 @@
 #view-today .orbit-action small{display:none!important}
 #view-today .orbit-action-icon{width:36px!important;height:36px!important;padding:0!important;background:transparent!important;box-shadow:none!important;border:0!important;position:static!important}
 #view-today .orbit-action-icon svg{width:32px!important;height:32px!important}
-#view-today .orbit-action-symptoms{order:0;background:#fff1ef!important;color:#9c423b!important}
+#view-today .orbit-action-symptoms{order:0;background:#eff9ff!important;color:#076b94!important}
 #view-today .orbit-action-medicines{order:1;background:#edf6ff!important;color:#235eb0!important}
-#view-today .orbit-action-health{order:2;background:#ebfaf4!important;color:#17765f!important}
-#view-today .orbit-action-appointments{order:3;background:#f4f0ff!important;color:#7150a7!important}
+#view-today .orbit-action-health{order:2;background:#effaff!important;color:#087997!important}
+#view-today .orbit-action-appointments{order:3;background:#edf4ff!important;color:#3166b5!important}
 #view-today .orbit-action-ask,#view-today .orbit-action-research{display:none!important}
 #view-today .care-pattern-card{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #dce8f1;background:#fff;border-radius:20px;padding:24px;margin-top:20px}
 .care-kicker{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#426b85}
@@ -40,7 +40,7 @@
 @media print{body.care-printing>*{display:none!important}body.care-printing>.care-print-root{display:block!important;color:#000;background:#fff;font:12pt/1.5 sans-serif;padding:12mm}body.care-printing .care-print-root h1{font-size:22pt}body.care-printing .care-print-root p,body.care-printing .care-print-root li{white-space:pre-wrap;overflow-wrap:anywhere}body.care-printing .care-print-root section{break-inside:avoid}}
 
 /* User-first Today composition: check in first, then open the tools that matter. */
-#view-today .colour-hero-live{display:flex!important;max-width:1080px;gap:18px!important;padding:clamp(18px,3vw,30px)!important;border:1px solid #d3e5ef!important;border-radius:28px!important;background:linear-gradient(145deg,#fbfdff 0%,#f0f9fe 60%,#fffaf6 100%)!important;box-shadow:0 20px 56px rgba(23,53,80,.1)!important;overflow:hidden!important}
+#view-today .colour-hero-live{display:flex!important;max-width:1080px;gap:18px!important;padding:clamp(18px,3vw,30px)!important;border:2px solid #a3c7e2!important;border-radius:28px!important;background:linear-gradient(145deg,#fbfdff 0%,#f0f9fe 60%,#f1faff 100%)!important;box-shadow:0 20px 56px rgba(23,53,80,.1)!important;overflow:hidden!important}
 #view-today .hub-hero-intro{display:grid!important;gap:16px!important}
 #view-today :is(.hub-hero-greeting,.hub-hero-subtitle){display:block!important}
 #view-today .hub-hero-greeting{margin:0 0 7px!important;color:#53748a!important;font-size:14px!important;font-weight:750!important}
@@ -49,7 +49,7 @@
 #view-today #today-title span{color:#1679e8!important}
 #view-today .hub-ask-prompt{display:flex!important;min-height:88px!important;margin:0!important;padding:14px 16px!important;border-radius:20px!important}
 #view-today .colour-orbit{order:2;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;width:100%!important;max-width:none!important}
-#view-today .orbit-action{min-height:106px!important;padding:14px!important;border:1px solid var(--orbit-border,#d7e4ec)!important;border-radius:17px!important;box-shadow:0 8px 20px rgba(23,53,80,.06)!important}
+#view-today .orbit-action{min-height:106px!important;padding:14px!important;border:2px solid var(--orbit-border,#a3c7e2)!important;border-radius:17px!important;box-shadow:0 8px 20px rgba(23,53,80,.06)!important}
 #view-today .orbit-action-ask,#view-today .orbit-action-research{display:flex!important}
 #view-today .orbit-action-ask{order:1}
 #view-today .orbit-action-medicines{order:2}

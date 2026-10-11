@@ -23,12 +23,17 @@
   <meta name="twitter:image" content="https://www.doctoraiworld.com/appointment-checklist-social-preview.png">
   <meta name="twitter:image:alt" content="DoctorAI's free New Zealand appointment checklist with blank spaces for visit details, things to bring, questions, and support.">
   <link rel="icon" href="/doctorai-app-icon.png?v=10">
-  <link rel="stylesheet" href="/appointment-checklist.css">
-  <link rel="stylesheet" href="/resource-share.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/appointment-checklist.css?v=2">
+  <link rel="stylesheet" href="/resource-share.css?v=1">
+  <link rel="stylesheet" href="/accessibility.css?v=11" media="screen">
   <script defer src="/appointment-checklist.js"></script>
-  <script defer src="/resource-share.js"></script>
+  <script defer src="/resource-share.js?v=1"></script>
+  <script defer src="/feature-icons.js?v=6"></script>
 </head>
-<body>
+<body class="appointment-guide">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="page-header">
     <a class="brand" href="/" aria-label="DoctorAI World home">
@@ -131,7 +136,7 @@
           <h2 id="hub-title">Prefer a digital appointments list?</h2>
           <p>Open the free DoctorAI Health Hub to organise appointments and notes. You choose whether information stays in this browser or only for this session.</p>
         </div>
-        <a class="button" href="/health-hub#appointments">Open the free Health Hub <span aria-hidden="true">→</span></a>
+        <a class="button" href="/health-hub#appointments">Open the free Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
       </section>
     </article>
   </main>
