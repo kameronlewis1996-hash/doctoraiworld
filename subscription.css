@@ -53,6 +53,45 @@ button.dialog-secondary { background: #fff; text-align: left; cursor: pointer; }
 :where(a, button, input, [tabindex]):focus-visible { outline: 3px solid #0b76c5; outline-offset: 3px; }
 .feature-card > p:not(.feature-kicker), .plan-description, .plan-card li, .pro-safety p, .dialog-copy > p, .checkout-code-box > p { font-size: 12px; }
 .feature-card a, .plan-toggle button, .plan-secondary, .pro-safety a, .dialog-secondary { font-size: 12px; }
+
+/* Reduce decorative framing while keeping plans and navigation easy to scan. */
+.pro-section-nav {
+  width: max-content;
+  max-width: 100%;
+  min-height: 0;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin: 0 auto;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.pro-section-nav a { min-height: 44px; border-radius: 8px; }
+.pro-hero { min-height: 0; gap: clamp(24px, 4vw, 60px); padding: 34px 0 48px; }
+.pro-hero .hero-copy h1 { font-size: clamp(40px, 5vw, 58px); line-height: 1.04; }
+.care-pack-preview { border-color: var(--line); border-radius: 18px; background: #fff; box-shadow: 0 5px 18px rgba(23, 53, 80, .055); }
+.preview-glow { display: none; }
+.feature-card, .plan-card, .comparison-table { box-shadow: none; }
+.feature-card.featured { background: #f8fcff; }
+.pro-plan { border-width: 1px; border-color: #87bad7; background: #f9fcff; box-shadow: inset 0 3px 0 #87bad7; }
+.section-block, .plans-section, .comparison-section { padding: 56px 0; }
+.pro-shell .plan-secondary { min-height: 44px; }
+
+@media (max-width: 900px) {
+  .pro-hero { min-height: 0; gap: 28px; padding: 30px 0 40px; }
+}
+@media (max-width: 620px) {
+  .pro-section-nav { width: 100%; justify-content: flex-start; gap: 0 4px; }
+  .pro-section-nav a { min-height: 44px; padding-inline: 9px; font-size: 11px; }
+  .pro-hero { min-height: 0; padding: 25px 0 34px; }
+  .pro-hero .hero-copy h1 { font-size: clamp(36px, 9.2vw, 46px); }
+  .section-block, .plans-section, .comparison-section { padding: 42px 0; }
+  .care-pack-preview { box-shadow: 0 3px 12px rgba(23, 53, 80, .05); }
+}
 .comparison-row, .comparison-row b, .comparison-head { font-size: 11px; }
 @media (max-width: 620px) {
   input { font-size: 16px !important; }

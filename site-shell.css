@@ -219,3 +219,34 @@
   box-shadow: 0 20px 52px rgba(8, 74, 126, .1);
 }
 .doctorai-site-footer { box-shadow: 0 -12px 34px rgba(8, 74, 126, .035); }
+
+/* Quiet public chrome: keep the shared frame compact and content-led. */
+.doctorai-public-page {
+  background: #f7fbff;
+}
+.doctorai-public-page .doctorai-site-header {
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 2px 10px rgba(20, 60, 93, .035);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.doctorai-public-page .doctorai-site-menu > a { min-height: 44px; }
+.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary { min-height: 44px; box-shadow: none; }
+.doctorai-public-page main.shell,
+.doctorai-public-page .panel {
+  border-width: 1px;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(16, 48, 74, .045);
+}
+.doctorai-public-page .research-main { padding-top: 24px; }
+.doctorai-public-page .research-tabs { top: 78px; }
+.doctorai-public-page .doctorai-site-footer {
+  border-top-color: var(--dai-line);
+  background: #fff;
+  box-shadow: none;
+}
+
+@media (max-width: 820px) {
+  .doctorai-public-page .research-main { padding-top: 24px; }
+  .doctorai-public-page .research-tabs { top: 80px; }
+}

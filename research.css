@@ -26,3 +26,77 @@
 .research-share .resource-share-link,.research-share .resource-share-status{grid-column:1/-1}
 .research-share .resource-share-status:empty{display:none}
 @media(max-width:600px){.research-share{grid-template-columns:1fr;padding:13px}.research-share-button{width:100%}}
+
+/* A compact research frame with hierarchy carried by spacing and type. */
+body.doctorai-public-page .research-hero h1 {
+  font-size: clamp(36px, 4.8vw, 52px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+body.doctorai-public-page .hero-badge {
+  padding: 5px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  letter-spacing: .1em;
+}
+body.doctorai-public-page .research-trust,
+body.doctorai-public-page .highlight-note,
+body.doctorai-public-page .research-method {
+  border-color: var(--line);
+  border-radius: 14px;
+  background: #f8fcff;
+  box-shadow: none;
+}
+body.doctorai-public-page .research-tabs {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 0 14px;
+  margin-top: 20px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+body.doctorai-public-page .research-tab {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+body.doctorai-public-page .research-tab.active {
+  border-bottom-color: var(--blue-strong);
+  background: transparent;
+  color: var(--navy);
+  box-shadow: none;
+}
+body.doctorai-public-page .research-tab.active span { color: var(--blue-strong); }
+body.doctorai-public-page .research-panel { padding-top: 22px; }
+body.doctorai-public-page .highlight-card,
+body.doctorai-public-page .paper-card,
+body.doctorai-public-page .research-controls,
+body.doctorai-public-page .research-community {
+  border-color: var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: none;
+}
+body.doctorai-public-page .highlight-card:nth-child(n) { background: #fff; }
+body.doctorai-public-page .discussion-card,
+body.doctorai-public-page .forum-compose { background: #fff; }
+
+@media (max-width: 600px) {
+  body.doctorai-public-page .research-hero h1 { font-size: clamp(34px, 9vw, 42px); }
+  body.doctorai-public-page .research-tabs { width: 100%; justify-content: flex-start; gap: 0 12px; margin-top: 16px; }
+  body.doctorai-public-page .research-tab { min-height: 48px; padding-inline: 1px; font-size: 11px; }
+  body.doctorai-public-page .research-panel { padding-top: 18px; }
+}

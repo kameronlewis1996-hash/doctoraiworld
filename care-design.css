@@ -223,3 +223,38 @@ body[data-hub-theme] #view-medications > .page-heading .medication-scan-button s
 #view-today .orbit-action-ask{padding-top:16px!important}
 #hub-shell #view-today .orbit-action-ask .orbit-scan-badge{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;justify-content:center;min-height:22px;padding:3px 7px;border:1px solid rgba(8,127,166,.24);border-radius:7px;background:#fff;color:#087fa6;font-size:10px!important;font-weight:850;line-height:1;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 10px rgba(8,127,166,.1)}
 @media(max-width:620px){#view-today .orbit-action-ask{padding:9px 4px!important}#view-today .orbit-action-ask .orbit-action-icon{margin-right:26px}#hub-shell #view-today .orbit-action-ask .orbit-scan-badge{top:7px;right:7px;min-height:19px;padding:2px 5px;font-size:9px!important}#view-today .orbit-action-ask b{max-width:96px!important;font-size:9.5px!important;line-height:1.15!important}}
+
+/* Today presents the saved overview first; optional tools sit in a disclosure. */
+#hub-shell #view-today .colour-hero-live { display:block !important; }
+#hub-shell #view-today .hub-hero-intro { margin-bottom:20px; }
+#hub-shell #view-today .hub-hero-greeting { display:block !important; margin:0 0 7px; color:#526b7e; font-size:13px; }
+#hub-shell #view-today .hub-ask-prompt { display:inline-flex !important; align-items:center; gap:10px; width:auto; min-height:44px; margin:10px 0 0; padding:0; border:0; border-radius:0; background:transparent; color:#0759b6; box-shadow:none; }
+#hub-shell #view-today .hub-ask-prompt-copy small,#hub-shell #view-today .hub-ask-prompt-icon { display:none; }
+#hub-shell #view-today .hub-ask-prompt-copy b { color:#0759b6; font-size:14px; }
+#hub-shell #view-today .care-visit-card { min-height:0; margin:0 0 16px; padding:16px 20px; border:1px solid #dbe6ee; border-radius:12px; background:#f5f9fc; color:#173550; box-shadow:none; }
+#hub-shell #view-today .care-visit-card .care-kicker { display:none; }
+#hub-shell #view-today .care-visit-card h2 { max-width:none; margin:0 0 7px; color:#173550; font-size:20px; }
+#hub-shell #view-today .care-visit-card p { margin:0 0 10px; color:#526b7e; font-size:14px; }
+#hub-shell #view-today .care-visit-card button { min-height:44px; padding:9px 13px; border:1px solid #bfd0de; border-radius:9px; background:#fff; color:#0759b6; box-shadow:none; font-size:14px; }
+#hub-shell #view-today .care-visit-card > svg { display:none; }
+#hub-shell #view-today .today-tools-disclosure { margin:0 0 20px; padding:0; border:1px solid #dbe5ed; border-radius:12px; background:#fff; }
+#hub-shell #view-today .today-tools-disclosure > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:50px; padding:12px 18px; color:#173550; font-size:14px; font-weight:600; list-style:none; cursor:pointer; }
+#hub-shell #view-today .today-tools-disclosure > summary::-webkit-details-marker { display:none; }
+#hub-shell #view-today .today-tools-disclosure[open] > summary > span { transform:rotate(180deg); }
+#hub-shell #view-today .today-tools-disclosure .colour-orbit { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px !important; min-height:0 !important; height:auto !important; padding:0 14px 14px !important; }
+#hub-shell #view-today .today-tools-disclosure .orbit-action { position:static !important; display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:start !important; gap:10px !important; width:auto !important; min-width:0 !important; min-height:54px !important; padding:10px !important; border:1px solid #e3ebf2 !important; border-radius:8px !important; background:#fff !important; box-shadow:none !important; transform:none !important; text-align:left !important; }
+#hub-shell #view-today .today-tools-disclosure .orbit-action b { max-width:none !important; color:#173550 !important; font-size:13px !important; line-height:1.4 !important; }
+#hub-shell #view-today .today-tools-disclosure .orbit-action small,#hub-shell #view-today .today-tools-disclosure .orbit-scan-badge { display:none !important; }
+#hub-shell #view-today .today-tools-disclosure .orbit-action-icon { width:24px !important; height:24px !important; margin:0 !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important; }
+#hub-shell #view-today .today-tools-disclosure .orbit-action-icon svg { width:22px !important; height:22px !important; }
+#hub-shell #view-today .care-pattern-card { margin:0 0 14px; padding:16px 0; border:0; border-bottom:1px solid #dbe5ed; border-radius:0; background:transparent; box-shadow:none; }
+#hub-shell #view-today .care-pattern-card h2 { margin:3px 0 6px; font-size:19px; }
+#hub-shell #view-today .care-pattern-card p { font-size:14px; }
+#hub-shell #view-today .care-secondary { gap:24px; padding:0 0 10px; }
+#hub-shell #view-today .overview-stat { border:1px solid #dbe5ed !important; border-radius:10px; box-shadow:none; }
+#hub-shell #view-today .prescription-alert-home { padding:18px 20px; border:1px solid #dbe5ed; border-radius:12px; background:#fff; box-shadow:none; }
+@media (max-width:620px) {
+  #hub-shell #view-today .today-tools-disclosure .colour-orbit { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #hub-shell #view-today .care-visit-card { padding:16px; }
+  #hub-shell #view-today .care-pattern-card { padding:14px 0; }
+}

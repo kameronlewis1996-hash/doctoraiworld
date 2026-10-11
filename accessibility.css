@@ -316,12 +316,12 @@ body.doctorai-public-page :is(.panel, .feature-card, .plan-card, .highlight-card
   box-shadow: var(--doctorai-shadow);
 }
 body.doctorai-public-page :is(.research-trust, .highlight-note, .research-method) {
-  background: linear-gradient(110deg, #effaff, #f0f7ff, #ecfaff);
+  background: #f8fcff;
 }
 body.doctorai-public-page :is(.hero-badge, .period-pill, .pro-pill, .community-badge) { border-color: var(--doctorai-line); }
-body.doctorai-public-page .hero-badge { background: linear-gradient(110deg, #e6f6ff, #f0f7ff); }
+body.doctorai-public-page .hero-badge { background: transparent; }
 body.doctorai-public-page .period-pill { background: #e5f7fb; color: var(--doctorai-blue-dark); }
-body.doctorai-public-page .research-tab.active { background: var(--doctorai-navy); color: #fff; }
+body.doctorai-public-page .research-tab.active { background: transparent; color: var(--doctorai-navy); box-shadow: none; }
 body.doctorai-public-page :is(.preview-appointment b, .pro-safety b, .research-trust b) { font-size: 12px !important; }
 
 body.doctorai-system-page {
@@ -356,13 +356,10 @@ body.doctorai-public-page .doctorai-site-footer-brand small { font-size: 12px; }
 
 /* Approved cross-page consistency pass: Welcome and Today are the reference. */
 body.doctorai-public-page {
-  background:
-    radial-gradient(circle at 8% 2%, rgba(0, 137, 194, .10), transparent 28rem),
-    radial-gradient(circle at 92% 8%, rgba(8, 101, 223, .06), transparent 30rem),
-    linear-gradient(180deg, #f7fbff, #f1f9ff 54%, #fbfdff);
+  background: #f7fbff;
 }
-body.doctorai-public-page .doctorai-site-header-inner { min-height: 108px; }
-body.doctorai-public-page .doctorai-site-brand { width: 168px; height: 84px; }
+body.doctorai-public-page .doctorai-site-header-inner { min-height: 78px; }
+body.doctorai-public-page .doctorai-site-brand { width: 142px; height: 62px; }
 body.doctorai-public-page :is(.hero-copy h1 em, .research-hero h1 em) {
   font-family: inherit;
   font-style: normal;
@@ -375,7 +372,7 @@ body.doctorai-public-page :is(.hero-copy h1, .research-hero h1, main.shell h1, m
   letter-spacing: -.045em;
 }
 body.doctorai-public-page :is(.feature-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method, .plan-card) {
-  border-radius: 20px;
+  border-radius: 16px;
 }
 body.doctorai-public-page :is(.primary-cta, .plan-primary, .install, .search-row button, .primary-discussion-button, .doctorai-site-primary) {
   border-radius: 12px;
@@ -421,8 +418,8 @@ body #hub-shell :is(.hub-footer, .hub-footer button, .hub-footer a) {
 }
 
 @media (max-width: 620px) {
-  body.doctorai-public-page .doctorai-site-header-inner { min-height: 90px; }
-  body.doctorai-public-page .doctorai-site-brand { width: 120px; height: 70px; }
+  body.doctorai-public-page .doctorai-site-header-inner { min-height: 80px; }
+  body.doctorai-public-page .doctorai-site-brand { width: 120px; height: 52px; }
   body.doctorai-public-page :is(.hero-copy h1, .research-hero h1, main.shell h1, main > .panel h1) {
     font-size: clamp(34px, 9.2vw, 38px);
   }
@@ -471,7 +468,7 @@ body .doctorai-feature-mark .icon-solid { fill: currentColor; stroke: none; }
 body .badge-logo[data-doctorai-icon] { width: 28px; height: 28px; }
 body .badge-logo[data-doctorai-icon] svg { width: 28px; height: 28px; }
 body.staff-page .card em [data-doctorai-icon] { display: inline-flex; margin: 0 0 0 4px; color: inherit; vertical-align: middle; }
-body.doctorai-public-page :is(.panel, .feature-card, .plan-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method) { border-width: 2px; border-color: #a3c7e2; }
+body.doctorai-public-page :is(.panel, .feature-card, .plan-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method) { border-width: 1px; border-color: var(--doctorai-line); box-shadow: 0 4px 14px rgba(16, 48, 74, .045); }
 body.doctorai-public-page .plan-card.featured { border-color: var(--doctorai-blue); }
 body[data-hub-theme] :is(.nav-icon, .category-tab > .doctorai-icon-slot, .category-more-menu .doctorai-icon-slot) { color: #0759b6; }
 body[data-hub-theme] .nav-item.active .nav-icon { color: #0060df; }
@@ -481,5 +478,5 @@ body[data-hub-theme] :is(.info-icon, .overview-icon, .provider-avatar, .profile-
 body[data-hub-theme] :is(.info-icon, .overview-icon).coral { background: #e8f6ff; color: #076b94; }
 body[data-hub-theme] .profile-trust-icon.tone-violet { background: #eaf3ff; color: #3166b5; }
 body[data-hub-theme] :is(.symptom-summary-icon.coral, .result-file-icon, .drawer-row-icon.purple, .overview-icon.orange) { background: #eaf5ff; color: #0759b6; }
-body #view-profile .profile-shortcut-card, body #view-ask .quick-asks button { border-width: 2px; }
+body #view-profile .profile-shortcut-card, body #view-ask .quick-asks button { border-width: 1px; box-shadow: 0 3px 10px rgba(23, 53, 80, .035); }
 body[data-hub-theme] :is(.install-app-button, .quiet-button, .secondary-button) .doctorai-icon-slot { margin-right: 4px; }

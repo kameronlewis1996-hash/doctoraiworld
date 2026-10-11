@@ -1036,10 +1036,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const facts = [
       ['Name', state.profile.name || 'Not added', 'person', 'cyan'],
       ['Blood type', state.profile.bloodType || 'Not added', 'blood', 'violet'],
-      ['Conditions', state.profile.conditions || 'Not added', 'health', 'mint'],
-      ['Allergies', state.profile.allergies || 'Not added', 'allergies', 'coral'],
-      ['Notes', state.profile.notes || 'Not added', 'documents', 'violet'],
-      ['Memory', state.memoryEnabled ? `${state.memoryDetails.length} approved details` : 'Off · not used in chat', 'memory', 'mint']
+      ['Notes', state.profile.notes || 'Not added', 'documents', 'violet']
     ];
     els.profileFacts.innerHTML = facts.map(([label, value, icon, tone]) => `<div class="profile-fact"><span class="profile-fact-label"><span class="profile-fact-icon feature-icon tone-${tone}" aria-hidden="true">${profileShortcutIconMarkup(icon)}</span><small>${escapeHTML(label)}</small></span><b title="${escapeHTML(value)}">${escapeHTML(value)}</b></div>`).join('');
     if (els.conditionsTags) {
@@ -1058,6 +1055,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }).join('') : '<div class="empty-inline">No local doctors added yet. Add one here; appointments stay separate.</div>';
     }
     if (els.emergencyBloodType) els.emergencyBloodType.textContent = state.profile.bloodType || 'Not added';
+    const memoryDisclosureStatus = $('#memory-details-status');
+    if (memoryDisclosureStatus) memoryDisclosureStatus.textContent = state.memoryEnabled ? `On · ${state.memoryDetails.length} approved` : 'Off';
     if (els.memoryApproved) els.memoryApproved.innerHTML = state.memoryDetails.map(detail => `<span>${escapeHTML(detail)}</span>`).join('');
     const status = state.memoryEnabled ? `On · ${state.memoryDetails.length} saved details` : 'Off · not used';
     if (els.memoryMiniStatus) els.memoryMiniStatus.textContent = status;
@@ -1433,9 +1432,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       setAvatar(accountLink.querySelector('.avatar'), authUser, signedIn);
     }
     const profileName = $('.profile-trigger-name');
-    if (profileName) profileName.textContent = signedIn ? firstName : 'Sign in';
+    if (profileName) profileName.textContent = signedIn ? firstName : 'Profile';
     const profileTrigger = $('.profile-trigger');
-    if (profileTrigger) profileTrigger.setAttribute('aria-label', signedIn ? `Open profile for ${displayName}` : 'Sign in with Google');
+    if (profileTrigger) profileTrigger.setAttribute('aria-label', signedIn ? `Open profile for ${displayName}` : 'Open profile and settings');
     if (els.profilePageName) els.profilePageName.textContent = signedIn ? displayName : 'Your profile';
     if (els.profilePageEmail) els.profilePageEmail.textContent = signedIn ? authUser.email : 'Shortcuts and settings for your private hub';
     if (els.profilePageAvatar) setAvatar(els.profilePageAvatar, authUser, signedIn);
@@ -3087,6 +3086,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    if (event.target.closest('#profile-drawer [data-install-app]')) closeProfile(true);
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }
     if (event.target.closest('[data-device-storage-session]')) { event.preventDefault(); setDeviceStorage(false); return; }
     const mobileMenu = event.target.closest('[data-mobile-menu]');
@@ -3115,6 +3115,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       event.preventDefault();
       closeModal();
       showView(todayViewTarget.dataset.todayView, true, true);
+      return;
+    }
+    if (event.target.closest('[data-open-health-memory]')) {
+      event.preventDefault();
+      setMobileMenuOpen(false);
+      closeProfile();
+      showView('health', true, true);
+      const memoryDetails = $('#health-memory-details');
+      if (memoryDetails) {
+        memoryDetails.open = true;
+        requestAnimationFrame(() => {
+          memoryDetails.querySelector('summary')?.focus({ preventScroll: true });
+          memoryDetails.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+        });
+      }
       return;
     }
     const viewTarget = event.target.closest('[data-view]');
