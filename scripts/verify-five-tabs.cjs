@@ -197,4 +197,70 @@ assert.ok(js.includes('stopMedicationScannerCamera'), 'Camera cleanup remains av
 assert.ok(js.includes('/api/stripe/entitlement'), 'Pro entitlement remains server-authoritative.');
 assert.ok(js.includes('approvedChatMemory()'), 'Saved chat context retains its consent boundary.');
 for (const script of matches(/<script[^>]+src="\/?([^":]+\.js(?:\?[^" ]+)?)"/g)) assert.ok(fs.existsSync(path.join(root,script.split('?')[0])), `Referenced script exists: ${script}`);
-console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios and account/session response race guards; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
+async function verifyAccountResponseBoundaries() {
+  const credentialStart = js.indexOf('async function handleGoogleCredential(');
+  const credentialEnd = js.indexOf('function openGoogleSignIn(', credentialStart);
+  const cloudStart = js.indexOf('async function loadCloudState(');
+  const cloudEnd = js.indexOf('function updateDate(', cloudStart);
+  assert.ok(credentialStart >= 0 && credentialEnd > credentialStart, 'The actual credential handler can be exercised.');
+  assert.ok(cloudStart >= 0 && cloudEnd > cloudStart, 'The actual private account load can be exercised.');
+  const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
+  const accountStatusContext = () => {
+    const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
+    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false};
+  };
+  for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
+    const context = accountStatusContext();
+    Object.assign(context, {authUser:fixture.user, accountSessionVerification:fixture.verification, googleCredentialInFlight:false, accountSessionReady:false, entitlementReady:true, closed:0, toasts:[], errors:[], fetch:async (url, options) => {
+      assert.equal(url, '/api/auth/google', `${fixture.id}: credentials use the existing secure session route.`);
+      assert.equal(options.method, 'POST');
+      assert.equal(JSON.parse(options.body).credential, 'fictional-fixture-token');
+      return {ok:true, json:async () => ({user:account,medicationLoginId:'fictional-login'})};
+    }, loadEntitlement:async () => {}, closeGoogleSignIn:() => {context.closed += 1;}, showToast:message => context.toasts.push(message), setGoogleSigninStatus:message => context.errors.push(message)});
+    context.renderAccountSession = user => {context.authUser=user; context.accountSyncState='checking'; vm.runInContext('renderStorageStatus();', context);};
+    vm.createContext(context);
+    vm.runInContext(js.slice(storageStart, storageEnd) + '\n' + js.slice(credentialStart, credentialEnd) + '\nthis.acceptCredential=handleGoogleCredential;', context, {timeout:1000});
+    await context.acceptCredential({credential:'fictional-fixture-token'});
+    assert.equal(context.accountSessionVerification, 'verified', `${fixture.id}: the accepted current credential clears a pending or failed sign-in status.`);
+    assert.equal(context.nodes['#hub-account-sync-state'].textContent, 'Checking private account sync', `${fixture.id}: the actual renderer shows account sync, rather than the previous sign-in warning.`);
+    assert.equal(context.accountSessionReady, true);
+    assert.equal(context.googleCredentialInFlight, false);
+    assert.equal(context.closed, 1, `${fixture.id}: successful sign-in closes its dialog.`);
+    assert.equal(context.toasts.length, 1);
+    assert.deepEqual(context.errors, []);
+  }
+  for (const fixture of [{id:'stale-get-account-change',stale:true,changeAccount:true}, {id:'stale-get-session-change',stale:true,changeAccount:false}, {id:'current-get-failure',stale:false,changeAccount:false}]) {
+    const context = accountStatusContext();
+    let rejectFetch;
+    Object.assign(context, {authUser:account, medicationAccountDataReady:true, accountSyncState:'ready', statuses:[], refreshes:0, fetch:url => {
+      assert.equal(url, '/api/health/state');
+      return new Promise((resolve, reject) => {rejectFetch=reject;});
+    }, setSyncStatus:message => context.statuses.push(message), deviceStorageStatus:() => 'Session only', refreshMedicationCheckContext:() => {context.refreshes += 1; return Promise.resolve();}});
+    vm.createContext(context);
+    vm.runInContext(js.slice(storageStart, storageEnd) + '\n' + js.slice(scopeStart, scopeEnd) + '\n' + js.slice(cloudStart, cloudEnd) + '\nthis.loadPrivateAccount=loadCloudState;', context, {timeout:1000});
+    const pending = context.loadPrivateAccount();
+    if (fixture.stale) {
+      context.accountSessionRevision += 1;
+      if (fixture.changeAccount) context.authUser={sub:'fictional-next',email:'next@example.test'};
+      context.accountSyncState='ready';
+      context.medicationAccountDataReady=true;
+      context.statuses=[];
+      vm.runInContext('renderStorageStatus();', context);
+    }
+    rejectFetch(new Error('Fictional failed GET'));
+    await pending;
+    assert.equal(context.medicationAccountDataReady, fixture.stale, `${fixture.id}: only a current failed response can clear account-data readiness.`);
+    assert.equal(context.accountSyncState, fixture.stale ? 'ready' : 'unconfirmed', `${fixture.id}: a stale catch cannot replace the current account sync state.`);
+    assert.equal(context.refreshes, fixture.stale ? 0 : 1, `${fixture.id}: a stale catch cannot refresh medication checks for the new session.`);
+    if (fixture.stale) {
+      assert.deepEqual(context.statuses, [], `${fixture.id}: a stale catch cannot overwrite the current sync message.`);
+      assert.equal(context.nodes['#hub-account-sync-state'].textContent, 'Private account sync active');
+    } else {
+      assert.equal(context.nodes['#hub-account-sync-state'].textContent, 'Account sync not confirmed');
+      assert.equal(context.statuses.at(-1), 'Session only');
+    }
+  }
+}
+verifyAccountResponseBoundaries().then(() => {
+  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards and 5 actual credential/GET-failure fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
+}).catch(error => {console.error(error); process.exitCode=1;});

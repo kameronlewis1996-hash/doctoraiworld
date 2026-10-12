@@ -410,6 +410,7 @@
     try {
       const response = await fetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave }) });
       const payload = await response.json().catch(() => ({}));
+      if (syncScope !== accountSyncScope()) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setAccountSyncState('unavailable', syncScope); setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be synced.');
@@ -419,7 +420,7 @@
         write('updated-at', localStateUpdatedAt);
         setAccountSyncState('ready', syncScope); setSyncStatus('Private data synced');
       }
-    } catch { setAccountSyncState('unconfirmed', syncScope); setSyncStatus(deviceStorageStatus()); }
+    } catch { if (syncScope !== accountSyncScope()) return; setAccountSyncState('unconfirmed', syncScope); setSyncStatus(deviceStorageStatus()); }
     finally {
       cloudSyncBusy = false;
       if (cloudSyncDirty && authUser && cloudSyncEnabled) {
@@ -436,7 +437,7 @@
     try {
       const response = await fetch('/api/health/state', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
-      if (!cloudSyncEnabled || accountScope !== (String(authUser?.sub || '') + ':' + String(authUser?.email || '').toLowerCase())) return;
+      if (!cloudSyncEnabled || syncScope !== accountSyncScope() || accountScope !== (String(authUser?.sub || '') + ':' + String(authUser?.email || '').toLowerCase())) return;
       if (!response.ok) {
         if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setAccountSyncState('unavailable', syncScope); setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be loaded.');
@@ -448,7 +449,7 @@
       medicationAccountDataReady = true;
       refreshMedicationCheckContext().catch(() => {});
       setAccountSyncState('ready', syncScope); setSyncStatus('Private data synced');
-    } catch { medicationAccountDataReady = false; setAccountSyncState('unconfirmed', syncScope); refreshMedicationCheckContext().catch(() => {}); setSyncStatus(deviceStorageStatus()); }
+    } catch { if (syncScope !== accountSyncScope()) return; medicationAccountDataReady = false; setAccountSyncState('unconfirmed', syncScope); refreshMedicationCheckContext().catch(() => {}); setSyncStatus(deviceStorageStatus()); }
   }
 
   function updateDate() {
@@ -1609,7 +1610,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         error.status = result.status;
         throw error;
       }
-      const loginRevision = ++accountSessionRevision; accountSessionReady = true;
+      const loginRevision = ++accountSessionRevision; accountSessionReady = true; accountSessionVerification = 'verified';
       const sameAccount = String(authUser?.email || '').toLowerCase() === String(payload.user?.email || '').toLowerCase();
       if (!sameAccount) { entitlementReady = false; renderAccountSession(payload.user || null, payload.medicationLoginId); }
       await loadEntitlement();
