@@ -84,6 +84,94 @@ for (const [name, [view, panel]] of Object.entries(routeFixtures)) {
 }
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('unknown-route'))), { view:'today', panel:'' }, 'An unknown route returns to Today.');
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('profile','details'))), { view:'profile', panel:'' }, 'Profile cannot reopen the retired nested details route.');
+for (const view of secondary) {
+  const returnPath = sections[view].match(/<nav\b[^>]*class="hub-path"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+  assert.ok(returnPath && /<button\b[^>]*data-view="health"/.test(returnPath), `The ${view} view has an actual return-to-My-health button.`);
+}
+const showStart = js.indexOf('function showView(');
+const showEnd = js.indexOf('function renderTodayMedications(', showStart);
+assert.ok(showStart >= 0 && showEnd > showStart, 'Actual navigation presentation and canonical links can be exercised.');
+const routeViews = Object.fromEntries(views.map(view => [view, {
+  dataset: { viewPanel:view }, classList: { toggle() {} }, querySelectorAll: () => [],
+  heading: { textContent:'' }, path: secondary.includes(view) ? { textContent:'' } : null,
+  querySelector(selector) { return selector === ':scope > .page-heading h1' ? this.heading : selector === '.hub-path-copy' ? this.path : null; }
+}]));
+const routeLocation = { hash:'' };
+const routeHistory = { state:null, pushState(state, title, hash) { this.state=state; routeLocation.hash=hash; }, replaceState(state, title, hash) { this.state=state; routeLocation.hash=hash; } };
+const navigationContext = {
+  currentView:'today', currentHubPanel:'', document:{ body:{dataset:{}}, title:'', querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
+  els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
+  sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
+  window:{scrollTo() {},dispatchEvent() {}}, CustomEvent:class { constructor(type, options) { this.type=type; this.detail=options.detail; } }
+};
+vm.createContext(navigationContext);
+vm.runInContext(js.slice(routeStart, routeEnd) + '\n' + js.slice(showStart, showEnd) + '\nthis.routeNavigate=showView;', navigationContext, { timeout:1000 });
+const canonicalFixtures = [
+  ['today','#today'], ['health','#health'], ['visit-prep','#visit-prep'], ['profile','#profile'],
+  ['scan','#scan'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
+  ['ask','#ask'], ['medications','#medications'], ['documents','#documents'], ['symptoms','#symptoms'],
+  ['appointments','#appointments'], ['results','#results'], ['timeline','#timeline']
+];
+for (const [name, hash] of canonicalFixtures) {
+  navigationContext.routeNavigate(name, true, false);
+  assert.equal(routeLocation.hash, hash, `The actual ${name} navigation writes a copyable section alias.`);
+  assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
+}
+assert.equal(routeViews.diary.path.textContent, 'My health / Diary / History', 'The return path identifies the selected nested Diary section.');
+navigationContext.routeNavigate('medications', true, false);
+assert.equal(routeViews.add.path.textContent, 'My health / Medicines', 'The medicine path uses the actual selected nested section.');
+navigationContext.routeNavigate('ask', true, false);
+assert.equal(navigationContext.document.title, 'Ask DoctorAI · DoctorAI Personal Health Hub', 'Ask has a matching document title.');
+const storageStart = js.indexOf('function renderStorageStatus(');
+const storageEnd = js.indexOf('function accountSyncScope(', storageStart);
+assert.ok(storageStart >= 0 && storageEnd > storageStart, 'Actual privacy status rendering is available.');
+for (const fixture of [
+  { id:'anonymous-choice', allowed:false, choice:'', user:null, sync:'not-signed-in', enabled:true, device:'Choose storage', account:'Not signed in' },
+  { id:'session-without-local-storage', allowed:false, choice:'session', user:null, sync:'not-signed-in', enabled:true, device:'This session only', account:'Not signed in' },
+  { id:'device-choice', allowed:true, choice:'yes', user:null, sync:'not-signed-in', enabled:true, device:'Keep between visits', account:'Not signed in' },
+  { id:'sign-in-pending', allowed:false, choice:'session', user:null, sync:'not-signed-in', enabled:true, verification:'pending', device:'This session only', account:'Checking sign-in' },
+  { id:'sign-in-failed', allowed:true, choice:'yes', user:null, sync:'not-signed-in', enabled:true, verification:'failed', device:'Keep between visits', account:'Sign-in not confirmed' },
+  { id:'signed-in-checking', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'checking', enabled:true, device:'This session only', account:'Checking private account sync' },
+  { id:'signed-in-ready', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:true, device:'This session only', account:'Private account sync active' },
+  { id:'signed-in-ready-without-data', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:false, device:'This session only', account:'Account sync not confirmed' },
+  { id:'signed-in-failure', allowed:true, choice:'yes', user:{name:'Fictional user'}, sync:'unconfirmed', enabled:true, device:'Keep between visits', account:'Account sync not confirmed' },
+  { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
+]) {
+  const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
+  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
+  assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
+  assert.equal(nodes['#hub-account-sync-state'].textContent, fixture.account, `${fixture.id}: signed-in and unconfirmed sync states stay distinct.`);
+  assert.ok(nodes['#hub-account-sync-note'].textContent, `${fixture.id}: account sync has explanatory text.`);
+}
+const scopeStart = js.indexOf('function accountSyncScope(');
+const scopeEnd = js.indexOf('function setSyncStatus(', scopeStart);
+assert.ok(scopeStart >= 0 && scopeEnd > scopeStart, 'Actual account response status guard is available.');
+const scopeContext = { authUser:{sub:'fictional-a',email:'A@example.test'}, accountSessionRevision:1, accountSyncState:'checking', renderCount:0 };
+scopeContext.renderStorageStatus = () => { scopeContext.renderCount += 1; };
+vm.createContext(scopeContext);
+vm.runInContext(js.slice(scopeStart, scopeEnd) + '\nthis.responseScope=accountSyncScope;this.responseStatus=setAccountSyncState;', scopeContext, { timeout:1000 });
+const firstAccountScope = scopeContext.responseScope();
+scopeContext.authUser = {sub:'fictional-b',email:'b@example.test'};
+scopeContext.accountSessionRevision = 2;
+scopeContext.responseStatus('ready', firstAccountScope);
+assert.equal(scopeContext.accountSyncState, 'checking', 'An old account response cannot mark the new account synced.');
+assert.equal(scopeContext.renderCount, 0, 'An old account response cannot refresh the new account status display.');
+const secondAccountScope = scopeContext.responseScope();
+scopeContext.responseStatus('ready', secondAccountScope);
+assert.equal(scopeContext.accountSyncState, 'ready', 'The current account response can confirm its own sync status.');
+assert.equal(scopeContext.renderCount, 1, 'A current account response refreshes the status display.');
+scopeContext.accountSyncState = 'checking';
+scopeContext.accountSessionRevision += 1;
+scopeContext.responseStatus('unconfirmed', secondAccountScope);
+assert.equal(scopeContext.accountSyncState, 'checking', 'A stale response from an earlier session of the same account is ignored.');
+const revisedScope = scopeContext.responseScope();
+scopeContext.responseStatus('unconfirmed', revisedScope);
+assert.equal(scopeContext.accountSyncState, 'unconfirmed', 'The current session can report a failed sync response.');
+scopeContext.authUser = null;
+scopeContext.accountSyncState = 'not-signed-in';
+scopeContext.responseStatus('ready', revisedScope);
+assert.equal(scopeContext.accountSyncState, 'not-signed-in', 'A late signed-in response cannot restore status after sign-out.');
 assert.ok(sections.today.includes('data-modal="medication"') && sections.today.includes('data-open-medication-scanner'), 'Today exposes actual manual medication entry and the existing scanner action.');
 assert.match(sections.today, /<button\b[^>]*data-open-medication-scanner[^>]*>[\s\S]*?Pro[\s\S]*?<\/button>/, 'Today identifies the scanner as a Pro action.');
 assert.ok(sections.today.includes('data-view="medications"') && sections.today.includes('data-view="visit-prep"'), 'Today connects its medicine card and appointment preparation to the retained tools.');
@@ -109,4 +197,4 @@ assert.ok(js.includes('stopMedicationScannerCamera'), 'Camera cleanup remains av
 assert.ok(js.includes('/api/stripe/entitlement'), 'Pro entitlement remains server-authoritative.');
 assert.ok(js.includes('approvedChatMemory()'), 'Saved chat context retains its consent boundary.');
 for (const script of matches(/<script[^>]+src="\/?([^":]+\.js(?:\?[^" ]+)?)"/g)) assert.ok(fs.existsSync(path.join(root,script.split('?')[0])), `Referenced script exists: ${script}`);
-console.log('Four main destinations and four secondary views verified: actual route resolution, nested tools, Today medicine actions, reviewed visit brief, unique IDs, Profile consent/auth and clinical Alerts boundaries.');
+console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios and account/session response race guards; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');

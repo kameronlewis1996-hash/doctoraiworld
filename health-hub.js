@@ -194,6 +194,7 @@
   let chatResponseLength = ['short', 'medium', 'detailed'].includes(read('chat-response-length', 'medium')) ? read('chat-response-length', 'medium') : 'medium';
   let authUser = null;
   let accountSessionReady = false;
+  let accountSessionVerification = 'pending';
   let entitlementExpiresAt = null;
   let entitlementReady = false;
   let entitlementTimer = null;
@@ -202,6 +203,7 @@
   let medicationScannerStream = null;
   let cloudSyncTimer = null;
   let cloudSyncEnabled = true;
+  let accountSyncState = 'not-signed-in';
   let cloudSyncBusy = false;
   let cloudSyncDirty = false;
   let cloudSyncRevision = 0;
@@ -377,7 +379,19 @@
     if (deviceStorageChoice === 'session') return 'Device storage off · session only';
     return 'Choose storage settings';
   }
-  function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; }
+  function renderStorageStatus() {
+    const device = $('#hub-device-storage-state');
+    if (device) device.textContent = localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
+    const account = $('#hub-account-sync-state'), note = $('#hub-account-sync-note');
+    if (!account || !note) return;
+    const syncState = !cloudSyncEnabled ? 'unavailable' : accountSyncState === 'ready' && !medicationAccountDataReady ? 'unconfirmed' : accountSyncState;
+    const labels = { checking: 'Checking private account sync', saving: 'Syncing saved details', ready: 'Private account sync active', unavailable: 'Account sync unavailable', unconfirmed: 'Account sync not confirmed' };
+    account.textContent = accountSessionVerification === 'pending' ? 'Checking sign-in' : accountSessionVerification === 'failed' ? 'Sign-in not confirmed' : authUser ? (labels[syncState] || 'Account sync not confirmed') : 'Not signed in';
+    note.textContent = accountSessionVerification === 'pending' ? 'Confirming account access. Account syncing is separate from device storage.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Entries follow your device choice until sign-in succeeds.' : !authUser ? 'Sign in to use private account sync. It is separate from browser storage.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
+  }
+  function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
+  function setAccountSyncState(value, scope = null) { if (scope !== null && scope !== accountSyncScope()) return; accountSyncState = value; renderStorageStatus(); }
+  function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; renderStorageStatus(); }
   function queueCloudSave() {
     if (!authUser || !cloudSyncEnabled) return;
     cloudSyncDirty = true;
@@ -389,22 +403,23 @@
     if (!authUser || !cloudSyncEnabled) return;
     if (cloudSyncBusy) { cloudSyncDirty = true; return; }
     const revision = cloudSyncRevision;
+    const syncScope = accountSyncScope();
     const stateToSave = serialiseHealthState();
     cloudSyncDirty = false;
-    cloudSyncBusy = true; setSyncStatus('Saving private health data…');
+    cloudSyncBusy = true; setAccountSyncState('saving', syncScope); setSyncStatus('Saving private health data…');
     try {
       const response = await fetch('/api/health/state', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ state: stateToSave }) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
+        if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setAccountSyncState('unavailable', syncScope); setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be synced.');
       }
       if (revision === cloudSyncRevision && !cloudSyncDirty) {
         localStateUpdatedAt = Number(payload.updatedAt) || Date.now();
         write('updated-at', localStateUpdatedAt);
-        setSyncStatus('Private data synced');
+        setAccountSyncState('ready', syncScope); setSyncStatus('Private data synced');
       }
-    } catch { setSyncStatus(deviceStorageStatus()); }
+    } catch { setAccountSyncState('unconfirmed', syncScope); setSyncStatus(deviceStorageStatus()); }
     finally {
       cloudSyncBusy = false;
       if (cloudSyncDirty && authUser && cloudSyncEnabled) {
@@ -415,14 +430,15 @@
   }
   async function loadCloudState() {
     if (!authUser || !cloudSyncEnabled) return;
+    const syncScope = accountSyncScope();
     const accountScope = String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase();
-    setSyncStatus('Checking private account data…');
+    setAccountSyncState('checking', syncScope); setSyncStatus('Checking private account data…');
     try {
       const response = await fetch('/api/health/state', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
       if (!cloudSyncEnabled || accountScope !== (String(authUser?.sub || '') + ':' + String(authUser?.email || '').toLowerCase())) return;
       if (!response.ok) {
-        if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setSyncStatus(deviceStorageStatus()); return; }
+        if (payload.code === 'secure_storage_not_configured') { cloudSyncEnabled = false; setAccountSyncState('unavailable', syncScope); setSyncStatus(deviceStorageStatus()); return; }
         throw new Error(payload.error || 'Private data could not be loaded.');
       }
       const cloudState = payload.state; const cloudUpdatedAt = Number(payload.updatedAt || 0);
@@ -431,8 +447,8 @@
       } else if (hasHealthState(serialiseHealthState())) queueCloudSave();
       medicationAccountDataReady = true;
       refreshMedicationCheckContext().catch(() => {});
-      setSyncStatus('Private data synced');
-    } catch { medicationAccountDataReady = false; refreshMedicationCheckContext().catch(() => {}); setSyncStatus(deviceStorageStatus()); }
+      setAccountSyncState('ready', syncScope); setSyncStatus('Private data synced');
+    } catch { medicationAccountDataReady = false; setAccountSyncState('unconfirmed', syncScope); refreshMedicationCheckContext().catch(() => {}); setSyncStatus(deviceStorageStatus()); }
   }
 
   function updateDate() {
@@ -506,8 +522,17 @@
     document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
-    document.title = viewLabels[next] + ' · DoctorAI Personal Health Hub';
-    const routeState = { view: next, panel: route.panel }, canonicalHash = '#' + next;
+    const featureLabels = { medications: 'Medicines', documents: 'Documents', symptoms: 'Symptoms', appointments: 'Appointments', results: 'Measurements & results', timeline: 'History' };
+    const secondaryLabels = { scan: 'Scan a label', add: 'Add details', diary: 'My diary', alerts: 'Alerts' };
+    const section = document.querySelector('[data-view-panel="' + next + '"]');
+    const label = next === 'diary' ? 'My diary' : featureLabels[route.panel] || secondaryLabels[next] || viewLabels[next];
+    const heading = section?.querySelector(':scope > .page-heading h1');
+    if (heading && next !== 'today') heading.textContent = label;
+    const path = section?.querySelector('.hub-path-copy');
+    if (path) path.textContent = 'My health / ' + (next === 'diary' ? 'Diary / ' + (featureLabels[route.panel] || 'Symptoms') : label);
+    document.title = (route.panel === 'ask' ? 'Ask DoctorAI' : label) + ' · DoctorAI Personal Health Hub';
+    const hashName = (featureLabels[route.panel] || route.panel === 'ask') ? route.panel : next;
+    const routeState = { view: next, panel: route.panel }, canonicalHash = '#' + hashName;
     if (updateHash && (location.hash !== canonicalHash || history.state?.panel !== route.panel)) history.pushState(routeState, '', canonicalHash);
     else if (!updateHash || location.hash !== canonicalHash) history.replaceState(routeState, '', canonicalHash);
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
@@ -986,6 +1011,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function renderProfile() {
+    renderStorageStatus();
     if (!els.profileFacts) return;
     const facts = [
       ['Name', state.profile.name || 'Not added', 'person', 'cyan'],
@@ -1252,7 +1278,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderDocuments() {
     if (!els.documentsGrid) return;
     if (!hasProAccess()) {
-      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Upload and share prescriptions, lab reports, referrals, letters, imaging, scans and health photos only when you choose.');
+      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Choose prescriptions, lab reports, referrals, letters, imaging, scans and health photos to upload, view or download.');
       return;
     }
     const docs = state.documents.filter(doc => documentFilter === 'all' || doc.category === documentFilter);
@@ -1428,6 +1454,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
     refreshMedicationCheckContext().catch(() => {});
     const signedIn = Boolean(authUser);
+    setAccountSyncState(signedIn ? 'checking' : 'not-signed-in');
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
     const firstName = displayName.split(/\s+/)[0];
     const hour = new Date().getHours();
@@ -1488,14 +1515,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   async function loadAccountSession() {
     const revision = ++accountSessionRevision;
+    accountSessionVerification = 'pending'; renderStorageStatus();
     try {
       const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
       if (revision !== accountSessionRevision) return;
+      accountSessionVerification = response.ok && typeof payload.authenticated === 'boolean' ? 'verified' : 'failed';
       renderAccountSession(response.ok && payload.authenticated ? payload.user : null, payload.medicationLoginId);
     } catch {
-      if (revision === accountSessionRevision) renderAccountSession(null);
-    } finally { if (revision === accountSessionRevision) { accountSessionReady = true; refreshMedicationCheckContext().catch(() => {}); } }
+      if (revision === accountSessionRevision) { accountSessionVerification = 'failed'; renderAccountSession(null); }
+    } finally { if (revision === accountSessionRevision) { accountSessionReady = true; renderStorageStatus(); refreshMedicationCheckContext().catch(() => {}); } }
   }
   async function loadEntitlement() {
     const revision = accountSessionRevision;

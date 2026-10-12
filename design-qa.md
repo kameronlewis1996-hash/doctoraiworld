@@ -5,7 +5,8 @@
 - [P2, fixed] The mobile brand inherited the old three-column header placement. The new header uses a centred flex row.
 - [P2, fixed] The previous Today heading's important font declaration overrode the selected reference layout. The scoped heading rule now controls its mobile size and blue emphasis.
 - [P2, fixed in source; tablet visual review pending] Inherited tablet rules hid the sidebar while preserving its margin, displayed duplicate category navigation and left the bottom navigation unfixed at some widths. The reference stylesheet now explicitly shows the desktop sidebar, hides the duplicate category bar, and fixes the phone/tablet bottom bar within its intended breakpoint.
-- [P2, pending verification] The final desktop capture, all four primary tabs, secondary health tools, Visit prep form/review flow, Free/Pro scanner gate, back/forward and console checks still require a connected browser. The Chrome connection became unavailable during the remaining checks. Production promotion is blocked until these are reviewed.
+- [P2, resolved] The connected-browser review was completed on the actual integrated app. All four primary destinations, secondary tools, Free visit-brief review, sign-in/Pro gates, failed sign-in presentation, signed-in sync status, copied routes, refresh and back/forward were checked. Source/build checks passed before release.
+- [P2, resolved] The reviewed whole-app theme and return paths are now integrated into production source. Profile text wraps within the card; mobile medicine actions stack at full width; account status reflects actual response/session state rather than the earlier prototype's fixed label.
 
 **Source and comparison evidence**
 
@@ -29,17 +30,16 @@
 - Session-only storage choice dismissed the inline banner.
 - Today manual entry opened the existing medication form.
 - A fictional entry was saved in the local session-only QA server and appeared in the retained medicine list. No real health data or live provider/billing operation was used.
-- Remaining flow and console checks are listed above; the browser disconnected before completion. Do not treat static/build checks as their substitute.
+- The final release review used local empty Free and fictional Pro fixtures on ports 4222/4223, plus a deliberate auth-failure fixture on 4224. No real health data or billing/provider transaction was used. Pro chat-unavailable recovery exposed a Try again action; Free chat required sign-in.
+- Canonical feature links, Appointments refresh and browser back/forward preserved the correct section. Tablet widths 750/900 and desktop 1280 were checked with matching DOM sizes; no page overflow or duplicate navigation was present. Final screenshots and JSON evidence are in `.tmp-interface-cleanup-20261011/release-20261012/`.
 
 **Implementation checklist**
 
-- Complete connected-browser review of all primary/secondary destinations, reviewed brief and Free/Pro controls.
-- Capture final desktop and 390 x 844 mobile, inspect console errors and test history/refresh.
-- Update this report to passed only after visual and interaction review succeeds.
-- Verify Preview/staged production and promote the exact reviewed deployment under the existing authorization.
+- Connected-browser and source/build reviews are complete. Final verification evidence: `.tmp-interface-cleanup-20261011/five-tabs/release-final-checks.json` and `.tmp-interface-cleanup-20261011/release-20261012/`.
+- Verify the exact remote Preview/staged production, promote that artifact and audit the public result once. These release actions are tracked separately from this design comparison.
 
 **Follow-up polish**
 
 - The canonical mobile logo remains the existing vertical full mark; the small reference depicts a horizontal lockup. Preserve the verified brand asset pending a supplied canonical horizontal variant.
 
-final result: blocked
+final result: passed

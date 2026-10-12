@@ -107,3 +107,38 @@ body[data-hub-layout="reference"] :is(button, a):focus-visible { outline: 3px so
 @media (prefers-reduced-motion: reduce) {
   body[data-hub-layout="reference"] #hub-shell .view.active { animation: none; }
 }
+
+/* Unified DoctorAI theme, navigation paths and storage status. */
+body[data-hub-layout="reference"] { --hub-blue:#0759b6; --hub-cyan:#087fa6; }
+body[data-hub-layout="reference"] #hub-shell .hub-path { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:8px 0 22px; color:#526d82; font-size:13px; }
+body[data-hub-layout="reference"] #hub-shell .hub-path button { min-height:44px; padding:8px 14px; border:1px solid #b8d6f0; border-radius:9px; background:#effaff; color:#0759b6; font-weight:700; }
+body[data-hub-layout="reference"] #hub-shell .hub-path b { color:#173550; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-visit-prep,#view-profile) > .page-heading { position:relative; isolation:isolate; border-bottom-color:transparent; margin-top:22px; padding-bottom:22px; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-visit-prep,#view-profile) > .page-heading::before { content:""; position:absolute; inset:-12px -12px 0; z-index:-1; border-radius:16px; background:linear-gradient(120deg,#0759c7,#076bd5,#00798e); box-shadow:0 10px 25px #0759b612; pointer-events:none; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-visit-prep,#view-profile) > .page-heading :is(h1,.eyebrow,.page-subtitle) { color:white; }
+body[data-hub-layout="reference"] #hub-shell .primary-button { background:linear-gradient(115deg,#075dce,#007997); border-color:#0869c1; color:#fff; box-shadow:0 4px 12px #0759b618; }
+body[data-hub-layout="reference"] #hub-shell .reference-medicine-actions .primary-button { background:linear-gradient(115deg,#075dce,#007997); }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:24px 0; }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status article { padding:18px; border:1px solid #c5e1f1; border-radius:12px; background:#edf6ff; }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status article:last-child { background:#effaff; }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status small { display:block; color:#536d82; font-size:12px; }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status b { display:block; margin:8px 0; color:#173550; font-size:16px; }
+body[data-hub-layout="reference"] #hub-shell .hub-storage-status p { margin:0; color:#536d82; font-size:12px; line-height:1.5; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero { background:linear-gradient(120deg,#123d64,#0864a9); border-color:#0c426f; color:white; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero :is(h2,p,.eyebrow) { color:white; }
+@media(max-width:800px){
+  body[data-hub-layout="reference"] #hub-shell :is(#view-visit-prep,#view-profile) > .page-heading h1 { font-size:30px; line-height:1.15; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero { display:grid; grid-template-columns:minmax(0,1fr); padding:18px; gap:16px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-identity { min-width:0; align-items:flex-start; gap:12px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-identity > div { min-width:0; flex:1; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-identity :is(h2,p) { white-space:normal; overflow-wrap:anywhere; max-width:100%; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero > button { width:100%; min-width:0; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading .page-heading-actions { display:grid; grid-template-columns:minmax(0,1fr); width:100%; gap:10px; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading button { width:100%; min-width:0; }
+  body[data-hub-layout="reference"] #hub-shell .hub-path { margin-bottom:18px; gap:8px; font-size:11px; }
+  body[data-hub-layout="reference"] #hub-shell .hub-path button { font-size:11px; }
+  body[data-hub-layout="reference"] #hub-shell .hub-storage-status { grid-template-columns:1fr; gap:10px; margin:20px 0; }
+  body[data-hub-layout="reference"] #hub-shell .hub-storage-status article { padding:15px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-visit-prep,#view-profile) > .page-heading::before { inset-inline:-8px; border-radius:12px; }
+}
