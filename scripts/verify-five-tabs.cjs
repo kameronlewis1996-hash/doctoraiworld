@@ -202,8 +202,11 @@ async function verifyAccountResponseBoundaries() {
   const credentialEnd = js.indexOf('function openGoogleSignIn(', credentialStart);
   const cloudStart = js.indexOf('async function loadCloudState(');
   const cloudEnd = js.indexOf('function updateDate(', cloudStart);
+  const sessionStart = js.indexOf('async function loadAccountSession(');
+  const sessionEnd = js.indexOf('async function loadEntitlement(', sessionStart);
   assert.ok(credentialStart >= 0 && credentialEnd > credentialStart, 'The actual credential handler can be exercised.');
   assert.ok(cloudStart >= 0 && cloudEnd > cloudStart, 'The actual private account load can be exercised.');
+  assert.ok(sessionStart >= 0 && sessionEnd > sessionStart, 'The actual Google session GET contract can be exercised.');
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
@@ -228,6 +231,40 @@ async function verifyAccountResponseBoundaries() {
     assert.equal(context.closed, 1, `${fixture.id}: successful sign-in closes its dialog.`);
     assert.equal(context.toasts.length, 1);
     assert.deepEqual(context.errors, []);
+  }
+  for (const fixture of [
+    {id:'anonymous-401',status:401,payload:{authenticated:false},verification:'verified',label:'Not signed in'},
+    {id:'authenticated-200',status:200,payload:{authenticated:true,user:account},verification:'verified',label:'Checking private account sync'},
+    {id:'anonymous-200',status:200,payload:{authenticated:false},verification:'verified',label:'Not signed in'},
+    {id:'unavailable-503',status:503,payload:{authenticated:false},verification:'failed',label:'Sign-in not confirmed'},
+    {id:'malformed-200',status:200,payload:{},verification:'failed',label:'Sign-in not confirmed'},
+    {id:'missing-user-200',status:200,payload:{authenticated:true},verification:'failed',label:'Sign-in not confirmed'},
+    {id:'inconsistent-401',status:401,payload:{authenticated:true,user:account},verification:'failed',label:'Sign-in not confirmed'},
+    {id:'invalid-json-200',status:200,invalidJson:true,verification:'failed',label:'Sign-in not confirmed'},
+    {id:'session-network-failure',networkFailure:true,verification:'failed',label:'Sign-in not confirmed'}
+  ]) {
+    const context = accountStatusContext();
+    Object.assign(context, {accountSessionReady:false, refreshes:0, fetch:async (url, options) => {
+      assert.equal(url, '/api/auth/google', `${fixture.id}: session verification uses its existing GET endpoint.`);
+      assert.equal(options.headers.accept, 'application/json');
+      assert.ok(!options.method || options.method === 'GET');
+      if (fixture.networkFailure) throw new Error('Fictional session network failure');
+      return {ok:fixture.status >= 200 && fixture.status < 300,status:fixture.status,json:async () => {
+        if (fixture.invalidJson) throw new Error('Fictional malformed JSON');
+        return fixture.payload;
+      }};
+    }, refreshMedicationCheckContext:() => {context.refreshes += 1; return Promise.resolve();}});
+    context.renderAccountSession = user => {context.authUser=user; context.accountSyncState=user ? 'checking' : 'not-signed-in'; vm.runInContext('renderStorageStatus();', context);};
+    vm.createContext(context);
+    vm.runInContext(js.slice(storageStart, storageEnd) + '\n' + js.slice(sessionStart, sessionEnd) + '\nthis.getAccountSession=loadAccountSession;', context, {timeout:1000});
+    const pending = context.getAccountSession();
+    assert.equal(context.nodes['#hub-account-sync-state'].textContent, 'Checking sign-in', `${fixture.id}: the actual renderer identifies a pending request.`);
+    await pending;
+    assert.equal(context.accountSessionVerification, fixture.verification, `${fixture.id}: the actual response status and explicit authenticated flag determine verification.`);
+    assert.equal(context.nodes['#hub-account-sync-state'].textContent, fixture.label, `${fixture.id}: confirmed anonymous responses are distinguished from failed verification.`);
+    assert.equal(Boolean(context.authUser), fixture.id === 'authenticated-200', `${fixture.id}: only a successful authenticated response presents a signed-in account.`);
+    assert.equal(context.accountSessionReady, true);
+    assert.equal(context.refreshes, 1);
   }
   for (const fixture of [{id:'stale-get-account-change',stale:true,changeAccount:true}, {id:'stale-get-session-change',stale:true,changeAccount:false}, {id:'current-get-failure',stale:false,changeAccount:false}]) {
     const context = accountStatusContext();
@@ -262,5 +299,5 @@ async function verifyAccountResponseBoundaries() {
   }
 }
 verifyAccountResponseBoundaries().then(() => {
-  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards and 5 actual credential/GET-failure fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
+  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards, 5 actual credential/GET-failure fixtures and 9 actual Google session GET-contract fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
 }).catch(error => {console.error(error); process.exitCode=1;});

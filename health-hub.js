@@ -1521,7 +1521,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
       const payload = await response.json().catch(() => ({}));
       if (revision !== accountSessionRevision) return;
-      accountSessionVerification = response.ok && typeof payload.authenticated === 'boolean' ? 'verified' : 'failed';
+      accountSessionVerification = (response.ok && payload.authenticated === true && typeof payload.user?.email === 'string' && payload.user.email.trim().length > 0) || (payload.authenticated === false && (response.ok || response.status === 401)) ? 'verified' : 'failed';
       renderAccountSession(response.ok && payload.authenticated ? payload.user : null, payload.medicationLoginId);
     } catch {
       if (revision === accountSessionRevision) { accountSessionVerification = 'failed'; renderAccountSession(null); }
