@@ -3,13 +3,13 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const viewNames = ['health', 'scan', 'add', 'diary', 'alerts'];
-  const viewLabels = { health: 'My Health', scan: 'Scan Medication', add: 'Add Health Details', diary: 'My Diary', alerts: 'Alerts' };
-  const hubPanels = { health: ['details', 'ask', 'profile'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
-  const legacyHubRoutes = { today: ['health', 'details'], ask: ['health', 'ask'], profile: ['health', 'profile'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['diary', 'results'], timeline: ['diary', 'timeline'], documents: ['add', 'documents'], medications: ['add', 'medications'], memory: ['health', 'profile'], summary: ['diary', 'appointments'], privacy: ['health', 'details'] };
+  const viewNames = ['today', 'health', 'visit-prep', 'profile', 'scan', 'add', 'diary', 'alerts'];
+  const viewLabels = { today: 'Today', 'visit-prep': 'Visit prep', profile: 'Profile', health: 'My Health', scan: 'Scan Medication', add: 'Add Health Details', diary: 'My Diary', alerts: 'Alerts' };
+  const hubPanels = { today: [], 'visit-prep': [], profile: [], health: ['details', 'ask'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
+  const legacyHubRoutes = { visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['diary', 'results'], timeline: ['diary', 'timeline'], documents: ['add', 'documents'], medications: ['add', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['health', 'details'] };
   function resolveHubRoute(name, requestedPanel = '') {
     const legacy = legacyHubRoutes[name];
-    const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'health';
+    const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'today';
     const preferred = requestedPanel || (legacy ? legacy[1] : '');
     return { view, panel: hubPanels[view].includes(preferred) ? preferred : (hubPanels[view][0] || '') };
   }
@@ -180,7 +180,7 @@
   };
   const storageConsent = $('#storage-consent');
 
-  let currentView = 'health';
+  let currentView = 'today';
   let currentHubPanel = 'details';
   let timelineFilter = 'all';
   let symptomMode = 'entries';
@@ -448,7 +448,7 @@
     document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .category-more-menu [data-view]').forEach(item => {
       const target = item.matches('.nav-item') ? item.querySelector('.nav-icon') : item.querySelector(':scope > span:first-child');
       if (!target) return;
-      target.dataset.doctoraiIcon = ({ health: 'hubHome', scan: 'hubMedicationScan', add: 'hubAddDetails', diary: 'diary', alerts: 'alerts' })[item.dataset.view] || healthIconNames[item.dataset.view] || 'overview';
+      target.dataset.doctoraiIcon = ({ today: 'hubHome', health: 'health', 'visit-prep': 'calendar', profile: 'person', scan: 'hubMedicationScan', add: 'hubAddDetails', diary: 'diary', alerts: 'alerts' })[item.dataset.view] || healthIconNames[item.dataset.view] || 'overview';
       target.classList.add('feature-icon', `tone-${profileShortcutDefinition(item.dataset.view)?.tone || 'blue'}`);
       target.setAttribute('aria-hidden', 'true');
     });
@@ -501,7 +501,7 @@
       view.querySelectorAll('[data-hub-panel]').forEach(panel => { const selected = panel.dataset.hubPanel === route.panel; panel.hidden = !selected; panel.classList.toggle('active', selected); });
     });
     document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view]').forEach(item => {
-      const active = item.dataset.view === next; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+      const navView = ['scan', 'add', 'diary', 'alerts'].includes(next) ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
@@ -3213,7 +3213,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
     if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
-    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('appointments'); openCareSummary(); return; }
+    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
     if (event.target.closest('[data-edit-care-summary]') && careSummaryDraft?.form) {
       event.preventDefault();
       setModal('Prepare for my appointment', 'Build your discussion checklist', '');
@@ -3641,8 +3641,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     closeMedicationScanner(); const hash = location.hash.slice(1);
     if (hash === 'terms') { location.assign('/terms'); return; }
     if (hash === 'privacy') { showView('health', false); openPrivacy(); return; }
-    if (hash === 'summary') { showView('appointments', false); openCareSummary(); return; }
-    showView(hash || 'health', false, true, history.state?.view === hash ? history.state.panel : '');
+    if (hash === 'summary') { showView('visit-prep', false); openCareSummary(); return; }
+    showView(hash || 'today', false, true, history.state?.view === hash ? history.state.panel : '');
   }
   window.addEventListener('hashchange', restoreHubLocation);
   window.addEventListener('popstate', restoreHubLocation);
@@ -3661,8 +3661,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('appointments', false); openCareSummary(); }
-  else showView(initialView || 'health', false, false, history.state?.view === initialView ? history.state.panel : '');
+  else if (initialView === 'summary') { showView('visit-prep', false); openCareSummary(); }
+  else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });

@@ -153,8 +153,9 @@
       }
     });
 
+    const healthNavSymbol = document.body.dataset.hubLayout === 'reference' ? 'health' : 'hubHome';
     const navMarks = [
-      ['.primary-nav > .nav-item[data-view="health"] .nav-icon', 'cyan', 20, 'hubHome'],
+      ['.primary-nav > .nav-item[data-view="health"] .nav-icon', 'cyan', 20, healthNavSymbol],
       ['.primary-nav > .nav-item[data-view="scan"] .nav-icon, .primary-nav > .nav-item[data-open-medication-scanner] .nav-icon', 'blue', 20, 'hubMedicationScan'],
       ['.primary-nav > .nav-item[data-view="add"] .nav-icon, .primary-nav > .nav-item[data-add-menu] .nav-icon', 'cyan', 20, 'hubAddDetails'],
       ['.primary-nav > .nav-item[data-view="diary"] .nav-icon', 'blue', 20, 'diary'],
@@ -178,7 +179,7 @@
     nestedPanelMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
 
     const categoryMarks = [
-      ['.category-bar [data-view="health"] > span:first-child', 'cyan', 17, 'hubHome'],
+      ['.category-bar [data-view="health"] > span:first-child', 'cyan', 17, healthNavSymbol],
       ['.category-bar [data-view="scan"] > span:first-child', 'blue', 17, 'hubMedicationScan'],
       ['.category-bar [data-view="add"] > span:first-child', 'cyan', 17, 'hubAddDetails'],
       ['.category-bar [data-view="diary"] > span:first-child', 'blue', 17, 'diary'],
@@ -187,7 +188,7 @@
     categoryMarks.forEach(([selector, tone, size, symbol]) => replaceMark(selector, tone, size, symbol));
 
     const mobileMarks = [
-      ['.mobile-bottom-nav [data-view="health"] > span', 'cyan', 22, 'hubHome'],
+      ['.mobile-bottom-nav [data-view="health"] > span', 'cyan', 22, healthNavSymbol],
       ['.mobile-bottom-nav [data-view="scan"] > span, .mobile-bottom-nav [data-open-medication-scanner] > span', 'blue', 22, 'hubMedicationScan'],
       ['.mobile-bottom-nav [data-view="add"] > span, .mobile-bottom-nav [data-add-menu] > span', 'cyan', 22, 'hubAddDetails'],
       ['.mobile-bottom-nav [data-view="diary"] > span', 'blue', 22, 'diary'],
