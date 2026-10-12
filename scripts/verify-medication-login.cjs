@@ -74,27 +74,33 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
 
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
-  let finishGet, finishPost, posts = 0; const rendered = [];
-  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, entitlementReady: false, authUser: null, googleCredentialInFlight: false,
-    renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
+  let finishGet, finishPost, posts = 0, sandbox; const rendered = [], storageStatusRenders = [];
+  const recordStorageStatus = () => storageStatusRenders.push({ verification: sandbox.accountSessionVerification, signedIn: Boolean(sandbox.authUser) });
+  sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, entitlementReady: false, authUser: null, googleCredentialInFlight: false,
+    renderAccountSession: user => { rendered.push(user?.email || ''); sandbox.authUser = user || null; sandbox.renderStorageStatus(); },
+    renderStorageStatus: recordStorageStatus, refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
     closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });
   vm.runInContext(source.slice(source.indexOf('  async function loadAccountSession('), source.indexOf('  async function loadEntitlement(')) + source.slice(source.indexOf('  async function handleGoogleCredential('), source.indexOf('  function openGoogleSignIn(')), sandbox);
   const oldGet = sandbox.loadAccountSession();
+  assert.equal(typeof finishGet, 'function', 'Account session fetch starts after the pending storage status renders');
+  assert.deepEqual(storageStatusRenders, [{ verification: 'pending', signedIn: false }], 'Session lookup renders pending status before its response');
   const login = sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' });
   await sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' }); assert.equal(posts, 1);
   finishPost({ ok: true, json: async () => ({ user: { email: 'new-fictional@example.invalid' }, medicationLoginId: 'b'.repeat(64) }) }); await login;
   finishGet({ ok: true, json: async () => ({ authenticated: true, user: { email: 'old-fictional@example.invalid' }, medicationLoginId: 'a'.repeat(64) }) }); await oldGet;
   assert.deepEqual(rendered, ['new-fictional@example.invalid']); assert.equal(sandbox.googleCredentialInFlight, false);
+  assert.deepEqual(storageStatusRenders, [{ verification: 'pending', signedIn: false }, { verification: 'verified', signedIn: true }], 'The successful login renders verified account status and the stale session response cannot replace it');
   // Sign-out during either auth POST or entitlement refresh must suppress late login rendering.
   for (const phase of ['auth', 'entitlement']) {
-    rendered.length = 0; sandbox.authUser = { email: 'same-fictional@example.invalid' };
+    rendered.length = 0; storageStatusRenders.length = 0; sandbox.authUser = { email: 'same-fictional@example.invalid' };
     let finishEntitlement; sandbox.loadEntitlement = () => new Promise(resolve => { finishEntitlement = resolve; });
     const pendingLogin = sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' });
     if (phase === 'auth') sandbox.accountSessionRevision++;
     finishPost({ ok: true, json: async () => ({ user: { email: 'same-fictional@example.invalid' }, medicationLoginId: 'c'.repeat(64) }) });
     if (phase === 'entitlement') { await settleUntil(() => !!finishEntitlement); sandbox.accountSessionRevision++; finishEntitlement(); }
     await pendingLogin; assert.deepEqual(rendered, [], 'Late login cannot restore the account after sign-out');
+    assert.deepEqual(storageStatusRenders, [], 'Late login cannot restore account status after sign-out');
   }
   console.log('Medication login verification passed: one check per session, new login refresh, prior warning while updating, fresh time, failure/reload, consent/account/profile isolation, stale-response races, non-credential marker and duplicate auth callbacks.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
