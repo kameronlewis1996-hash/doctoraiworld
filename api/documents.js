@@ -1,6 +1,6 @@
 const { randomUUID } = require('node:crypto');
 const core = require('../server-src/_lib/doctorai-core.cjs');
-const { put, get, del } = require('@vercel/blob');
+const { put, get, del, BlobNotFoundError } = require('@vercel/blob');
 
 // Keep uploads small enough to stay below a serverless JSON request limit once
 // the file has been base64 encoded. Larger documents should use a future direct
@@ -138,8 +138,22 @@ module.exports = async function handler(request, response) {
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
       const document = await core.readDocumentMetadata(account, id);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
-      await core.deleteDocumentMetadata(account, id);
+      try {
+        try {
+          await del(document.blobPath, { token: core.documentStorageToken() });
+        } catch (error) {
+          // A retry can find the file already absent after metadata removal
+          // failed. Other failures must keep its path so deletion can be retried.
+          if (!(error instanceof BlobNotFoundError)) throw error;
+        }
+        const removed = await core.deleteDocumentMetadata(account, id);
+        if (!removed) throw new Error('Document metadata deletion incomplete.');
+      } catch {
+        return response.status(503).json({
+          error: 'Document deletion could not finish. Please try again.',
+          code: 'document_deletion_incomplete'
+        });
+      }
       return response.status(200).json({ ok: true, id });
     }
 

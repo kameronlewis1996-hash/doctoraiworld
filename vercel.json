@@ -103,6 +103,14 @@
     {
       "source": "/privacy",
       "destination": "/privacy.html"
+    },
+    {
+      "source": "/data-deletion",
+      "destination": "/data-deletion.html"
+    },
+    {
+      "source": "/for-clinicians",
+      "destination": "/for-clinicians.html"
     }
   ],
   "headers": [

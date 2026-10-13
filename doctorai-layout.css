@@ -1,4 +1,10 @@
 /* The user's selected Today / My health / Visit prep / Profile layout. */
+.medication-check.dose-record-action { color: var(--navy, #173451); width: auto; padding: 8px 10px; }
+.medication-actions { flex-wrap: wrap; }
+.library-item-actions { flex-wrap: wrap; }
+.today-visit-card { margin-block: 20px; }
+.today-visit-card p { color: #526d7e; line-height: 1.6; }
+.care-summary-form textarea, .care-summary-review textarea { width: 100%; min-height: 140px; font: inherit; line-height: 1.6; }
 body[data-hub-layout="reference"] { background: #f8fbfe; color: #0b2450; }
 body[data-hub-layout="reference"] #hub-shell { background: #f8fbfe; }
 body[data-hub-layout="reference"] #hub-shell .sidebar { display: flex !important; width: 244px; padding: 24px 18px; background: #fff; border-right: 1px solid #e6edf5; }

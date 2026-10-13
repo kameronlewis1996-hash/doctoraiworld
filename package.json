@@ -25,7 +25,12 @@
     "verify:alerts": "node scripts/verify-health-alerts.cjs",
     "verify:alerts-presentation": "node scripts/verify-alerts-presentation.cjs",
     "verify:five-tabs": "node scripts/verify-five-tabs.cjs",
-    "verify:stripe": "node scripts/verify-stripe-pricing.js"
+    "verify:stripe": "node scripts/verify-stripe-pricing.js",
+    "verify:deletion": "node scripts/verify-document-deletion.cjs",
+    "verify:dose-status": "node scripts/verify-dose-status.cjs",
+    "verify:visit-brief": "node scripts/verify-visit-brief.cjs",
+    "verify:audit-ui": "node scripts/verify-audit-ui.cjs",
+    "verify:assets": "node scripts/verify-site-assets.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
