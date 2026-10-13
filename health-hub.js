@@ -1881,8 +1881,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
     const lastVisit = state.appointments.map(item => briefDate(item.date)).filter(date => date && date < today).sort().at(-1);
     const since = lastVisit || briefLocalDate(monthAgo);
-    setModal('Prepare for my appointment', 'Build your discussion checklist', `<form class="care-summary-form" data-care-summary-form>
-      <p>Choose the health details you want to discuss, add your own questions, then review the checklist before copying or printing it. Nothing is selected automatically, and it stays on this device until you choose to share.</p>
+    setModal('Prepare for my appointment', 'Build your visit brief', `<form class="care-summary-form" data-care-summary-form>
+      <p>Choose the health details you want to discuss, add your own questions, then review your brief before copying or printing it. Nothing is selected automatically, and it stays on this device until you choose to share.</p>
       <label>Show notes from<input type="date" name="since" value="${since}" max="${today}"></label>
       <p>${lastVisit ? 'Starts at your latest past appointment date. Change it if that visit did not take place.' : 'Starts with the last 30 days. Choose the date of your last visit, or clear it to see all available notes.'}</p>
       <p data-brief-count role="status"></p>
@@ -1893,7 +1893,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <p>Nothing is selected automatically. Up to 100 recent records per dated section are available. Clear the date to include records with missing or older date formats. Medicine details are your saved notes, not verified prescription instructions.</p>
       <label>Questions or topics to discuss<textarea name="questions" rows="3" maxlength="2000" placeholder="Add one question or discussion point per line."></textarea></label>
       <p>Check dates, names and doses before sharing. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>
-      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my checklist <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
     updateBriefPeriod(form);
@@ -1921,10 +1921,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const appointmentLabel = [appointment.title, appointment.date].filter(Boolean).join(' · ');
       if (appointmentLabel) discussionItems.push(`Appointment: ${appointmentLabel}`);
     }
-    if (!discussionItems.length) { showToast('Select a health detail or add a question to build your discussion checklist first.'); return; }
+    if (!discussionItems.length) { showToast('Select a health detail or add a question to build your visit brief first.'); return; }
     careSummaryDraft.form = form;
-    careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${appointment ? `<section><h2>Appointment</h2><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join(' · '))}</p></section>` : ''}<section><h2>My discussion checklist</h2><ul>${discussionItems.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section><hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
-    setModal('Review my appointment checklist', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this checklist and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy checklist</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${appointment ? `<section><h2>Appointment</h2><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join(' · '))}</p></section>` : ''}<section><h2>My visit brief</h2><ul>${discussionItems.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section><hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
+    setModal('Review my visit brief', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy visit brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
   }
 
   function printCareSummary() {
@@ -2420,7 +2420,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function prepareAppointment(appointment) {
     if (!appointment) { showToast('Add an upcoming appointment first.'); return; }
-    const prompt = `Help me prepare for my upcoming appointment. Appointment reason: ${appointment.title || 'Not added'}. Provider: ${appointment.provider || 'Not added'}. Date and time: ${formatDate(appointment.date)} at ${formatTime(appointment.time)}. Location: ${appointment.location || 'Not added'}. My saved questions or notes: ${appointment.note || 'None added'}. Use only this information and any health details I have explicitly approved. Create a short preparation checklist and questions to ask. Do not diagnose or recommend changing treatment.`;
+    const prompt = `Help me prepare for my upcoming appointment. Appointment reason: ${appointment.title || 'Not added'}. Provider: ${appointment.provider || 'Not added'}. Date and time: ${formatDate(appointment.date)} at ${formatTime(appointment.time)}. Location: ${appointment.location || 'Not added'}. My saved questions or notes: ${appointment.note || 'None added'}. Use only this information and any health details I have explicitly approved. Draft a concise visit brief with questions to ask. Do not diagnose or recommend changing treatment.`;
     fillChat(prompt);
   }
 
@@ -3246,7 +3246,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
     if (event.target.closest('[data-edit-care-summary]') && careSummaryDraft?.form) {
       event.preventDefault();
-      setModal('Prepare for my appointment', 'Build your discussion checklist', '');
+      setModal('Prepare for my appointment', 'Build your visit brief', '');
       els.modalBody.append(careSummaryDraft.form);
       return;
     }
