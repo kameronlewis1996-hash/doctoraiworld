@@ -4,6 +4,7 @@ const plans = Object.freeze({
   monthly: Object.freeze({ env: 'STRIPE_PRO_MONTHLY_PRICE_ID', interval: 'month' }),
   annual: Object.freeze({ env: 'STRIPE_PRO_ANNUAL_PRICE_ID', interval: 'year' })
 });
+const supportedCurrencies = Object.freeze(['USD', 'NZD']);
 
 function keyMode(secretKey) {
   const value = String(secretKey || '');
@@ -29,10 +30,10 @@ function isValidPlanPrice(price, plan, mode) {
     && price?.type === 'recurring'
     && Number.isSafeInteger(price?.unit_amount)
     && price.unit_amount > 0
-    && String(price.currency || '').toLowerCase() === 'usd'
+    && supportedCurrencies.includes(String(price.currency || '').toUpperCase())
     && price.recurring?.interval === definition.interval
     && price.recurring?.interval_count === 1
     && price.livemode === (mode === 'live'));
 }
 
-module.exports = { plans, keyMode, environmentModeMatches, isValidPlanPrice };
+module.exports = { plans, supportedCurrencies, keyMode, environmentModeMatches, isValidPlanPrice };

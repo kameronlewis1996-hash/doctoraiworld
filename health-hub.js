@@ -3,6 +3,7 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+  const doseStatus = window.DoctorAIDoseStatus;
   const viewNames = ['today', 'health', 'visit-prep', 'profile', 'scan', 'add', 'diary', 'alerts'];
   const viewLabels = { today: 'Today', 'visit-prep': 'Visit prep', profile: 'Profile', health: 'My Health', scan: 'Scan Medication', add: 'Add Health Details', diary: 'My Diary', alerts: 'Alerts' };
   const hubPanels = { today: [], 'visit-prep': [], profile: [], health: ['details', 'ask'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
@@ -31,7 +32,7 @@
     try { localStorage.setItem(storagePrefix + key, JSON.stringify(value)); } catch {}
   };
   const clone = value => JSON.parse(JSON.stringify(value));
-  const emptyProfile = { name: '', bloodType: '', allergies: '', conditions: '', notes: '' };
+  const emptyProfile = { name: '', bloodType: '', allergies: '', conditions: '', notes: '', emergencyContact: '', emergencyPhone: '' };
   const profileShortcutDefinitions = [
     { id: 'ask', label: 'Ask DoctorAI', description: 'Prepare a care conversation', iconName: 'ask', tone: 'cyan', view: 'ask' },
     { id: 'symptoms', label: 'Symptom log', description: 'Notice patterns over time', iconName: 'symptoms', tone: 'blue', view: 'symptoms' },
@@ -108,6 +109,8 @@
     allergiesList: $('#allergies-list'),
     providersList: $('#providers-list'),
     emergencyBloodType: $('#emergency-blood-type'),
+    emergencyContact: $('#emergency-contact'),
+    emergencyPhone: $('#emergency-phone'),
     memoryApproved: $('#memory-approved-list'),
     memoryToggle: $('#memory-toggle'),
     healthMemoryToggle: $('#health-memory-toggle'),
@@ -545,22 +548,63 @@
     if (!els.medicationToday) return;
     const medications = state.medications.slice(0, 2);
     if (!medications.length) {
-      els.medicationToday.innerHTML = '<div class="empty-state">No medications due today. Add a prescription reminder when you are ready.</div>';
+      els.medicationToday.innerHTML = '<div class="empty-state">No medicines saved. Add a prescription reminder when you are ready.</div>';
       return;
     }
     els.medicationToday.innerHTML = medications.map(medication => {
-      const isTaken = medication.status === 'taken';
-      const isMissed = medication.status === 'missed';
-      const statusText = isTaken ? 'Taken' : isMissed ? 'Missed' : `Due ${medication.time}`;
+      const dose = doseStatus.summary(medication);
+      const statusText = escapeHTML(dose.label);
       const medicationName = escapeHTML(medication.name || 'medication');
       const safety = medicationSafetyMarkup(medication);
-      return `<article class="medication-row-wrap ${safety ? 'has-safety-alert' : ''}"><div class="medication-row ${isTaken ? 'taken' : ''} ${isMissed ? 'missed' : ''}">
-        <button class="medication-check" type="button" data-med-toggle="${escapeHTML(medication.id)}" aria-label="${isTaken ? `Mark ${medicationName} as due` : `Mark ${medicationName} as taken`}">${isTaken ? iconMarkup('check', 16) : isMissed ? iconMarkup('alert', 16) : ''}</button>
+      return `<article class="medication-row-wrap ${safety ? 'has-safety-alert' : ''}"><div class="medication-row">
+        <button class="medication-check dose-record-action" type="button" data-med-toggle="${escapeHTML(medication.id)}" aria-label="Record one dose of ${medicationName} as taken today">${iconMarkup('add', 16)}</button>
         <span class="medication-time">${escapeHTML(medication.time)}</span>
-        <div class="medication-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)}</span><small>${escapeHTML(medication.instructions)}</small></div>
-        <div class="medication-actions"><span class="medication-status">${statusText}</span>${!isTaken && !isMissed ? `<button class="missed-button" type="button" data-med-missed="${escapeHTML(medication.id)}" aria-label="Mark ${medicationName} as missed">Mark missed</button>` : ''}<button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div>
+        <div class="medication-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)}</span><small>${escapeHTML(medication.instructions)}</small><small>${dose.legacyUndated ? 'Older status has no date; review today. ' : ''}Self-reported doses only; other doses may remain.</small></div>
+        <div class="medication-actions"><span class="medication-status">${statusText}</span><button class="missed-button" type="button" data-med-missed="${escapeHTML(medication.id)}" aria-label="Record one dose of ${medicationName} as missed today">Record missed</button>${dose.latest ? `<button class="missed-button" type="button" data-med-undo="${escapeHTML(medication.id)}" aria-label="Undo the latest dose record for ${medicationName} today">Undo last</button>` : ''}<button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div>
       </div>${safety}</article>`;
     }).join('');
+  }
+
+  function openDoseHistory(id, capacityReached = false) {
+    const medication = state.medications.find(item => String(item.id) === String(id));
+    if (!medication) return;
+    const today = doseStatus.localDate(new Date());
+    const total = Array.isArray(medication.doseEvents) ? medication.doseEvents.length : 0;
+    setModal('Manage dose records', 'Your self-reported records', `<form class="care-summary-form" data-modal-form="dose-history" data-medication-id="${escapeHTML(medication.id)}"><p><b>${escapeHTML(medication.name || 'Saved medicine')}</b> has ${total} saved dose record${total === 1 ? '' : 's'}.</p>${capacityReached ? '<p role="alert"><b>This dose was not recorded.</b> Your hub is nearing its storage limit. Export your records, then choose older dose records to remove before recording more.</p>' : ''}<p>Records are kept until you choose to remove them. Export your hub data first if you want to keep a separate copy. The export includes dose timestamps and your other saved hub details.</p><button type="button" class="secondary-button" data-export-health>Export my hub data</button><label>Remove dose records before<input type="date" name="cutoff" value="${today}" max="${today}" required></label><p data-dose-prune-count role="status"></p><p>Records on the chosen date, today’s records and records with unreadable dates are kept. This does not change your medicine details or schedule.</p><label class="care-summary-choice"><input type="checkbox" name="confirmPrune"><span>I want to remove the older records described above. I understand this cannot be undone.</span></label><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="submit" class="danger-button" data-dose-prune-submit disabled>Remove older dose records</button></div></form>`);
+    const form = $('[data-modal-form="dose-history"]');
+    const update = () => {
+      const current = state.medications.find(item => String(item.id) === String(id));
+      const plan = doseStatus.pruneBefore(current, form.elements.cutoff.value);
+      $('[data-dose-prune-count]', form).textContent = plan.error || `${plan.removed} older record${plan.removed === 1 ? '' : 's'} would be removed. ${plan.events.length} would be kept.`;
+      $('[data-dose-prune-submit]', form).disabled = Boolean(plan.error || !plan.removed || !form.elements.confirmPrune.checked);
+    };
+    form.elements.cutoff.addEventListener('change', () => { form.elements.confirmPrune.checked = false; update(); });
+    form.elements.confirmPrune.addEventListener('change', update);
+    update();
+  }
+
+  function pruneDoseHistory(form, values) {
+    const medication = state.medications.find(item => String(item.id) === form.dataset.medicationId);
+    if (!medication) { showToast('This medicine is no longer saved.'); return; }
+    const plan = doseStatus.pruneBefore(medication, String(values.cutoff || ''));
+    if (plan.error || !plan.removed) { showToast(plan.error || 'No older dose records match that date.'); return; }
+    if (values.confirmPrune !== 'on') { showToast('Confirm which older dose records you want to remove.'); return; }
+    if (!window.confirm(`Remove ${plan.removed} dose record${plan.removed === 1 ? '' : 's'} for ${medication.name || 'this medicine'} from before ${values.cutoff}? This cannot be undone. Today’s records and your medicine details will be kept.`)) return;
+    medication.doseEvents = plan.events;
+    saveState(); renderTodayMedications(); renderTodayOverview(); renderMedicationLibrary();
+    openDoseHistory(medication.id);
+    showToast(`${plan.removed} older dose record${plan.removed === 1 ? '' : 's'} removed.`);
+  }
+
+  function recordMedicationDose(medication, action) {
+    const result = doseStatus.recordGuarded(medication, action, serialiseHealthState());
+    if (!result.event) {
+      if (result.reason === 'capacity') openDoseHistory(medication.id, true);
+      else showToast('This dose could not be recorded. Please reopen the medicine and try again.');
+      return;
+    }
+    saveState(); renderTodayMedications(); renderTodayOverview(); renderMedicationLibrary();
+    showToast(action === 'taken' ? `One dose of ${medication.name} recorded as taken today. Other doses may remain.` : `One dose of ${medication.name} recorded as missed today. Ask a pharmacist if you are unsure what to do next.`);
   }
 
   function savedSupplyAmount(medication) {
@@ -585,10 +629,11 @@
       const medicationName = escapeHTML(medication.name || 'medication');
       const supply = savedSupplyAmount(medication);
       const supplyText = supply === null ? 'Remaining supply not recorded' : `Recorded remaining: ${escapeHTML(supply)}`;
+      const doseSummary = doseStatus.summary(medication);
       const supplyStatus = supply === null ? 'Supply not set' : supply === 0 ? 'Verify amount' : supply <= 14 ? 'Low supply' : 'Active';
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
-        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
-        <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
+        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small><small>${escapeHTML(doseSummary.label)} · Self-reported; other doses may remain.${doseSummary.legacyUndated ? ' Older status has no date.' : ''}</small></div>
+        <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="medication-edit-link" type="button" data-manage-dose-records="${escapeHTML(medication.id)}" aria-label="Manage dose records for ${medicationName}">Manage dose records</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
       </div>${safety}</article>`;
     }).join('') : '<div class="empty-state">No medications added yet. Your prescription reminders will appear here.</div>';
     els.medicationLibrary.querySelectorAll('.library-item-wrap').forEach((item, index) => {
@@ -807,7 +852,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderActivity() {
     if (!els.activity) return;
-    const activity = state.timeline.filter(entry => hasProAccess() || !isDocumentEntry(entry));
+    const activity = state.timeline;
     els.activity.innerHTML = activity.length ? activity.slice(0, 3).map(entry => `<div class="mini-activity-row"><span class="activity-icon">${timelineIconMarkup(entry)}</span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><time>${formatShortDate(entry.date)}</time></div>`).join('') : '<div class="empty-state">No recent activity yet. Your saved health events will appear here.</div>';
   }
 
@@ -818,10 +863,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const displayName = String(authUser?.name || state.profile.name || '').trim().split(/\s+/)[0];
     if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}${displayName ? `, ${displayName}` : ''}.`;
-    const tracked = state.medications.filter(item => item.status === 'taken').length;
-    if (els.medOverview) els.medOverview.textContent = state.medications.length ? `${tracked} of ${state.medications.length} taken` : 'No medicines logged';
+    const tracked = state.medications.reduce((count, item) => count + doseStatus.summary(item).taken, 0);
+    if (els.medOverview) els.medOverview.textContent = state.medications.length ? `${tracked} taken dose record${tracked === 1 ? '' : 's'}` : 'No medicines logged';
     const medOverviewMeta = $('#med-overview-meta');
-    if (medOverviewMeta) medOverviewMeta.textContent = state.medications.length ? 'Based on your saved medication list' : 'Add medicines to track your routine';
+    if (medOverviewMeta) medOverviewMeta.textContent = state.medications.length ? 'Self-reported today; other doses may remain' : 'Add medicines to track your routine';
     if (els.dailyInsight) {
       const medicationText = state.medications.length ? `${state.medications.length} medication ${state.medications.length === 1 ? 'reminder' : 'reminders'}` : 'no medication reminders';
       const taskText = state.tasks.length ? `${state.tasks.length} ${state.tasks.length === 1 ? 'task' : 'tasks'}` : 'no tasks';
@@ -838,7 +883,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.memoryOverviewMeta) els.memoryOverviewMeta.textContent = state.memoryEnabled ? `${state.memoryDetails.length} approved details` : '0 approved details';
   }
 
+  function renderTodayVisit() {
+    const title = $('#today-visit-title');
+    const details = $('#today-visit-details');
+    if (!title || !details) return;
+    const now = new Date();
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const appointment = upcomingAppointments().find(item => /^\d{4}-\d{2}-\d{2}$/.test(String(item.date || '')) && item.date >= localToday);
+    title.textContent = appointment ? 'Prepare for your next saved appointment' : 'Prepare for your next visit';
+    details.textContent = appointment ? [appointment.title || 'Appointment', formatDate(appointment.date), appointment.time ? formatTime(appointment.time) : 'Time not recorded', appointment.provider || 'Provider not recorded'].join(' · ') : 'Add an appointment or start a brief with the details you want to discuss.';
+  }
+
   function renderTodayAppointment() {
+    renderTodayVisit();
     if (!els.todayAppointmentPreview) return;
     const appointment = upcomingAppointments()[0];
     if (!appointment) {
@@ -1036,6 +1093,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }).join('') : '<div class="empty-inline">No local doctors added yet. Add one here; appointments stay separate.</div>';
     }
     if (els.emergencyBloodType) els.emergencyBloodType.textContent = state.profile.bloodType || 'Not added';
+    if (els.emergencyContact) els.emergencyContact.textContent = state.profile.emergencyContact || 'Not added';
+    if (els.emergencyPhone) els.emergencyPhone.textContent = state.profile.emergencyPhone || 'Not added';
     const memoryDisclosureStatus = $('#memory-details-status');
     if (memoryDisclosureStatus) memoryDisclosureStatus.textContent = state.memoryEnabled ? `On · ${state.memoryDetails.length} approved` : 'Off';
     if (els.memoryApproved) els.memoryApproved.innerHTML = state.memoryDetails.map(detail => `<span>${escapeHTML(detail)}</span>`).join('');
@@ -1052,12 +1111,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderResults() {
     if (!els.resultList) return;
-    if (!hasProAccess()) {
-      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing.');
+    const results = state.documents.filter(doc => doc.category === 'result');
+    if (!hasProAccess() && !results.length) {
+      els.resultList.innerHTML = proFeatureGate('New results uploads are a Pro feature.', 'Free includes typed measurements and trends. Existing uploaded files remain available to view, download or delete after Pro expires.');
       return;
     }
-    const results = state.documents.filter(doc => doc.category === 'result');
-    els.resultList.innerHTML = results.length ? results.map(result => `<article class="result-item"><span class="result-file-icon" aria-hidden="true">${iconMarkup('document')}</span><div class="result-copy"><b>${escapeHTML(result.title)}</b><span>${escapeHTML(result.description)}</span><small>${escapeHTML(result.date)} · ${escapeHTML(result.size)}</small></div><div class="result-actions"><button type="button" data-document-view="${escapeHTML(result.id)}">View</button><button type="button" data-explain-result="${escapeHTML(result.title)}">Explain <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(result.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(result.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No results saved yet. Upload a report when you are ready.</div>';
+    els.resultList.innerHTML = results.length ? results.map(result => `<article class="result-item"><span class="result-file-icon" aria-hidden="true">${iconMarkup('document')}</span><div class="result-copy"><b>${escapeHTML(result.title)}</b><span>${escapeHTML(result.description)}</span><small>${escapeHTML(result.date)} · ${escapeHTML(result.size)}</small></div><div class="result-actions"><button type="button" data-document-view="${escapeHTML(result.id)}">View</button><button type="button" data-explain-result="${escapeHTML(result.title)}">Explain pasted text <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(result.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(result.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No results saved yet. Upload a report when you are ready.</div>';
   }
 
   const symptomImpactLabels = {
@@ -1268,7 +1327,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderTimeline() {
     if (!els.timelineList) return;
-    const visibleTimeline = state.timeline.filter(entry => hasProAccess() || !isDocumentEntry(entry));
+    const visibleTimeline = state.timeline;
     const entries = visibleTimeline.filter(entry => timelineFilter === 'all' || entry.type === timelineFilter);
     els.timelineList.innerHTML = entries.length ? entries.map(entry => {
       const description = entry.type === 'symptom' ? symptomLogDescription(entry) : entry.description;
@@ -1278,12 +1337,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderDocuments() {
     if (!els.documentsGrid) return;
-    if (!hasProAccess()) {
-      els.documentsGrid.innerHTML = proFeatureGate('Your private file library is part of Pro.', 'Choose prescriptions, lab reports, referrals, letters, imaging, scans and health photos to upload, view or download.');
+    if (!hasProAccess() && !state.documents.length) {
+      els.documentsGrid.innerHTML = proFeatureGate('New file uploads are part of Pro.', 'Existing uploaded files remain available to view, download or delete after Pro expires. Sign in to access your account files.');
       return;
     }
     const docs = state.documents.filter(doc => documentFilter === 'all' || doc.category === documentFilter);
-    els.documentsGrid.innerHTML = docs.length ? docs.map(doc => `<article class="document-card"><span class="document-type">${escapeHTML(doc.type)}</span><h3>${escapeHTML(doc.title)}</h3><p>${escapeHTML(doc.description)}</p><small>${escapeHTML(doc.date)} · ${escapeHTML(doc.size)}</small><div class="document-card-actions"><button type="button" data-document-view="${escapeHTML(doc.id)}">View document</button><button type="button" data-explain-document="${escapeHTML(doc.title)}">Explain with AI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(doc.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(doc.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No documents in this category yet.</div>';
+    els.documentsGrid.innerHTML = docs.length ? docs.map(doc => `<article class="document-card"><span class="document-type">${escapeHTML(doc.type)}</span><h3>${escapeHTML(doc.title)}</h3><p>${escapeHTML(doc.description)}</p><small>${escapeHTML(doc.date)} · ${escapeHTML(doc.size)}</small><div class="document-card-actions"><button type="button" data-document-view="${escapeHTML(doc.id)}">View document</button><button type="button" data-explain-document="${escapeHTML(doc.title)}">Explain pasted text <span aria-hidden="true">${iconMarkup('spark')}</span></button><button type="button" data-document-download="${escapeHTML(doc.id)}">Download</button><button type="button" class="delete-item" data-delete-document="${escapeHTML(doc.id)}">Delete</button></div></article>`).join('') : '<div class="empty-state">No documents in this category yet.</div>';
   }
 
   function renderProControls() {
@@ -1670,7 +1729,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       group.hidden = !hasRecords;
     });
     form.querySelector('[data-brief-empty-all]').hidden = available > 0;
-    form.querySelector('[data-brief-count]').textContent = `${available} saved records available to choose. Current medicines are shown separately from dated notes.`;
+    form.querySelector('[data-brief-count]').textContent = `${available} details available to choose. Saved medicines and profile information are separate from dated notes.`;
   }
   function openPersonalOverview() {
     const oneLine = (value, limit = 420) => {
@@ -1702,8 +1761,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const medicines = state.medications.slice(0, 12).map(item => oneLine([
       item.name,
       item.dose,
-      item.frequency,
-      item.status === 'missed' ? 'Marked missed today' : ''
+      item.frequency
     ].filter(Boolean).join(' · '), 320)).filter(Boolean);
     sections.push(listSection('Saved medicines', medicines, 'No medicines saved yet.'));
 
@@ -1756,6 +1814,49 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     setModal('Your personal overview', 'Private rundown', `<div class="personal-overview-dialog"><p class="personal-overview-intro">A quick view of the details saved in your Health Hub. This is based on your notes and may be incomplete or out of date.</p><p class="personal-overview-generated">Updated from your saved information · ${escapeHTML(today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }))}</p><div class="personal-overview-sections">${sections.join('')}</div><p class="personal-overview-safety"><strong>Your record, for your reference.</strong> Check details with your healthcare professional. This overview does not identify causes, diagnose conditions or recommend treatment changes. Do not use it for emergencies.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close overview</button><button type="button" class="primary-button" data-modal="health">Edit health details <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></div>`);
   }
 
+  const currentRoutineMedications = now => {
+    const today = doseStatus.localDate(now);
+    return state.medications.filter(item => (!item.startDate || item.startDate <= today) && (!item.endDate || item.endDate >= today)).slice(0, 8);
+  };
+  function todayMedicineMarkup(medications, now) {
+    return medications.length
+      ? `<ul class="today-dashboard-list">${medications.map(item => {
+          const status = `${doseStatus.summary(item, now).label} · Other doses may remain`;
+          const details = [item.dose, item.frequency, item.time ? formatTime(item.time) : ''].filter(Boolean).join(' · ');
+          return `<li><span class="today-dashboard-list-icon medicine" aria-hidden="true">${iconMarkup('capsule')}</span><span><b>${escapeHTML(String(item.name || 'Saved medicine').replace(/\s+/g, ' ').trim().slice(0, 100))}</b><small>${escapeHTML(details || 'Check the saved label instructions')}</small><em>${escapeHTML(status)}</em></span></li>`;
+        }).join('')}</ul>`
+      : '<div class="today-dashboard-empty"><p>No current medicines saved.</p><button type="button" class="secondary-button" data-modal="medication"> <span data-doctorai-icon="add" aria-hidden="true"></span> Add medication</button></div>';
+  }
+  function todayMedicinePlanText(medications, now) {
+    if (!medications.length) return 'No current medicines saved. Add or review your medicine list when you are ready.';
+    const unrecorded = medications.filter(item => !doseStatus.summary(item, now).events.length).length;
+    return `${unrecorded ? `${unrecorded} saved ${unrecorded === 1 ? 'medicine has' : 'medicines have'} no dose record today.` : 'Some dose actions have been recorded today.'} These records do not confirm that all scheduled doses were taken. Take medicines only as directed on the prescription label or by your clinician.`;
+  }
+  let medicationDayKey = '';
+  let medicationMidnightTimer = null;
+  function refreshMedicationDay() {
+    const now = new Date();
+    const key = `${doseStatus.localDate(now)}:${now.getTimezoneOffset()}`;
+    if (medicationDayKey === key) return false;
+    medicationDayKey = key;
+    updateDate(); renderTodayOverview(); renderTodayMedications(); renderMedicationLibrary();
+    const routine = $('#today-routine-medications');
+    if (routine && els.modal.open) {
+      const medicines = currentRoutineMedications(now);
+      routine.innerHTML = todayMedicineMarkup(medicines, now);
+      const planCopy = $('[data-today-medicine-plan]');
+      if (planCopy) planCopy.textContent = todayMedicinePlanText(medicines, now);
+    }
+    return true;
+  }
+  function scheduleMedicationDayRefresh() {
+    window.clearTimeout(medicationMidnightTimer);
+    const now = new Date();
+    const nextDay = new Date(now);
+    nextDay.setHours(24, 0, 0, 0);
+    medicationMidnightTimer = window.setTimeout(() => { refreshMedicationDay(); scheduleMedicationDayRefresh(); }, nextDay.getTime() - now.getTime() + 25);
+  }
+
   function openTodayPlan() {
     const oneLine = (value, limit = 240) => {
       const text = String(value || '').replace(/\s+/g, ' ').trim();
@@ -1763,7 +1864,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     };
     const now = new Date();
     const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    const currentMedications = state.medications.filter(item => (!item.startDate || item.startDate <= localToday) && (!item.endDate || item.endDate >= localToday)).slice(0, 8);
+    const currentMedications = currentRoutineMedications(now);
     const recentSymptoms = state.timeline.filter(item => item.type === 'symptom').sort((left, right) => symptomDateValue(right).localeCompare(symptomDateValue(left))).slice(0, 4);
     const nextAppointment = upcomingAppointments().find(item => !item.date || item.date >= localToday);
     const openTasks = state.tasks.filter(item => !item.done).slice(0, 3);
@@ -1774,13 +1875,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ['Allergies & reactions', oneLine(state.profile.allergies)],
       ['Important notes', oneLine(state.profile.notes, 360)]
     ].filter(([, value]) => value);
-    const medicationMarkup = currentMedications.length
-      ? `<ul class="today-dashboard-list">${currentMedications.map(item => {
-          const status = item.status === 'taken' ? 'Taken today' : item.status === 'missed' ? 'Marked missed' : 'To review today';
-          const details = [item.dose, item.frequency, item.time ? formatTime(item.time) : ''].filter(Boolean).join(' · ');
-          return `<li><span class="today-dashboard-list-icon medicine" aria-hidden="true">${iconMarkup('capsule')}</span><span><b>${escapeHTML(oneLine(item.name, 100) || 'Saved medicine')}</b><small>${escapeHTML(details || 'Check the saved label instructions')}</small><em>${escapeHTML(status)}</em></span></li>`;
-        }).join('')}</ul>`
-      : '<div class="today-dashboard-empty"><p>No current medicines saved.</p><button type="button" class="secondary-button" data-modal="medication"> <span data-doctorai-icon="add" aria-hidden="true"></span> Add medication</button></div>';
+    const medicationMarkup = `<div id="today-routine-medications">${todayMedicineMarkup(currentMedications, now)}</div>`;
     const symptomMarkup = recentSymptoms.length
       ? `<ul class="today-dashboard-list">${recentSymptoms.map(item => {
           const severity = symptomSeverity(item.severity);
@@ -1793,8 +1888,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       : '<div class="today-dashboard-empty"><p>No personal health details saved yet.</p><button type="button" class="secondary-button" data-modal="health">Add health details</button></div>';
     const plan = [];
     if (currentMedications.length) {
-      const due = currentMedications.filter(item => !['taken', 'missed'].includes(item.status)).length;
-      plan.push(['medicines', 'Review your medicine routine', `${due ? `${due} saved ${due === 1 ? 'medicine is' : 'medicines are'} still to review today.` : 'Your saved medicine statuses are up to date.'} Take medicines only as directed on the prescription label or by your clinician.`]);
+      plan.push(['medicines', 'Review your medicine routine', todayMedicinePlanText(currentMedications, now)]);
     }
     if (recentSymptoms.length) {
       const latest = recentSymptoms[0];
@@ -1803,7 +1897,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (nextAppointment) plan.push(['appointment', 'Prepare for your next appointment', `${formatDate(nextAppointment.date)}${nextAppointment.time ? ` at ${formatTime(nextAppointment.time)}` : ''}. Add the main concern or question you want to remember.`]);
     if (openTasks.length) plan.push(['tasks', 'Finish one small health task', oneLine(openTasks[0].label || openTasks[0].detail, 180) || 'Review your next saved health task.']);
     plan.push(['wellbeing', 'Keep today manageable', 'Follow any advice already given by your healthcare team. Choose ordinary meals, fluids, rest or gentle activity only when appropriate for you and any restrictions you have.']);
-    const planMarkup = plan.slice(0, 4).map(([tone, title, copy], index) => `<li class="today-dashboard-step ${escapeHTML(tone)}"><span>${index + 1}</span><div><b>${escapeHTML(title)}</b><p>${escapeHTML(copy)}</p></div></li>`).join('');
+    const planMarkup = plan.slice(0, 4).map(([tone, title, copy], index) => `<li class="today-dashboard-step ${escapeHTML(tone)}"><span>${index + 1}</span><div><b>${escapeHTML(title)}</b><p${tone === 'medicines' ? ' data-today-medicine-plan' : ''}>${escapeHTML(copy)}</p></div></li>`).join('');
     const appointmentMarkup = nextAppointment
       ? `<div class="today-dashboard-appointment"><span aria-hidden="true">${iconMarkup('clock')}</span><div><b>${escapeHTML(nextAppointment.title || 'Upcoming appointment')}</b><small>${escapeHTML([formatDate(nextAppointment.date), nextAppointment.time ? formatTime(nextAppointment.time) : '', nextAppointment.provider].filter(Boolean).join(' · '))}</small></div></div>`
       : '<p class="today-dashboard-no-appointment">No upcoming appointment saved.</p>';
@@ -1826,7 +1920,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (symptoms.length) context.push(`Recent symptom notes: ${symptoms.join(' | ')}`);
     }
     if (values.useMedications) {
-      const medications = state.medications.slice(0, 8).map(item => [compact(item.name, 100), compact(item.dose, 60), compact(item.frequency, 60), item.time ? formatTime(item.time) : '', compact(item.status, 30)].filter(Boolean).join(' · '));
+      const medications = state.medications.slice(0, 8).map(item => [compact(item.name, 100), compact(item.dose, 60), compact(item.frequency, 60), item.time ? formatTime(item.time) : '', doseStatus.summary(item).label, 'self-reported; other doses may remain'].filter(Boolean).join(' · '));
       if (medications.length) context.push(`Medication schedule for organisation only: ${medications.join(' | ')}`);
     }
     if (values.useAppointments) {
@@ -1865,35 +1959,98 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     void sendChat(prompt);
   }
 
-  function openCareSummary() {
+  function buildCareSummaryGroups(snapshot) {
     const latest = items => items.slice().sort((a,b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0,100);
-    const symptoms = latest(state.timeline.filter(item => item.type === 'symptom'));
-    const measurements = latest(state.measurements);
-    const notes = latest(state.timeline.filter(item => item.type === 'medication'));
-    const groups = [
-      { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(item => [symptomName(item), item.date, item.time, symptomSeverity(item.severity) === null ? '' : `Intensity: ${symptomSeverity(item.severity)}/10`, item.duration, item.context, item.triggers, item.notes || item.description].filter(Boolean).join(' · ')) },
-      { title: 'Current saved medicines (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions].filter(Boolean).join(' · ')) },
-      { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
-      { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
+    const join = parts => parts.filter(value => value !== '' && value !== undefined && value !== null).join(' · ');
+    const symptoms = latest(snapshot.timeline.filter(item => item.type === 'symptom'));
+    const measurements = latest(snapshot.measurements);
+    const notes = latest(snapshot.timeline.filter(item => item.type === 'medication'));
+    const profile = snapshot.profile || {};
+    const profileValue = key => String(profile[key] || '').trim();
+    return [
+      { title: 'What I noticed', source: 'Saved symptom records', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(item => join([symptomName(item), item.date || 'Date not recorded', item.time, symptomSeverity(item.severity) === null ? '' : `Intensity: ${symptomSeverity(item.severity)}/10`, item.duration, item.context, item.triggers, item.notes || item.description])) },
+      { title: 'Saved medicines — confirm current use (not date filtered)', source: 'Saved medicine details; check current use, names and directions', items: snapshot.medications.map(item => join([item.name, item.dose, item.frequency, item.instructions, item.scanFieldsReviewed === true ? 'Label extraction checked by patient; not clinically verified' : 'Origin and label-review status not recorded'])) },
+      { title: 'Measurements recorded', source: 'Saved measurement records', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => join([item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic || 'not recorded'}` : '', item.date || 'Date not recorded', item.note])) },
+      { title: 'Medicine notes recorded', source: 'Saved medicine notes', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => join([item.date || 'Date not recorded', item.title, item.description])) },
+      { title: 'Allergies and reactions (not date filtered)', source: 'Patient-entered health profile; date not recorded', items: [profileValue('allergies') || 'Not recorded — allergy and reaction status unknown. This does not mean no known allergies.'] },
+      { title: 'Conditions and history (not date filtered)', source: 'Patient-entered health profile; date not recorded', items: [profileValue('conditions') || 'Not recorded — condition and history status unknown. This does not mean no conditions.'] },
+      { title: 'Relevant profile notes (not date filtered)', source: 'Patient-entered health profile; date not recorded', items: profileValue('notes') ? [profileValue('notes')] : [] }
     ];
-    careSummaryDraft = { groups, appointments: state.appointments.slice(), html: '' };
+  }
+
+  function buildCareSummaryContent(groups, chosen, values, appointment, today) {
+    const since = briefDate(values.since);
+    const priorities = String(values.focus || '').trim().slice(0,500).split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+    const questions = String(values.questions || '').trim().slice(0,2000).split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+    if (priorities.length > 3) return { error: 'Choose up to three priorities for this visit. Put other topics in your questions.' };
+    const sections = [];
+    if (appointment) {
+      const text = [appointment.title, appointment.provider, appointment.date, appointment.time, appointment.location, appointment.note || appointment.notes].filter(Boolean).join(' · ');
+      if (text) sections.push(`Appointment\n${text}\nSource: saved appointment details.`);
+    }
+    if (priorities.length) sections.push(`My priorities for this visit\n${priorities.map(value => `- ${value}`).join('\n')}`);
+    groups.forEach((group, g) => {
+      const selected = group.items.filter((value, i) => {
+        if (!chosen.has(`${g}:${i}`)) return false;
+        if (!group.dates) return true;
+        const date = briefDate(group.dates[i]);
+        return (!since || (date && date >= since)) && (!date || date <= today);
+      });
+      if (selected.length) sections.push(`${group.title}\nSource: ${group.source}.\n${selected.map(value => `- ${value || 'Saved entry has no details; check the original record.'}`).join('\n')}`);
+    });
+    if (questions.length) sections.push(`Questions to ask\n${questions.map(value => `- ${value}`).join('\n')}`);
+    if (!sections.length) return { error: 'Select a health detail or add a priority or question to build your visit brief first.' };
+    return { text: sections.join('\n\n'), period: since ? `Dated notes from ${since} through ${today}, inclusive.` : `Available notes through ${today}; selected entries without a valid date retain their recorded date or missing-date label.` };
+  }
+
+  function careSummaryBodyMarkup(text) {
+    return String(text || '').split(/\r?\n\s*\r?\n/).filter(block => block.trim()).map(block => {
+      const [heading, ...lines] = block.split(/\r?\n/);
+      let markup = '', bullets = [];
+      const finishList = () => {
+        if (bullets.length) markup += `<ul>${bullets.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul>`;
+        bullets = [];
+      };
+      lines.forEach(line => {
+        if (line.startsWith('- ')) bullets.push(line.slice(2));
+        else { finishList(); markup += `<p>${escapeHTML(line)}</p>`; }
+      });
+      finishList();
+      return `<section><h2>${escapeHTML(heading)}</h2>${markup}</section>`;
+    }).join('');
+  }
+
+  function refreshCareSummaryReview(reviewed) {
+    if (!careSummaryDraft) return;
+    const approved = Boolean(reviewed && String(careSummaryDraft.text || '').trim());
+    careSummaryDraft.reviewedAt = approved ? new Date().toLocaleString('en-GB') : '';
+    const status = careSummaryDraft.reviewedAt ? `Patient reviewed ${careSummaryDraft.reviewedAt}. This is not clinical verification.` : 'Patient review pending.';
+    careSummaryDraft.html = `<h1>My visit brief</h1><p>Prepared by patient · Generated ${escapeHTML(careSummaryDraft.generatedAt)}</p><p>${escapeHTML(status)}</p><p>${escapeHTML(careSummaryDraft.period)} Saved medicines and profile information are not date filtered.</p>${careSummaryBodyMarkup(careSummaryDraft.text)}<hr><p>Prepared from selected saved records and any edits by the patient. Omitted information is not a confirmed negative; unknown status is not the same as no allergies or conditions. This may not be a complete medical record. Details and sources have not been independently verified. No AI request was used to build this brief. Check details with your clinician; DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
+    const preview = $('#care-summary-reviewed');
+    if (preview) preview.innerHTML = careSummaryDraft.html;
+    els.modalBody.querySelectorAll('[data-print-care-summary], [data-copy-care-summary]').forEach(button => { button.disabled = !approved; });
+  }
+
+  function openCareSummary() {
+    const groups = buildCareSummaryGroups(state);
+    careSummaryDraft = { groups, appointments: state.appointments.slice(), html: '', text: '', reviewedAt: '' };
     const today = briefLocalDate(new Date());
     const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
     const lastVisit = state.appointments.map(item => briefDate(item.date)).filter(date => date && date < today).sort().at(-1);
     const since = lastVisit || briefLocalDate(monthAgo);
     setModal('Prepare for my appointment', 'Build your discussion checklist', `<form class="care-summary-form" data-care-summary-form>
-      <p>Choose the health details you want to discuss, add your own questions, then review the checklist before copying or printing it. Nothing is selected automatically, and it stays on this device until you choose to share.</p>
+      <p>Choose the health details you want to discuss, add your priorities and questions, then review the brief before copying or printing it. Nothing is selected automatically. Building this brief does not send your information to AI.</p>
       <label>Show notes from<input type="date" name="since" value="${since}" max="${today}"></label>
       <p>${lastVisit ? 'Starts at your latest past appointment date. Change it if that visit did not take place.' : 'Starts with the last 30 days. Choose the date of your last visit, or clear it to see all available notes.'}</p>
       <p data-brief-count role="status"></p>
-      <label>What matters most at this visit?<textarea name="focus" rows="2" maxlength="500" placeholder="The one thing I most want to discuss…"></textarea></label>
+      <label>What matters most at this visit? Up to three priorities<textarea name="focus" rows="3" maxlength="500" placeholder="Add one priority per line, up to three."></textarea></label>
       <label>Appointment (optional)<select name="appointment"><option value="">No appointment selected</option>${careSummaryDraft.appointments.map((item,i) => `<option value="${i}">${escapeHTML([item.title,item.date].filter(Boolean).join(' · '))}</option>`).join('')}</select></label>
       ${groups.map((group,g) => `<fieldset><legend>${escapeHTML(group.title)}</legend>${group.items.map((text,i) => `<label class="care-summary-choice"${group.dates ? ` data-brief-date="${group.dates[i]}"` : ''}><input type="checkbox" name="entry" value="${g}:${i}"><span>${escapeHTML(text || 'Saved entry — check details before sharing')}</span></label>`).join('')}<p data-brief-empty>No saved records in this date range. You can still add your main concern and questions.</p></fieldset>`).join('')}
       <p data-brief-empty-all>No saved records in this period yet. Start with what matters most and the questions you want to ask.</p>
-      <p>Nothing is selected automatically. Up to 100 recent records per dated section are available. Clear the date to include records with missing or older date formats. Medicine details are your saved notes, not verified prescription instructions.</p>
+      <p>Nothing is selected automatically. Up to 100 recent records per dated section are available. Clear the date to include records with missing or older date formats. Medicines and profile details are not date filtered. Empty allergy and condition fields mean unknown status; include that status only if you choose it. A saved “none known” statement is included exactly as entered, not clinically verified.</p>
       <label>Questions or topics to discuss<textarea name="questions" rows="3" maxlength="2000" placeholder="Add one question or discussion point per line."></textarea></label>
       <p>Check dates, names and doses before sharing. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>
-      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my checklist <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
     updateBriefPeriod(form);
@@ -1905,30 +2062,30 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     updateBriefPeriod(form);
     const chosen = new Set([...form.querySelectorAll('.care-summary-choice:not([hidden]) input:checked')].map(input => input.value));
     const selectedAppointment = data.get('appointment');
-    const appointment = selectedAppointment === '' ? null : careSummaryDraft.appointments[Number(selectedAppointment)];
-    const groupPrompts = ['Discuss symptoms', 'Review saved medicine details', 'Discuss measurements', 'Review medicine notes'];
-    const discussionItems = [];
-    const focusItems = String(data.get('focus') || '').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
-    focusItems.forEach(value => discussionItems.push(`Main concern: ${value}`));
-    careSummaryDraft.groups.forEach((group, g) => group.items.forEach((value, i) => {
-      if (chosen.has(`${g}:${i}`)) discussionItems.push(`${groupPrompts[g] || 'Discuss this detail'}: ${value}`);
-    }));
-    const questions = String(data.get('questions') || '').trim().slice(0,2000);
-    const questionItems = questions.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
-    questionItems.forEach(value => discussionItems.push(`Ask: ${value}`));
-    const since = briefDate(data.get('since'));
-    if (!discussionItems.length && appointment) {
-      const appointmentLabel = [appointment.title, appointment.date].filter(Boolean).join(' · ');
-      if (appointmentLabel) discussionItems.push(`Appointment: ${appointmentLabel}`);
-    }
-    if (!discussionItems.length) { showToast('Select a health detail or add a question to build your discussion checklist first.'); return; }
+    const appointment = /^\d+$/.test(String(selectedAppointment || '')) ? careSummaryDraft.appointments[Number(selectedAppointment)] : null;
+    const content = buildCareSummaryContent(careSummaryDraft.groups, chosen, { since: data.get('since'), focus: data.get('focus'), questions: data.get('questions') }, appointment, briefLocalDate(new Date()));
+    if (content.error) { showToast(content.error); form.elements.focus.focus(); return; }
+    const unchanged = careSummaryDraft.sourceText === content.text && careSummaryDraft.period === content.period;
+    if (!unchanged && careSummaryDraft.sourceText && careSummaryDraft.text !== careSummaryDraft.sourceText) careSummaryDraft.previousEditedText = careSummaryDraft.text;
     careSummaryDraft.form = form;
-    careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Current saved medicines are not date filtered.</p>${appointment ? `<section><h2>Appointment</h2><p>${escapeHTML([appointment.title,appointment.provider,appointment.date,appointment.time,appointment.location,appointment.note || appointment.notes].filter(Boolean).join(' · '))}</p></section>` : ''}<section><h2>My discussion checklist</h2><ul>${discussionItems.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section><hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
-    setModal('Review my appointment checklist', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this checklist and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy checklist</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    careSummaryDraft.generatedAt = new Date().toLocaleString('en-GB');
+    careSummaryDraft.period = content.period;
+    if (!unchanged) careSummaryDraft.text = content.text;
+    careSummaryDraft.sourceText = content.text;
+    const previousEdits = careSummaryDraft.previousEditedText ? `<details><summary>Earlier edits for reference</summary><p>Your choices changed, so the brief was rebuilt from those choices. These earlier edits are kept here for reference and are not included in copying or printing. Reapply only details you intend to share.</p><label>Earlier brief edits<textarea rows="8" readonly>${escapeHTML(careSummaryDraft.previousEditedText)}</textarea></label></details>` : '';
+    setModal('Review my visit brief', 'Review before sharing', `<div class="care-summary-review care-summary-form"><p><b>Check names, dates, doses and unknown details before sharing.</b> Edit this brief below, or go back to change selected records. Edits here do not change the saved originals.</p><details><summary>Edit the brief text</summary><label>Brief content<textarea data-care-summary-text rows="14">${escapeHTML(careSummaryDraft.text)}</textarea></label></details>${previousEdits}<article id="care-summary-reviewed"></article><label class="care-summary-choice"><input type="checkbox" data-care-summary-confirm><span>I have checked this brief and it contains only the information I intend to share. This does not confirm clinical accuracy.</span></label><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary disabled>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary disabled>Copy visit brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    const confirmation = $('[data-care-summary-confirm]');
+    confirmation.addEventListener('change', () => refreshCareSummaryReview(confirmation.checked));
+    $('[data-care-summary-text]').addEventListener('input', event => {
+      careSummaryDraft.text = event.target.value;
+      confirmation.checked = false;
+      refreshCareSummaryReview(false);
+    });
+    refreshCareSummaryReview(false);
   }
 
   function printCareSummary() {
-    if (!careSummaryDraft?.html) return;
+    if (!careSummaryDraft?.html || !careSummaryDraft.reviewedAt) return;
     const old = $('#care-summary-print');
     if (old) old.remove();
     const printRoot = document.createElement('article');
@@ -2401,6 +2558,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     setModal('Edit your health profile', 'My Health', `<form class="modal-form" data-modal-form="health"><div class="modal-form-grid"><label class="modal-field"><span>Name</span><input name="name" value="${escapeHTML(state.profile.name)}"></label><label class="modal-field"><span>Blood type</span><input name="bloodType" value="${escapeHTML(state.profile.bloodType)}" placeholder="e.g. O positive"></label><label class="modal-field full"><span>Conditions and history</span><input name="conditions" value="${escapeHTML(state.profile.conditions)}" placeholder="Only what you choose to save"></label><label class="modal-field full"><span>Allergies and adverse reactions</span><input name="allergies" value="${escapeHTML(state.profile.allergies)}" placeholder="Include reaction if useful"></label><label class="modal-field full"><span>Relevant health notes</span><textarea name="notes" rows="3">${escapeHTML(state.profile.notes)}</textarea></label></div><p class="modal-help">You can delete these details by clearing a field, or remove all locally saved hub data from your browser settings.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save health profile <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
+  function openEmergencyModal() {
+    setModal('Edit emergency contact', 'Saved contact details', `<form class="modal-form" data-modal-form="emergency"><div class="modal-form-grid"><label class="modal-field full"><span>Contact name and relationship</span><input name="emergencyContact" maxlength="120" value="${escapeHTML(state.profile.emergencyContact || '')}" placeholder="Only the contact details you choose to save"></label><label class="modal-field full"><span>Phone number</span><input name="emergencyPhone" type="tel" maxlength="60" value="${escapeHTML(state.profile.emergencyPhone || '')}"></label></div><p class="modal-help">These are saved contact details, not an emergency service. Clearing a field removes it. In an emergency, contact your local emergency service now.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save contact details</button></div></form>`);
+  }
+
   function openTimelineModal() {
     setModal('Add a timeline entry', 'Health Timeline', `<form class="modal-form" data-modal-form="timeline"><div class="modal-form-grid"><label class="modal-field"><span>Entry type</span><select name="type"><option value="medication">Medication</option><option value="appointment">Appointment</option><option value="result">Test or result</option></select></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field full"><span>Title *</span><input name="title" required maxlength="100" placeholder="What happened?"></label><label class="modal-field full"><span>Short note</span><textarea name="description" rows="3" maxlength="500" placeholder="Add useful context without identifying details"></textarea></label></div><p class="modal-help">Use the dedicated Symptom Diary to record intensity and context in your own words.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Add to timeline <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
@@ -2416,6 +2577,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       updateChatCount();
     }
     window.setTimeout(() => els.chatInput?.focus(), 0);
+  }
+
+  function openDocumentTextExplanation() {
+    setModal('Explain text you choose', 'Optional AI request', `<form class="modal-form" data-document-text-form><p class="modal-help">DoctorAI has not read your uploaded file. Paste only the excerpt you want explained. You will review a draft message before choosing Send; the file itself is not attached. Remove identifying details you do not want to share with the AI provider.</p><label class="modal-field full"><span>Text to explain</span><textarea name="excerpt" rows="6" required maxlength="1500" placeholder="Paste selected text from your document"></textarea></label><p class="modal-help">If optional Health Memory is on, your approved details may also be included when you send the message. You can turn it off in Profile.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review message</button></div></form>`);
+    const form = $('[data-document-text-form]');
+    form?.addEventListener('submit', event => {
+      event.preventDefault();
+      const excerpt = String(form.elements.excerpt.value || '').trim().slice(0, 1500);
+      if (!excerpt) { form.elements.excerpt.focus(); return; }
+      closeModal();
+      fillChat(`Explain the terminology in the following excerpt I chose to paste. Only this excerpt is supplied; the full document has not been read. Do not infer missing findings or diagnose me. Suggest questions for my clinician.\n\n${excerpt}`);
+      showToast('Review the pasted text and message before choosing Send. Your uploaded file is not attached.');
+    });
   }
 
   function prepareAppointment(appointment) {
@@ -2824,6 +2998,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!form) return;
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form).entries());
+    if (form.dataset.modalForm === 'dose-history') { pruneDoseHistory(form, values); return; }
     if (form.dataset.modalForm === 'today-checkin') { createTodayPlan(form, values); return; }
     const today = new Date().toISOString().slice(0, 10);
     let destinationView = '';
@@ -2937,6 +3112,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'result', date: values.date, title: `${values.type.replace('-', ' ')} logged`, description: values.value, icon: '⌁' });
       renderMeasurement(values.type);
       showToast('Measurement added to your trends.');
+    } else if (form.dataset.modalForm === 'emergency') {
+      state.profile = { ...state.profile, emergencyContact: String(values.emergencyContact || '').trim().slice(0, 120), emergencyPhone: String(values.emergencyPhone || '').trim().slice(0, 60) };
+      postSaveToast = 'Emergency contact details saved.';
     } else if (form.dataset.modalForm === 'health') {
       const oldProfile = state.profile;
       const nextAllergies = values.allergies || '';
@@ -3253,6 +3431,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-print-care-summary]')) { event.preventDefault(); printCareSummary(); return; }
     if (event.target.closest('[data-copy-care-summary]')) {
       event.preventDefault();
+      if (!careSummaryDraft?.reviewedAt) { showToast('Review and confirm your brief before copying it.'); return; }
       const text = $('#care-summary-reviewed')?.innerText;
       if (!text) return;
       if (!navigator.clipboard?.writeText) { showToast('Copy is unavailable here. Use Print / save as PDF instead.'); return; }
@@ -3335,6 +3514,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (modalType === 'symptom') openSymptomModal();
       if (modalType === 'measurement') openMeasurementModal();
       if (modalType === 'health') openHealthModal();
+      if (modalType === 'emergency') openEmergencyModal();
       if (modalType === 'timeline') openTimelineModal();
       return;
     }
@@ -3407,16 +3587,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (event.target.closest('[data-add-menu]')) { event.preventDefault(); setMobileMenuOpen(false); closeProfile(); showView('add', true, true); return; }
     if (event.target.closest('[data-api-permissions]')) { event.preventDefault(); openApiPermissions(); return; }
+    const manageDoseRecords = event.target.closest('[data-manage-dose-records]');
+    if (manageDoseRecords) { event.preventDefault(); openDoseHistory(manageDoseRecords.dataset.manageDoseRecords); return; }
     const medToggle = event.target.closest('[data-med-toggle]');
     if (medToggle) {
       const medication = state.medications.find(item => item.id === medToggle.dataset.medToggle);
-      if (medication) { medication.status = medication.status === 'taken' ? 'due' : 'taken'; saveState(); renderTodayMedications(); renderMedicationLibrary(); showToast(medication.status === 'taken' ? `${medication.name} marked as taken.` : `${medication.name} returned to due.`); }
+      if (medication) recordMedicationDose(medication, 'taken');
       return;
     }
     const medMissed = event.target.closest('[data-med-missed]');
     if (medMissed) {
       const medication = state.medications.find(item => item.id === medMissed.dataset.medMissed);
-      if (medication) { medication.status = 'missed'; saveState(); renderTodayMedications(); renderMedicationLibrary(); showToast(`${medication.name} marked as missed. Consider contacting a pharmacist if you are unsure what to do next.`); }
+      if (medication) recordMedicationDose(medication, 'missed');
+      return;
+    }
+    const medUndo = event.target.closest('[data-med-undo]');
+    if (medUndo) {
+      const medication = state.medications.find(item => item.id === medUndo.dataset.medUndo);
+      if (medication && doseStatus.undoLatestToday(medication)) { saveState(); renderTodayMedications(); renderTodayOverview(); renderMedicationLibrary(); showToast('Latest dose record from today removed. Earlier records are kept.'); }
       return;
     }
     const taskToggle = event.target.closest('[data-task-toggle]');
@@ -3435,9 +3623,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const trendTarget = event.target.closest('[data-range]');
     if (trendTarget) { renderMeasurement(trendTarget.dataset.range); return; }
     const resultExplain = event.target.closest('[data-explain-result]');
-    if (resultExplain) { fillChat(`Please explain the medical terminology in “${resultExplain.dataset.explainResult}” in easy-to-understand language, and suggest questions I could ask my clinician. Do not diagnose me.`); return; }
+    if (resultExplain) { event.preventDefault(); openDocumentTextExplanation(); return; }
     const documentExplain = event.target.closest('[data-explain-document]');
-    if (documentExplain) { fillChat(`Help me organise and explain the health document “${documentExplain.dataset.explainDocument}” in plain language. Remind me that a clinician should interpret it in context.`); return; }
+    if (documentExplain) { event.preventDefault(); openDocumentTextExplanation(); return; }
     const documentView = event.target.closest('[data-document-view]');
     if (documentView) {
       event.preventDefault();
@@ -3677,17 +3865,23 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   window.addEventListener('hashchange', restoreHubLocation);
   window.addEventListener('popstate', restoreHubLocation);
   document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { refreshMedicationDay(); scheduleMedicationDayRefresh(); }
     if (document.hidden && els.medicationScannerModal?.open) {
       stopMedicationScannerCamera();
       medicationScannerStatus('Scanner paused when DoctorAI moved to the background. Close and reopen it to continue.', 'idle');
     }
   });
   window.addEventListener('pagehide', stopMedicationScannerCamera);
+  window.addEventListener('focus', () => { refreshMedicationDay(); scheduleMedicationDayRefresh(); });
+  window.addEventListener('pageshow', () => { refreshMedicationDay(); scheduleMedicationDayRefresh(); });
+  window.setInterval(() => { if (refreshMedicationDay()) scheduleMedicationDayRefresh(); }, 60000);
   window.addEventListener('load', configureGoogleSignIn);
 
   const initialView = location.hash.slice(1);
   const termsQuery = new URLSearchParams(location.search).get('terms') === '1';
   renderAll();
+  refreshMedicationDay();
+  scheduleMedicationDayRefresh();
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }

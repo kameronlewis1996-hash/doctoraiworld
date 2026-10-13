@@ -75,9 +75,9 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
   let finishGet, finishPost, posts = 0; const rendered = [];
-  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, entitlementReady: false, authUser: null, googleCredentialInFlight: false,
+  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'pending', entitlementReady: false, authUser: null, googleCredentialInFlight: false,
     renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
-    closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
+    renderStorageStatus() {}, closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });
   vm.runInContext(source.slice(source.indexOf('  async function loadAccountSession('), source.indexOf('  async function loadEntitlement(')) + source.slice(source.indexOf('  async function handleGoogleCredential('), source.indexOf('  function openGoogleSignIn(')), sandbox);
   const oldGet = sandbox.loadAccountSession();
@@ -86,6 +86,7 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   finishPost({ ok: true, json: async () => ({ user: { email: 'new-fictional@example.invalid' }, medicationLoginId: 'b'.repeat(64) }) }); await login;
   finishGet({ ok: true, json: async () => ({ authenticated: true, user: { email: 'old-fictional@example.invalid' }, medicationLoginId: 'a'.repeat(64) }) }); await oldGet;
   assert.deepEqual(rendered, ['new-fictional@example.invalid']); assert.equal(sandbox.googleCredentialInFlight, false);
+  assert.equal(sandbox.accountSessionVerification, 'verified', 'An older account lookup cannot undo the verified state of a successful login');
   // Sign-out during either auth POST or entitlement refresh must suppress late login rendering.
   for (const phase of ['auth', 'entitlement']) {
     rendered.length = 0; sandbox.authUser = { email: 'same-fictional@example.invalid' };

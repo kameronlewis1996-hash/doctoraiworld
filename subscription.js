@@ -49,7 +49,10 @@
     if (subscribeButton) subscribeButton.disabled = !available;
     if (confirmCheckoutButton) confirmCheckoutButton.disabled = !(available && termsConfirm?.checked);
   };
-  const formatUsd = amount => `US$${(Number(amount) / 100).toFixed(2)}`;
+  const currencyLabels = { USD: 'US$', NZD: 'NZ$' };
+  const formatMoney = (amount, currency) => new Intl.NumberFormat('en-NZ', {
+    style: 'currency', currency, currencyDisplay: 'narrowSymbol', minimumFractionDigits: 2, maximumFractionDigits: 2
+  }).formatToParts(amount / 100).map(part => part.type === 'currency' ? currencyLabels[currency] : part.value).join('');
   const setPlan = plan => {
     const selected = plan === 'annual' ? 'annual' : 'monthly';
     if (!planIsAvailable(selected)) return false;
@@ -63,20 +66,25 @@
     const current = planPricing[selected];
     const monthly = planPricing.monthly;
     const yearly = planPricing.annual;
+    const matchingCurrencies = monthly?.available && yearly?.available && monthly.currency === yearly.currency;
+    const mixedCurrencies = monthly?.available && yearly?.available && !matchingCurrencies;
     const annualEquivalent = yearly?.available ? yearly.amount / 12 : 0;
-    const savings = monthly?.available && annualEquivalent > 0 && annualEquivalent < monthly.amount
+    const savings = matchingCurrencies && annualEquivalent > 0 && annualEquivalent < monthly.amount
       ? Math.round((1 - annualEquivalent / monthly.amount) * 100)
       : 0;
     const savingsBadge = document.querySelector('[data-annual-savings]');
     if (savingsBadge) savingsBadge.textContent = savings ? `Save ${savings}%` : '';
-    if (price) price.textContent = formatUsd(current.amount);
+    if (price) price.textContent = formatMoney(current.amount, current.currency);
     if (period) period.textContent = current.interval === 'year' ? '/ year' : '/ month';
-    if (equivalent) equivalent.textContent = annual
-      ? `Equivalent to ${formatUsd(annualEquivalent)} a month${savings ? ` · save ${savings}%` : ''}`
-      : savings ? `Billed monthly · save ${savings}% with annual billing` : 'Billed monthly';
-    const planSummary = `${formatUsd(current.amount)} / ${current.interval}`;
+    if (equivalent) {
+      if (annual) equivalent.textContent = mixedCurrencies
+        ? 'Billed yearly'
+        : `Equivalent to ${formatMoney(annualEquivalent, current.currency)} a month${savings ? ` · save ${savings}%` : ''}`;
+      else equivalent.textContent = savings ? `Billed monthly · save ${savings}% with annual billing` : 'Billed monthly';
+    }
+    const planSummary = `${formatMoney(current.amount, current.currency)} / ${current.interval}`;
     if (selectedPlan) selectedPlan.textContent = planSummary;
-    if (renewalNote) renewalNote.textContent = `You will be charged ${formatUsd(current.amount)} ${current.interval === 'year' ? 'yearly' : 'monthly'}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
+    if (renewalNote) renewalNote.textContent = `You will be charged ${formatMoney(current.amount, current.currency)} ${current.interval === 'year' ? 'yearly' : 'monthly'}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
     syncPlanControls();
     return true;
   };
@@ -89,6 +97,8 @@
     if (equivalent) equivalent.textContent = 'Subscription pricing is temporarily unavailable. The Free plan is still available.';
     if (selectedPlan) selectedPlan.textContent = 'Subscription pricing unavailable';
     if (renewalNote) renewalNote.textContent = 'Checkout cannot start until a valid Stripe subscription price is available.';
+    const savingsBadge = document.querySelector('[data-annual-savings]');
+    if (savingsBadge) savingsBadge.textContent = '';
     setCheckoutStatus('Subscription pricing is temporarily unavailable. Please try again later.', 'error');
     syncPlanControls();
   };
@@ -104,7 +114,7 @@
         const item = raw[name];
         planPricing[name] = item?.available === true
           && Number.isSafeInteger(item.amount) && item.amount > 0
-          && item.currency === 'USD' && item.interval === interval
+          && Object.hasOwn(currencyLabels, item.currency) && item.interval === interval
           ? { available: true, amount: item.amount, currency: item.currency, interval }
           : { available: false, interval };
       }
