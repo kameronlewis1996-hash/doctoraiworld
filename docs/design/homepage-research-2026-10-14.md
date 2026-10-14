@@ -69,3 +69,7 @@ Checks on 14 October 2026:
 The automated browser origin gate rejected content observation because a saved permission or managed policy denies access to `https://www.doctoraiworld.com`. No alternate browser, indirect fetch, headless render or local rendering workaround was used to obtain that denied visual evidence. There are no current before/after screenshots. CSS and responsive appearance, native FAQ keyboard behaviour and focus visibility still need rendered review. The Product Design audit rule is explicit: “Do not claim an audit if the actual flow could not be accessed and captured.”
 
 The release's PR and deployment metadata are the authority for its final commit and production state. Build/deployment readiness does not establish clinical validation, native-device readiness, store approval or visual/accessibility acceptance.
+
+## User logo correction
+
+On 14 October, the user asked to keep the usual logo and confirmed they like the layout. The header and footer now use the original, unedited `doctorai-public-logo-transparent.png?v=10` asset. The reconstructed text wordmarks were removed; layout and other styling are retained. Contained image boxes preserve the logo proportions.
