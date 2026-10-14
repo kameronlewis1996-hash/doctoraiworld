@@ -30,6 +30,6 @@ The release uses shell v140 and `health-hub.js` v85. Its pull request records ch
 
 ## Remaining gates
 
-The user's 22-minute research request, researched homepage, explicit selected brief and recorded source corrections are implemented. The current Page still requires current desktop/mobile screenshots for Today, My health, Visit prep and Profile, responsive and keyboard/focus checks, navigation/return-path checks and relevant real interactions. Source fixtures establish only their own tested contracts.
+The requested research (22 minutes completed), researched homepage, explicit selected brief and recorded source corrections are implemented. The current Page still requires current desktop/mobile screenshots for Today, My health, Visit prep and Profile, responsive and keyboard/focus checks, navigation/return-path checks and relevant real interactions. Source fixtures establish only their own tested contracts.
 
 The saved browser-origin policy continues to prevent DoctorAI observation. No browser, raw fetch, headless or local-render workaround was used. Product Design audit requires actual captured screens before claiming an audit. Rendered design acceptance, browser editing/cancellation, real sign-in and sync, clipboard and print pagination remain unverified. These are the remaining external acceptance gates for this website request; native/store, billing or clinical-validation work is not added to its scope.
