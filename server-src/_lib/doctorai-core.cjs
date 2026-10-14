@@ -493,11 +493,12 @@ function isAdmin(account) {
 
 function validHealthState(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const allowed = ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memoryEnabled', 'memoryDetails'];
+  const allowed = ['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memoryEnabled', 'memoryDetails'];
   if (Object.keys(value).some(key => !allowed.includes(key))) return false;
   const serialized = JSON.stringify(value);
   if (serialized.length > 240000) return false;
-  return ['medications', 'appointments', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
+  if (value.providers !== undefined && !Array.isArray(value.providers)) return false;
+  return ['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
 }
 
 module.exports = {
