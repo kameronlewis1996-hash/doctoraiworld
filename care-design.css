@@ -258,3 +258,11 @@ body[data-hub-theme] #view-medications > .page-heading .medication-scan-button s
   #hub-shell #view-today .care-visit-card { padding:16px; }
   #hub-shell #view-today .care-pattern-card { padding:14px 0; }
 }
+
+/* Keep the person's agenda ahead of the supporting records in a reviewed brief. */
+.care-summary-review .care-brief-section{margin:24px 0;padding-top:18px;border-top:1px solid #d4e4ee}
+.care-summary-review .care-brief-section h2{font-size:20px;line-height:1.3;margin:0 0 12px;color:#14344e;overflow-wrap:anywhere}
+.care-summary-review .care-brief-section ul{margin:0;padding-left:22px}
+.care-summary-review .care-brief-section li+li{margin-top:8px}
+.care-summary-review .care-brief-priority{padding:18px;border:1px solid #b9cfdf;border-radius:14px;background:#f0f7fc}
+@media print{body.care-printing .care-print-root .care-brief-section{break-inside:auto;margin:6mm 0}body.care-printing .care-print-root h2{font-size:15pt;break-after:avoid}body.care-printing .care-print-root li{break-inside:avoid}}
