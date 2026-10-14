@@ -5,7 +5,7 @@
   <title>One Personal Health Hub for Care Conversations | DoctorAI</title>
   <meta name="description" content="Make DoctorAI your personal Health Hub for medicines, symptoms, appointments and questions. Choose what to add and prepare a summary for your care team.">
   <link rel="canonical" href="https://www.doctoraiworld.com/">
-  <meta name="theme-color" content="#f1f9ff">
+  <meta name="theme-color" content="#f7f9fc">
   <meta property="og:title" content="One Personal Health Hub for Care Conversations | DoctorAI"><meta property="og:description" content="Make DoctorAI your personal Health Hub for medicines, symptoms, appointments and questions. Choose what to add and prepare a summary for your care team."><meta property="og:type" content="website"><meta property="og:url" content="https://www.doctoraiworld.com/"><meta property="og:image" content="https://www.doctoraiworld.com/home-social-preview.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="DoctorAI World card for the free Health Hub, with blank sections for appointments, medicines and notes.">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="One Personal Health Hub for Care Conversations | DoctorAI"><meta name="twitter:description" content="Make DoctorAI your personal Health Hub for medicines, symptoms, appointments and questions. Choose what to add and prepare a summary for your care team."><meta name="twitter:image" content="https://www.doctoraiworld.com/home-social-preview.png"><meta name="twitter:image:alt" content="DoctorAI World card for the free Health Hub, with blank sections for appointments, medicines and notes.">
   <script type="application/ld+json">
@@ -32,22 +32,168 @@
     }
   </script>
   <link rel="icon" href="/doctorai-app-icon.png?v=10"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=6"><link rel="stylesheet" href="/resource-share.css?v=2"><script defer src="/feature-icons.js?v=8"></script><script defer src="/welcome.js?v=3"></script><script defer src="/resource-share.js?v=1"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=7"><link rel="stylesheet" href="/resource-share.css?v=2"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=3"></script><script defer src="/resource-share.js?v=1"></script>
 </head>
-<body>
-  <a class="landing-skip" href="#main">Skip to main content</a>
-  <header class="landing-header"><a href="/" aria-label="DoctorAI home"><img src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI World" width="168" height="84"></a><nav aria-label="Main"><a href="#how-it-works">How it works</a><a href="#features">Features</a><a href="/subscription">Pro</a><a href="/health-hub#profile">Sign in</a><a class="landing-button" href="/health-hub">Open the free Health Hub <span aria-hidden="true">→</span></a></nav></header>
-  <main id="main" tabindex="-1">
-    <section class="landing-hero" aria-labelledby="hero-title">
-      <div class="landing-intro"><p class="landing-kicker">Free Personal Health Hub</p><h1 id="hero-title">Your health, <span>all in one hub.</span></h1><p class="landing-lead">Keep medicines, symptoms, appointments and questions together. Before a visit, choose what to include in a summary for your care team.</p><div class="landing-actions"><a class="landing-button" href="/health-hub">Open the free Health Hub</a><a class="landing-secondary" href="#how-it-works">See how it works <span aria-hidden="true">→</span></a></div><p class="landing-meta">Your record starts empty. You stay in control.</p></div>
-      <aside class="landing-mobile" aria-label="A look inside your health hub"><div class="mobile-preview-top"><img src="/doctorai-head-logo-transparent.png?v=10" alt="" width="34" height="34"><span>Your health, today</span></div><div class="landing-visit"><span class="landing-kicker">Your next step</span><h2>Feel ready for your next visit</h2><p>Review the details you choose to share.</p><a href="/health-hub#summary">Prepare my visit brief <span aria-hidden="true">→</span></a></div><div class="landing-tiles"><a class="coral" href="/health-hub#symptoms"><span aria-hidden="true" data-doctorai-icon="pulse" data-icon-size="28"></span>Log a symptom</a><a class="blue" href="/health-hub#medications"><span aria-hidden="true" data-doctorai-icon="capsule" data-icon-size="28"></span>Medicines</a><a class="mint" href="/health-hub#documents"><span aria-hidden="true" data-doctorai-icon="folder" data-icon-size="28"></span>Documents</a><a class="violet" href="/health-hub#appointments"><span aria-hidden="true" data-doctorai-icon="calendar" data-icon-size="28"></span>Appointments</a></div><p class="landing-note">Your record starts empty. You decide what to add.</p></aside>
+<body class="doctorai-homepage">
+  <a class="home-skip" href="#main">Skip to main content</a>
+  <header class="home-header home-wrap">
+    <a class="home-brand" href="/" aria-label="DoctorAI World home">
+      <img src="/doctorai-head-logo-transparent.png?v=10" alt="" width="48" height="48">
+      <span>Doctor<span class="home-brand-ai">AI</span><small>WORLD</small></span>
+    </a>
+    <nav class="home-nav" aria-label="Main">
+      <a class="home-nav-page" href="#how-it-works">How it works</a>
+      <a class="home-nav-page" href="#features">Inside the hub</a>
+      <a class="home-nav-page" href="/subscription">Pro</a>
+      <a class="home-nav-signin" href="/health-hub#profile">Sign in</a>
+      <a class="home-button home-button-small" href="/health-hub">Open Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+    </nav>
+  </header>
+
+  <main class="home-wrap" id="main" tabindex="-1">
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div class="home-hero-copy">
+        <p class="home-eyebrow">The free personal Health Hub</p>
+        <h1 id="hero-title">Your health,<em>all in one hub.</em></h1>
+        <p class="home-lead">Keep your health notes, medicine details and questions together. Choose what goes into your visit brief, review it, and bring it to your next appointment.</p>
+        <div class="home-actions">
+          <a class="home-button" href="/health-hub">Open my Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+          <a class="home-text-link" href="#how-it-works">See how it works <span data-doctorai-icon="chevronDown" data-icon-size="flex" aria-hidden="true"></span></a>
+        </div>
+        <p class="home-control-note">Your record starts empty. You choose what to add.</p>
+      </div>
+
+      <aside class="home-brief-stage" aria-labelledby="brief-example-title">
+        <p class="home-stage-label">For your next care conversation</p>
+        <article class="home-brief">
+          <div class="home-brief-heading">
+            <span class="home-icon" data-doctorai-icon="carePack" data-icon-size="flex" aria-hidden="true"></span>
+            <p class="home-eyebrow">Example visit brief</p>
+          </div>
+          <h2 id="brief-example-title">The details you want<br>to discuss.</h2>
+          <p class="home-brief-intro">Your brief can include:</p>
+          <dl class="home-brief-rows">
+            <div>
+              <dt><span data-doctorai-icon="pulse" data-icon-size="flex" aria-hidden="true"></span>What I noticed</dt>
+              <dd>Selected notes and dates</dd>
+            </div>
+            <div>
+              <dt><span data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span>My medicine details</dt>
+              <dd>From the information I've saved</dd>
+            </div>
+            <div>
+              <dt><span data-doctorai-icon="chat" data-icon-size="flex" aria-hidden="true"></span>Questions to ask</dt>
+              <dd>The priorities I want to discuss</dd>
+            </div>
+          </dl>
+          <p class="home-brief-note">Example only. You choose the details in your brief.</p>
+        </article>
+        <ol class="home-brief-sequence" aria-label="Preparing a visit brief">
+          <li>Choose details</li><li>Review</li><li>Copy or print</li>
+        </ol>
+      </aside>
     </section>
-    <section class="landing-summary" id="summary-example" aria-labelledby="summary-title"><div class="summary-caption"><div><p class="landing-kicker">For you and your care team</p><h2 id="summary-title">A clear visit brief, built from what you choose.</h2></div><img src="/doctorai-head-logo-transparent.png?v=10" width="44" height="44" alt=""></div><div class="summary-columns"><article class="coral"><h3>What I noticed</h3><p>Choose symptom entries, dates and the context you recorded.</p></article><article class="blue"><h3>My medicines</h3><p>Review your saved medicine names and label details for accuracy.</p></article><article class="mint"><h3>Questions to ask</h3><p>Write what matters to you. Keep your questions in your own words.</p></article></div><div class="summary-bottom"><span>Choose entries</span><span>Review your summary</span><span>Print or save as PDF</span></div><p class="landing-note">Choose the entries, review your brief, then print or save it to bring to your clinician. It is built on your device from the details you select; no AI request is needed to prepare it.</p></section>
-    <section class="landing-steps" id="how-it-works" aria-label="How DoctorAI works"><article><span class="step-number">01</span><h2>Log your day</h2><p>Capture symptoms, medicines and the details you want to remember.</p></article><article><span class="step-number">02</span><h2>Notice patterns</h2><p>Review repeated observations in your log—not diagnoses or confirmed causes.</p></article><article><span class="step-number">03</span><h2>Prepare for care</h2><p>Bring a clear, personal summary to your next conversation with a clinician.</p></article></section>
-    <section class="landing-features" id="features"><div><p class="landing-kicker">Start simple. Keep what is useful.</p><h2>A hub that grows with your needs.</h2><p>Use the core hub to organise notes, symptoms, medications and appointments. Explore Pro for additional tools, including private document uploads.</p><a class="landing-secondary" href="/subscription">Compare Free and Pro <span aria-hidden="true">→</span></a><a class="landing-secondary" href="/medication-list-template">Free medication list template <span aria-hidden="true">→</span></a><a class="landing-secondary" href="/appointment-checklist">Free New Zealand doctor appointment checklist <span aria-hidden="true">→</span></a></div><div class="landing-control"><h3>Your choices stay yours.</h3><p>Choose device or session storage. Review what you share. Export or delete your hub information from Privacy controls.</p><a href="/privacy">Read the privacy notice</a></div></section>
-    <section class="landing-share" aria-label="Share the free Health Hub"><div><h2>Share a useful starting point.</h2><p>Share the public homepage link. No Health Hub information is included.</p></div><div><button class="landing-secondary" data-share-resource data-share-title="One Personal Health Hub for Care Conversations | DoctorAI" data-share-text="Share the free DoctorAI Health Hub for organising health details and preparing for care conversations." type="button">Share the free Health Hub</button><input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public homepage link to share"><span class="resource-share-status" data-share-status role="status" aria-live="polite"></span></div></section>
-    <aside class="landing-safety"><strong>Organisation and education—not medical care.</strong><p>DoctorAI is not a doctor. It does not diagnose, prescribe or replace professional advice. Optional Pro scanning helps capture label details; it does not verify drug interactions or determine whether a medicine is safe for you. For an emergency, contact your local emergency service. Do not wait for DoctorAI.</p></aside>
+
+    <div class="home-topics" aria-label="What you can keep in your Health Hub">
+      <p>A place for the details<br>between appointments.</p>
+      <ul>
+        <li><span data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span>Medicines</li>
+        <li><span data-doctorai-icon="pulse" data-icon-size="flex" aria-hidden="true"></span>Symptom notes</li>
+        <li><span data-doctorai-icon="calendar" data-icon-size="flex" aria-hidden="true"></span>Appointments</li>
+        <li><span data-doctorai-icon="chat" data-icon-size="flex" aria-hidden="true"></span>Your questions</li>
+      </ul>
+    </div>
+
+    <section class="home-journey" id="how-it-works" aria-labelledby="journey-title">
+      <div class="home-section-heading">
+        <div>
+          <p class="home-eyebrow">For you and your care team</p>
+          <h2 id="journey-title">Keep the details.<br><em>Prepare the conversation.</em></h2>
+        </div>
+        <p>Bring a personal brief of the saved details and questions you want to discuss. A clearer starting point for your appointment.</p>
+      </div>
+      <ol class="home-steps">
+        <li><span class="home-step-number">01</span><h3>Keep a note</h3><p>Record symptoms, medicine details, appointments and the questions you want to remember.</p></li>
+        <li><span class="home-step-number">02</span><h3>Choose for this visit</h3><p>Select the saved entries and add your own questions. Nothing is selected automatically.</p></li>
+        <li><span class="home-step-number">03</span><h3>Review and bring</h3><p>Check your brief, then copy it, print it or save it as a PDF using your browser's print dialog.</p></li>
+      </ol>
+      <div class="home-journey-bottom">
+        <a class="home-button home-button-light" href="/health-hub#visit-prep">Prepare my visit brief <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+        <p>Your brief is built on your device from the details you select. Preparing it does not need an AI request.</p>
+      </div>
+    </section>
+
+    <section class="home-features" id="features" aria-labelledby="features-title">
+      <div class="home-section-heading">
+        <div><p class="home-eyebrow">Inside your Health Hub</p><h2 id="features-title">One place to<br><em>come back to.</em></h2></div>
+        <p>Four familiar destinations keep the everyday details and your next appointment within reach.</p>
+      </div>
+      <div class="home-destination-grid">
+        <article class="home-destination">
+          <span class="home-destination-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>
+          <div><h3><a href="/health-hub#today">Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>See the medicines, appointments and tasks you've recorded for your day.</p></div>
+        </article>
+        <article class="home-destination">
+          <span class="home-destination-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>
+          <div><h3><a href="/health-hub#health">My health <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Review the health details you've saved and find your health tools.</p></div>
+        </article>
+        <article class="home-destination">
+          <span class="home-destination-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>
+          <div><h3><a href="/health-hub#visit-prep">Visit prep <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Choose details and questions, then review a brief for your appointment.</p></div>
+        </article>
+        <article class="home-destination">
+          <span class="home-destination-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>
+          <div><h3><a href="/health-hub#profile">Profile <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Manage your account, storage choices, privacy and optional Health Memory controls.</p></div>
+        </article>
+      </div>
+      <nav class="home-shortcuts" aria-label="Popular Health Hub tools">
+        <span>Go straight to</span><a href="/health-hub#medications">Medicines</a><a href="/health-hub#symptoms">Symptom diary</a><a href="/health-hub#appointments">Appointments</a>
+      </nav>
+    </section>
+
+    <section class="home-control" aria-labelledby="control-title">
+      <div class="home-control-copy"><p class="home-eyebrow">Your choices come first</p><h2 id="control-title">Your information.<br><em>Your choices.</em></h2><p>Add the details you want to remember. For an appointment, include only the entries and questions you want to discuss.</p><a class="home-text-link" href="/privacy">Read the privacy notice <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></div>
+      <ul class="home-control-list">
+        <li><b>Choose device or session storage</b><p>Choose whether this browser keeps entries between visits or only for the session. Signed-in account syncing is separate.</p></li>
+        <li><b>Select each part of your brief</b><p>Nothing is selected automatically. Choose what matters for this visit.</p></li>
+        <li><b>Review before you share</b><p>Check your selected details before you copy, print or show the brief to someone.</p></li>
+      </ul>
+    </section>
+
+    <section class="home-faq" aria-labelledby="faq-title">
+      <div><p class="home-eyebrow">A few things to know</p><h2 id="faq-title">A clear start.</h2><p>You can begin with one detail and build from there.</p></div>
+      <div class="home-faq-list">
+        <details><summary>Is the Health Hub free?</summary><p>The core Health Hub is free for organising notes, symptoms, medicines and appointments. <a href="/subscription">Compare Free and Pro</a> for additional tools, including private document uploads.</p></details>
+        <details><summary>Does my brief get sent to a clinician?</summary><p>Creating a visit brief does not send it to a clinician. Review it, then decide whether to copy, print or show it to someone.</p></details>
+        <details><summary>Does DoctorAI provide medical care?</summary><p>DoctorAI helps with health organisation and education. It does not diagnose, prescribe or replace professional advice. A clinician should interpret health information in context.</p></details>
+      </div>
+    </section>
+
+    <section class="home-invitation" aria-labelledby="invitation-title">
+      <p class="home-eyebrow">Your everyday health, together</p>
+      <h2 id="invitation-title">Start with<br><em>one detail.</em></h2>
+      <p>A note to remember. A question to ask.<br>A place to keep them together.</p>
+      <a class="home-button" href="/health-hub">Open the free Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+    </section>
+
+    <section class="home-resources" aria-labelledby="resources-title">
+      <div><p class="home-eyebrow">Useful starting points</p><h2 id="resources-title">Bring the essentials.</h2></div>
+      <nav aria-label="Free appointment resources"><a href="/medication-list-template">Free medication list template <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a><a href="/appointment-checklist">Free New Zealand appointment checklist <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></nav>
+    </section>
+
+    <section class="home-share" aria-label="Share the free Health Hub">
+      <div><h2>Know someone who would find this useful?</h2><p>Share the public homepage. No Health Hub information is included.</p></div>
+      <div class="home-share-actions"><button class="home-button home-button-outline" data-share-resource data-share-title="One Personal Health Hub for Care Conversations | DoctorAI" data-share-text="Share the free DoctorAI Health Hub for organising health details and preparing for care conversations." type="button">Share the free Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></button><input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public homepage link to share"><span class="resource-share-status" data-share-status role="status" aria-live="polite"></span></div>
+    </section>
+
+    <aside class="home-safety"><strong>Health organisation and education</strong><p>DoctorAI is not a doctor. It does not diagnose, prescribe or replace professional advice. Optional Pro scanning helps capture label details; it does not verify drug interactions or determine whether a medicine is safe for you. For an emergency, contact your local emergency service. Do not wait for DoctorAI.</p></aside>
   </main>
-  <footer class="landing-footer"><span>© DoctorAI World</span><nav aria-label="Footer"><a href="/health-hub">Health Hub</a><a href="/download">Get the app</a><a href="/medication-list-template">Medication list template</a><a href="/appointment-checklist">Doctor appointment checklist</a><a href="/research">Latest research</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer" aria-label="Follow DoctorAI World on LinkedIn (opens in a new tab)">LinkedIn</a></nav></footer>
-</body></html>
+
+  <footer class="home-footer home-wrap">
+    <div><a class="home-footer-brand" href="/">DoctorAI<span>World</span></a><p>Your health, all in one hub.</p><span class="home-copyright">© DoctorAI World</span></div>
+    <nav aria-label="Product"><a href="/health-hub">Health Hub</a><a href="/health-hub#profile">Sign in</a><a href="/subscription">Compare Free and Pro</a><a href="/download">Get the app</a><a href="/research">Latest research</a></nav>
+    <nav aria-label="Support and policies"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Contact support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer">LinkedIn <span class="home-sr-only">(opens in a new tab)</span></a></nav>
+  </footer>
+</body>
+</html>

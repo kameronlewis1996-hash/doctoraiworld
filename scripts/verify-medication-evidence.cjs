@@ -201,7 +201,7 @@ async function run() {
 
   assert.match(hubHtml, /health-hub\.js\?v=82/);
   assert.match(hubHtml, /health-hub\.css\?v=84/);
-  assert.match(serviceWorker, /doctorai-shell-v136/);
+  assert.match(serviceWorker, /doctorai-shell-v137/);
   assert.match(serviceWorker, /health-hub\.js\?v=82/);
   assert.match(serviceWorker, /health-hub\.css\?v=84/);
   assert.match(serviceWorker, /feature-icons\.js\?v=9/);
