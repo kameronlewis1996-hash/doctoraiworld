@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-14T23:50:32.175Z",
+  "baseline": "aef725b916e7412fb39dea4caedb4a85229aa87d",
+  "checks": [
+    "One main heading and unique element IDs",
+    "All brand images and feature icons load",
+    "Configured display fonts load",
+    "Every original homepage link remains",
+    "All linked local page destinations resolve",
+    "Keyboard skip link is first and visible",
+    "Skip link focuses main content",
+    "Keyboard selection and destination: medicines",
+    "Keyboard selection and destination: symptoms",
+    "Keyboard selection and destination: appointments",
+    "Keyboard selection and destination: visit",
+    "Pause stops animation and resets tilt",
+    "Resume restores animation",
+    "Fine pointer tilts the logo",
+    "Leaving the logo clears pointer transforms",
+    "Offscreen animation pauses",
+    "Reduced motion stops animation and hides its control",
+    "Tour works with reduced motion",
+    "All four tour states fit at ten widths from 320px to 1440px",
+    "200% CSS zoom has no horizontal page overflow",
+    "FAQ expands from the keyboard",
+    "Share copies only the canonical public URL",
+    "Share fallback exposes only the public URL",
+    "Tour does not write browser storage",
+    "Homepage makes no API requests",
+    "No browser errors or CSP violations",
+    "No-JavaScript fallback retains primary actions and static logo",
+    "No-JavaScript logo does not animate without a pause control",
+    "Touch selects a topic without pointer tilt or horizontal overflow",
+    "All eleven legacy root hashes still redirect to the Health Hub",
+    "Homepage anchor remains on the homepage",
+    "Forced colours retains a visible selected topic border"
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 360,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 640,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 860,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1080,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "apiRequests": [],
+  "failedRequests": [],
+  "browser": "155.0.4283.45",
+  "result": "passed"
+}
