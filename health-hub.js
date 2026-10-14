@@ -811,7 +811,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.activity.innerHTML = activity.length ? activity.slice(0, 3).map(entry => `<div class="mini-activity-row"><span class="activity-icon">${timelineIconMarkup(entry)}</span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><time>${formatShortDate(entry.date)}</time></div>`).join('') : '<div class="empty-state">No recent activity yet. Your saved health events will appear here.</div>';
   }
 
-  const upcomingAppointments = () => state.appointments.filter(item => item.status !== 'past').sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  function appointmentGroups(now = new Date()) {
+    const today = briefLocalDate(now);
+    const groups = { upcoming: [], previous: [], needsDate: [] };
+    state.appointments.forEach(item => {
+      const date = briefDate(item.date);
+      groups[!date ? 'needsDate' : date < today ? 'previous' : 'upcoming'].push(item);
+    });
+    const sortKey = item => `${briefDate(item.date)} ${item.time || ''}`;
+    groups.upcoming.sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+    groups.previous.sort((a, b) => sortKey(b).localeCompare(sortKey(a)));
+    return groups;
+  }
+  const upcomingAppointments = () => appointmentGroups().upcoming;
 
   function renderTodayOverview() {
     const hour = new Date().getHours();
@@ -845,7 +857,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       els.todayAppointmentPreview.innerHTML = '<div class="empty-state">No upcoming appointments yet. Add one when you are ready.</div>';
       return;
     }
-    const parts = appointmentParts(appointment.date);
+    const parts = appointmentParts(briefDate(appointment.date));
     els.todayAppointmentPreview.innerHTML = `<div class="appointment-date"><b>${escapeHTML(parts.day)}</b><span>${escapeHTML(parts.month)}</span></div><div class="appointment-details"><b>${escapeHTML(appointment.provider || 'Provider to confirm')}</b><span>${escapeHTML(appointment.title)}</span><small><i aria-hidden="true">${iconMarkup('clock')}</i> ${escapeHTML(parts.weekday)} · ${escapeHTML(formatTime(appointment.time))}</small><small><i aria-hidden="true">${iconMarkup('location')}</i> ${escapeHTML(appointment.location || 'Location to confirm')}</small></div>`;
   }
 
@@ -983,16 +995,27 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function renderAppointments() {
-    const upcoming = upcomingAppointments();
-    const past = state.appointments.filter(item => item.status === 'past');
-    if (els.appointmentsCount) els.appointmentsCount.textContent = `${upcoming.length} scheduled`;
+    const { upcoming, previous, needsDate } = appointmentGroups();
+    if (els.appointmentsCount) els.appointmentsCount.textContent = `${upcoming.length} today or upcoming`;
     if (els.upcomingAppointments) {
-      els.upcomingAppointments.innerHTML = upcoming.length ? upcoming.map(appointment => {
-        const parts = appointmentParts(appointment.date);
-        return `<article class="appointment-large"><div class="large-date"><span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small></div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span aria-hidden="true">${iconMarkup('clock')}</span> ${escapeHTML(formatTime(appointment.time))} &nbsp; <span aria-hidden="true">${iconMarkup('location')}</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions"><button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button class="quiet-button" type="button" data-edit-appointment="${escapeHTML(appointment.id)}">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
-      }).join('') : '<div class="empty-state">No upcoming appointments yet. Add one when you are ready.</div>';
+      const appointmentCard = (appointment, checkDate = false) => {
+        const parts = appointmentParts(briefDate(appointment.date));
+        const dateMarkup = checkDate ? '<b>?</b><small>Check date</small>' : `<span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small>`;
+        return `<article class="appointment-large"><div class="large-date">${dateMarkup}</div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span aria-hidden="true">${iconMarkup('clock')}</span> ${checkDate ? 'Date needs checking' : ''}${appointment.time ? `${checkDate ? ' · ' : ''}${escapeHTML(formatTime(appointment.time))}` : ''} &nbsp; <span aria-hidden="true">${iconMarkup('location')}</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions">${checkDate ? '' : `<button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span aria-hidden="true">${iconMarkup('spark')}</span></button>`}<button class="quiet-button" type="button" data-edit-appointment="${escapeHTML(appointment.id)}">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
+      };
+      const dated = upcoming.length ? upcoming.map(appointment => appointmentCard(appointment)).join('') : '<div class="empty-state">No appointments dated today or later. Add one when you are ready.</div>';
+      const checkDates = needsDate.length ? `<section aria-label="Appointments with dates to check"><h3>Check saved dates</h3><p>These entries need a valid date before they can appear as your next appointment.</p>${needsDate.map(appointment => appointmentCard(appointment, true)).join('')}</section>` : '';
+      els.upcomingAppointments.innerHTML = dated + checkDates;
     }
-    if (els.pastAppointments) els.pastAppointments.innerHTML = past.length ? past.map(appointment => `<div class="past-item"><div><b>${escapeHTML(appointment.title)}</b><span>${escapeHTML(appointment.provider || 'Provider to confirm')}</span></div><time>${escapeHTML(formatDate(appointment.date))}</time><small>${escapeHTML(appointment.note || 'Saved in your health history')}</small><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div>`).join('') : '<div class="empty-inline">Previous appointments will appear here.</div>';
+    if (els.pastAppointments) els.pastAppointments.innerHTML = previous.length ? previous.map(appointment => `<div class="past-item"><div><b>${escapeHTML(appointment.title)}</b><span>${escapeHTML(appointment.provider || 'Provider to confirm')}</span></div><time>${escapeHTML(formatDate(appointment.date))}</time><small>${escapeHTML(appointment.note ?? appointment.notes ?? 'Saved in your health history')}</small><button class="quiet-button" type="button" data-edit-appointment="${escapeHTML(appointment.id)}">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div>`).join('') : '<div class="empty-inline">No earlier appointment dates saved.</div>';
+  }
+
+  let appointmentViewDay = '';
+  function refreshAppointmentDateViews() {
+    const today = briefLocalDate(new Date());
+    if (appointmentViewDay === today) return;
+    renderTodayOverview(); renderTodayAppointment(); renderAppointments();
+    appointmentViewDay = today;
   }
 
   function renderProfileShortcuts() {
@@ -3712,11 +3735,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   window.addEventListener('hashchange', restoreHubLocation);
   window.addEventListener('popstate', restoreHubLocation);
   document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshAppointmentDateViews();
     if (document.hidden && els.medicationScannerModal?.open) {
       stopMedicationScannerCamera();
       medicationScannerStatus('Scanner paused when DoctorAI moved to the background. Close and reopen it to continue.', 'idle');
     }
   });
+  window.addEventListener('doctorai:view-shown', refreshAppointmentDateViews);
+  window.setInterval(refreshAppointmentDateViews, 60 * 1000);
   window.addEventListener('pagehide', stopMedicationScannerCamera);
   window.addEventListener('load', configureGoogleSignIn);
 
