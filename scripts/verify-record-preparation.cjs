@@ -21,7 +21,8 @@ function declaration(name) {
   return line;
 }
 const production = [
-  declaration('escapeHTML'), declaration('upcomingAppointments'),
+  declaration('escapeHTML'),
+  between('  function appointmentGroups(', '  function renderTodayOverview('),
   between('  const symptomImpactLabels =', '  const symptomLogDescription ='),
   between('  let careSummaryDraft =', '  function openPersonalOverview('),
   between('  function renderAppointments(', '  function renderProfileShortcuts('),
@@ -31,7 +32,7 @@ const production = [
   between('  async function handleClick(', '  function setupQuickAccessOrbit(')
 ].join('\n');
 
-const now = Date.UTC(2026, 9, 14, 0, 0, 0);
+const now = new Date(2026, 9, 14, 12, 0, 0).getTime();
 class FixtureDate extends Date {
   constructor(...values) { super(...(values.length ? values : [now])); }
   static now() { return now; }
@@ -117,6 +118,126 @@ async function click(context, attribute, value = '') {
   const key = attribute.replace(/^data-/, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
   const button = { dataset: { [key]: value } };
   await context.handleClick({ target: { closest: selector => selector === `[${attribute}]` ? button : null }, preventDefault() {} });
+}
+
+function verifyAppointmentDayRefresh() {
+  const f = fixture({ appointments: [{ id: 'fictional-refresh-visit', title: 'Fictional visit', date: '2026-10-14', time: '09:00', status: 'upcoming' }] });
+  const before = clone(f.state);
+  const calls = { overview: 0, preview: 0, appointments: 0 };
+  let clock = new Date(2026, 9, 14, 12, 0, 0).getTime();
+  f.context.Date = class extends Date {
+    constructor(...values) { super(...(values.length ? values : [clock])); }
+  };
+  f.context.renderTodayOverview = () => calls.overview++;
+  f.context.renderTodayAppointment = () => calls.preview++;
+  f.context.renderAppointments = () => calls.appointments++;
+  // Invoke only the real controller; browser events and timer execution are not exercised.
+  f.context.refreshAppointmentDateViews();
+  assert.deepEqual(calls, { overview: 1, preview: 1, appointments: 1 }, 'The initial day refresh updates all three appointment surfaces.');
+  clock = new Date(2026, 9, 14, 23, 59, 59).getTime();
+  f.context.refreshAppointmentDateViews();
+  assert.deepEqual(calls, { overview: 1, preview: 1, appointments: 1 }, 'Repeated refresh on the same local day does not rerender.');
+  clock = new Date(2026, 9, 15, 0, 0, 0).getTime();
+  f.context.refreshAppointmentDateViews();
+  assert.deepEqual(calls, { overview: 2, preview: 2, appointments: 2 }, 'Advancing to the next local day refreshes overview, preview and appointment list once.');
+  f.context.refreshAppointmentDateViews();
+  assert.deepEqual(calls, { overview: 2, preview: 2, appointments: 2 }, 'The new local day is recorded before later refresh calls.');
+  assert.deepEqual(clone(f.state), before, 'The date-view refresh does not rewrite saved records.');
+  assert.equal(f.observed.saves.length, 0, 'The date-view refresh does not persist derived UI state.');
+  assert.equal(f.observed.forbiddenCalls, 0);
+}
+
+async function verifyAppointmentDateGroups() {
+  const records = [
+    { id: 'future-later', title: 'Later fictional visit', date: '2026-10-20', time: '15:00', status: 'upcoming' },
+    { id: 'previous-later-time', title: 'Yesterday later', date: '2026-10-13', time: '16:00', status: 'upcoming' },
+    { id: 'date-invalid', title: 'Invalid <date> & details', date: '2026-02-30', time: '11:00', status: 'upcoming' },
+    { id: 'previous-older', title: 'Older fictional visit', date: '2026-10-01', time: '09:00', status: 'upcoming' },
+    { id: 'today-later', title: 'Today later', date: '2026-10-14', time: '18:00', status: 'past' },
+    { id: 'date-missing', title: 'Missing fictional date', time: '08:00', status: 'past', opaqueMetadata: { retained: true } },
+    { id: 'today-earlier', title: 'Today earlier', date: '2026-10-14', time: '07:00', status: 'upcoming' },
+    { id: 'future-legacy-past', title: 'Future visit with stale status', date: '2026-10-16', time: '09:00', status: 'past' },
+    { id: 'previous-earlier-time', title: 'Yesterday earlier', date: '2026-10-13', time: '08:00', status: 'upcoming' },
+    { id: 'date-unknown', title: 'Unknown fictional date', date: 'not-a-date', time: '10:00', status: 'upcoming' }
+  ];
+  const history = [{ id: 'original-grouping-history', type: 'appointment', title: 'Original history must stay unchanged' }];
+  const f = fixture({ appointments: records, timeline: history });
+  const before = clone(f.state);
+  const ids = entries => Array.from(entries, entry => entry.id);
+  const groups = f.context.appointmentGroups(new FixtureDate(2026, 9, 14, 12));
+  const expectedUpcoming = ['today-earlier', 'today-later', 'future-legacy-past', 'future-later'];
+  const expectedPrevious = ['previous-later-time', 'previous-earlier-time', 'previous-older'];
+  const expectedNeedsDate = ['date-invalid', 'date-missing', 'date-unknown'];
+  assert.deepEqual(ids(groups.upcoming), expectedUpcoming, 'Today/future dates win over legacy status and sort by ascending date/time.');
+  assert.deepEqual(ids(groups.previous), expectedPrevious, 'Past dates win over stale upcoming status and sort by descending date/time.');
+  assert.deepEqual(ids(groups.needsDate), expectedNeedsDate, 'Missing, invalid and unknown dates form a separate group in saved order.');
+  assert.deepEqual(ids(vm.runInContext('upcomingAppointments()', f.context)), expectedUpcoming, 'The existing next-appointment consumer returns only valid today/future appointments.');
+  assert.equal(vm.runInContext('upcomingAppointments()[0].id', f.context), 'today-earlier', 'A stale past-dated upcoming record cannot become the next appointment.');
+  assert.deepEqual(clone(f.state), before, 'Grouping preserves stored record order, fields, statuses and history.');
+
+  f.context.renderAppointments();
+  const current = f.context.els.upcomingAppointments.innerHTML;
+  const previous = f.context.els.pastAppointments.innerHTML;
+  const editIDs = html => [...html.matchAll(/data-edit-appointment="([^"]+)"/g)].map(([, id]) => decode(id));
+  const deleteIDs = html => [...html.matchAll(/data-delete-appointment="([^"]+)"/g)].map(([, id]) => decode(id));
+  assert.deepEqual(editIDs(current), [...expectedUpcoming, ...expectedNeedsDate], 'The current card renders the same upcoming order and all date-needed entries with Edit.');
+  assert.deepEqual(deleteIDs(current), [...expectedUpcoming, ...expectedNeedsDate], 'Every upcoming/date-needed record retains its Delete action.');
+  assert.deepEqual(editIDs(previous), expectedPrevious, 'Previous appointments remain visible and editable in reverse date/time order.');
+  assert.deepEqual(deleteIDs(previous), expectedPrevious, 'Previous appointments retain their exact Delete actions.');
+  assert.match(current, /needs? (?:a )?(?:valid )?date|date (?:needs? (?:review|confirmation)|to (?:check|confirm))/i, 'Date-needed records have a visible explanatory label.');
+  assert.ok(current.includes(escaped(records[2].title)), 'Date-needed titles remain escaped.');
+  assert.doesNotMatch(current, /Invalid <date>/, 'Invalid-date display cannot inject markup.');
+  for (const id of expectedNeedsDate) assert.ok(!current.includes(`data-prepare-appointment="${id}"`), 'Date-needed entries cannot imply a scheduled next appointment.');
+  assert.match(f.context.els.appointmentsCount.textContent, /^4\b/, 'Scheduled count includes only valid today/future dates.');
+  assert.deepEqual(clone(f.state), before, 'Rendering does not rewrite saved status or history to produce its groups.');
+  assert.equal(f.observed.saves.length, 0, 'Grouping/rendering does not save derived state.');
+
+  f.context.openCareSummary();
+  const appointmentSelect = f.modal().html.match(/<select name="appointment">([\s\S]*?)<\/select>/)?.[1];
+  assert.ok(appointmentSelect, 'Visit brief still exposes the explicit appointment picker.');
+  const optionValues = [...appointmentSelect.matchAll(/<option value="([^"]*)">/g)].map(([, value]) => value);
+  assert.deepEqual(optionValues, ['', ...records.map((_, index) => String(index))], 'Brief choices retain all saved appointments, including previous and date-needed records.');
+  for (const record of records) assert.ok(appointmentSelect.includes(escaped(record.title)), 'The selected-brief picker retains each saved appointment.');
+  assert.deepEqual(clone(f.state), before);
+
+  const boundary = fixture({ appointments: [{ id: 'day-boundary', title: 'Fictional boundary visit', date: '2026-10-14', time: '00:01', status: 'upcoming' }] });
+  const lateToday = boundary.context.appointmentGroups(new FixtureDate(2026, 9, 14, 23, 59, 59));
+  const nextDay = boundary.context.appointmentGroups(new FixtureDate(2026, 9, 15, 0, 0, 0));
+  assert.deepEqual(ids(lateToday.upcoming), ['day-boundary'], 'An appointment remains in today’s group until the local day changes, even after its time.');
+  assert.deepEqual(ids(lateToday.previous), []);
+  assert.deepEqual(ids(nextDay.upcoming), [], 'The same record leaves upcoming at the next local day boundary.');
+  assert.deepEqual(ids(nextDay.previous), ['day-boundary']);
+  assert.equal(boundary.state.appointments[0].status, 'upcoming', 'Day-boundary grouping does not migrate stored status.');
+
+  const move = fixture({ appointments: [{ id: 'date-edit-move', title: 'Fictional movable visit', date: '2026-10-13', time: '09:00', status: 'upcoming', opaqueMetadata: { retained: true } }], timeline: history });
+  const edited = { title: 'Fictional movable visit', provider: 'Fictional clinic', date: '2026-10-20', time: '09:00', location: 'Room one', note: 'Fictional preparation' };
+  assert.deepEqual(ids(move.context.appointmentGroups().previous), ['date-edit-move']);
+  await click(move.context, 'data-edit-appointment', 'date-edit-move');
+  assert.equal(prefilledForm(move.modal().html).values.date, '2026-10-13', 'A previous appointment opens its actual existing date for editing.');
+  submit(move.context, appointmentForm(edited, 'date-edit-move'));
+  assert.deepEqual(ids(move.context.appointmentGroups().upcoming), ['date-edit-move'], 'Editing the saved date moves that same appointment into upcoming.');
+  assert.deepEqual(ids(move.context.appointmentGroups().previous), []);
+  move.context.renderAppointments();
+  assert.deepEqual(editIDs(move.context.els.upcomingAppointments.innerHTML), ['date-edit-move']);
+  assert.deepEqual(editIDs(move.context.els.pastAppointments.innerHTML), []);
+  submit(move.context, appointmentForm({ ...edited, date: '2026-10-12' }, 'date-edit-move'));
+  assert.deepEqual(ids(move.context.appointmentGroups().upcoming), []);
+  assert.deepEqual(ids(move.context.appointmentGroups().previous), ['date-edit-move'], 'Moving the date back moves the existing record into previous.');
+  assert.equal(move.state.appointments.length, 1, 'Date corrections never create duplicate appointments.');
+  assert.equal(move.state.appointments[0].status, 'upcoming');
+  assert.deepEqual(move.state.appointments[0].opaqueMetadata, { retained: true });
+  assert.deepEqual(clone(move.state.timeline.slice(2)), history, 'Date edits retain original history after their separate update events.');
+
+  const repair = fixture({ appointments: [records[5]] });
+  assert.deepEqual(ids(repair.context.appointmentGroups().needsDate), ['date-missing']);
+  await click(repair.context, 'data-edit-appointment', 'date-missing');
+  const repairedForm = prefilledForm(repair.modal().html);
+  assert.equal(repairedForm.dataset.editAppointmentId, 'date-missing', 'Date-needed entries open their own edit form.');
+  submit(repair.context, appointmentForm({ ...repairedForm.values, date: '2026-10-18', time: '08:00' }, 'date-missing'));
+  assert.deepEqual(ids(repair.context.appointmentGroups().needsDate), []);
+  assert.deepEqual(ids(repair.context.appointmentGroups().upcoming), ['date-missing'], 'A repaired valid date can become upcoming despite its preserved legacy past status.');
+  assert.equal(repair.state.appointments[0].status, 'past');
+  for (const item of [f, boundary, move, repair]) assert.equal(item.observed.forbiddenCalls, 0);
 }
 
 async function verifyAppointments() {
@@ -263,7 +384,9 @@ function verifySymptomBrief() {
 }
 
 (async () => {
+  verifyAppointmentDayRefresh();
+  await verifyAppointmentDateGroups();
   await verifyAppointments();
   verifySymptomBrief();
-  console.log('Record preparation passed: actual appointment edit/add/cancel/stale/validation/delete flows, escaped prefill, legacy notes, identity/status/metadata/history preservation; selected structured symptom details, agenda order, date exclusion, escaping and legacy description handling. Fictional data only; no browser, real storage or network.');
+  console.log('Record preparation passed: actual appointment day-refresh controller, date groups/ordering/day boundary/repair, unmodified stored status/history, edit/add/cancel/stale/validation/delete flows, escaped prefill, legacy notes and metadata preservation; all appointment brief choices; selected structured symptom details, agenda order, date exclusion, escaping and legacy description handling. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
