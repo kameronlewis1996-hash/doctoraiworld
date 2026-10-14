@@ -1,0 +1,69 @@
+name: DoctorAI browser regression
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/browser-regression.yml'
+      - 'tests/browser/**'
+      - '*.html'
+      - '*.css'
+      - '*.js'
+      - 'api/**'
+      - 'server-src/**'
+      - 'data/**'
+      - '*.png'
+      - '*.svg'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/browser-regression.yml'
+      - 'tests/browser/**'
+      - '*.html'
+      - '*.css'
+      - '*.js'
+      - 'api/**'
+      - 'server-src/**'
+      - 'data/**'
+      - '*.png'
+      - '*.svg'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: doctorai-browser-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install isolated browser-test dependencies
+        run: npm ci --prefix tests/browser
+
+      - name: Install Chromium and system dependencies
+        run: tests/browser/node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Run synthetic browser regressions
+        run: npm test --prefix tests/browser
+        env:
+          CI: 'true'
+
+      - name: Upload report and failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doctorai-browser-regression-${{ github.run_id }}
+          path: tests/browser/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
