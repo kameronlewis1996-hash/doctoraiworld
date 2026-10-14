@@ -60,6 +60,7 @@ Checks on 14 October 2026:
 - Existing static-site verifier: passed for 75 required files and 10 production pages.
 - Existing four-main-destination verifier: passed, including route, return-path, session/privacy and reviewed-brief contracts.
 - Existing medication-evidence verifier: passed, including its updated cache-version guard; no outbound calls.
+- The first GitHub regression run exposed a pre-existing VM fixture missing the current session-status renderer. The fixture now provides that dependency and asserts pending/verified status while preserving the duplicate-callback and stale-session race checks. App authentication code is unchanged. After the repair, all nine scripts in the existing medication/scan regression job passed locally.
 - One-off HTML structure review: one H1, 11 unique IDs, all four in-page links and eight section-label references valid, 25 available icon keys, three native FAQ summaries, no inline event handlers.
 - Seven foreground/background colour pairs were calculated using WCAG relative luminance. Main text on page: 15.00:1; muted text: 6.33:1; white on primary blue: 5.33:1; muted text on control panel: 5.97:1; light body on navy: 11.83:1; cyan on navy: 13.23:1; blue links on white: 6.74:1. These values are individual pair checks, not a whole-page accessibility audit.
 - CSS syntax: parsed 247 style rules and 698 declarations without token/declaration errors using tinycss2. This does not verify rendered layout or computed styles.
