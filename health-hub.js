@@ -989,7 +989,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.upcomingAppointments) {
       els.upcomingAppointments.innerHTML = upcoming.length ? upcoming.map(appointment => {
         const parts = appointmentParts(appointment.date);
-        return `<article class="appointment-large"><div class="large-date"><span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small></div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span aria-hidden="true">${iconMarkup('clock')}</span> ${escapeHTML(formatTime(appointment.time))} &nbsp; <span aria-hidden="true">${iconMarkup('location')}</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions"><button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button class="quiet-button" type="button" data-modal="appointment">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
+        return `<article class="appointment-large"><div class="large-date"><span>${escapeHTML(parts.weekday)}</span><b>${escapeHTML(parts.day)}</b><small>${escapeHTML(parts.month)}</small></div><div class="large-appointment-copy"><div class="appointment-type"><span class="purple-dot"></span>${escapeHTML(appointment.title)}</div><h3>${escapeHTML(appointment.provider || 'Provider to confirm')}</h3><p><span aria-hidden="true">${iconMarkup('clock')}</span> ${escapeHTML(formatTime(appointment.time))} &nbsp; <span aria-hidden="true">${iconMarkup('location')}</span> ${escapeHTML(appointment.location || 'Location to confirm')}</p><div class="large-appointment-actions"><button class="primary-button" type="button" data-prepare-appointment="${escapeHTML(appointment.id)}">Prepare me with DoctorAI <span aria-hidden="true">${iconMarkup('spark')}</span></button><button class="quiet-button" type="button" data-edit-appointment="${escapeHTML(appointment.id)}">Edit details</button><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div></div></article>`;
       }).join('') : '<div class="empty-state">No upcoming appointments yet. Add one when you are ready.</div>';
     }
     if (els.pastAppointments) els.pastAppointments.innerHTML = past.length ? past.map(appointment => `<div class="past-item"><div><b>${escapeHTML(appointment.title)}</b><span>${escapeHTML(appointment.provider || 'Provider to confirm')}</span></div><time>${escapeHTML(formatDate(appointment.date))}</time><small>${escapeHTML(appointment.note || 'Saved in your health history')}</small><button class="delete-item" type="button" data-delete-appointment="${escapeHTML(appointment.id)}">Delete</button></div>`).join('') : '<div class="empty-inline">Previous appointments will appear here.</div>';
@@ -1870,8 +1870,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const symptoms = latest(state.timeline.filter(item => item.type === 'symptom'));
     const measurements = latest(state.measurements);
     const notes = latest(state.timeline.filter(item => item.type === 'medication'));
+    const symptomBriefText = item => {
+      const severity = symptomSeverity(item.severity);
+      const notes = String(item.notes || '').trim();
+      const description = item.source === 'symptom-diary' ? '' : String(item.description || '').trim();
+      const details = [
+        ['Date', item.date], ['Time', item.time], ['Intensity', severity === null ? '' : `${severity}/10`],
+        ['Duration', item.duration], ['Where', item.location], ['Pattern', item.frequency],
+        ['Feels like', item.quality], ['Alongside', item.associatedSymptoms],
+        ['Impact', item.impact && symptomImpactLabels[item.impact]], ['Tried', item.interventions],
+        ['Context', item.context], ['Possible triggers', item.triggers], ['Notes', notes],
+        ['Saved description', description !== notes ? description : '']
+      ].filter(([, value]) => String(value ?? '').trim());
+      return [symptomName(item), ...details.map(([label, value]) => `${label}: ${String(value).trim()}`)].join(' · ');
+    };
     const groups = [
-      { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(item => [symptomName(item), item.date, item.time, symptomSeverity(item.severity) === null ? '' : `Intensity: ${symptomSeverity(item.severity)}/10`, item.duration, item.context, item.triggers, item.notes || item.description].filter(Boolean).join(' · ')) },
+      { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(symptomBriefText) },
       { title: 'Saved medicine details (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions, item.startDate ? `Saved start date: ${item.startDate}` : '', item.endDate ? `Saved end date: ${item.endDate}` : ''].filter(Boolean).join(' · ')) },
       { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
       { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
@@ -2340,8 +2354,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
   }
 
-  function openAppointmentModal() {
-    setModal('Add an appointment', 'Appointment manager', `<form class="modal-form" data-modal-form="appointment"><div class="modal-form-grid"><label class="modal-field"><span>Appointment reason *</span><input name="title" required placeholder="GP, dentist, review…"></label><label class="modal-field"><span>Provider</span><input name="provider" placeholder="Name or clinic"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Time *</span><input name="time" type="time" required></label><label class="modal-field full"><span>Location</span><input name="location" placeholder="Clinic or address"></label><label class="modal-field full"><span>Questions or preparation</span><textarea name="note" rows="3" placeholder="What do you want to remember or ask?"></textarea></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save appointment <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
+  function openAppointmentModal(existing = {}) {
+    const editing = existing.id !== undefined && existing.id !== null;
+    setModal(editing ? 'Edit appointment' : 'Add an appointment', 'Appointment manager', `<form class="modal-form" data-modal-form="appointment" data-edit-appointment-id="${escapeHTML(editing ? existing.id : '')}"><div class="modal-form-grid"><label class="modal-field"><span>Appointment reason *</span><input name="title" required placeholder="GP, dentist, review…" value="${escapeHTML(existing.title || '')}"></label><label class="modal-field"><span>Provider</span><input name="provider" placeholder="Name or clinic" value="${escapeHTML(existing.provider || '')}"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required value="${escapeHTML(existing.date || '')}"></label><label class="modal-field"><span>Time *</span><input name="time" type="time" required value="${escapeHTML(existing.time || '')}"></label><label class="modal-field full"><span>Location</span><input name="location" placeholder="Clinic or address" value="${escapeHTML(existing.location || '')}"></label><label class="modal-field full"><span>Questions or preparation</span><textarea name="note" rows="3" placeholder="What do you want to remember or ask?">${escapeHTML(existing.note ?? existing.notes ?? '')}</textarea></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">${editing ? 'Save changes' : 'Save appointment'} <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
 
   function openProviderModal(existing = {}) {
@@ -2904,9 +2919,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (existingIndex >= 0) state.providers[existingIndex] = provider; else state.providers.unshift(provider);
       saveState(); renderProfile(); showToast(existingIndex >= 0 ? 'Doctor details updated.' : 'Local doctor saved.');
     } else if (form.dataset.modalForm === 'appointment') {
-      state.appointments.push({ id: `appt-${Date.now()}`, title: values.title, provider: values.provider || 'Provider to confirm', date: values.date, time: values.time, location: values.location || 'Location to confirm', note: values.note || '', status: 'upcoming' });
-      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'appointment', date: values.date, title: `${values.title} added`, description: `${values.provider || 'Provider to confirm'} · ${formatDate(values.date)}`, icon: '◷' });
-      showToast('Appointment saved to your timeline.');
+      const editingId = String(form.dataset.editAppointmentId || '');
+      const existingIndex = editingId ? state.appointments.findIndex(item => String(item.id) === editingId) : -1;
+      if (editingId && existingIndex < 0) { showToast('This appointment is no longer in your list. Close this form and reopen the appointment you want to edit.'); return; }
+      const existing = existingIndex >= 0 ? state.appointments[existingIndex] : null;
+      const title = String(values.title || '').trim();
+      const date = briefDate(values.date);
+      const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(values.time || '')) ? String(values.time) : '';
+      if (!title || !date || !time) { showToast('Add an appointment reason, a valid date and a time before saving.'); (!title ? form.elements.title : !date ? form.elements.date : form.elements.time)?.focus(); return; }
+      const note = String(values.note || '');
+      const appointment = { ...(existing || {}), id: existing?.id ?? `appt-${Date.now()}`, title, provider: String(values.provider || '').trim() || 'Provider to confirm', date, time, location: String(values.location || '').trim() || 'Location to confirm', note, status: existing?.status ?? 'upcoming' };
+      if (existing && Object.hasOwn(existing, 'notes')) appointment.notes = note;
+      if (existingIndex >= 0) state.appointments[existingIndex] = appointment;
+      else state.appointments.push(appointment);
+      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'appointment', appointmentId: appointment.id, date: editingId ? briefLocalDate(new Date()) : date, title: `${title} ${editingId ? 'updated' : 'added'}`, description: `${appointment.provider} · ${formatDate(date)}`, icon: '◷' });
+      destinationView = 'appointments';
+      postSaveToast = editingId ? 'Appointment updated.' : 'Appointment saved to your timeline.';
     } else if (form.dataset.modalForm === 'symptom') {
       const name = String(values.name || '').trim();
       if (!name) { showToast('Please describe the symptom in your own words.'); form.elements.name?.focus(); return; }
@@ -3337,6 +3365,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (modalType === 'timeline') openTimelineModal();
       return;
     }
+    const editAppointment = event.target.closest('[data-edit-appointment]');
+    if (editAppointment) {
+      event.preventDefault();
+      const appointment = state.appointments.find(item => String(item.id) === editAppointment.dataset.editAppointment);
+      if (appointment) openAppointmentModal(appointment);
+      else showToast('This appointment is no longer in your list.');
+      return;
+    }
     const editProvider = event.target.closest('[data-edit-provider]');
     if (editProvider) { event.preventDefault(); const provider = state.providers.find(item => item.id === editProvider.dataset.editProvider); if (provider) openProviderModal(provider); return; }
     const editSymptom = event.target.closest('[data-edit-symptom]');
@@ -3399,8 +3435,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const appointment = state.appointments.find(item => item.id === deleteAppointment.dataset.deleteAppointment);
       if (appointment && window.confirm(`Delete the appointment “${appointment.title}”?`)) {
         state.appointments = state.appointments.filter(item => item.id !== appointment.id);
-        state.timeline = state.timeline.filter(item => !(item.type === 'appointment' && item.title === `${appointment.title} added`));
-        saveState(); renderAll(); showToast('Appointment removed from your health hub.');
+        state.timeline = state.timeline.filter(item => !(item.type === 'appointment' && String(item.appointmentId ?? '') === String(appointment.id)));
+        saveState(); renderAll(); showToast('Appointment removed from your appointments.');
       }
       return;
     }

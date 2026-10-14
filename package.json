@@ -10,6 +10,8 @@
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
     "verify:server": "node scripts/verify-server-core.js",
+    "verify:health-state": "node scripts/verify-health-state-contract.cjs",
+    "verify:record-preparation": "node scripts/verify-record-preparation.cjs",
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
     "verify:medication-database": "node scripts/verify-medication-database.cjs",
