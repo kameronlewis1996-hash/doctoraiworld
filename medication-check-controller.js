@@ -7,7 +7,7 @@
   'use strict';
   const MAX_AGE = 24 * 60 * 60 * 1000;
   const digest = async text => Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))), value => value.toString(16).padStart(2, '0')).join('');
-  const issues = result => (result?.alerts || []).filter(alert => ['interaction', 'allergy', 'contraindication', 'duplicate-ingredient'].includes(alert.type));
+  const issues = result => (result?.alerts || []).filter(alert => ['interaction', 'interaction-coverage', 'allergy', 'contraindication', 'duplicate-ingredient'].includes(alert.type));
   class Controller {
     constructor({ request, load = () => null, save = () => {}, remove = () => {}, onChange = () => {}, hash = digest, now = Date.now }) {
       Object.assign(this, { request, load, save, remove, onChange, hash, now });

@@ -21,12 +21,14 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   await controller.update(context); await controller.setConsent(true); assert.equal(calls, 0);
   await controller.run(); assert.equal(calls, 1);
   const originalTime = controller.snapshot().checkedAt;
+  const previousResult = clone(controller.snapshot().result);
   controller = new Controller(options); await controller.update(context); assert.equal(calls, 1, 'Same session reload reuses completed login check');
   slow = true;
   const next = { ...context, loginId: 'b'.repeat(64) };
   const updating = controller.update(next); await settleUntil(() => calls === 2);
   assert.equal(controller.snapshot().status, 'pending'); assert.equal(controller.snapshot().checkedAt, originalTime);
-  assert.ok(issues(controller.snapshot().result).some(alert => alert.ruleId === 'warfarin-nsaid'), 'Prior matching warning remains visible while login refresh is pending');
+  assert.deepEqual(controller.snapshot().result, previousResult, 'Prior result remains visible while login refresh is pending');
+  assert.ok(issues(controller.snapshot().result).some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'), 'Unassessed medicine-pair coverage remains visible while login refresh is pending');
   await controller.update(next); await controller.update(next); assert.equal(calls, 2, 'Repeated auth notifications do not duplicate requests');
   now += 1000; release(); await updating; assert.equal(controller.snapshot().checkedAt, now); assert.equal(controller.snapshot().status, 'complete');
   slow = false; fail = true;

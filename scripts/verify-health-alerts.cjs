@@ -30,19 +30,8 @@ check('empty-record-is-not-clearance', () => {
 });
 
 const pairs = [
-  ['warfarin-nsaid', 'warfarin', 'ibuprofen'],
-  ['pde5-nitrate', 'sildenafil', 'glyceryl trinitrate'],
-  ['ssri-maoi', 'sertraline', 'phenelzine'],
-  ['methotrexate-cotrimoxazole', 'methotrexate', 'trimethoprim'],
-  ['lithium-nsaid', 'lithium', 'ibuprofen'],
-  ['lithium-ace-inhibitor', 'lithium', 'captopril'],
-  ['lithium-arb', 'lithium', 'losartan'],
-  ['lithium-thiazide-diuretic', 'lithium', 'hydrochlorothiazide'],
-  ['spironolactone-ace-inhibitor', 'spironolactone', 'captopril'],
-  ['spironolactone-arb', 'spironolactone', 'losartan'],
-  ['simvastatin-interacting-inhibitor', 'simvastatin', 'clarithromycin'],
-  ['serotonergic-opioid-antidepressant', 'tramadol', 'sertraline'],
-  ['serotonergic-opioid-maoi', 'tramadol', 'phenelzine']
+  ['warfarin-sulfamethoxazole', 'warfarin', 'sulfamethoxazole'],
+  ['oral-anticoagulant-ssri', 'warfarin', 'sertraline']
 ];
 for (const [ruleId, left, right] of pairs) check(`shared-rule-${ruleId}`, () => {
   const medications = [label('m1', left), label('m2', right)];
@@ -59,14 +48,25 @@ for (const [ruleId, left, right] of pairs) check(`shared-rule-${ruleId}`, () => 
 
 check('medication-medication-catalogue-brand', () => {
   const result = evaluate({ medications: [{ id: 'marevan', name: 'Marevan' }, { id: 'nurofen', name: 'Nurofen' }] });
-  assert.ok(has(result, 'medication-medication', 'warfarin-nsaid'));
+  assert.ok(has(result, 'medication-medication-unassessed', 'medication-pair-unassessed'));
+  assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
+  assert.match(result.coverage.limitation, /not cleared/);
   assert.equal(result.coverage.medications.resolved, 2);
 });
 check('duplicate-ingredient', () => assert.ok(has(evaluate({ medications: [label('d1', 'paracetamol'), label('d2', 'acetaminophen')] }), 'duplicate-ingredient')));
 check('allergy-medication', () => assert.ok(has(evaluate({ medications: [label('pen', 'amoxicillin')], profile: { allergies: 'Penicillin (rash)' } }), 'allergy-medication', 'penicillin-class')));
-check('condition-medication', () => assert.ok(has(evaluate({ medications: [label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' } }), 'condition-medication', 'nsaid-asthma-context')));
-check('condition-ulcer-history-remains-relevant', () => assert.ok(has(evaluate({ medications: [label('ibu', 'ibuprofen')], profile: { conditions: 'History of stomach ulcer' } }), 'condition-medication', 'ibuprofen-ulcer-context')));
-check('pregnancy-structured-detail', () => assert.ok(has(evaluate({ medications: [label('war', 'warfarin')], profile: { pregnant: true } }), 'condition-medication', 'warfarin-pregnancy-context')));
+check('condition-coverage-remains-unassessed', () => {
+  const result = evaluate({ medications: [label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' } });
+  assert.equal(result.coverage.conditionMedication.ruleCount, 0);
+  assert.deepEqual(result.coverage.conditionMedication.unmatched, ['Asthma']);
+  assert.equal(result.coverage.complete, false);
+});
+check('pregnancy-structured-detail-is-not-cleared', () => {
+  const result = evaluate({ medications: [label('war', 'warfarin')], profile: { pregnant: true } });
+  assert.equal(result.coverage.conditionMedication.ruleCount, 0);
+  assert.ok(result.coverage.conditionMedication.unmatched.includes('Pregnant'));
+  assert.equal(result.coverage.complete, false);
+});
 check('symptom-medication', () => assert.ok(has(evaluate({ medications: [label('war', 'warfarin')], timeline: [symptom('s1', 'Symptom recorded: coughing up blood')] }), 'symptom-medication', 'warfarin-bleeding-symptom')));
 check('condition-symptom', () => assert.ok(has(evaluate({ profile: { conditions: 'Asthma' }, timeline: [symptom('s2', 'Wheezing')] }), 'condition-symptom', 'asthma-breathing-context')));
 check('symptom-medication-condition', () => {
@@ -116,9 +116,9 @@ for (const extra of [{ date: '2025-10-10' }, { date: '2026-12-31' }, { date: '' 
 check('explicit-current-symptom-may-be-undated', () => assert.ok(has(evaluate({ timeline: [symptom('current', 'Gasping', { date: '', current: true })] }), 'urgent-symptom')));
 check('deleted-medicine-recalculates-pair', () => {
   const medications = [label('war', 'warfarin'), label('ibu', 'ibuprofen')];
-  assert.ok(has(evaluate({ medications }), 'medication-medication'));
-  assert.ok(!has(evaluate({ medications: [medications[0]] }), 'medication-medication'));
-  assert.ok(!has(evaluate({ medications: [medications[0], { ...medications[1], deleted: true }] }), 'medication-medication'));
+  assert.ok(has(evaluate({ medications }), 'medication-medication-unassessed', 'medication-pair-unassessed'));
+  assert.ok(!has(evaluate({ medications: [medications[0]] }), 'medication-medication-unassessed'));
+  assert.ok(!has(evaluate({ medications: [medications[0], { ...medications[1], deleted: true }] }), 'medication-medication-unassessed'));
 });
 check('out-of-date-medicines-are-explicitly-excluded', () => {
   const result = evaluate({ medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen', { endDate: '2026-10-01' })] });
@@ -144,6 +144,16 @@ check('label-name-mismatch-not-forced', () => {
 check('unconfirmed-ingredients-never-trusted', () => {
   const result = evaluate({ medications: [{ name: 'Invented unlisted tablet', activeIngredients: ['warfarin'], activeIngredientsManuallyConfirmed: false }, label('ibu', 'ibuprofen')] });
   assert.ok(!has(result, 'medication-medication', 'warfarin-nsaid'));
+});
+check('resolved-but-uncovered-pair-is-explicitly-unassessed', () => {
+  const result = evaluate({ medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')] });
+  assert.equal(result.coverage.medicationMedication.requestedPairs, 1);
+  assert.equal(result.coverage.medicationMedication.assessedPairs, 0);
+  assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
+  assert.deepEqual(result.coverage.medicationMedication.unassessed, [{ left: 'Fictional label war', right: 'Fictional label ibu', reason: 'No retained pairwise rule matched' }]);
+  const alert = result.alerts.find(item => item.ruleId === 'medication-pair-unassessed');
+  assert.equal(alert?.severity, 'unknown');
+  assert.match(alert?.message || '', /No alert does not mean safe/);
 });
 check('unassessed-results-and-conditions-preserved-in-coverage-data', () => {
   const result = evaluate({ profile: { conditions: 'Invented rare condition' }, results: [{ value: 'fictional' }], measurements: [{ type: 'weight', value: 70 }] });
@@ -186,10 +196,15 @@ check('browser-bundle-parity-without-network-or-storage', () => {
   const context = { URL, Date, fetch: denied, XMLHttpRequest: denied, localStorage: { getItem: denied, setItem: denied }, sessionStorage: { getItem: denied, setItem: denied }, console: { log: denied, warn: denied, error: denied } };
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(path.join(root, 'health-alerts.js'), 'utf8'), context, { timeout: 10000 });
-  const input = { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('s', 'Wheezing')], now };
-  const browser = context.DoctorAIHealthAlerts.evaluate(input);
-  assert.deepEqual(JSON.parse(JSON.stringify(browser)), engine.evaluate(input));
-  assert.equal(browser.coverage.networkRequests, 0);
+  const inputs = [
+    { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], now },
+    { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('s', 'Wheezing')], now }
+  ];
+  for (const input of inputs) {
+    const browser = context.DoctorAIHealthAlerts.evaluate(input);
+    assert.deepEqual(JSON.parse(JSON.stringify(browser)), engine.evaluate(input));
+    assert.equal(browser.coverage.networkRequests, 0);
+  }
 });
 
 console.log(`Health alerts verified: ${checks} fictional fixture checks passed; no production data or APIs used.`);

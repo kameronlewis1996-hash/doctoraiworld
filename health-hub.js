@@ -3123,22 +3123,33 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderLocalMedicationDatabaseResult(container, result) {
     container.replaceChildren();
-    const summary = document.createElement('p');
-    const foundIssues = window.DoctorAIMedicationCheck.issues(result).length > 0;
-    summary.className = 'medication-db-summary ' + (foundIssues ? 'is-warning' : 'is-incomplete');
-    if (foundIssues) summary.textContent = 'Warning found in the limited check. Review the alert below with a pharmacist or prescriber.';
-    else if (result.status === 'unknown' || result.coverage?.completeForRequest === false) summary.textContent = 'This is a limited check. Unmatched medicines and risks outside the curated rules could not be assessed. Matching every medicine does not confirm safety.';
-    else summary.textContent = 'No alert was found in DoctorAI’s limited database. This does not mean these medicines are safe together.';
-    container.append(summary);
     const alerts = [...(Array.isArray(result.alerts) ? result.alerts : [])];
+    const summary = document.createElement('p');
+    const hasWarnings = window.DoctorAIMedicationCheck.issues(result).some(alert => alert.severity !== 'unknown');
+    const hasUnassessedPairs = alerts.some(alert => alert.type === 'interaction-coverage');
+    const pairwiseRuleCount = Number.isSafeInteger(result.coverage?.interactionRuleCount) ? result.coverage.interactionRuleCount : 0;
+    const combinationRuleCount = Number.isSafeInteger(result.coverage?.combinationRuleCount) ? result.coverage.combinationRuleCount : 0;
+    const incomplete = result.status === 'unknown' || result.coverage?.completeForRequest === false || hasUnassessedPairs;
+    summary.className = 'medication-db-summary ' + (hasWarnings ? 'is-warning' : 'is-incomplete');
+    if (hasWarnings) summary.textContent = 'A medicine warning was found in this very limited check. Review the alert below with a pharmacist or prescriber.';
+    else summary.textContent = 'Very limited check: ' + pairwiseRuleCount + ' pairwise and ' + combinationRuleCount + ' multi-medicine rules are retained. Unmatched pairs and medicine risks outside these rules are unassessed. No alert does not mean safe; ask a pharmacist or prescriber to review your full medicine list.';
+    container.append(summary);
+    if (hasUnassessedPairs) {
+      const note = document.createElement('p');
+      note.className = 'medication-db-incomplete-note';
+      note.textContent = 'At least one medicine pair is unassessed. See the notice below for the specific pair and review advice.';
+      container.append(note);
+    }
+    const visibleAlerts = alerts.filter(alert => alert.type !== 'coverage');
     const rank = alert => ['high', 'critical'].includes(alert.severity) ? 0 : alert.severity === 'moderate' ? 1 : 2;
-    alerts.sort((left, right) => rank(left) - rank(right)).forEach(alert => {
+    visibleAlerts.sort((left, right) => rank(left) - rank(right)).forEach(alert => {
       const article = document.createElement('article');
       const warning = ['high', 'critical'].includes(alert.severity);
       const caution = alert.severity === 'moderate';
       article.className = 'safety-result-alert ' + (warning ? 'is-warning' : caution ? 'is-caution' : 'is-unknown');
       article.setAttribute('data-severity', String(alert.severity || 'unknown'));
-      if (warning || caution) article.setAttribute('role', 'alert');
+      article.setAttribute('role', warning || caution ? 'alert' : 'status');
+      article.setAttribute('aria-live', warning || caution ? 'assertive' : 'polite');
       const heading = document.createElement('h3');
       heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : String(alert.title || 'Medicine check notice');
       const icon = document.createElement('span');
@@ -3188,7 +3199,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     container.append(coverage);
     if (result.catalogue) {
       const catalogue = document.createElement('p');
-      catalogue.textContent = (result.catalogue.productFormulations || 0) + ' NZ product/formulation records · ' + (result.catalogue.brandNames || 0) + ' brand names · ' + (result.coverage?.interactionRuleCount || 0) + ' curated interaction rules. ' + String(result.catalogue.attribution || '') + ' ' + String(result.catalogue.disclaimer || '');
+      catalogue.textContent = (result.catalogue.productFormulations || 0) + ' NZ product/formulation records · ' + (result.catalogue.brandNames || 0) + ' brand names · ' + (result.coverage?.interactionRuleCount || 0) + ' curated pairwise rules + ' + (result.coverage?.combinationRuleCount || 0) + ' multi-medicine rules. ' + String(result.catalogue.attribution || '') + ' ' + String(result.catalogue.disclaimer || '');
       const source = document.createElement('a');
       source.href = 'https://schedule.pharmac.govt.nz/pub/';
       source.textContent = 'Pharmac source files (CC BY 4.0)';
@@ -3213,7 +3224,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
     const disclaimer = document.createElement('p');
     disclaimer.className = 'medication-db-incomplete-note';
-    disclaimer.textContent = foundIssues || result.coverage?.unknown > 0
+    disclaimer.textContent = hasWarnings || incomplete
       ? 'Coverage remains limited: other interactions and strength, dose, route, timing or treatment suitability are not assessed. Review your complete medicine list with a pharmacist or prescriber.'
       : 'No interaction alert found in the covered rules. This does not mean these medicines are safe together. Coverage remains limited; medicine decisions require a pharmacist or prescriber.';
     container.append(disclaimer);

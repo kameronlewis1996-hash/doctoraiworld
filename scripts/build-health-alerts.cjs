@@ -16,7 +16,7 @@ const nz = JSON.parse(read('data/medication/nz-pharmac-medicines.json'));
 // to keep the browser payload smaller; the labels and ingredient sets are intact.
 const browserCatalogue = { ...nz, products: nz.products.map(product => {
   const item = {};
-  for (const key of ['name', 'brand', 'chemical', 'formulation', 'ingredients', 'ingredientsComplete']) if (Object.hasOwn(product, key)) item[key] = product[key];
+  for (const key of ['name', 'brand', 'chemical', 'formulation', 'ingredients', 'ingredientsComplete', 'interactionRoute', 'safetyClasses']) if (Object.hasOwn(product, key)) item[key] = product[key];
   if (product.schedules) item.schedules = true;
   return item;
 }) };

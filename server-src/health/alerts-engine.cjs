@@ -122,9 +122,10 @@ function createHealthAlertsEngine(medicineEngine) {
     const allergyItems = [...detailItems(profile.allergies, 'allergy'), ...detailItems(state.allergies, 'allergy')];
     const conditionItems = [...detailItems(profile.conditions, 'condition'), ...detailItems(state.conditions, 'condition')];
     if (profile.pregnant === true || record(state.healthDetails).pregnant === true) conditionItems.push({ kind: 'health-detail', id: 'pregnant', label: 'Saved health detail', value: 'Pregnant' });
+    if (profile.breastfeeding === true || record(state.healthDetails).breastfeeding === true) conditionItems.push({ kind: 'health-detail', id: 'breastfeeding', label: 'Saved health detail', value: 'Breastfeeding' });
     const allergies = allergyItems.filter(positiveDetail);
     const conditions = conditionItems.filter(positiveDetail);
-    const medicationReview = medicineEngine.review({ medications: medicines, allergies: [], conditions: [] });
+    const medicationReview = medicineEngine.review({ medications: medicines, allergies: [], conditions: conditions.map(item => item.value) });
     const resolved = medicationReview.resolved;
     const alerts = [];
     const add = ({ type, severity = 'review', title, message, triggers, nextAction, ruleId, sources: evidence = [], currentness }) => {
@@ -139,13 +140,44 @@ function createHealthAlertsEngine(medicineEngine) {
 
     // Reuse the original rule evaluation for each exact pair so each prompt has
     // explicit medicine triggers, without inferring pairs from message text.
+    // Absence of a retained rule is recorded as unassessed, never as a clean pair.
+    const pairCoverage = { requestedPairs: 0, assessedPairs: 0, unassessedPairs: 0, unassessed: [] };
     for (let left = 0; left < resolved.length; left += 1) {
       for (let right = left + 1; right < resolved.length; right += 1) {
+        pairCoverage.requestedPairs += 1;
+        if (resolved[left].status !== 'resolved' || resolved[right].status !== 'resolved') {
+          pairCoverage.unassessedPairs += 1;
+          if (pairCoverage.unassessed.length < 20) pairCoverage.unassessed.push({ left: resolved[left].name || 'Unknown medicine', right: resolved[right].name || 'Unknown medicine', reason: 'Medicine identity incomplete' });
+          continue;
+        }
         const pair = medicineEngine.reviewResolved({ resolved: [resolved[left], resolved[right]] });
+        const interactionAlerts = pair.alerts.filter(item => item.type === 'interaction');
+        if (interactionAlerts.length) pairCoverage.assessedPairs += 1;
+        else {
+          pairCoverage.unassessedPairs += 1;
+          if (pairCoverage.unassessed.length < 20) pairCoverage.unassessed.push({ left: resolved[left].name || 'Medicine', right: resolved[right].name || 'Medicine', reason: 'No retained pairwise rule matched' });
+        }
         for (const alert of pair.alerts.filter(item => ['interaction', 'duplicate-ingredient'].includes(item.type))) {
           add({ type: alert.type === 'interaction' ? 'medication-medication' : 'duplicate-ingredient', severity: alert.severity, title: alert.title, message: alert.message, triggers: [medicineTriggers[left], medicineTriggers[right]], nextAction: reviewAction, ruleId: alert.ruleId, sources: [alert.source] });
         }
       }
+    }
+    if (pairCoverage.unassessedPairs > 0) {
+      const examples = pairCoverage.unassessed.slice(0, 3).map(pair => `${pair.left} + ${pair.right}`).join('; ');
+      const extra = pairCoverage.unassessedPairs > pairCoverage.unassessed.length ? ` ${pairCoverage.unassessedPairs - pairCoverage.unassessed.length} more pair(s) are not listed here.` : '';
+      const triggerIndexes = new Set();
+      for (let left = 0; left < resolved.length && triggerIndexes.size < 6; left += 1) {
+        for (let right = left + 1; right < resolved.length && triggerIndexes.size < 6; right += 1) {
+          const leftName = resolved[left].name || 'Unknown medicine';
+          const rightName = resolved[right].name || 'Unknown medicine';
+          if (pairCoverage.unassessed.some(pair => pair.left === leftName && pair.right === rightName)) {
+            triggerIndexes.add(left);
+            triggerIndexes.add(right);
+          }
+        }
+      }
+      const pairTriggers = [...triggerIndexes].map(index => medicineTriggers[index]);
+      if (pairTriggers.length) add({ type: 'medication-medication-unassessed', severity: 'unknown', title: 'Medicine pair coverage is unassessed', message: `${pairCoverage.unassessedPairs} of ${pairCoverage.requestedPairs} saved medicine pair(s) have no retained pairwise rule or a complete medicine identity${examples ? `; examples: ${examples}` : ''}.${extra} No alert does not mean safe. Ask a pharmacist or prescriber to review the full list.`, triggers: pairTriggers, nextAction: reviewAction, ruleId: 'medication-pair-unassessed', sources: [internal] });
     }
     for (let index = 0; index < resolved.length; index += 1) {
       for (const allergy of allergies) {
@@ -166,22 +198,13 @@ function createHealthAlertsEngine(medicineEngine) {
       if (resolved[index].status !== 'resolved') add({ type: 'unknown-medication', severity: 'unknown', title: 'Medicine identity is not fully matched', message: resolved[index].reason || 'No complete ingredient mapping is available.', triggers: [medicineTriggers[index]], nextAction: 'Review the full medicine name, formulation and active ingredients against the original label with a pharmacist. This medicine remains outside ingredient-based checks.', sources: [internal] });
     }
 
-    const conditionRules = [
-      { id: 'nsaid-asthma-context', class: 'nsaid', pattern: /\basthma\b/i, severity: 'review', title: 'Asthma and medicine need review', message: 'A saved NSAID and an asthma record need a pharmacist or prescriber review. Sensitivity is not established by this match.', source: sources.asthma },
-      { id: 'ibuprofen-ulcer-context', ingredient: 'ibuprofen', pattern: /\b(?:stomach|gastric|peptic) ulcers?\b/i, severity: 'high', title: 'Ulcer history and ibuprofen need review', message: 'The recorded ulcer history may matter when reviewing this ibuprofen product.', source: sources.ibuprofen },
-      { id: 'ibuprofen-organ-condition-context', ingredient: 'ibuprofen', pattern: /\b(?:kidney|renal|liver|heart) (?:disease|failure|condition|problem)s?\b|\bchronic kidney disease\b|\bckd\b/i, severity: 'review', title: 'Condition and ibuprofen need review', message: 'This recorded condition may affect whether the ibuprofen product is suitable.', source: sources.ibuprofen },
-      { id: 'ibuprofen-pregnancy-context', ingredient: 'ibuprofen', pattern: /\b(?:pregnant|pregnancy)\b/i, severity: 'high', title: 'Pregnancy detail and ibuprofen need review', message: 'The saved pregnancy detail and ibuprofen product need a pharmacist or clinician review.', source: sources.ibuprofen },
-      { id: 'warfarin-pregnancy-context', ingredient: 'warfarin', pattern: /\b(?:pregnant|pregnancy)\b/i, severity: 'high', title: 'Pregnancy detail and warfarin need review', message: 'Contact your prescriber promptly about this saved pregnancy detail. This match does not assess your individual warfarin plan.', source: sources.warfarin }
-    ];
     const matchedConditions = new Set();
     for (let index = 0; index < resolved.length; index += 1) {
-      for (const rule of conditionRules) {
-        const applies = resolved[index].ingredients.some(item => rule.ingredient ? item.id === rule.ingredient : list(item.classes).includes(rule.class));
-        if (!applies) continue;
-        for (const condition of conditions) {
-          if (!affirmativeMatches(condition.value, rule.pattern, true).length) continue;
+      for (const condition of conditions) {
+        const conditionReview = medicineEngine.reviewResolved({ resolved: [resolved[index]], conditions: [condition.value] });
+        for (const alert of conditionReview.alerts.filter(item => item.type === 'contraindication')) {
           matchedConditions.add(condition);
-          add({ type: 'condition-medication', severity: rule.severity, title: rule.title, message: rule.message, triggers: [medicineTriggers[index], condition], nextAction: reviewAction, ruleId: rule.id, sources: [rule.source] });
+          add({ type: 'condition-medication', severity: alert.severity, title: alert.title, message: alert.message, triggers: [medicineTriggers[index], condition], nextAction: reviewAction, ruleId: alert.ruleId, sources: [alert.source] });
         }
       }
     }
@@ -303,11 +326,11 @@ function createHealthAlertsEngine(medicineEngine) {
       coverage: {
         complete: false, localOnly: true, networkRequests: 0, missing,
         medications: { status: 'limited', requested: allMedicines.length, checked: medicines.length, excludedInactiveOrOutOfDate: excludedMedicines.length, omittedByLimit: Math.max(0, allMedicines.length - excludedMedicines.length - medicines.length), resolved: resolved.length - unknownMedicines.length, unknown: unknownMedicines },
-        medicationMedication: { status: 'limited', ruleCount: medicationReview.coverage.interactionRuleCount, doseRouteTimingAssessed: false },
+        medicationMedication: { status: 'limited', coverageLevel: 'very-limited', ruleCount: medicationReview.coverage.interactionRuleCount, multiMedicineRuleCount: medicationReview.coverage.combinationRuleCount, requestedPairs: pairCoverage.requestedPairs, assessedPairs: pairCoverage.assessedPairs, unassessedPairs: pairCoverage.unassessedPairs, unassessed: pairCoverage.unassessed, omittedUnassessedPairs: Math.max(0, pairCoverage.unassessedPairs - pairCoverage.unassessed.length), doseRouteTimingAssessed: false, limitation: 'Only positively licensed retained pairwise rules are reported. Other medicine pairs are unassessed; absence of an alert is not a safety finding.' },
         symptomMedication: { status: 'limited', ruleCount: 3, limitation: 'Warfarin bleeding/injury, ibuprofen bleeding and NSAID/asthma breathing context prompts only; no adverse-effect or causation assessment.' },
         conditionSymptoms: { status: 'limited', ruleCount: 1, limitation: 'Only asthma with a recent affirmative breathing entry is checked; no diagnosis or urgency clearance.' },
-        allergyMedication: { status: 'limited', recorded: allergyItems.length, affirmative: allergies.length, excludedOrUncertain: allergyItems.length - allergies.length, omittedByLimit: Math.max(0, detailCount(profile.allergies) - MAX_DETAILS) + Math.max(0, detailCount(state.allergies) - MAX_DETAILS), classRuleCount: 2, limitation: 'Ingredient and curated class prompts only; excipients, cross-reactivity and allergy diagnosis are not assessed.' },
-        conditionMedication: { status: 'limited', ruleCount: conditionRules.length, recorded: conditionItems.length, affirmative: conditions.length, unmatched: conditions.filter(item => !matchedConditions.has(item)).map(item => item.value), omittedByLimit: Math.max(0, detailCount(profile.conditions) - MAX_DETAILS) + Math.max(0, detailCount(state.conditions) - MAX_DETAILS), limitation: 'Only the named asthma/NSAID, ibuprofen and warfarin context rules are covered; no suitability assessment.' },
+        allergyMedication: { status: 'limited', recorded: allergyItems.length, affirmative: allergies.length, excludedOrUncertain: allergyItems.length - allergies.length, omittedByLimit: Math.max(0, detailCount(profile.allergies) - MAX_DETAILS) + Math.max(0, detailCount(state.allergies) - MAX_DETAILS), classRuleCount: medicationReview.ruleset?.allergyRuleCount || 0, limitation: 'Ingredient and curated class prompts only; excipients, cross-reactivity and allergy diagnosis are not assessed.' },
+        conditionMedication: { status: 'limited', ruleCount: medicationReview.coverage.conditionRuleCount, recorded: conditionItems.length, affirmative: conditions.length, unmatched: conditions.filter(item => !matchedConditions.has(item)).map(item => item.value), omittedByLimit: Math.max(0, detailCount(profile.conditions) - MAX_DETAILS) + Math.max(0, detailCount(state.conditions) - MAX_DETAILS), limitation: `${medicationReview.coverage.conditionRuleCount} limited medicine-condition prompts are checked from the local database. Other conditions, pregnancy timing, dose, route, severity and suitability may be unassessed.` },
         symptoms: { status: 'limited', ruleCount: 7, recorded: symptoms.length, recent: recentSymptoms.length, matched: coveredSymptoms.size, excludedHistoricalOrInactive: historicalSymptoms, undated: undatedSymptoms, omittedByLimit: Math.max(0, symptomRecords.size - symptoms.length), recentWindowDays: RECENT_DAYS, unmatched: recentSymptoms.filter(item => !coveredSymptoms.has(item)).map(item => text(item.name || item.title) || 'Unnamed symptom'), limitation: 'Only a small set of affirmative warning-sign phrases is checked. Negation/history parsing can miss meaning; no urgency clearance or cause is determined.' },
         healthDetails: { status: 'limited', checks: ['blood-type-record-conflict', 'allergy-record-conflict'], bloodTypeRecords: bloodFacts.length, limitation: 'Only conflicting labelled records are compared. Contact information, general notes and uploaded documents are not interpreted.' },
         results: { status: 'not_assessed', recorded: list(state.results).length + list(state.measurements).length, limitation: 'Test results and measurements need their units, reference ranges and clinical context; this engine does not interpret them.' },
@@ -315,7 +338,7 @@ function createHealthAlertsEngine(medicineEngine) {
         datasetVersion: medicationReview.datasetVersion,
         rulesetVersion: medicationReview.ruleset.version,
         catalogue: { publisher: 'Pharmac Pharmaceutical Schedule', sourceUrl: medicationReview.catalogue.sourceUrl, effectiveDate: medicationReview.catalogue.effectiveDate, attribution: medicationReview.catalogue.attribution, licence: medicationReview.catalogue.licence, disclaimer: medicationReview.catalogue.disclaimer },
-        contextRulesetVersion: '2026.10.11-context-v2',
+        contextRulesetVersion: '2026.10.14-context-v4',
         contextEvidenceCheckedOn: checkedOn,
         limitation: 'No alert does not mean safe. Missing, unrecognised, historical or unassessed details are not cleared.'
       },

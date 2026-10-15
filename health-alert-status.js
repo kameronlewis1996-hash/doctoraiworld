@@ -19,15 +19,28 @@
     if (alerts.some(alert => alert?.severity === 'high')) {
       return { level: 'red', symbol: '!', title: 'Contact a professional', note: `${notices}. Ask a pharmacist or clinician to review.` };
     }
-    if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
     const coverage = result.coverage;
     const medicines = coverage.medications;
+    const medicationMedication = coverage.medicationMedication;
+    const validPairCoverage = medicationMedication && medicationMedication.status === 'limited' &&
+      Number.isSafeInteger(medicationMedication.ruleCount) && medicationMedication.ruleCount >= 0 &&
+      Number.isSafeInteger(medicationMedication.requestedPairs) && medicationMedication.requestedPairs >= 0 &&
+      Number.isSafeInteger(medicationMedication.assessedPairs) && medicationMedication.assessedPairs >= 0 &&
+      Number.isSafeInteger(medicationMedication.unassessedPairs) && medicationMedication.unassessedPairs >= 0 &&
+      medicationMedication.assessedPairs + medicationMedication.unassessedPairs === medicationMedication.requestedPairs &&
+      Array.isArray(medicationMedication.unassessed) && medicationMedication.unassessed.length <= medicationMedication.unassessedPairs &&
+      Number.isSafeInteger(medicationMedication.omittedUnassessedPairs) && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length;
+    if (validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
+      return { level: 'orange', symbol: '?', title: 'Medicine pair unassessed', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pairs have no retained rule or a complete identity. No alert does not mean safe. Ask a pharmacist or prescriber to review.` };
+    }
+    if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
     const allergies = coverage.allergyMedication;
     const conditions = coverage.conditionMedication;
     const symptoms = coverage.symptoms;
     const results = coverage.results;
     const counters = [
       [medicines, ['requested', 'checked', 'resolved', 'omittedByLimit']],
+      [medicationMedication, ['ruleCount', 'multiMedicineRuleCount', 'requestedPairs', 'assessedPairs', 'unassessedPairs', 'omittedUnassessedPairs']],
       [allergies, ['recorded', 'affirmative', 'excludedOrUncertain', 'omittedByLimit']],
       [conditions, ['recorded', 'affirmative', 'omittedByLimit']],
       [symptoms, ['recorded', 'recent', 'matched', 'undated', 'omittedByLimit']],
@@ -37,6 +50,9 @@
       fields.every(field => Number.isSafeInteger(part[field]) && part[field] >= 0));
     const validCoverage = Array.isArray(coverage.missing) && coverage.missing.every(item => typeof item === 'string') &&
       coverage.localOnly === true && medicines?.status === 'limited' && allergies?.status === 'limited' &&
+      medicationMedication?.status === 'limited' && medicationMedication.coverageLevel === 'very-limited' &&
+      Array.isArray(medicationMedication.unassessed) && medicationMedication.assessedPairs + medicationMedication.unassessedPairs === medicationMedication.requestedPairs &&
+      medicationMedication.unassessed.length <= medicationMedication.unassessedPairs && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length &&
       conditions?.status === 'limited' && symptoms?.status === 'limited' && results?.status === 'not_assessed' &&
       Array.isArray(medicines?.unknown) && Array.isArray(conditions?.unmatched) && Array.isArray(symptoms?.unmatched) &&
       validCounters && allergies.recorded === allergies.affirmative + allergies.excludedOrUncertain;
@@ -46,12 +62,13 @@
     if (!recorded) return { level: 'neutral', symbol: '?', title: 'Add details to check', note: 'No saved details have been assessed yet.' };
     const outsideChecks = coverage.missing.length > 0 || medicines.unknown.length > 0 ||
       medicines.requested !== medicines.resolved || medicines.resolved !== medicines.checked || medicines.omittedByLimit > 0 ||
+      medicines.requested > 0 || medicationMedication.unassessedPairs > 0 ||
       allergies.excludedOrUncertain > 0 || allergies.omittedByLimit > 0 ||
       conditions.unmatched.length > 0 || conditions.omittedByLimit > 0 ||
       symptoms.undated > 0 || symptoms.unmatched.length > 0 || symptoms.omittedByLimit > 0 ||
       results.recorded > 0 ||
       Object.values(coverage).some(part => part && typeof part === 'object' && Number(part.omittedByLimit) > 0);
-    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Some details need review', note: 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
+    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Some details need review', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
     // Green describes only a recognised, fully supplied local medication check, never overall health.
     return { level: 'green', symbol: '✓', title: 'No flagged notices', note: limited };
   }

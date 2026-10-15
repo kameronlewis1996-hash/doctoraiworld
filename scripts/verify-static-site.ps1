@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $required = @(
-  'index.html', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'doctorai-layout.css', 'doctorai-medicine-illustration.png', 'health-alerts.js', 'health-alert-status.js', 'medication-check-controller.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
+  'index.html', 'about.html', 'about.css', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'doctorai-layout.css', 'doctorai-medicine-illustration.png', 'health-alerts.js', 'health-alert-status.js', 'medication-check-controller.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
   'medication-list-template.html', 'medication-list-template.css', 'medication-list-template.js',
   'subscription.html', 'subscription.css', 'subscription.js',
   'terms.html', 'staff.html', 'staff-grants.js',
@@ -9,7 +9,7 @@ $required = @(
   'doctorai-public-logo-transparent.png', 'doctorai-head-logo-transparent.png', 'doctorai-app-icon.png',
   'google-g-logo.svg', 'vercel.json',
   '.env.example', 'scripts/csp-hashes.js', 'scripts/check-js.js', 'scripts/verify-server-core.js', 'scripts/verify-medication-safety.js', 'scripts/verify-medication-database.cjs', 'scripts/verify-medication-scan.js', 'scripts/verify-local-medication-ui.cjs', 'scripts/verify-retired-medication-providers.cjs',
-  'scripts/build-health-alerts.cjs', 'scripts/verify-health-alerts.cjs', 'scripts/verify-alert-status.cjs', 'scripts/verify-alerts-presentation.cjs', 'scripts/verify-five-tabs.cjs', 'server-src/health/alerts-engine.cjs',
+  'scripts/build-health-alerts.cjs', 'scripts/verify-health-alerts.cjs', 'scripts/verify-alert-status.cjs', 'scripts/verify-alerts-presentation.cjs', 'scripts/verify-five-tabs.cjs', 'scripts/verify-about-route.cjs', 'server-src/health/alerts-engine.cjs',
   'api/chat.js', 'api/auth/config.js', 'api/auth/google.js', 'api/auth/mobile.js', 'scripts/verify-stripe-pricing.js',
   'api/health/state.js', 'api/documents.js', 'api/medication/[...action].js',
   'api/medication/_handlers/scan.js', 'api/research.js',
@@ -49,8 +49,8 @@ foreach ($feature in $nestedFeatures) { if ($hubHtmlText -notmatch ('data-hub-pa
 if ($hubHtmlText -notmatch 'data-hub-panel="symptoms"' -or $hubHtmlText -notmatch 'data-modal="symptom"') { $failures.Add('My Diary must retain the structured Symptom Diary and add action') }
 if ($hubHtmlText -notmatch 'id="alerts-list"' -or $hubHtmlText -notmatch 'health-alerts\.js' -or $hubScriptText -notmatch 'DoctorAIHealthAlerts\.evaluate') { $failures.Add('Alerts must evaluate saved health combinations and render a dedicated results area') }
 if ($hubHtmlText -notmatch 'health-alert-status\.js\?v=1' -or $hubScriptText -notmatch 'DoctorAIAlertStatus\?\.render') { $failures.Add('Alert summaries must render the fail-closed local status result') }
-if ($hubHtmlText -notmatch 'health-hub\.js\?v=86' -or $hubScriptText -notmatch 'data-scan-attempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'scanFieldsReviewed') { $failures.Add('Saving a scanned medication must ask people to review label details before use') }
-if ($hubHtmlText -notmatch 'health-hub\.css\?v=85' -or $hubHtmlText -notmatch 'health-hub\.js\?v=86' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
+if ($hubHtmlText -notmatch 'health-hub\.js\?v=87' -or $hubScriptText -notmatch 'dataset\.scanAttempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'scanFieldsReviewed' -or $hubScriptText -notmatch 'scanReviewRequired') { $failures.Add('Saving a scanned medication must ask people to review label details before use') }
+if ($hubHtmlText -notmatch 'health-hub\.css\?v=85' -or $hubHtmlText -notmatch 'health-hub\.js\?v=87' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
 if ($hubScriptText -notmatch "source:\s*'symptom-diary'" -or $hubScriptText -notmatch 'data-modal-form="symptom"' -or $hubScriptText -match 'state\.symptoms') { $failures.Add('Symptom Diary must use the canonical timeline store with working form handling') }
 if ($hubScriptText -notmatch 'Intensity \(optional\)' -or $hubScriptText -notmatch 'Not recorded / not sure' -or $hubScriptText -notmatch 'Date \*' -or $hubScriptText -notmatch 'date > localToday') { $failures.Add('Symptom Diary must offer an honest optional intensity value, require a date, and reject future dates') }
 if ($hubHtmlText -notmatch 'data-symptom-guidance' -or $hubScriptText -notmatch 'data-modal-form="symptom-guidance"' -or $hubScriptText -notmatch 'setSymptomGuidanceResult') { $failures.Add('Symptom Diary is missing the non-diagnostic urgency safety check') }
@@ -72,7 +72,7 @@ $medicationDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/
 if ($medicationDispatcherText -notmatch "'ingredient-search'" -or $medicationDispatcherText -notmatch "'nzf-interactions'" -or $medicationDispatcherText -notmatch "'nzf-product-search'" -or $medicationDispatcherText -notmatch "'safety-check'" -or $medicationDispatcherText -notmatch 'scan:') { $failures.Add('Medication API dispatcher must preserve all existing medication endpoints') }
 $medicationScanApiText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_handlers/scan.js')
 if ($medicationScanApiText -notmatch 'body\.consent\s*!==\s*true' -or $medicationScanApiText -notmatch 'store:\s*false' -or $medicationScanApiText -notmatch "type:\s*'json_schema'" -or $medicationScanApiText -notmatch 'AbortSignal\.timeout' -or $medicationScanApiText -notmatch 'MAX_IMAGE_DATA_URL') { $failures.Add('Medication scan API is missing explicit image consent or structured, no-store, bounded processing') }
-if ($workerText -notmatch "doctorai-shell-v144" -or $workerText -notmatch "welcome\.css\?v=8" -or $workerText -notmatch "welcome\.js\?v=3" -or $workerText -notmatch "health-hub\.css\?v=85" -or $workerText -notmatch "hub-category-themes\.css\?v=1" -or $workerText -notmatch "feature-icons\.js\?v=9" -or $workerText -notmatch "health-alerts\.js\?v=3" -or $workerText -notmatch "health-alert-status\.js\?v=1" -or $workerText -notmatch "health-hub\.js\?v=86" -or $workerText -notmatch "subscription\.css\?v=9" -or $workerText -notmatch "subscription\.js\?v=12" -or $workerText -notmatch "accessibility\.css\?v=12" -or $workerText -notmatch "care-design\.css\?v=10" -or $workerText -notmatch "site-shell\.css\?v=3" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css\?v=3'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
+if ($workerText -notmatch "doctorai-shell-v145" -or $workerText -notmatch "welcome\.css\?v=8" -or $workerText -notmatch "welcome\.js\?v=3" -or $workerText -notmatch "health-hub\.css\?v=85" -or $workerText -notmatch "hub-category-themes\.css\?v=1" -or $workerText -notmatch "feature-icons\.js\?v=9" -or $workerText -notmatch "health-alerts\.js\?v=4" -or $workerText -notmatch "health-alert-status\.js\?v=1" -or $workerText -notmatch "health-hub\.js\?v=87" -or $workerText -notmatch "subscription\.css\?v=9" -or $workerText -notmatch "subscription\.js\?v=12" -or $workerText -notmatch "accessibility\.css\?v=12" -or $workerText -notmatch "care-design\.css\?v=10" -or $workerText -notmatch "site-shell\.css\?v=3" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css\?v=3'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
 
 $subscriptionScriptText = Get-Content -Raw -LiteralPath (Join-Path $root 'subscription.js')
 $stripeDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/stripe/[...action].js')
@@ -104,14 +104,61 @@ $sitemapText = Get-Content -Raw -LiteralPath (Join-Path $root 'sitemap.xml')
 if ($sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/</loc>' -or $sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/medication-list-template</loc>') { $failures.Add('The sitemap must include the homepage and medication-list resource') }
 $homeHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
 if ($homeHtml -notmatch 'href="/medication-list-template"') { $failures.Add('The homepage must link to the medication-list resource') }
-$htmlFiles = @('index.html', 'health-hub.html', 'subscription.html', 'terms.html', 'privacy.html', 'download.html', 'staff.html', 'research.html', 'mobile-auth.html', 'medication-list-template.html')
+$aboutHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'about.html')
+if ($aboutHtml -notmatch '<link rel="canonical" href="https://www\.doctoraiworld\.com/about">' -or [regex]::Matches($aboutHtml, '<h1(?:\s|>)').Count -ne 1 -or $aboutHtml -notmatch 'href="/health-hub"' -or $aboutHtml -notmatch 'href="/about\.css\?v=1"') {
+  $failures.Add('The About page must keep its canonical /about route, a single main heading, a Health Hub path and its scoped stylesheet')
+}
+$htmlFiles = @('index.html', 'about.html', 'health-hub.html', 'subscription.html', 'terms.html', 'privacy.html', 'download.html', 'staff.html', 'research.html', 'mobile-auth.html', 'medication-list-template.html')
+$vercelRouting = Get-Content -Raw -LiteralPath (Join-Path $root 'vercel.json') | ConvertFrom-Json
+$configuredStaticRoutes = @{}
+foreach ($routeRule in (@($vercelRouting.redirects) + @($vercelRouting.rewrites))) {
+  if ($routeRule.source -and $routeRule.destination -and $routeRule.source -notmatch '[:*()]') {
+    $configuredStaticRoutes[[string]$routeRule.source] = [string]$routeRule.destination
+  }
+}
+function Resolve-StaticReference {
+  param(
+    [string]$Reference,
+    [string]$Root,
+    [bool]$CleanUrls,
+    [hashtable]$Routes
+  )
+
+  $routePath = $Reference
+  $visited = @()
+  $rootPrefix = [System.IO.Path]::GetFullPath($Root).TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+  for ($hop = 0; $hop -lt 12; $hop++) {
+    $routePath = ($routePath -split '[?#]', 2)[0]
+    if ($routePath -match '^(?:https?:|mailto:|data:)') { return $true }
+    if ($visited -contains $routePath) { return $null }
+    $visited += $routePath
+
+    if ($Routes.ContainsKey($routePath)) {
+      $routePath = [string]$Routes[$routePath]
+      continue
+    }
+
+    $relative = $routePath.TrimStart('/').Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+    if ([string]::IsNullOrWhiteSpace($relative)) { $relative = 'index.html' }
+    $target = [System.IO.Path]::GetFullPath((Join-Path $Root $relative))
+    if (-not $target.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) { return $null }
+    if (Test-Path -LiteralPath $target -PathType Leaf) { return $target }
+
+    if ($CleanUrls -and [string]::IsNullOrEmpty([System.IO.Path]::GetExtension($relative))) {
+      $cleanTarget = [System.IO.Path]::GetFullPath(($target + '.html'))
+      if ($cleanTarget.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $cleanTarget -PathType Leaf)) { return $cleanTarget }
+    }
+    return $null
+  }
+  return $null
+}
 foreach ($relative in $htmlFiles) {
   $text = Get-Content -Raw -LiteralPath (Join-Path $root $relative)
   foreach ($match in [regex]::Matches($text, '(?:src|href)=["'']([^"''#?]+)')) {
     $reference = $match.Groups[1].Value
-    if ($reference -match '^(?:https?:|mailto:|data:|#|/api/)' -or $reference -in @('/','/health-hub','/subscription','/terms','/privacy','/staff','/research','/care-planner','/download','/mobile-auth','/medication-list-template','/appointment-checklist')) { continue }
-    $target = Join-Path $root $reference.TrimStart('/')
-    if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { $failures.Add("Broken local reference in ${relative}: $reference") }
+    if ($reference -match '^(?:https?:|mailto:|tel:|data:|#|//|/api/)') { continue }
+    $target = Resolve-StaticReference -Reference $reference -Root $root -CleanUrls ([bool]$vercelRouting.cleanUrls) -Routes $configuredStaticRoutes
+    if (-not $target) { $failures.Add("Broken local reference in ${relative}: $reference") }
   }
 }
 
@@ -139,6 +186,11 @@ if (-not $nodePath) { $failures.Add("Node.js is required to verify CSP hashes") 
 $cspHashes = if ($nodePath) { & $nodePath (Join-Path $root 'scripts/csp-hashes.js') } else { @() }
 foreach ($hash in ($cspHashes | Select-String -Pattern "'sha256-[^']+'" -AllMatches | ForEach-Object { $_.Matches.Value })) {
   if (-not $vercelText.Contains($hash)) { $failures.Add("CSP is missing an inline block hash: $hash") }
+}
+$aboutRouteCheck = Join-Path $root 'scripts/verify-about-route.cjs'
+if ($nodePath -and (Test-Path -LiteralPath $aboutRouteCheck -PathType Leaf)) {
+  & $nodePath $aboutRouteCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('The About clean-route and footer-link regression failed') }
 }
 
 $rateLimitCalls = Get-ChildItem -LiteralPath (Join-Path $root 'api'), (Join-Path $root 'server-src') -Recurse -File | Where-Object { $_.Extension -in @('.js', '.cjs', '.mjs') } | Select-String -Pattern 'core\.rateLimit\('
