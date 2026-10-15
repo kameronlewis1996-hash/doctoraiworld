@@ -1,56 +1,26 @@
-# DoctorAI NZ medicine catalogue
+# NZ medication terminology and safety-rule coverage
 
-Release: **2026-10-01-nz-pharmac-v4**.
+Ruleset **2026.10.15-r149** is a rights-filtered, very limited prototype dataset. It is not a complete interaction checker, has not been clinically validated, and does not have NZF production authorization.
 
-## Source and licence
+## Included data
 
-Medicine terminology is adapted from **Pharmac | Te Pātaka Whaioranga**, October 2026 community Pharmaceutical Schedule and Hospital Medicines List XML files:
+- The medicine terminology catalogue contains 3,419 Pharmac product/formulation records, including 1,444 brand names and 1,224 chemical names. Of these source products, 113 have incomplete ingredient lists; name matches do not establish that a medicine is current, approved, funded or suitable.
+- The filtered safety seed contains 534 ingredient entries and no seed product aliases. Product terminology is mapped from the separate Pharmac catalogue.
+- The October 2026 Pharmac Pharmaceutical Schedule is attributed to Pharmac | Te Pātaka Whaioranga under CC BY 4.0. Source: [Pharmac schedule archive](https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml). Attribution: “Medicine terminology adapted from Pharmac community and hospital XML schedules. Names are normalised and ingredients conservatively mapped by DoctorAI. Pharmac does not endorse DoctorAI.” See also [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- Pharmac’s source-file disclaimer is retained: “Pharmac takes no responsibility for errors or omissions in the source files. A Schedule listing does not establish Medsafe approval, current supply, suitability, funding eligibility or complete interaction coverage.”
 
-- https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml
-- https://schedule.pharmac.govt.nz/pub/HML/archive/2026/2026-10-01/HML_2026-10-01.xml
+## Active safety prompts after rights review
 
-The source files are licensed **CC BY 4.0**: https://schedule.pharmac.govt.nz/pub/schedule/archive/README.html and https://creativecommons.org/licenses/by/4.0/.
+- 2 pairwise interactions: `oral-anticoagulant-ssri` and `warfarin-sulfamethoxazole`.
+- 1 multi-medicine interaction: `ras-inhibitor-diuretic-nsaid-aki`.
+- 0 medicine-condition prompts.
+- 2 internally authored allergy prompts: `penicillin-class` and `nsaid-class`.
+- 1,269 source-derived safety rules are excluded pending explicit reusable rights and complete attribution: 1,115 pairwise, 17 multi-medicine, 133 medicine-condition and 4 allergy rules.
 
-DoctorAI normalises names, excludes devices/special foods, combines duplicate community/hospital product/formulation records, preserves source Pharmacodes/NZMT IDs and Section 29 annotations, and conservatively maps ingredient terms. **Pharmac does not endorse DoctorAI.** Pharmac takes no responsibility for source errors or omissions. Source SHA-256 checksums and the exact effective date are included in `data/medication/nz-pharmac-medicines.json`.
+The filter retains a source-derived rule only when each attached source has an explicit CC BY 4.0 license, canonical license URL and record-level attribution. Internal DoctorAI rules are retained only when explicitly marked as internally authored and no external source is attached. A public URL or independent paraphrase does not establish reuse permission. Retained and excluded IDs with their rights basis are recorded in [the provenance ledger](medication-provenance-exclusions.json), and the [release audit](medication-provenance-release-audit.md) summarizes the decision policy.
 
-## Coverage
+## Coverage limits
 
-| Measure | Count |
-| --- | ---: |
-| Product/formulation records | 3,419 |
-| Distinct brand names | 1,444 |
-| Distinct chemical/generic headings | 1,224 |
-| Substance terminology entries (including curated seed) | 1,136 |
-| Product/formulations with complete imported ingredient mappings | 3,288 |
-| Product/formulations retained with incomplete mappings | 131 |
-| Curated interaction rules | 13 |
-| Medicine-condition rules | 0 |
+Only listed and matched rules can produce an interaction alert. Any unmatched medicine pair is **unassessed**, even when both medicine names resolve. A missing alert is not evidence that a combination is safe. Strength, dose, route, timing, treatment intent, patient-specific risk, pregnancy and many other clinical factors are not evaluated. Review the complete medicine list and actual labels with a pharmacist or prescriber; do not change prescribed treatment based on this prototype.
 
-These are terminology records, not 3,419 independently approved treatments. Generic headings include combinations. This is not the full NZULM or all Medsafe-registered/OTC products. A Schedule listing does not establish Medsafe approval, availability, suitability, subsidy eligibility or complete interaction knowledge. NZULM data is not part of this local dataset.
-
-Broad ingredient-class coverage and clinician approval are not established by this import. Salt equivalences are explicit; no general salt stripping, substring brand matching or fuzzy automatic selection is used. Different ingredient sets sharing a brand/manufacturer remain ambiguous. Full imported product names are available in name suggestions. A numeric strength is labelled as a catalogue match only when the same numeric strength appears in an indexed formulation. Unlisted or conflicting strengths are marked unverified; no dose, route, timing, or treatment assessment is performed.
-
-Every result reports limited interaction coverage and `completeForRequest: false`, even if all names match. Existing rules are records under ruleset `2026.10.05-r1` with per-record versions, source metadata and concise evidence summaries. All 13 interaction records have a version, review date, named HTTPS source, evidence summary and source-currentness caveat. Seven source pages were fetched during this change; the linked 2017 lithium article was not retrievable, the cited 2016 spironolactone and 2014 simvastatin articles say they may be out of date, and the cited 2023 FDA label says it may not be the latest approved label. Each such caveat is shown with a matching alert. Two allergy class prompts are internally curated, versioned and marked as not externally sourced; there are no condition rules. A source-backed interaction rule is still only a potential flag for professional review; it does not provide treatment directions. Conditions, dose, timing, route, pregnancy and unlisted interactions remain outside complete coverage.
-
-Scanned fields are suggestions and require an explicit comparison with the original label before saving. Ingredient entry is optional; the form shows where to find the active-ingredient list and says to leave it blank and ask a pharmacist when it cannot be read. A checkbox records only the user's statement that the text was copied from the package; it is not clinical validation of the product, ingredients, dose or safety. Only ingredients explicitly checked against the label are sent with a one-time, consented local check. If the checked label terms conflict with the medicine-name mapping or do not map to local terminology, the engine withholds ingredient-based results for that item and reports an unknown state. The local strength comparison is catalogue terminology only, not dosage validation.
-
-Medication safety uses the replaceable `server-src/medication/safety-provider.cjs` interface (interface version 1). The active implementation is `doctorai-local-pharmac-rules`, which delegates to the existing local rules; no remote or paid clinical provider is connected. Provider or entitlement failures return an unavailable error and no partial result. Chat may explain only medication evidence explicitly supplied in the conversation with source attribution; it must not determine interactions. The daily AI briefing does not send saved medication names or label data.
-
-## Updating and testing
-
-Download the official **XML** community and hospital schedules for the same effective date. Do not import the Excel reporting views into production.
-
-```sh
-python3 scripts/import-pharmac-medicines.py /path/to/Schedule_DATE.xml /path/to/HML_DATE.xml
-node scripts/verify-medication-database.cjs
-node scripts/verify-medication-evidence.cjs
-node scripts/verify-medication-pipeline.cjs
-node scripts/verify-local-medication-ui.cjs
-node scripts/check-js.js
-```
-
-Review constituent exceptions, salt equivalences, ambiguous names and counts before committing a new generated release. Update the seed version, UI effective-date notice and suggestion-cache version alongside the import. Raw XML is not bundled into the public app; the generated factual catalogue is.
-
-Name suggestions are filtered in the browser from a public static list. Typing does not send the query to Pharmac, NZULM or DrugBank. NZF/NZULM product and interaction checks and DrugBank ingredient-check routes have been retired from the Health Hub. The separate DoctorAI local rules check remains limited and is not equivalent to or as comprehensive as any external catalogue. No provider approval is asserted.
-
-The local safety API rejects invalid, blank and oversized input instead of returning a partial check. It does not cache personal requests. Tests use synthetic medicine lists, never user health records.
+The Health New Zealand Top 100 prescribing figures were removed because the source-specific reuse license was not confirmed. The rights-filtered note is in [the Top-100 coverage audit](top-100-common-prescriptions-coverage-audit.md); it contains no ranked counts or derived coverage claims.

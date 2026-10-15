@@ -35,7 +35,7 @@ async function run() {
 
   const scanHandler = require('../api/medication/_handlers/scan.js');
   const safetyHandler = require('../api/medication/safety.js');
-  const scannedLabel = { name: 'Nurofen', dose: '2000 mg per tablet', activeIngredients: ['ibuprofen'], instructions: 'Synthetic directions', frequency: '', time: '', supply: '', refill: '', startDate: '', endDate: '', prescriptionExpiry: '', repeats: '' };
+  const scannedLabel = { name: 'rifampicin', dose: '2000 mg per tablet', activeIngredients: ['rifampicin'], instructions: 'Synthetic directions', frequency: '', time: '', supply: '', refill: '', startDate: '', endDate: '', prescriptionExpiry: '', repeats: '' };
   let scanProviderRequest;
   global.fetch = async (_url, options) => {
     scanProviderRequest = JSON.parse(options.body);
@@ -76,7 +76,9 @@ async function run() {
   assert.equal(result.body.coverage.confirmedLabels, 2);
   assert.equal(result.body.coverage.strengthUnverified, 1);
   assert.equal(result.body.coverage.doseAssessment, 'not_performed');
-  assert.ok(result.body.alerts.some(alert => alert.ruleId === 'warfarin-nsaid'));
+  assert.equal(result.body.coverage.unassessedPairs, 1);
+  assert.ok(result.body.alerts.some(alert => alert.type === 'interaction-coverage' && alert.severity === 'unknown'));
+  assert.equal(result.body.alerts.some(alert => alert.ruleId === 'warfarin-rifampicin'), false, 'an excluded interaction must remain unassessed');
   assert.ok(result.body.alerts.some(alert => alert.type === 'strength-review'));
 
   const wrongLabel = await call(safetyHandler, {
@@ -89,7 +91,7 @@ async function run() {
   assert.equal(wrongLabel.statusCode, 200);
   assert.equal(wrongLabel.body.resolved[1].matchState, 'name_label_mismatch');
   assert.equal(wrongLabel.body.coverage.mismatched, 1);
-  assert.equal(wrongLabel.body.alerts.some(alert => alert.ruleId === 'warfarin-nsaid'), false, 'a name/label mismatch must not emit a guessed ingredient interaction');
+  assert.equal(wrongLabel.body.alerts.some(alert => alert.ruleId === 'warfarin-rifampicin'), false, 'a name/label mismatch must not emit a guessed ingredient interaction');
 
   const unconfirmed = await call(safetyHandler, { consent: true, medications: [{ ...confirmedScannedMedicine, activeIngredientsConfirmed: false }] });
   assert.equal(unconfirmed.statusCode, 400, 'the server must reject active ingredients without user confirmation');

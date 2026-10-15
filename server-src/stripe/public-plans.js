@@ -33,13 +33,13 @@ function createHandler(StripeClient = Stripe) {
             availablePlans[name] = { available: false, interval: definition.interval };
             return;
           }
-          availablePlans[name] = { available: true, amount: price.unit_amount, currency: 'USD', interval: definition.interval };
+          availablePlans[name] = { available: true, amount: price.unit_amount, currency: String(price.currency).toUpperCase(), interval: definition.interval };
         } catch (error) {
           core.reportError('stripe_public_plan_unavailable', { route: '/api/stripe/plans', plan: name, type: error?.type, code: error?.code });
           availablePlans[name] = { available: false, interval: definition.interval };
         }
       }));
-      return core.json(response, 200, { currency: 'USD', plans: availablePlans });
+      return core.json(response, 200, { plans: availablePlans });
     } catch (error) {
       core.reportError('stripe_public_plans_failed', { route: '/api/stripe/plans', type: error?.type, code: error?.code });
       return core.json(response, 503, { error: 'Subscription pricing is temporarily unavailable.' });

@@ -200,12 +200,15 @@ check('actual engine structured licence and dated source evidence render', () =>
   const { render, nodes } = harness({ evaluate: input => actualEngine.evaluate({
     ...input,
     profile: { conditions: ['asthma'] },
-    medications: [{ id: 'synthetic-ibuprofen', name: 'Ibuprofen' }]
+    medications: [
+      { id: 'synthetic-warfarin', name: 'Warfarin' },
+      { id: 'synthetic-sulfamethoxazole', name: 'Sulfamethoxazole' }
+    ]
   }) });
   render();
   const alertHTML = nodes['#alerts-list'].innerHTML;
   const coverageHTML = nodes['#alerts-controls'].innerHTML;
-  assert.match(alertHTML, /Source checked: 2026-10-11/);
+  assert.match(alertHTML, /Source checked: 2026-10-13/);
   assert.match(coverageHTML, /<a href="https:\/\/creativecommons\.org\/licenses\/by\/4\.0\/"[^>]*>CC BY 4\.0<\/a>/);
   assert.match(coverageHTML, /Context source URLs checked 2026-10-11/);
 });

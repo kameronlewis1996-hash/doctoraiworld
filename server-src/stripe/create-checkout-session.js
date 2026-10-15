@@ -29,12 +29,20 @@ module.exports = async function createCheckoutSession(req, res) {
   if (!plan) return json(res, 400, { error: 'Choose an annual or monthly Pro plan.' });
 
   const priceId = process.env[plans[plan].env];
-  if (!priceId) return json(res, 503, { error: 'DoctorAI Pro pricing is not configured yet.' });
+  const monthlyPriceId = process.env[plans.monthly.env];
+  if (!priceId || !monthlyPriceId) return json(res, 503, { error: 'DoctorAI Pro pricing is not configured yet.' });
 
   try {
     const stripe = new Stripe(secretKey);
-    const configuredPrice = await stripe.prices.retrieve(priceId);
-    const priceMatchesSite = isValidPlanPrice(configuredPrice, plan, keyMode(secretKey));
+    const mode = keyMode(secretKey);
+    const monthlyPrice = await stripe.prices.retrieve(monthlyPriceId);
+    if (!isValidPlanPrice(monthlyPrice, 'monthly', mode)) {
+      core.reportError('stripe_checkout_price_mismatch', { route: '/api/stripe/create-checkout-session', plan: 'monthly' });
+      return json(res, 503, { error: 'DoctorAI Pro monthly pricing is being updated. Checkout is unavailable until Stripe confirms NZ$29.00 per month.' });
+    }
+
+    const configuredPrice = plan === 'monthly' ? monthlyPrice : await stripe.prices.retrieve(priceId);
+    const priceMatchesSite = plan === 'monthly' || isValidPlanPrice(configuredPrice, plan, mode);
 
     if (!priceMatchesSite) {
       core.reportError('stripe_checkout_price_mismatch', { route: '/api/stripe/create-checkout-session', plan });

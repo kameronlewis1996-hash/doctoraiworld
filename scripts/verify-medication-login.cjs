@@ -21,12 +21,14 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   await controller.update(context); await controller.setConsent(true); assert.equal(calls, 0);
   await controller.run(); assert.equal(calls, 1);
   const originalTime = controller.snapshot().checkedAt;
+  const previousResult = clone(controller.snapshot().result);
   controller = new Controller(options); await controller.update(context); assert.equal(calls, 1, 'Same session reload reuses completed login check');
   slow = true;
   const next = { ...context, loginId: 'b'.repeat(64) };
   const updating = controller.update(next); await settleUntil(() => calls === 2);
   assert.equal(controller.snapshot().status, 'pending'); assert.equal(controller.snapshot().checkedAt, originalTime);
-  assert.ok(issues(controller.snapshot().result).some(alert => alert.ruleId === 'warfarin-nsaid'), 'Prior matching warning remains visible while login refresh is pending');
+  assert.deepEqual(controller.snapshot().result, previousResult, 'Prior result remains visible while login refresh is pending');
+  assert.ok(issues(controller.snapshot().result).some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'), 'Unassessed medicine-pair coverage remains visible while login refresh is pending');
   await controller.update(next); await controller.update(next); assert.equal(calls, 2, 'Repeated auth notifications do not duplicate requests');
   now += 1000; release(); await updating; assert.equal(controller.snapshot().checkedAt, now); assert.equal(controller.snapshot().status, 'complete');
   slow = false; fail = true;
@@ -75,7 +77,7 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
   let finishGet, finishPost, posts = 0; const rendered = [], storageStates = [];
-  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'verified', entitlementReady: false, authUser: null, googleCredentialInFlight: false,
+  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'verified', entitlementReady: false, authUser: null, googleCredentialInFlight: false, deriveLocalHealthScope: async user => user?.email ? 'fictional-local-scope' : '',
     renderStorageStatus: () => storageStates.push(sandbox.accountSessionVerification), renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
     closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });

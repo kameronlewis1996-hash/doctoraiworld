@@ -1,0 +1,5162 @@
+{
+  "sourceDatasetVersion": "2026.10.15-r149",
+  "appliedOn": "2026-10-15",
+  "policy": "retain only record-level CC BY 4.0 with license URL and attribution, or internal DoctorAI original prompts with explicit internal attribution; require explicit reusable rights and attribution for every additional source; exclude unverified, conditional, missing, and otherwise unclear rights",
+  "retainedCounts": {
+    "ingredients": 534,
+    "products": 0,
+    "interactionRules": 2,
+    "combinationRules": 1,
+    "contraindicationRules": 0,
+    "allergyRules": 2
+  },
+  "retainedReasons": {
+    "explicit-cc-by-4.0": 3,
+    "internal-doctorai-original": 2
+  },
+  "retainedRules": {
+    "interactionRules": [
+      {
+        "id": "oral-anticoagulant-ssri",
+        "basis": "CC BY 4.0 with record-level attribution",
+        "publisher": "JAMA Network Open",
+        "title": "Concomitant Use of Selective Serotonin Reuptake Inhibitors With Oral Anticoagulants and Risk of Major Bleeding",
+        "url": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2816687",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attribution": "Rahman AA et al. JAMA Netw Open. 2024;7(3):e243208. doi:10.1001/jamanetworkopen.2024.3208. CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Rule wording summarized and independently written."
+      },
+      {
+        "id": "warfarin-sulfamethoxazole",
+        "basis": "CC BY 4.0 with record-level attribution",
+        "publisher": "Life (Basel)",
+        "title": "Warfarin and Antibiotics: Drug Interactions and Clinical Considerations",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attribution": "Vega AJ et al. Life (Basel). 2023;13(8):1661. doi:10.3390/life13081661. CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Rule wording summarized and independently written."
+      }
+    ],
+    "combinationRules": [
+      {
+        "id": "ras-inhibitor-diuretic-nsaid-aki",
+        "basis": "CC BY 4.0 with record-level attribution",
+        "publisher": "Journal of Pharmaceutical Health Care and Sciences",
+        "title": "Drug-specific risks of acute kidney injury associated with triple whammy therapy: a nationwide self-controlled case series study in Japan",
+        "url": "https://link.springer.com/article/10.1186/s40780-026-00560-8",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+        "attribution": "Kunitsu Y, Abe R, Ikuta K, Hira D, Nakagawa S, Tsuda M, Terada T. J Pharm Health Care Sci. 2026;12:42. doi:10.1186/s40780-026-00560-8. CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Rule wording summarized and independently written."
+      }
+    ],
+    "contraindicationRules": [],
+    "allergyRules": [
+      {
+        "id": "penicillin-class",
+        "basis": "internal DoctorAI authored rule",
+        "publisher": "DoctorAI curated class mapping",
+        "title": null,
+        "url": null,
+        "license": null,
+        "licenseUrl": null,
+        "attribution": "DoctorAI curated class mapping; internally authored DoctorAI class mapping with no external source."
+      },
+      {
+        "id": "nsaid-class",
+        "basis": "internal DoctorAI authored rule",
+        "publisher": "DoctorAI curated class mapping",
+        "title": null,
+        "url": null,
+        "license": null,
+        "licenseUrl": null,
+        "attribution": "DoctorAI curated class mapping; internally authored DoctorAI class mapping with no external source."
+      }
+    ]
+  },
+  "exclusions": {
+    "interactionRules": [
+      {
+        "id": "ace-inhibitor-arb-dual-blockade",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ace-inhibitor-trimethoprim-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-iv-ciclosporin-renal-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-iv-lithium-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-iv-mycophenolate-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-iv-tacrolimus-renal-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-probenecid-cimetidine-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aciclovir-theophylline-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "allopurinol-azathioprine-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "allopurinol-mercaptopurine-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiloride-potassium-dietary-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiloride-potassium-salt-substitute-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiloride-potassium-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-ciprofloxacin-qtc-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-cyp3a4-statin-myopathy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-diltiazem-bradycardia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-flecainide-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-hypokalaemia-inducing-diuretic-qtc-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-intravenous-erythromycin-torsades",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-norfloxacin-qtc-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-phenytoin-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-selected-antiarrhythmic-qt-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-selected-cyp3a4-substrate-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-sofosbuvir-serious-bradycardia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-systemic-beta-blocker-bradycardia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-verapamil-bradycardia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amisulpride-class-ia-iii-antiarrhythmics",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amisulpride-iv-erythromycin-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amitriptyline-fluvoxamine-increased-exposure-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amoxicillin-allopurinol-rash",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amoxicillin-digoxin-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amoxicillin-probenecid-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amoxicillin-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "anticoagulant-antiplatelet-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apixaban-selected-bleeding-risk-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-antihypertensive-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-central-amine-interferer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-clozapine-potential-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-domperidone-qtc-assessment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-levodopa-haemolytic-anaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-ondansetron-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-selected-qt-medicine-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "arb-trimethoprim-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aripiprazole-antihypertensive-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aripiprazole-cns-active-medicine-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aripiprazole-cyp-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aripiprazole-cyp3a4-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "aspirin-systemic-nsaid-gi-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-ciclosporin-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-colchicine-myopathy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-digoxin-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-diltiazem-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-letermovir-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-phenytoin-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-rifampicin-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-strong-inhibitor-myopathy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-telaprevir-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "azathioprine-captopril-leukopenia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "azathioprine-live-vaccine-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "azathioprine-ribavirin-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "benzodiazepine-alcohol-cns-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "benzodiazepine-tricyclic-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "budesonide-systemic-cyp3a4-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "bupivacaine-amiodarone-additive-cardiac-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "bupivacaine-mexiletine-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "bupivacaine-ropivacaine-additive-local-anaesthetic-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "busulfan-itraconazole-clearance-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "busulfan-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "busulfan-metronidazole-clearance-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "busulfan-phenytoin-myeloablation-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-clobazam-active-metabolite-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-cyp1a2-substrate-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-cyp2b6-substrate-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-digoxin-pgp-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-lamotrigine-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-mtor-calcineurin-inhibitor-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-omeprazole-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-phenytoin-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-repaglinide-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-stiripentol-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-strong-inducer-lower-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-ugt1a9-substrate-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-ugt2b7-substrate-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-valproate-liver-enzyme-elevation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cannabidiol-warfarin-inr-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbamazepine-diuretic-hyponatraemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbimazole-digoxin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbimazole-erythromycin-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbimazole-prednisolone-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbimazole-theophylline-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbimazole-warfarin-inr-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carboplatin-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-aliskiren-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-bosentan-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-dabigatran-avoid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-everolimus-sirolimus-levels-creatinine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-fibrate-graft-renal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-grapefruit-juice-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-high-dose-intravenous-anthracycline-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-lercanidipine-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-level-decreasing-selected-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-level-increasing-selected-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-mycophenolate-transplant-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-nifedipine-gingival-hyperplasia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-oncotice-immunosuppression-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-oral-contraceptive-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-potassium-raising-medicines-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-repaglinide-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-selected-nephrotoxic-synergy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-selected-other-drug-level-increases",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-selected-statin-myotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-sii-onco-bcg-immunosuppression-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-st-johns-wort-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciclosporin-tacrolimus-avoid-nephrotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-oral-cations-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-pentoxifylline-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-phenytoin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-probenecid-clearance-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-ropinirole-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-sulfonylurea-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-theophylline-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-tizanidine-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cisplatin-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-amlodipine-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-cyp3a-inducer-reduced-antibiotic-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-diltiazem-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-domperidone-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-edoxaban-bleeding-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-ergot-alkaloid-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-felodipine-exposure-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-lomitapide-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-lovastatin-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-midazolam-route-dependent-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-nifedipine-exposure-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-ranolazine-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-rosuvastatin-myopathy-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-selected-hypoglycaemia-medicine-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-selected-level-sensitive-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-verapamil-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-aspirin-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-cyp2c19-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-paclitaxel-cyp2c8-inhibition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-repaglinide-cyp2c8-inhibition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clopidogrel-ssri-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clotrimazole-troche-tacrolimus-level-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clotrimazole-vaginal-sirolimus-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clotrimazole-vaginal-tacrolimus-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-alpha-adrenergic-pressor-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-benzodiazepine-initiation-circulatory-collapse",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-caffeine-intake-level-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-ciprofloxacin-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-cns-depressant-additive-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-gastrointestinal-hypomotility-additive-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-level-decreasing-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-level-increasing-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-oral-contraceptive-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-potential-cyp3a-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-qtc-prolonging-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-tobacco-smoke-exposure-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-valproate-seizure-delirium",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "co-trimoxazole-oral-sulfonylurea-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-antiperistaltic-antidiarrhoeal-constipation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-cimetidine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-cyp2d6-inhibitor-analgesia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-maoi-central-nervous-system-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-partial-opioid-agonist-antagonist-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-rifampicin-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-ritonavir-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codeine-tricyclic-antidepressant-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-acidifying-agent-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-alcohol-gastrointestinal-and-efficacy-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-alkalinizing-agent-potentiated-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-clarithromycin-severe-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-cns-depressant-sensitivity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-cytolytic-antineoplastic-uric-acid-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-haematologic-bleeding-risk-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-lipid-lowering-myopathy-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-nsaid-gastrointestinal-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-selected-cyp3a4-pgp-inhibitor-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-sympathomimetic-enhanced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "combined-oral-contraceptive-lamotrigine-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cyclophosphamide-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-fibrinolytic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-ketoconazole",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-pgp-inducer-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-pgp-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-prohibited-antiplatelet",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-rifampicin",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-verapamil-oral-pgp",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "danaparoid-systemic-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "daptomycin-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dental-adrenaline-sympathomimetic-pressor-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "desmopressin-antiperistaltic-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "desmopressin-water-sodium-medicine-hyponatraemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-acidifying-agents-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-alkalinizing-agents-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-alpha-methyltyrosine-antagonism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-atomoxetine-additive-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-beta-blocker-hypertension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-clonidine-duration",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-disulfiram-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-ethosuximide-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-guanethidine-antihypertensive-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-haloperidol-dystonia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-lithium-antagonism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-maoi-hypertensive-crisis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-morphine-effect-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-pethidine-analgesic-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-phenobarbitone-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-phenothiazine-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-phenytoin-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-snri-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-ssri-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-tca-cardiovascular-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "diazepam-selected-exposure-increasing-medicine-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-apalutamide-enzalutamide-assay-interference",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-av-conduction-slowing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-diuretic-hypokalaemia-sensitivity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-hypokalaemia-other-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-increased-effect-or-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-rapid-intravenous-calcium-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-reduced-effect-or-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-renal-function-secondary-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-sennosides-heart-failure-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-suxamethonium-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-sympathomimetic-arrhythmia-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-systemic-glucocorticoid-hypokalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "direct-oral-anticoagulant-snri-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "diuretic-nsaid-aki",
+        "reason": "additional-source-rights-not-explicit"
+      },
+      {
+        "id": "doac-nsaid-bleeding",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "docetaxel-strong-cyp3a4-inhibitor-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-enzyme-inducing-antiepileptic-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "doxycycline-enzyme-inducing-antiepileptics-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "doxycycline-oral-mineral-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "doxycycline-warfarin-anticoagulation-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "doxylamine-selected-qt-medicine-prolongation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "duplicate-paracetamol-containing-products",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "edoxaban-carbamazepine-thrombosis-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "edoxaban-cobicistat-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "edoxaban-itraconazole-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-anticholinergic-bronchodilator",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-beta-blocker-airway-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-cardiac-tolerance-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-hypokalaemia-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-maoi-hypertensive-reaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-other-beta-agonist-cumulative-bronchodilation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-qt-risk-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-sympathomimetic-cumulative-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "enoxaparin-systemic-glucocorticoid-haemostasis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "enoxaparin-systemic-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-mild-moderate-cyp3a-inhibitor-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-other-potassium-sparing-diuretic-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-potassium-dietary-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-potassium-salt-substitute-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-potassium-supplement-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-renin-angiotensin-inhibitor-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-strong-cyp3a4-inhibitor-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-atorvastatin-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "etoposide-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "everolimus-grapefruit-food-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "everolimus-strong-cyp3a-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "everolimus-strong-cyp3a-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-bile-acid-sequestrant-separation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-ciclosporin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-fibrate-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-vitamin-k-antagonist-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "factor-xa-doac-strong-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "factor-xa-doac-strong-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "febuxostat-azathioprine-thiopurine-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "febuxostat-mercaptopurine-thiopurine-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fentanyl-patch-selected-cyp3a4-inhibitor-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fexofenadine-aluminium-magnesium-antacid-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "flucloxacillin-paracetamol-hagma",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "flucloxacillin-posaconazole-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "flucloxacillin-voriconazole-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "flucloxacillin-warfarin-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-amiodarone-qt-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-carbamazepine-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-contraindicated-qt-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-cyclophosphamide-lab-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-cyp3a4-calcium-channel-blocker-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-everolimus-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-ibrutinib-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-ivacaftor-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-lurasidone-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-methadone-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-olaparib-exposure-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-oral-midazolam-sedation-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-phenytoin-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-rifabutin-level-uveitis-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-rifampicin-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-sirolimus-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-sulfonylurea-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-theophylline-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-tolvaptan-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-voriconazole-coadministration-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-zidovudine-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoroquinolone-insulin-dysglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoroquinolone-oral-antidiabetic-dysglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluorouracil-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluorouracil-metronidazole-clearance-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluticasone-propionate-other-potent-cyp3a4-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluticasone-propionate-ritonavir-corticosteroid-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fondaparinux-systemic-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gabapentinoid-selected-cns-depressant-respiratory-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gemcitabine-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hcv-direct-acting-antiviral-enzyme-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "heparin-systemic-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-amphotericin-b-electrolyte-cardiac",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-anticholinesterase-myasthenia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-antidiabetic-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-aspirin-high-dose",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-beta2-agonist-hypokalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-ciclosporin-increased-activity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-combined-oral-contraceptive",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-digoxin-hypokalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-neuromuscular-blocker",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-nonaspirin-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-oral-anticoagulant",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-other-cyp3a4-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-potassium-depleting-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-strong-cyp3a4-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrocortisone-strong-cyp3a4-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ifosfamide-live-vaccine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "injectable-amide-local-anaesthetic-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-hyperglycaemia-associated-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-hypoglycaemia-enhancing-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-oral-contraceptive-glycaemic-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-pentamidine-biphasic-glucose-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-variable-effect-and-masked-hypoglycaemia-signs",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "irinotecan-atazanavir-sn38-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "irinotecan-cyp3a-inducing-anticonvulsant-reduced-sn38",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "irinotecan-ketoconazole-increased-sn38",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "irinotecan-st-johns-wort-reduced-sn38",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-antiepileptic-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-ciclosporin-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-dabigatran-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-rufinamide-qt-shortening",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-sirolimus-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isavuconazole-tacrolimus-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isoniazid-carbamazepine-toxicity-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isoniazid-phenytoin-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isoniazid-theophylline-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isoniazid-valproate-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "itraconazole-contraindicated-qt-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "itraconazole-enzyme-inducing-antiepileptic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ivabradine-verapamil-diltiazem-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "jadelle-established-enzyme-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "jadelle-possible-enzyme-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lacosamide-enzyme-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lacosamide-pr-prolonging-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "leflunomide-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levodopa-amantadine-enhanced-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levodopa-antihypertensive-postural-hypotension",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-comt-inhibitor-dose-review",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-d2-antagonists-reduced-response",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-domperidone-bioavailability",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-dopamine-agonist-enhanced-effects",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-dopamine-depleting-agents",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-ferrous-salts-reduced-bioavailability",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-nonselective-maoi-hypertensive-crisis",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-opioid-reduced-effect",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-response-reducing-medicines",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-selective-maoi-dose-and-blood-pressure-review",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-sympathomimetic-cardiovascular-potentiation",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levodopa-tricyclic-antidepressant-reactions",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "levonorgestrel-emergency-contraception-enzyme-inducer",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-absorption-reducing-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-antidiabetic-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-digoxin-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-metabolism-inducers",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-oral-ciprofloxacin-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-oral-iron-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-phenytoin-level-and-thyroxine-metabolism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-ritonavir-thyroid-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-sertraline-thyroxine-level",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-simvastatin-thyroxine-requirement",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-st-johns-wort-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-sympathomimetic-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-systemic-glucocorticoid-t3-conversion",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-t4-t3-conversion-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-tbg-decreasing-androgen",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-tbg-increasing-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-tricyclic-antidepressant-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-tyrosine-kinase-inhibitor-thyroxine-requirement",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-warfarin-anticoagulant-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lidocaine-amiodarone-cardiac-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lidocaine-beta-blocker-reduced-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lidocaine-cimetidine-reduced-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lidocaine-mexiletine-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "linezolid-fentanyl-methadone-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "linezolid-maoi-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "linezolid-serotonergic-antidepressant-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "linezolid-serotonergic-opioid-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "linezolid-sympathomimetic-pressor-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-ace-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-acetazolamide-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-antipsychotic-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-arb",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-bumetanide-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-calcitonin-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-calcium-channel-blocker-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-carbamazepine-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-chlortalidone-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-eplerenone-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-furosemide-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-indapamide-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-ispaghula-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-mannitol-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-methyldopa-neurotoxicity-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-metronidazole-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-neuromuscular-blocker-prolonged-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-nsaid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-oral-sodium-chloride-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-phenytoin-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-qt-prolonging-medicine-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-serotonergic-antidepressant-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-sglt2-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-sodium-bicarbonate-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-spironolactone-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-sumatriptan-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-systemic-glucocorticoid-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-tetracycline-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-thiazide-diuretic",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-topiramate-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-tricyclic-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-xanthine-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "live-attenuated-vaccine-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-comt-inhibitor-cardiovascular-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-digoxin-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-ergot-hypertension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-guanethidine-pressor-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-lithium-prolonged-anesthetic-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-maoi-hypertensive-crisis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-neuroleptic-pressor-reversal",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-nonselective-beta-blocker-hypertension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-oral-antidiabetic-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-quinidine-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-thyroid-hormone-potentiation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-tricyclic-hypertension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "local-adrenaline-volatile-anesthetic-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "low-dose-aspirin-regular-ibuprofen-antiplatelet-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "madopar-halothane-anaesthesia-arrhythmia",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "madopar-hbs-antacid-reduced-absorption",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "madopar-standard-trihexyphenidyl-absorption-rate",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "maintenance-clonidine-beta-blocker-withdrawal-sequence",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-cyp-inhibitors-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-cyp3a4-inducers-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-disopyramide-negative-inotrope",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-strong-cyp2c19-inhibitors-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-voriconazole-heart-failure-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-atazanavir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-atorvastatin-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-carbamazepine-reduced-antiviral-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-ciclosporin-dose-threshold",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-dabigatran-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-digoxin-concentration-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-efavirenz-reduced-antiviral-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-ethinyloestradiol-over-20-mcg",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-lovastatin-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-pravastatin-dose-reduction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-rifampicin-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-rosuvastatin-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-simvastatin-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-st-johns-wort-reduced-antiviral-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-vitamin-k-antagonist-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-nsaid-additive-renal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-thiopurine-myelosuppression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-warfarin-lower-anticoagulant-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-ace-inhibitor-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-alcohol-lactic-acidosis-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-beta2-agonist-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-calcium-channel-blocker-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-carbonic-anhydrase-inhibitor-lactic-acidosis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-chlorpromazine-high-dose-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-danazol-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-glucocorticoid-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-hypoglycaemia-co-medicine-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-insulin-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-intravascular-contrast-iodixanol",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-intravascular-contrast-iohexol",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-levothyroxine-glycaemic-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-liothyronine-glycaemic-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-loop-diuretic-lactic-acidosis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-nifedipine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-nsaid-lactic-acidosis-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-oct2-inhibitor-exposure-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-other-diuretic-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-rifampicin-absorption-efficacy-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-systemic-beta-blocker-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-tetracosactide-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-thiazide-glycaemic-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-verapamil-reduced-efficacy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-vitamin-k-antagonist-pt-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methadone-qt-prolonging-medicine-ecg-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-acitretin-hepatotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-allopurinol-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-amiodarone-skin-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-azathioprine-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-cholestyramine-level",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-ciclosporin-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-ciprofloxacin-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-cotrimoxazole",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "methotrexate-folate-schedule",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-glycopeptide-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-isotretinoin-hepatotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-leflunomide-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-loop-diuretic-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-mercaptopurine-level",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-nitrous-oxide-anaesthesia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-nsaid-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-phenytoin-binding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-probenecid-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-proton-pump-inhibitor-high-dose-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-pyrimethamine-myelotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-sodium-valproate-reduced-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-sulfasalazine-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-sulfonamide-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-sulfonylurea-binding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-systemic-chloramphenicol",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-tetracycline-binding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-theophylline-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metoprolol-potent-cyp2d6-inhibitor-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "miconazole-oral-gel-sulfonylurea-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-alcohol-additive-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-benzodiazepine-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-cimetidine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-linezolid-serotonin-syndrome-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-lithium-serotonin-syndrome-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-maoi-washout",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-opioid-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-selected-antipsychotic-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-selected-h1-antihistamine-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-selected-qt-medicine-arrhythmia-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-serotonergic-antidepressant-serotonin-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-st-johns-wort-serotonin-and-exposure-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-strong-cyp3a4-inhibitor-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-strong-enzyme-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-tramadol-serotonin-syndrome-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-triptan-serotonin-syndrome-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mirtazapine-zopiclone-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "moderate-risk-serotonergic-opioid-antidepressant",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-methadone-ssri-serotonin-and-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "moderate-risk-serotonergic-opioid-maoi",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "morphine-oral-p2y12-antiplatelet-delay",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "moxifloxacin-class-ia-iii-antiarrhythmic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "moxifloxacin-oral-chelating-agents-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "moxifloxacin-other-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "multiple-potassium-sparing-diuretics-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-azathioprine-marrow-suppression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-cholestyramine-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-live-vaccine-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-magnesium-aluminium-antacid-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-oral-ciprofloxacin-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-oral-co-amoxiclav-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-proton-pump-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-rifampicin-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-sevelamer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-sirolimus-toxicity-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-telmisartan-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nifedipine-grapefruit-food-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-antidiabetic-glucose-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-beta-blocker-bradycardia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-bromocriptine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-ciclosporin-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-cimetidine-delayed-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "octreotide-rate-limiting-calcium-channel-blocker",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-carbamazepine-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-dopamine-agonist-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-fluvoxamine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-selected-qt-medicine-cardiac-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-systemic-ciprofloxacin-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oncotice-antituberculosis-agent-reduced-efficacy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-oral-cyp3a4-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-serotonergic-antidepressant-observation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-tramadol-reduced-analgesia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "opioid-benzodiazepine-respiratory-depression",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "opioid-gabapentinoid-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "opioid-selected-cns-depressant-respiratory-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "opioid-zopiclone-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-anticoagulant-concomitant-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-anticoagulant-parenteral-anticoagulant-overlap",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-bisphosphonate-polyvalent-cation-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-ciprofloxacin-sildenafil-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-contraceptive-enzyme-inducer-efficacy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-phenylephrine-beta-blocker-blood-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-phenylephrine-maoi-hypertensive-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-phenylephrine-tca-hypertensive-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-proton-pump-inhibitor-diuretic-hypomagnesaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-ace-inhibitor-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-diuretic-hyperglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-systemic-beta-blocker-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-systemic-nsaid-hypoglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-tramadol-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-acarbose-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-amiodarone-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-antiepileptic-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-antiretroviral-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-ciclosporin-level",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "orlistat-levothyroxine-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oxycodone-selected-cyp3a4-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paclitaxel-cisplatin-sequence-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paclitaxel-cyp2c8-cyp3a-modifier-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paclitaxel-doxorubicin-sequence-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paracetamol-chloramphenicol-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paracetamol-enzyme-inducer-hepatotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paracetamol-warfarin-anticoagulation-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paracetamol-zidovudine-neutropenia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pde5-nitrate",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "penicillin-methotrexate-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pioglitazone-insulin-fluid-retention-heart-failure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "posaconazole-contraindicated-qt-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "posaconazole-phenytoin-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "potassium-sparing-diuretic-systemic-nsaid-hyperkalaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pramipexole-alcohol-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pramipexole-amantadine-reduced-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pramipexole-cimetidine-reduced-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "promethazine-tricyclic-antidepressant-cns-anticholinergic-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "propranolol-diltiazem-brash-prompt",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-beta-blocker-blood-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-maoi-hypertensive-crisis",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "pseudoephedrine-psychostimulant-additive-blood-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-tricyclic-hypertensive-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-dopamine-agonist-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-maoi-serotonin-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-selected-qt-medicine-cardiac-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-serotonergic-antidepressant-serotonin-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-strong-cyp3a4-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-strong-enzyme-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-400mg-aluminium-magnesium-antacid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-400mg-rifampicin-exposure-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-hd-aluminium-magnesium-antacid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-hd-atazanavir-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-hd-calcium-carbonate-antacid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-hd-potent-inducer-exposure-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ras-inhibitor-potassium-dietary-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ras-inhibitor-potassium-salt-substitute-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ras-inhibitor-potassium-sparing-diuretic-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ras-inhibitor-potassium-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ras-inhibitor-systemic-nsaid-renal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifabutin-methadone-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-cabotegravir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-caspofungin-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-ciclosporin-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-clopidogrel-increased-platelet-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-daclatasvir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-dapsone-exposure-and-methaemoglobinaemia-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-fostemsavir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-lenacapavir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-lurasidone-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-methadone-withdrawal",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-sofosbuvir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-tacrolimus-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifampicin-telaprevir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ropivacaine-amiodarone-additive-cardiac-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ropivacaine-fluvoxamine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ropivacaine-mexiletine-additive-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-ace-inhibitor-36-hour-washout",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-potassium-sparing-medicine-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-potassium-supplement-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-with-additional-arb",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "salbutamol-selected-nonselective-beta-blocker-bronchospasm",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "salmeterol-systemic-beta-blocker-opposed-airway-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "salmeterol-systemic-strong-cyp3a4-inhibitor-cardiac-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sedating-antihistamine-alcohol-additive-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "serotonergic-opioid-antidepressant",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "serotonergic-opioid-maoi",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "sglt2-diuretic-volume-depletion",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sglt2-oral-sulfonylurea-hypoglycaemia-monitoring",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "sii-onco-bcg-antituberculosis-agent-reduced-efficacy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-bezafibrate-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-interacting-inhibitor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-selected-medicine-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sirolimus-grapefruit-juice-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sirolimus-strong-cyp3a-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sirolimus-strong-cyp3a-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "snri-antidepressant-maoi-serotonin-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-astemizole-proarrhythmic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-disopyramide-proarrhythmic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-intravenous-verapamil-diltiazem-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-potassium-depleting-diuretic-torsades-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-quinidine-proarrhythmic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-selected-qt-medicine-proarrhythmic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-systemic-glucocorticoid-electrolyte-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-terfenadine-proarrhythmic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-tricyclic-antidepressant-torsades",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-ace-inhibitor",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "spironolactone-arb",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "spironolactone-potassium-dietary-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-potassium-salt-substitute-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-potassium-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-systemic-nsaid-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-trimethoprim-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ssri-diuretic-hyponatraemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ssri-maoi",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "ssri-nsaid-upper-gi-bleeding",
+        "reason": "additional-source-rights-not-explicit"
+      },
+      {
+        "id": "ssri-st-johns-wort-serotonergic-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "statin-daptomycin-muscle-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "statin-systemic-fusidic-acid-severe-muscle-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-beta-blocker-intravenous-verapamil-serious-cardiac-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-beta-blocker-oral-diltiazem-cardiac-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-beta-blocker-oral-verapamil-cardiac-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-ciprofloxacin-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-glucocorticoid-potassium-depleting-diuretic-electrolyte-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-glucocorticoid-sulfonylurea-hyperglycaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-glucocorticoid-systemic-nsaid-gi-ulceration",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-macrolide-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-nonaspirin-nsaid-duplicate-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-nsaid-beta-blocker-blood-pressure-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-opioid-alcohol-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-direct-acting-antiviral-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-ganciclovir-nephrotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-grapefruit-juice-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-gyrase-inhibitor-nephrotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-hormonal-contraceptive-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-live-attenuated-vaccine-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-magnesium-aluminium-hydroxide-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-mtor-inhibitor-tma-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-mycophenolate-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-nsaid-nephrotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-other-level-increasing-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-phenytoin-level-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-potassium-sparing-diuretic-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-potassium-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-potential-level-decreasing-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-qt-prolonging-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-selected-nephrotoxic-neurotoxic-synergy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-st-johns-wort-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-strong-level-decreasing-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-strong-level-increasing-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-systemic-amphotericin-b-nephrotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tamoxifen-cyp2d6-inhibitors-reduced-endoxifen",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tca-antidepressant-maoi-serotonin-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tca-fluoxetine-paroxetine-increased-concentration",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tetracycline-warfarin-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-aspirin-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-potent-cyp3a-inducers",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-rosuvastatin-myopathy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-selected-pgp-inhibitors",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-simvastatin-lovastatin-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-ssri-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-strong-cyp3a4-inhibitors",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ticagrelor-systemic-nsaid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tpa-ace-inhibitor-angioedema",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tpa-antiplatelet-first-24h",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tpa-heparin-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tpa-non-dabigatran-doac-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tpa-non-heparin-parenteral-anticoagulant-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tramadol-seizure-threshold-lowering-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trelegy-other-ics-duplication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trelegy-other-laba-duplication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trelegy-other-lama-duplication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-aminocaproic-acid-thrombosis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-itraconazole-increased-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-ketoconazole-increased-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-posaconazole-increased-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-rifampicin-pharmacokinetic-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-tetracycline-intracranial-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-tranexamic-acid-thrombosis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-vitamin-a-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-voriconazole-increased-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-azathioprine-haematologic-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-dapsone-exposure-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-mercaptopurine-haematologic-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-potassium-dietary-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-potassium-salt-substitute-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-potassium-sparing-diuretic-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-potassium-supplement-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-warfarin-anticoagulation-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-acetazolamide-hyperammonaemic-encephalopathy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-alcohol-cns-depressant",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-barbiturate-primidone-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-carbamazepine-toxicity-and-lower-valproate",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-carbapenem-major-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-chlorpromazine-metabolism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-cholestyramine-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-cimetidine-erythromycin-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-clonazepam-absence-status",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-diazepam-sedation-level",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-estrogen-containing-products-lower-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-ethosuximide-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-felbamate-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-fluoxetine-metabolism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-lamotrigine-serious-rash",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-lorazepam-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-mefloquine-seizure-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-metamizole-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-midazolam-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-nimodipine-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-olanzapine-lower-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-phenytoin-free-level-and-seizures",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-pivalate-conjugate-carnitine-depletion",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-propofol-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-protease-inhibitor-lower-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-psychotropic-potentiation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-quetiapine-cytopenia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-rifampicin-lower-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-rufinamide-interaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-salicylate-free-level-and-liver-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-topiramate-hyperammonaemic-encephalopathy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-warfarin-anticoagulation-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "valproate-zidovudine-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venetoclax-selected-cyp3a-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venetoclax-selected-pgp-inhibitor-titration-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venetoclax-strong-cyp3a-inducer-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-diuretic-hyponatraemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vilanterol-beta-blocker-bronchodilator-antagonism",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vilanterol-maoi-tca-qt-cardiovascular-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vilanterol-strong-cyp3a4-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vilanterol-sympathomimetic-potentiation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vinblastine-erythromycin-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vinblastine-fluconazole-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-cyp3a-inhibiting-azole-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-digoxin-tablet-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-mitomycin-respiratory-reaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-nifedipine-clearance",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-phenytoin-anticonvulsant-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-st-johns-wort-metabolism-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vincristine-voriconazole-neurotoxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vinorelbine-cyp3a-inducer-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vinorelbine-cyp3a-inhibitor-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "voriconazole-contraindicated-qt-medicines",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "voriconazole-lurasidone-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "voriconazole-midazolam-exposure-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "voriconazole-phenytoin-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "voriconazole-strong-inducer-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-additional-daa-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-alcohol-intake-inr-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-allopurinol-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-amiodarone-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-atorvastatin-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-azathioprine-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-barbiturate-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-capecitabine-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-carbamazepine-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-chloramphenicol-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-cholestyramine-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-cranberry-product-inr-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-disulfiram-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-erlotinib-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-fibrate-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-fibrinolytic-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-fluconazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-fluoroquinolone-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-fluvastatin-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-glucosamine-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-grapefruit-juice-inr-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-griseofulvin-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-heparin-pt-assay-interference",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-itraconazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-ketoconazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-label-decreased-pt-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-label-increased-pt-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-ledipasvir-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-macrolide-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-methylphenidate-er-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-methylphenidate-standard-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-metronidazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-miconazole-oral-gel-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-nevirapine-variable-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-nsaid",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "warfarin-omeprazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-oral-contraceptive-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-orlistat-vitamin-k",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-other-medicine-accumulation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-phenytoin-variable-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-posaconazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-primidone-reduced-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-propafenone-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-quinine-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-ranitidine-variable-pt-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-rifampicin",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-ritonavir-variable-response",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-rosuvastatin-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-simvastatin-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-snri-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-sofosbuvir-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-st-johns-wort-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-sucralfate-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-systemic-corticosteroid-variable-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-tamoxifen-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-ticlopidine-cholestatic-hepatitis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-turmeric-curcumin-supplement-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-voriconazole-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-zafirlukast-inr",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "zopiclone-alcohol-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "zopiclone-cyp3a4-inducer-exposure-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "zopiclone-cyp3a4-inhibitor-exposure-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "zopiclone-selected-cns-depressant-additive-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-pseudoephedrine-phenylephrine-additive-pressor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-phenylephrine-amphetamine-stimulant-additive-pressor",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-other-antihistamine-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-benzodiazepine-additive-cns-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-cyp2d6-inhibitor-increased-dextromethorphan-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "glp1-agonist-insulin-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "glp1-agonist-sulfonylurea-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "vildagliptin-sulfonylurea-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-metronidazole-alcohol-reaction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sedating-antihistamine-benzodiazepine-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "citalopram-common-cyp2c19-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "escitalopram-common-cyp2c19-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoxetine-oral-sulfonylurea-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-systemic-nonaspirin-nsaid-bleeding",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "venlafaxine-aspirin-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-p2y12-inhibitor-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "jadelle-lamotrigine-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiodarone-grapefruit-juice-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-grapefruit-juice-quantity-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-grapefruit-juice-large-intake-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "felodipine-grapefruit-juice-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "verapamil-grapefruit-food-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-ciprofloxacin-dairy-drink-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-vitamin-k-diet-change-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "potassium-depleting-diuretic-regular-liquorice-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-azithromycin-digoxin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-erythromycin-felodipine-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-erythromycin-nifedipine-blood-pressure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isotretinoin-tetracycline-intracranial-hypertension-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nitrofurantoin-magnesium-trisilicate-antacid-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-ibuprofen-alcohol-adverse-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-iron-zinc-mutual-absorption-reduced",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-iron-dairy-possible-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-levothyroxine-food-dose-timing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-bisphosphonate-food-drink-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-flucloxacillin-food-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nitrofurantoin-urinary-alkaliniser-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gliclazide-glipizide-salbutamol-hyperglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-manual-psyllium-level-decrease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nebulised-parenteral-salbutamol-hypokalaemia-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-metoprolol-bp-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-minocycline-mineral-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gabapentin-oral-antacid-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pde5-doxazosin-postural-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ssri-selected-triptan-serotonin-syndrome-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "snri-selected-triptan-serotonin-syndrome-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atomoxetine-serotonergic-co-medicine-serotonin-syndrome",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atomoxetine-strong-cyp2d6-inhibitor-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-st-johns-wort-serotonergic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "domperidone-selected-qt-medicine-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "domperidone-selected-calcium-antagonist-qt-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "domperidone-antacid-antisecretory-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "citalopram-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "escitalopram-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "promethazine-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "citalopram-pimozide-qt-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "escitalopram-pimozide-qt-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-significant-sodium-intake-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-nitrofurantoin-take-with-food",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-co-amoxiclav-start-of-meal",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ferro-f-tab-food-antacid-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tirzepatide-oral-contraceptive-effectiveness-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tirzepatide-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tirzepatide-digoxin-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "potassium-citrate-systemic-nsaid-hyperkalaemia-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metoclopramide-high-eps-neuroleptic-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ferro-liquid-food-antacid-mineral-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gliclazide-st-johns-wort-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-azithromycin-aluminium-magnesium-antacid-no-simultaneous-dose",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "arrow-roxithromycin-food-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nitrofurantoin-ural-urine-alkaliniser-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-h2-antagonist-glucose-control",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "gabapentin-magnesium-trisilicate-antacid-reduced-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tca-alcohol-additive-cns-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ssri-alcohol-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-alcohol-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-pseudoephedrine-methyldopa-blood-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-phenylephrine-methyldopa-blood-pressure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-rosuvastatin-mylanta-double-strength-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-diltiazem-grapefruit-juice-increased-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-felodipine-st-johns-wort-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-vildagliptin-ace-inhibitor-angioedema",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amlodipine-st-johns-wort-reduced-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoroquinolone-systemic-glucocorticoid-tendon-injury",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rosuvastatin-fibrate-myopathy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pravastatin-fibrate-myopathy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-simvastatin-myopathy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-losartan-blood-pressure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydrochlorothiazide-oral-calcium-carbonate-supplement-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pravastatin-clarithromycin-myopathy-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pravastatin-oral-erythromycin-myopathy-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-mirtazapine-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-levodopa-parkinsons-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pioglitazone-gemfibrozil-exposure-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-celecoxib-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-amitriptyline-effect-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-nortriptyline-effect-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-atorvastatin-myopathy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-naproxen-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluconazole-diclofenac-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoroquinolone-nsaid-cns-seizure-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-phenytoin-elimination-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "norfloxacin-caffeine-prolonged-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-duloxetine-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ciprofloxacin-caffeine-medicine-concentration-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "thiazide-methotrexate-myelotoxicity-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "diclofenac-phenytoin-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-digoxin-concentration-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-phenytoin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-carbamazepine-toxicity-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-phenytoin-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-verapamil-serious-cardiac-effect-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-verapamil-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "verapamil-st-johns-wort-reduced-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-magnesium-aluminium-antacid-absorption-timing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-oral-iron-supplement-absorption-timing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-calcium-carbonate-product-timing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-st-johns-wort-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-potassium-salt-substitute-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-alcohol-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbamazepine-ibuprofen-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbamazepine-grapefruit-juice-level-increase",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dolutegravir-magnesium-trisilicate-antacid-absorption-timing",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-systemic-nsaid-renal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-atorvastatin-exposure-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-pde5-blood-pressure-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-diltiazem-serious-cardiac-effect-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-sildenafil-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trimethoprim-thiazide-sodium-and-platelet-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-glucocorticoid-aspirin-gi-bleeding-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-metformin-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "erythromycin-methylprednisolone-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-soy-fibre-diet-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "quetiapine-grapefruit-juice-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-paracetamol-alcohol-liver-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "olanzapine-tobacco-smoke-exposure-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levodopa-immediate-release-protein-meal-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levothyroxine-biotin-thyroid-test-interference",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "insulin-alcohol-variable-glucose-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "inhaled-lama-duplicate-therapy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "inhaled-lama-sama-duplicate-therapy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "selected-atypical-antipsychotic-benzodiazepine-sedation",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "oral-cefalexin-metformin-increased-metformin-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-cefalexin-warfarin-prothrombin-time",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-opioid-opioid-additive-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-opioid-metoclopramide-additive-sedation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-glucocorticoid-beta2-agonist-hypokalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-levothyroxine-magnesium-aluminium-antacid-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ferro-tab-oral-mineral-absorption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-erythromycin-rosuvastatin-myopathy-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-ssri-serotonin-syndrome-observation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "venlafaxine-other-snri-serotonin-syndrome-observation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sertraline-pimozide-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sertraline-selected-qt-medicine-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-minocycline-warfarin-anticoagulation-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-sulfonylurea-warfarin-anticoagulation-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "salmeterol-hypokalaemia-risk-medicine",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nifedipine-fluoxetine-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nifedipine-diltiazem-exposure-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbamazepine-lamotrigine-neurological-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-iron-selected-cation-separation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "liraglutide-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "semaglutide-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "inhaled-salbutamol-ophthalmic-timolol-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oxycodone-selected-antihypertensive-postural-hypotension",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-opioid-tricyclic-anticholinergic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-calcium-channel-blocker-exposure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-clopidogrel-reduced-antiplatelet-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-tamsulosin-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-methadone-withdrawal-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-pde5-inhibitor-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-potent-cyp3a-inducer-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-tranexamic-acid-combined-pill-thrombosis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "cigarette-smoking-combined-oral-contraceptive-risk-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-methylphenidate-ssri-serotonin-syndrome-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-methylphenidate-snri-serotonin-syndrome-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-methylphenidate-caffeine-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-methylphenidate-antihypertensive-effect-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-urinary-antimuscarinic-tca-additive-anticholinergic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-urinary-antimuscarinic-promethazine-anticholinergic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-tramadol-urinary-antimuscarinic-anticholinergic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-oxybutynin-solifenacin-overlapping-antimuscarinic-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-simvastatin-timed-interruption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-atorvastatin-temporary-interruption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-rosuvastatin-temporary-interruption",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-lamotrigine-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-ethinyloestradiol-backup-contraception",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-selected-antidepressant-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-clonazepam-dose-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-diazepam-dose-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "risperidone-carbamazepine-reduced-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "risperidone-fluoxetine-increased-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "risperidone-paroxetine-dose-dependent-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "carbamazepine-selected-antidepressant-reduced-levels",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-opioid-urinary-antimuscarinic-severe-constipation-retention",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-urinary-antimuscarinic-sedating-antihistamine-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-oxybutynin-levodopa-anticholinergic-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "salmeterol-ophthalmic-timolol-opposed-airway-effect",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "inhaled-lama-oral-urinary-antimuscarinic-chronic-use-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "inhaled-sama-oral-urinary-antimuscarinic-chronic-use-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "direct-oral-anticoagulant-ssri-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-warfarin-inr-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-rivaroxaban-avoid-bleeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-dabigatran-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-apixaban-bleeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-amiodarone-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-salmeterol-avoid-cardiac-effects",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-eplerenone-contraindicated-hyperkalaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-ticagrelor-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-digoxin-level-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-quetiapine-exposure-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-haloperidol-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-risperidone-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-loratadine-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-clarithromycin-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-erythromycin-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-oxycodone-respiratory-depression",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-inhaled-fluticasone-adrenal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-inhaled-fluticasone-propionate-adrenal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-inhaled-budesonide-adrenal-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-flecainide-arrhythmia-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paxlovid-propafenone-arrhythmia-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      }
+    ],
+    "combinationRules": [
+      {
+        "id": "valproate-multiple-anticonvulsants-liver-injury",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levodopa-selective-mao-a-and-b-hypertensive-crisis",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-domperidone-diuretic-electrolyte-qtc-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rifinah-saquinavir-ritonavir-contraindicated",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-beta-blocker-verapamil-or-diltiazem-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-fenofibrate-gallbladder-disease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-statin-pregnancy-or-lactation",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-statin-active-liver-disease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-digoxin-hypokalaemia-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-cotrimoxazole-nephrotoxic-synergy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-tipranavir-ritonavir-dose-limit",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "atorvastatin-letermovir-ciclosporin-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-darunavir-ritonavir-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maviret-lopinavir-ritonavir-not-recommended",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "raltegravir-hd-tipranavir-ritonavir",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-aliskiren-type-2-diabetes",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sacubitril-valsartan-aliskiren-renal-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      }
+    ],
+    "contraindicationRules": [
+      {
+        "id": "ace-inhibitor-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "aciclovir-systemic-renal-impairment-or-dehydration",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "acitretin-breastfeeding",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "acitretin-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "apixaban-renal-hepatic-coagulopathy-condition-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-cardiac-postural-or-qtc-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-neuropsychiatric-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-organ-condition-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-pregnancy-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apomorphine-under-18-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "arb-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "carbamazepine-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-qt-or-electrolyte-condition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clarithromycin-severe-hepatic-failure",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-caffeine-intake-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "clozapine-smoking-status-change",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-alcohol-gastrointestinal-toxicity",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-blood-dyscrasia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-breastfeeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-pregnancy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "colchicine-renal-or-hepatic-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-acute-renal-failure-or-crcl-below-30",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dabigatran-moderate-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "desmopressin-fluid-retention-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "desmopressin-hyponatraemia-siadh",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "desmopressin-moderate-severe-renal-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-breastfeeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dexamfetamine-pregnancy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "digoxin-renal-electrolyte-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "doxylamine-qt-risk-condition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-cardiovascular-condition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-diabetes-glucose-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-qt-or-low-potassium-condition",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eformoterol-unstable-severe-asthma",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-initiation-potassium-renal-contraindications",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-maintenance-potassium-dose-reduction",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "eplerenone-maintenance-potassium-withhold",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ezetimibe-moderate-severe-hepatic-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluticasone-propionate-diabetes-glucose",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "systemic-nonaspirin-nsaid-heart-failure-context",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ibuprofen-hepatic-context",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "systemic-nonaspirin-nsaid-renal-context",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ibuprofen-ulcer-context",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "isavuconazole-familial-short-qt-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "isotretinoin-breastfeeding",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "isotretinoin-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "lacosamide-cardiac-conduction-disease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lacosamide-diabetic-neuropathy-cardiovascular-arrhythmia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lamotrigine-pregnancy-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levetiracetam-pregnancy-level-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "levodopa-high-protein-meal-absorption",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "lithium-mild-moderate-renal-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-severe-renal-hyponatraemia-cardiac-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mavacamten-pregnancy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-asthma-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-renal-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mesalazine-severe-liver-impairment",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-acute-risk-and-contraindicated-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-breastfeeding",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "methotrexate-non-oncology-crcl-below-30",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "methotrexate-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "methotrexate-renal-impairment-aki-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "mycophenolate-breastfeeding",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "mycophenolate-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "nitrofurantoin-renal-porphyria-g6pd-pregnancy-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "nsaid-asthma-context",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "nsaid-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "octreotide-insulinoma-prolonged-hypoglycaemia",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-congenital-long-qt-avoid",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-electrolyte-cardiac-qtc-risk",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-first-trimester-risk-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-hepatic-impairment-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-subacute-bowel-obstruction-monitoring",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "phenobarbitone-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "phenytoin-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "primidone-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "rivaroxaban-renal-hepatic-coagulopathy-condition-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sodium-valproate-alcohol",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sodium-valproate-hepatic-metabolic-contraindications",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sodium-valproate-paternal-conception-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sodium-valproate-pregnancy",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "sotalol-qtc-electrolyte-bradycardia-contraindications",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sotalol-severe-renal-impairment-contraindication",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "spironolactone-renal-potassium-addison-pregnancy-contraindications",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sumatriptan-oral-cardiovascular-hepatic-migraine-contraindications",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "topiramate-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-breastfeeding",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tretinoin-pregnancy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "warfarin-pregnancy-context",
+        "reason": "reuse-status-missing"
+      },
+      {
+        "id": "apixaban-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "apixaban-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-dabigatran-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-dabigatran-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-rivaroxaban-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-rivaroxaban-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "fluoropyrimidine-complete-dpd-deficiency",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "fluoropyrimidine-partial-dpd-deficiency-review",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "topical-fluorouracil-dpd-deficiency-avoid",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "leflunomide-pregnancy-washout-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "leflunomide-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "leflunomide-hepatic-impairment-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "lithium-pregnancy-planning-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-gabapentin-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-pregabalin-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pharmac-levetiracetam-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dapsone-g6pd-haemolysis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dapsone-porphyria-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dapsone-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "dapsone-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "hydroxychloroquine-g6pd-haemolysis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-pregnancy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "simvastatin-breastfeeding-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "primaquine-g6pd-haemolysis-review",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "metformin-stable-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "metformin-creatinine-clearance-below-15",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "amiloride-current-hyperkalaemia-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "sglt2-severe-dehydration-ketoacidosis-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pramipexole-renal-dose-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-uncontrolled-hypertension-severe-coronary-disease",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "maxiclear-phenylephrine-severe-hypertension-coronary-disease",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-diabetes-caution",
+        "reason": "record-level-license-or-attribution-incomplete"
+      },
+      {
+        "id": "inhaled-salbutamol-diabetes-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "pseudoephedrine-obstructive-respiratory-caution",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-azithromycin-qt-risk-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "oral-paracetamol-chronic-heavy-alcohol-hagma",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codral-original-day-night-contraindicated-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "codral-original-day-night-caution-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "maxiclear-day-night-cough-respiratory-conditions",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "paracetamol-liver-kidney-impairment-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "naproxen-ulcer-gastrointestinal-history",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "diclofenac-ulcer-gastrointestinal-history",
+        "reason": "reuse-status-unverified-or-conditional"
+      }
+    ],
+    "allergyRules": [
+      {
+        "id": "apomorphine-morphine-or-sulfite-allergy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "ondansetron-other-5ht3-antagonist-allergy-review",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "trelegy-severe-milk-protein-allergy",
+        "reason": "reuse-status-unverified-or-conditional"
+      },
+      {
+        "id": "tacrolimus-macrolide-hypersensitivity",
+        "reason": "reuse-status-unverified-or-conditional"
+      }
+    ]
+  }
+}
