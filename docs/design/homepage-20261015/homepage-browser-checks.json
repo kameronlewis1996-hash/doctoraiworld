@@ -1,0 +1,148 @@
+{
+  "checkedAt": "2026-10-15T00:05:18.031Z",
+  "baseline": "aef725b916e7412fb39dea4caedb4a85229aa87d",
+  "checks": [
+    "One main heading and unique element IDs",
+    "All brand images and feature icons load",
+    "Configured display fonts load",
+    "Every original homepage link remains",
+    "All linked local page destinations resolve",
+    "Keyboard skip link is first and visible",
+    "Skip link focuses main content",
+    "Keyboard selection and destination: medicines",
+    "Accessible theme contrast and matching detail: medicines",
+    "Keyboard selection and destination: symptoms",
+    "Accessible theme contrast and matching detail: symptoms",
+    "Keyboard selection and destination: appointments",
+    "Accessible theme contrast and matching detail: appointments",
+    "Keyboard selection and destination: visit",
+    "Accessible theme contrast and matching detail: visit",
+    "Pause stops animation and resets tilt",
+    "Resume restores animation",
+    "Fine pointer tilts the logo",
+    "Leaving the logo clears pointer transforms",
+    "Offscreen animation pauses",
+    "Reduced motion stops animation and hides its control",
+    "Tour works with reduced motion",
+    "All four tour states fit at ten widths from 320px to 1440px",
+    "200% CSS zoom has no horizontal page overflow",
+    "FAQ expands from the keyboard",
+    "Share copies only the canonical public URL",
+    "Share fallback exposes only the public URL",
+    "Tour does not write browser storage",
+    "Homepage makes no API requests",
+    "No browser errors or CSP violations",
+    "No-JavaScript fallback retains primary actions and static logo",
+    "No-JavaScript logo does not animate without a pause control",
+    "Touch selects a topic without pointer tilt or horizontal overflow",
+    "All eleven legacy root hashes still redirect to the Health Hub",
+    "Homepage anchor remains on the homepage",
+    "Forced colours retains a visible selected topic border"
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 360,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 640,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 860,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1080,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "topicOverlap": false,
+      "minimumTopicTargetHeight": 44
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "apiRequests": [],
+  "failedRequests": [],
+  "browser": "155.0.4283.45",
+  "themeContrast": {
+    "medicines": {
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "labelContrast": 14.135455506720971,
+      "iconContrast": 6.026314579651161,
+      "linkContrast": 6.026314579651161,
+      "copyContrast": 5.966149652489595,
+      "matchingDetail": true
+    },
+    "symptoms": {
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "labelContrast": 14.22655475973182,
+      "iconContrast": 5.707760575532302,
+      "linkContrast": 5.707760575532302,
+      "copyContrast": 6.004599900975349,
+      "matchingDetail": true
+    },
+    "appointments": {
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "labelContrast": 13.782916662420137,
+      "iconContrast": 6.465696982254397,
+      "linkContrast": 6.465696982254397,
+      "copyContrast": 5.817353633683235,
+      "matchingDetail": true
+    },
+    "visit": {
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "labelContrast": 14.500345131686064,
+      "iconContrast": 6.016289019602337,
+      "linkContrast": 6.016289019602337,
+      "copyContrast": 6.120158563496917,
+      "matchingDetail": true
+    }
+  },
+  "result": "passed"
+}
