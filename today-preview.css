@@ -56,6 +56,11 @@
 .term-saved-list { margin: 8px 0 0; padding: 0; list-style: none; }
 .term-saved-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid #dce7ee; overflow-wrap: anywhere; }
 .term-saved-list .term-list-empty { color: #597082; }
+.appointment-request-boundary { max-width: 90ch; margin: 13px 0 0; color: #526879; font-size: 14px; line-height: 1.6; }
+.appointment-request-form .appointment-request-boundary { padding: 12px 14px; border-left: 3px solid #9a733b; background: #fff9ee; }
+#appointment-request-reviewed { padding: 18px; border: 1px solid #cfdee7; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
+#appointment-request-reviewed h2 { margin-top: 0; }
+#appointment-request-reviewed p { white-space: pre-wrap; }
 @media (max-width: 1050px) { .today-compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .today-compact-diary { grid-column: 1 / -1; } }
 @media (max-width: 680px) { .today-compact-grid { grid-template-columns: minmax(0, 1fr); } .today-compact-diary { grid-column: auto; } .today-compact-panel { padding: 18px; } .today-panel-heading h2 { font-size: 21px; } .today-compact-list { min-height: auto; } .today-compact-list li { display: block; } .today-compact-list li span { display: block; margin-top: 3px; text-align: left; } .term-profile-section { padding: 13px; } }
 @media (forced-colors: active) { .today-compact-panel, .medication-learning-panel, .diary-question-panel, .term-profile-section, .term-options { border: 1px solid CanvasText; } }

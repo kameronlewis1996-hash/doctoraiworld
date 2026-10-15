@@ -51,6 +51,11 @@ function appointmentForm(values, id = '') {
   for (const [name, value] of Object.entries(values)) form.elements[name] = { value, focused: false, focus() { this.focused = true; } };
   return form;
 }
+function appointmentRequestForm(values) {
+  const form = { values, elements: { reason: { focused: false, focus() { this.focused = true; } } },
+    matches: selector => selector === '[data-appointment-request-form]', closest: () => null };
+  return form;
+}
 function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, decode(value)]));
 }
@@ -93,7 +98,7 @@ function fixture(initial = {}) {
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
     state, Date: FixtureDate, FormData: FixtureFormData,
-    els: { appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {} },
+    els: { appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {}, modalBody: { append: item => observed.returnedForm = item } },
     document: { body: { classList: { contains: () => false } }, querySelector: () => null },
     window: { confirm: () => observed.confirm, fetch: forbidden, open: forbidden },
     fetch: forbidden, localStorage: { getItem: forbidden, setItem: forbidden }, sessionStorage: { getItem: forbidden, setItem: forbidden },
@@ -442,6 +447,73 @@ function verifySymptomBrief() {
   assert.equal(legacy.observed.forbiddenCalls, 0);
 }
 
+function verifyStructuredProfileAndDiaryQuestions() {
+  const f = fixture({
+    profile: {
+      conditions: 'Current fictional condition only', allergies: 'Earlier compatibility allergy',
+      conditionEntries: [
+        { label: 'Current fictional condition', status: 'current', source: 'user' },
+        { label: 'Historical fictional condition', status: 'historical', source: 'user' }
+      ],
+      allergyEntries: [
+        { substance: 'Fictional pollen', reaction: 'Fictional rash', certainty: 'confirmed', source: 'user' },
+        { substance: 'Fictional cream', reaction: 'Uncertain itch', certainty: 'suspected', source: 'user' }
+      ]
+    },
+    timeline: [
+      { id: 'fictional-q', type: 'question', source: 'user-question', date: '2026-10-13', description: 'Should I discuss my fictional sleep note?' },
+      { id: 'fictional-old-q', type: 'question', source: 'user-question', date: '2026-08-01', description: 'OLD_QUESTION_MUST_NOT_APPEAR' }
+    ]
+  });
+  f.context.openCareSummary();
+  const form = f.brief();
+  const condition = form.choices.find(choice => choice.html.includes('Historical fictional condition'));
+  const allergy = form.choices.find(choice => choice.html.includes('Fictional cream'));
+  const question = form.choices.find(choice => choice.html.includes('Should I discuss'));
+  const oldQuestion = form.choices.find(choice => choice.html.includes('OLD_QUESTION'));
+  assert.ok(condition && allergy && question && oldQuestion);
+  assert.ok(!condition.querySelector('input').checked && !allergy.querySelector('input').checked && !question.querySelector('input').checked);
+  assert.ok(oldQuestion.hidden, 'The default date window hides older diary questions.');
+  condition.querySelector('input').checked = true;
+  allergy.querySelector('input').checked = true;
+  question.querySelector('input').checked = true;
+  oldQuestion.querySelector('input').checked = true;
+  submit(f.context, form);
+  const html = f.modal().html;
+  for (const text of ['Current fictional condition (current)', 'Historical fictional condition (historical)', 'Fictional pollen; reaction: Fictional rash (recorded as confirmed by you)', 'Fictional cream; reaction: Uncertain itch (possible reaction)', 'Should I discuss my fictional sleep note?']) assert.ok(html.includes(text), `Reviewed brief preserves selected status or question: ${text}`);
+  assert.ok(!html.includes('OLD_QUESTION_MUST_NOT_APPEAR') && !html.includes('Earlier compatibility allergy'), 'Historical date filtering and structured profile precedence remain intact.');
+  assert.equal(f.observed.saves.length, 0, 'Preparing a brief does not change saved health records.');
+}
+
+async function verifyAppointmentRequestDraft() {
+  const f = fixture({ profile: { name: 'Fictional person' }, appointments: [{ id: 'fictional-visit', title: 'Existing fictional visit' }] });
+  const before = clone(f.state);
+  f.context.openAppointmentRequest();
+  assert.match(f.modal().html, /does not send this draft, contact a clinic or book an appointment/i);
+  assert.match(f.modal().html, /data-appointment-request-form/);
+  const empty = appointmentRequestForm({ reason: '  ' });
+  submit(f.context, empty);
+  assert.ok(empty.elements.reason.focused, 'A blank reason returns focus to its field.');
+  assert.match(f.observed.toasts.at(-1), /reason/i);
+  assert.deepEqual(clone(f.state), before, 'Opening and validating a request changes no saved records.');
+  const values = { clinic: 'Fictional clinic <script>', reason: 'Discuss my fictional concern & question', preferred: 'Tuesday afternoon', questions: 'What should I prepare?\nNo real patient data.' };
+  const form = appointmentRequestForm(values);
+  submit(f.context, form);
+  assert.match(f.modal().html, /No appointment has been requested or booked/);
+  assert.ok(f.modal().html.includes(escaped(values.clinic)) && !f.modal().html.includes('<script>'), 'Review escapes clinic supplied text.');
+  const copied = [];
+  f.context.navigator = { clipboard: { writeText: async text => { copied.push(text); } } };
+  await click(f.context, 'data-copy-appointment-request');
+  assert.equal(copied.length, 1, 'Copy runs only after the explicit button action.');
+  assert.ok(copied[0].includes(values.reason) && copied[0].includes('No appointment is booked.'));
+  assert.ok(!copied[0].includes('Fictional person') && !copied[0].includes('Existing fictional visit'), 'Unselected saved details are excluded.');
+  await click(f.context, 'data-edit-appointment-request');
+  assert.equal(f.observed.returnedForm, form, 'Back to edit restores the draft form without saving it.');
+  assert.deepEqual(clone(f.state), before);
+  assert.equal(f.observed.saves.length, 0);
+  assert.equal(f.observed.forbiddenCalls, 0, 'Request preparation has no network or browser storage calls.');
+}
+
 (async () => {
   verifyAppointmentDayRefresh();
   await verifyAppointmentDateGroups();
@@ -449,5 +521,7 @@ function verifySymptomBrief() {
   await verifyLegacyNumericIDActions();
   verifyProfileBrief();
   verifySymptomBrief();
-  console.log('Record preparation passed: appointment day-refresh controller, date groups/ordering/day boundary/repair, record edit/add/cancel/stale/validation/delete flows, stringified legacy numeric IDs and exact appointment targeting, optional explicitly selected profile details, escaped prefill, history preservation and selected brief details. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
+  verifyStructuredProfileAndDiaryQuestions();
+  await verifyAppointmentRequestDraft();
+  console.log('Record preparation passed: appointment day-refresh controller, date groups/ordering/day boundary/repair, record edit/add/cancel/stale/validation/delete flows, stringified legacy numeric IDs and exact appointment targeting, optional explicitly selected profile details, escaped prefill, history preservation, structured status and selected diary questions in visit briefs, and a reviewed appointment request draft with explicit copy and no booking or storage. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
