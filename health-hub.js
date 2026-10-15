@@ -924,7 +924,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const recent = $('#today-compact-recent-note');
     if (recent) {
       const note = state.timeline.filter(item => item.source === 'symptom-diary' || item.source === 'user-question')
-        .sort((a, b) => `${b.date || ''} ${b.createdAt || ''}`.localeCompare(`${a.date || ''} ${a.createdAt || ''}`))[0];
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
       recent.textContent = note ? `Latest diary note: ${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : 'No diary notes saved yet.';
     }
     const questions = $('#diary-question-list');

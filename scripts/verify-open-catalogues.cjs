@@ -12,6 +12,13 @@ const manifest = JSON.parse(fs.readFileSync(path.join(folder, 'manifest.v1.json'
 const mappings = JSON.parse(fs.readFileSync(path.join(folder, 'alert-mappings.v1.json'), 'utf8'));
 assert.equal(core.validate(catalogues), true);
 assert.deepEqual(mappings.rules, [], 'Terminology labels must not introduce alert rules.');
+assert.equal(manifest.sourceReview.retrievedOn, '2026-10-15');
+assert.match(manifest.sourceReview.symptomOntology.gitCommitSha, /^[0-9a-f]{40}$/);
+assert.match(manifest.sourceReview.symptomOntology.gitBlobSha1, /^[0-9a-f]{40}$/);
+assert.ok(catalogues[2].reactions.every(entry => entry.sourceUrl === manifest.sourceReview.symptomOntology.sourceUrl), 'SYMP records must refer to the pinned source snapshot.');
+assert.match(manifest.chebiAttribution.notice, /selected ChEBI data from EMBL-EBI/i);
+assert.match(manifest.chebiAttribution.notice, /selected, normalized and grouped/i);
+assert.equal(manifest.chebiAttribution.licenseUrl, 'https://creativecommons.org/licenses/by/4.0/');
 assert.deepEqual(manifest.coverage, {
   conditions: catalogues[0].entries.length,
   medicineIngredients: catalogues[1].ingredients.length,

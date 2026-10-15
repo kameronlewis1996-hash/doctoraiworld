@@ -8,6 +8,13 @@
     { "path": "allergies-reactions.v1.json", "count": 5, "source": "ChEBI and Symptom Ontology", "licenses": ["CC-BY-4.0", "CC0-1.0"] },
     { "path": "alert-mappings.v1.json", "count": 0, "source": "DoctorAI policy", "license": "DoctorAI authored" }
   ],
+  "sourceReview": {
+    "retrievedOn": "2026-10-15",
+    "diseaseOntology": { "recordSource": "https://disease-ontology.org/", "licenseSource": "https://obofoundry.org/ontology/doid.html", "license": "CC0-1.0", "versionNote": "Selected live term pages; no complete ontology release imported" },
+    "chebi": { "recordSource": "https://www.ebi.ac.uk/chebi/", "licenseSource": "https://www.ebi.ac.uk/chebi/about#licensing", "license": "CC-BY-4.0", "versionNote": "Selected live term pages; no complete database release imported" },
+    "symptomOntology": { "release": "July 2026", "sourceUrl": "https://raw.githubusercontent.com/DiseaseOntology/SymptomOntology/aa73475d7d3f34b6591c34f26b9a276f6e91e96b/src/ontology/symp.obo", "gitCommitSha": "aa73475d7d3f34b6591c34f26b9a276f6e91e96b", "gitBlobSha1": "3b1b16e0562f05c3f79c6aaff5566cee2514a0e6", "licenseSource": "https://obofoundry.org/ontology/symp.html", "license": "CC0-1.0" }
+  },
+  "chebiAttribution": { "notice": "Contains selected ChEBI data from EMBL-EBI, available under CC BY 4.0. DoctorAI selected, normalized and grouped a small subset of IDs, labels and aliases. EMBL-EBI does not endorse DoctorAI.", "sourceUrl": "https://www.ebi.ac.uk/chebi/", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/" },
   "coverage": {
     "conditions": 3,
     "medicineIngredients": 2,
