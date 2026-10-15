@@ -13,6 +13,16 @@ html :is(.doctorai-homepage, body[data-hub-layout="reference"]) {
   background-color: var(--aurora-base);
   background-image:
     radial-gradient(ellipse at 49% 33%, #ffffffc7, transparent 41%),
+    radial-gradient(ellipse 12% 13% at 20% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 13% 13% at 80% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 19% 15% at -1% 0%, var(--aurora-lilac), transparent 92%),
+    radial-gradient(ellipse 19% 16% at -2% 31%, var(--aurora-side), transparent 88%),
+    radial-gradient(ellipse 22% 18% at 27% 23%, var(--aurora-cyan), transparent 90%),
+    radial-gradient(ellipse 23% 19% at 103% 31%, var(--aurora-cyan), transparent 90%),
+    radial-gradient(ellipse 18% 18% at -3% 49%, var(--aurora-blush), transparent 88%),
+    radial-gradient(ellipse 22% 20% at 102% 49%, var(--aurora-glow), transparent 90%),
+    radial-gradient(ellipse 20% 18% at 16% 77%, var(--aurora-lilac), transparent 90%),
+    radial-gradient(ellipse 24% 19% at 83% 79%, var(--aurora-cyan), transparent 90%),
     radial-gradient(ellipse 35% 27% at 0% 36%, var(--aurora-side), transparent 90%),
     radial-gradient(ellipse 34% 30% at 100% 46%, var(--aurora-glow), transparent 90%),
     radial-gradient(ellipse at 6% 28%, var(--aurora-cyan), transparent 44%),

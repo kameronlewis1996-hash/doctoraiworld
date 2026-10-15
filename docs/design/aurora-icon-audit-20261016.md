@@ -1,6 +1,6 @@
 # Aurora icon and compactness audit (2026-10-16)
 
-Follow-up: the draft now gives `#view-alerts .hub-alert-card[data-severity]` scoped orange/red icon and card accents; urgent/high and moderate/low remain distinct in shape and text. After the later explicit colour correction, `hub-category-themes.css?v=3` and `aurora-theme.css?v=6` give every decorative route icon and heading the same blue treatment. Lilac and cyan remain in the ambient aurora, not in route icon ink. The observations below describe the pre-refinement state.
+Follow-up: the draft now gives `#view-alerts .hub-alert-card[data-severity]` scoped orange/red icon and card accents; urgent/high and moderate/low remain distinct in shape and text. After the later explicit colour correction, `hub-category-themes.css?v=3` and `aurora-theme.css?v=7` give every decorative route icon and heading the same blue treatment. Lilac and cyan remain in the ambient aurora, not in route icon ink. The v7 change adds only static peripheral glows; the observations below describe the pre-refinement state.
 
 ## Scope and evidence
 
