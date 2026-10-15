@@ -1,4 +1,4 @@
-/* Main-category identity matches the homepage. Keep clinical severity colours separate.
+/* Main-category identity matches the homepage's blue palette. Keep clinical severity colours separate.
    Loaded after the layout; uses existing route attributes without changing navigation. */
 body[data-hub-layout="reference"][data-hub-theme] {
   --hub-today-surface: #e8f2ff;
@@ -37,17 +37,17 @@ body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-ba
   --hub-category-accent: var(--hub-profile-accent);
 }
 
-/* Each tab keeps its own identity even when another category is selected. */
+/* Every tab uses the brand palette; the selected state is also marked by border and position. */
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view],
 body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] {
-  border: 2px solid transparent;
-  background: var(--hub-category-surface);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--hub-category-accent);
   box-shadow: none;
 }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view]:is(.active, [aria-current="page"], :hover),
 body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view]:is(.active, [aria-current="page"], :hover) {
-  border-color: var(--hub-category-accent);
+  border-color: #b8d0ed;
   background: var(--hub-category-surface);
   color: var(--hub-category-accent);
   box-shadow: inset 3px 0 var(--hub-category-accent);
@@ -66,12 +66,12 @@ body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-ba
 /* Limit category styling to the four main pages, leaving Alerts and record states alone. */
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading,
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today > .reference-intro {
-  padding: 22px 24px;
+  padding: 20px 24px;
   margin: 0 0 24px;
-  border: 2px solid var(--hub-category-accent);
+  border: 1px solid #c8d9ec;
   border-radius: 16px;
-  background: var(--hub-category-surface);
-  box-shadow: none;
+  background: #fff;
+  box-shadow: inset 3px 0 var(--hub-category-accent), 0 10px 28px rgba(10,35,64,.055);
 }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading::before,
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading::after { content: none; }
@@ -101,10 +101,10 @@ body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .healt
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure),
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card,
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile :is(.profile-page-hero, .hub-storage-status article, .memory-card) {
-  background: var(--hub-category-surface);
-  border-color: var(--hub-category-accent);
+  background: #fff;
+  border-color: #cfdeec;
   color: var(--hub-category-ink);
-  box-shadow: none;
+  box-shadow: 0 8px 24px rgba(10,35,64,.045);
 }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile .profile-page-hero :is(h2, .eyebrow) { color: var(--hub-category-ink); }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile .profile-page-hero p { color: var(--hub-category-copy); }
@@ -115,12 +115,57 @@ body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-today, #v
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-visit-link,
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .care-visit-card {
   background: var(--hub-visit-surface);
-  border-color: var(--hub-visit-accent);
+  border-color: #b8d0ed;
   color: var(--hub-visit-accent);
-  box-shadow: none;
+  box-shadow: inset 3px 0 var(--hub-visit-accent);
 }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .care-visit-card button { background: #fff; border-color: var(--hub-visit-accent); color: var(--hub-visit-accent); }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-visit-link small { color: var(--hub-category-copy); }
+
+/* A quieter shared frame for desktop and mobile, without touching alert severity cards. */
+html body[data-hub-layout="reference"][data-hub-theme] { background: #f7f9fc; }
+body[data-hub-layout="reference"] #hub-shell { background: #f7f9fc; }
+body[data-hub-layout="reference"] #hub-shell .sidebar { background: #fff; border-right-color: #dbe5ef; }
+body[data-hub-layout="reference"] #hub-shell .hub-topbar { background: #fff; border-bottom: 1px solid #dbe5ef; }
+body[data-hub-layout="reference"] #hub-shell .panel-card { border-color: #d7e3ee; border-radius: 16px; background-color: #fff; box-shadow: 0 8px 24px rgba(10,35,64,.045); }
+body[data-hub-layout="reference"] #hub-shell .panel-card:is(:hover, :focus-within) { border-color: #afc9e5; }
+body[data-hub-layout="reference"] #hub-shell :is(.empty-state, .empty-inline) { color: #465f73; font-size: 14px; line-height: 1.55; }
+body[data-hub-layout="reference"] #hub-shell .empty-state { padding: 18px; border-color: #c7d8e9; background: #f8fbff; }
+body[data-hub-layout="reference"] #hub-shell .today-compact-grid { align-items: start; }
+body[data-hub-layout="reference"] #hub-shell .today-compact-panel { border-top-color: #0759b6; background: #fff; box-shadow: 0 8px 24px rgba(10,35,64,.045); }
+body[data-hub-layout="reference"] #hub-shell #today-compact-recent-note { background: #edf5ff; }
+
+/* Replace display-only gradients and oversized heading treatments in secondary tools. */
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading {
+  padding: 20px 24px;
+  border: 1px solid #c8d9ec;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: inset 3px 0 #0759b6, 0 10px 28px rgba(10,35,64,.055);
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading::before,
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading::after { content: none; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading h1 { color: #0a2340; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading .eyebrow { color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading .page-subtitle { color: #465f73; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading .primary-button { border-color: #0759b6; background: #0759b6; color: #fff; box-shadow: none; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading .secondary-button { border-color: #9abde2; background: #fff; color: #0759b6; box-shadow: none; }
+
+/* Decorative shortcuts and choice tiles share one blue icon and card system. */
+body[data-hub-layout="reference"] #hub-shell :is(.feature-icon, .profile-shortcut-icon) { --feature-ink: #0759b6; --feature-tint: #edf5ff; --feature-line: #c8daef; color: #0759b6; background: #edf5ff; border: 1px solid #c8daef; box-shadow: none; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-card,
+body[data-hub-layout="reference"] #hub-shell #view-ask .quick-asks button { --home-feature-bg: #fff; --home-feature-border: #d1e0ee; background: #fff; border-color: #d1e0ee; box-shadow: 0 6px 18px rgba(10,35,64,.04); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-card:is(:hover, :focus-visible),
+body[data-hub-layout="reference"] #hub-shell #view-ask .quick-asks button:is(:hover, :focus-visible) { background: #f5f9ff; border-color: #91b8e1; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice { --choice-bg: #f5f9ff; --choice-border: #c8daec; --choice-accent: #0759b6; --choice-icon-bg: #e8f2ff; --choice-ink: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice > span:first-child { color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card) { background: #fff; border-color: #d1e0ee; box-shadow: inset 3px 0 #0759b6; }
+body[data-hub-layout="reference"] #hub-shell #view-health .health-info-grid > .info-card:nth-child(2) { box-shadow: inset 3px 0 #b4533d; }
+
+@media (max-width: 800px) {
+  body[data-hub-layout="reference"] .mobile-bottom-nav { background: #fff; border-top: 1px solid #d7e3ee; box-shadow: 0 -4px 18px rgba(10,35,64,.07); }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-scan, #view-add, #view-diary, #view-alerts, #view-symptoms, #view-medications, #view-appointments, #view-results, #view-timeline, #view-documents) > .page-heading { padding: 18px 16px; border-radius: 12px; }
+}
 
 @media (max-width: 800px) {
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading,
@@ -181,10 +226,10 @@ body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-su
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title { flex: 1; min-width: 0; }
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title :is(b, small) { display: block; }
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title small { margin-top: 4px; color: #465f73; }
-body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-status { flex: 0 0 auto; color: #65439b; }
-body[data-hub-layout="reference"] #hub-shell #view-profile :is(.memory-large-icon, .memory-disclosure-chevron) { flex: 0 0 24px; width: 24px; height: 24px; color: #65439b; background: transparent; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-status { flex: 0 0 auto; color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell #view-profile :is(.memory-large-icon, .memory-disclosure-chevron) { flex: 0 0 24px; width: 24px; height: 24px; color: #0759b6; background: transparent; }
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure[open] .memory-disclosure-chevron { transform: rotate(180deg); }
-body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-content { padding: 18px; border-top: 1px solid #b4a1d3; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-content { padding: 18px; border-top: 1px solid #d1e0ee; }
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
 body[data-hub-layout="reference"] #hub-shell #view-profile .memory-card-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 body[data-hub-layout="reference"] #hub-shell .profile-simple-links { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-block: 20px; }

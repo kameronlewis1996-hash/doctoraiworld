@@ -8,6 +8,9 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('health-hub.html');
 const js = read('health-hub.js');
 const css = read('health-hub.css');
+const categoryCss = read('hub-category-themes.css');
+const auroraCss = read('aurora-theme.css');
+const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
 const main = ['today', 'health', 'visit-prep', 'profile'];
 const secondary = ['scan', 'add', 'diary', 'alerts'];
@@ -119,12 +122,12 @@ for (const [name, hash] of canonicalFixtures) {
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
 }
 const destinationThemes = {
-  medications:{ bg:'#EAF3FF', accent:'#0759B6' },
-  symptoms:{ bg:'#E8F6F1', accent:'#176B60' },
-  appointments:{ bg:'#F2EDFC', accent:'#65439B' },
-  'visit-prep':{ bg:'#FFF4DE', accent:'#805418' }
+  medications:{ bg:'#F7FAFF', accent:'#0759B6' },
+  symptoms:{ bg:'#F7FAFF', accent:'#0759B6' },
+  appointments:{ bg:'#F7FAFF', accent:'#0759B6' },
+  'visit-prep':{ bg:'#F7FAFF', accent:'#0759B6' }
 };
-const themeCss = css.split('/* Astra destination themes:')[1] || '';
+const themeCss = css.split('/* One blue destination palette')[1] || '';
 assert.ok(themeCss, 'Route destination theme rules are present.');
 const luminance = color => {
   const channels = color.match(/[0-9A-F]{2}/gi).map(channel => parseInt(channel, 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
@@ -146,9 +149,29 @@ for (const [feature, tokens] of Object.entries(destinationThemes)) {
   assert.ok(contrast('#0A2340', tokens.bg) >= 4.5, `${feature} label contrast meets 4.5:1.`);
   assert.ok(contrast('#465F73', tokens.bg) >= 4.5, `${feature} supporting text contrast meets 4.5:1.`);
 }
-assert.match(themeCss, /border:\s*2px solid var\(--destination-accent\)/, 'Destination feature surfaces keep the supplied 2px accent border.');
+assert.match(themeCss, /border:\s*1px solid #c8d9ec/, 'Destination feature headings use a restrained border.');
+assert.match(themeCss, /box-shadow:\s*inset 3px 0 var\(--destination-accent\)/, 'Destination feature headings retain a visible blue edge.');
 assert.match(themeCss, /stroke-width:\s*2\.6px/, 'Destination feature icons use the supplied 2.6px SVG strokes.');
 assert.doesNotMatch(themeCss, /#view-alerts|hub-alert-/, 'Destination theming does not override clinical alert presentation.');
+const mainRoutePalettes = {
+  today: { surface: '#e8f2ff', accent: '#0759b6' },
+  health: { surface: '#e7f7fa', accent: '#0a718e' },
+  visit: { surface: '#edf2ff', accent: '#335ca8' },
+  profile: { surface: '#f0edff', accent: '#5b4fa8' }
+};
+for (const [theme, tokens] of Object.entries(mainRoutePalettes)) {
+  assert.match(auroraCss, new RegExp(`--home-${theme}-surface: ${tokens.surface};[\\s\\S]*?--home-${theme}-accent: ${tokens.accent};`), `Homepage ${theme} uses the selected aurora route palette.`);
+  assert.match(categoryCss, new RegExp(`--hub-${theme}-surface: ${tokens.surface};[\\s\\S]*?--hub-${theme}-accent: ${tokens.accent};`), `Hub ${theme} matches the homepage route palette.`);
+  assert.ok(contrast(tokens.accent, tokens.surface) >= 4.5, `${theme} route label contrast meets 4.5:1 on its surface.`);
+  assert.ok(contrast(tokens.accent, '#FFFFFF') >= 4.5, `${theme} route accent remains readable on white.`);
+}
+assert.match(categoryCss, /\[data-view\]:focus-visible\s*\{[^}]*outline:\s*3px solid/, 'Keyboard users keep a visible navigation outline.');
+assert.match(categoryCss, /@media \(max-width: 800px\)[\s\S]*?\.mobile-bottom-nav\s*\{[^}]*background:\s*#fff/, 'Mobile navigation uses the same calm surface.');
+assert.match(categoryCss, /\.today-compact-grid\s*\{\s*align-items:\s*start/, 'Empty Today cards no longer stretch to the height of the diary form.');
+assert.match(categoryCss, /\.today-compact-panel\s*\{[^}]*border-top-color:\s*#0759b6/, 'Today summary cards use the same blue accent.');
+for (const [level, ink] of [['green', '#166534'], ['orange', '#934407'], ['red', '#b42318']]) {
+  assert.ok(categoryCss.includes(`data-alert-level="${level}"] { --alert-ink: ${ink}`), `${level} clinical alert colour remains semantic.`);
+}
 navigationContext.routeNavigate('timeline', false, false);
 assert.equal(routeViews.diary.path.textContent, 'My health / Diary / History', 'The return path identifies the selected nested Diary section.');
 navigationContext.routeNavigate('medications', true, false);
@@ -169,13 +192,15 @@ for (const fixture of [
   { id:'signed-in-ready-without-data', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:false, device:'This session only', account:'Account sync not confirmed' },
   { id:'signed-in-failure', allowed:true, choice:'yes', user:{name:'Fictional user'}, sync:'unconfirmed', enabled:true, device:'Keep between visits', account:'Account sync not confirmed' },
   { id:'device-write-failed', allowed:true, choice:'yes', storageFailed:true, user:null, sync:'not-signed-in', enabled:true, device:'Could not save on this device', account:'Not signed in' },
+  { id:'device-removal-failed', allowed:false, choice:'session', removalFailed:true, user:null, sync:'not-signed-in', enabled:true, device:'Old browser data may remain', account:'Not signed in' },
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
+  if (fixture.removalFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /Clear this site's browser data/, 'Failed removal gives a persistent cleanup instruction.');
   assert.equal(nodes['#hub-account-sync-state'].textContent, fixture.account, `${fixture.id}: signed-in and unconfirmed sync states stay distinct.`);
   assert.ok(nodes['#hub-account-sync-note'].textContent, `${fixture.id}: account sync has explanatory text.`);
 }
@@ -245,7 +270,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
+    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();

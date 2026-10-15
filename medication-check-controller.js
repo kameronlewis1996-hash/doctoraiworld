@@ -40,7 +40,10 @@
       this.contextKey = contextKey; this.context = context;
       const generation = ++this.generation; this.cancel(); this.attemptedKey = '';
       this.view = { ...this.view, status: context.allowed ? 'not_checked' : 'unavailable', result: null, checkedAt: null, error: context.allowed ? '' : 'Sign in with active Pro access and wait for private account data before checking.' };
-      if (scopeChanged && (this.restored || this.view.consent || this.view.active)) { this.view.consent = false; this.view.active = false; this.lastLoginId = ''; this.remove(); }
+      if (scopeChanged) {
+        if (this.restored || this.view.consent || this.view.active) { this.view.consent = false; this.view.active = false; this.lastLoginId = ''; this.remove(); }
+        this.restored = false; // A later account must load only its own saved consent and result.
+      }
       this.emit();
       if (!context.owner) return this.snapshot();
       let ownerHash, profileHash, signature;

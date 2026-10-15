@@ -4,7 +4,7 @@
 
 ## Snapshot and transfer status
 
-The repository remote is `kameronlewis1996-hash/doctoraiworld.git`. The local branch is `codex/aurora-alert-theme-20261016` at `ef0a75c` (`Apply aurora theme with current alert severity colours`). PR #76 is a draft. The shared worktree currently has uncommitted application and verification changes plus untracked review notes. The current source tree is therefore not a clean, immutable transfer snapshot. Agree on a tagged commit and export it separately before any transfer.
+The repository remote is `kameronlewis1996-hash/doctoraiworld.git`. The local branch is `codex/aurora-alert-theme-20261016`; PR #76 is a draft. It includes the selected aurora presentation and merges PR #75 head `6f5fc90ebcf609c241c3023bf4b43525a22e5b36` for a combined preview. This working branch is review material, not a clean, immutable transfer snapshot. Agree on a tagged commit and export it separately before any transfer.
 
 The deployed service, domain registrar, DNS, provider accounts, production configuration, and production data stores were not inspected for this note. Repository references are evidence of configuration and source content only; they do not prove account access, ownership, legal title, or transferability.
 
@@ -19,7 +19,7 @@ The deployed service, domain registrar, DNS, provider accounts, production confi
 | Medication data and prompts | Bundled files are under [`data/medication/`](../../data/medication/). The repository includes an October 2026 Pharmac product terminology catalogue and a filtered safety seed; details and attribution are recorded in [`docs/nz-medication-database.md`](../nz-medication-database.md), [`docs/medication-provenance-release-audit.md`](../medication-provenance-release-audit.md), and the [provenance ledger](../medication-provenance-exclusions.json). | The Pharmac source is documented as CC BY 4.0 with attribution and non-endorsement text. This does not establish rights to unrelated clinical databases or every historical rule in the repository. See the rights section below. |
 | Deployment and provider configuration | [`vercel.json`](../../vercel.json), [`.vercelignore`](../../.vercelignore), [`package.json`](../../package.json), [`.env.example`](../../.env.example), and `public-mcp/README.md` describe project names, routes, dependency preparation, environment-variable names, and service integrations. | The reviewed environment template has blank values. Provider settings, accounts, invoices, and contracts were not inspected and must be independently located and reviewed. |
 
-The currently edited main-site shell identifies cache `doctorai-shell-v148`, `health-hub.js?v=88`, `hub-category-themes.css?v=2`, `accessibility.css?v=13`, and `aurora-theme.css?v=3`. These are source-tree cache tags, not deployment or release evidence.
+The combined main-site shell identifies cache `doctorai-shell-v153`, `health-hub.js?v=94`, `hub-category-themes.css?v=2`, `accessibility.css?v=13`, and `aurora-theme.css?v=3`. These are source-tree cache tags, not deployment or release evidence.
 
 ## Local setup and deployment handover
 
@@ -66,11 +66,13 @@ The monthly Pro catalog constant is NZD 2,900 cents (NZ$29) per month in [`serve
 
 ## Test evidence and remaining gaps
 
-The integration lead ran the current worktree locally on 16 October 2026: JavaScript syntax (75 files), static verification (81 required files / 11 production pages), alert status (15 checks), alert presentation (12 checks), medication evidence, five-tab flows, local medication UI, and record preparation all passed. This is local test evidence, not a GitHub Actions result or production acceptance. The review notes [`aurora-medication-provenance-20261016.md`](../design/aurora-medication-provenance-20261016.md) and [`aurora-privacy-regression-20261016.md`](../design/aurora-alert-theme-20261016/aurora-privacy-regression-20261016.md) provide scope and limitations.
+The integration lead ran the combined worktree locally on 16 October 2026: JavaScript syntax (82 files), static verification (93 required files / 12 production pages), alert status (15 checks), alert presentation (12 checks), medication evidence, four-main-route flows, local medication UI, record preparation, health-state contract, open catalogues, Today diary, device storage and the remaining package verifiers all passed. This is local test evidence, not a GitHub Actions result or production acceptance. The review notes [`aurora-medication-provenance-20261016.md`](../design/aurora-medication-provenance-20261016.md) and [`aurora-privacy-regression-20261016.md`](../design/aurora-alert-theme-20261016/aurora-privacy-regression-20261016.md) provide scope and limitations.
 
-An earlier medication-review snapshot caught a stale assertion expecting shell cache v145 after the source had advanced. The current working-tree verifier now expects v148 and Health Hub JS v88; the fresh local rerun reported above passed after those edits. Confirm the final committed source and the corresponding remote workflow result before treating checks as release gates.
+An earlier medication-review snapshot caught a stale assertion expecting shell cache v145 after the source had advanced. The combined verifier now expects v153 and Health Hub JS v94; the fresh local rerun reported above passed after reconciliation. Confirm the final committed source and the corresponding remote workflow result before treating checks as release gates.
 
 The repository's dated readiness and review notes leave live or clinical checks open. In particular, the source does not provide evidence of live Google OAuth, cross-device durable storage, production Stripe checkout/webhooks, real-label OCR, real export/deletion, storage-quota/security denial behavior, screen-reader acceptance, or real-device acceptance. No clinical validation or NZF production authorization is established. The separate MCP `npm test` script exists, but a current result was not reported in the local rerun.
+
+A [combined-build fictional journey](../design/aurora-fictional-journey-20261016.md) completed entry, Today/My Health navigation and an explicitly selected Visit Prep review. Deleting its synthetic active medicine and diary entry left the medicine's automatically generated history event available in the Timeline and as a Visit Prep option; the review found no per-item removal control for that event. The broad device-data purge was not used. This is a concrete cleanup/expectation gap to resolve before claiming complete record deletion from the ordinary medicine flow.
 
 ## Handover items to resolve
 

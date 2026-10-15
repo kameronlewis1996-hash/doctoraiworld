@@ -24,7 +24,8 @@
   let deviceStorageChoice = '';
   let localStorageAllowed = false;
   let localStorageWriteFailed = false;
-  try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; } catch {}
+  let localStorageRemovalFailed = false;
+  try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; localStorageRemovalFailed = deviceStorageChoice === 'session-cleanup-incomplete'; } catch {}
 
   const localStorageKey = key => {
     if (!accountScopedStorageKeys.has(key)) return storagePrefix + key;
@@ -32,8 +33,26 @@
     if (!localHealthAccountScope) return '';
     return `${storagePrefix}account-${localHealthAccountScope}-${key}`;
   };
+  const deviceHealthStorageKeys = () => {
+    const keys = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (typeof key !== 'string' || !key.startsWith(storagePrefix)) continue;
+      const suffix = key.slice(storagePrefix.length);
+      const accountSuffix = /^account-[a-f0-9]{64}-(.+)$/.exec(suffix)?.[1];
+      if (accountScopedStorageKeys.has(suffix) || (accountSuffix && accountScopedStorageKeys.has(accountSuffix))) keys.push(key);
+    }
+    return keys;
+  };
+  const removeDeviceHealthData = keys => {
+    try {
+      const healthKeys = keys || deviceHealthStorageKeys();
+      healthKeys.forEach(key => localStorage.removeItem(key));
+      return healthKeys.every(key => localStorage.getItem(key) === null);
+    } catch { return false; }
+  };
   const read = (key, fallback) => {
-    if (deviceStorageChoice === 'session') return fallback;
+    if (deviceStorageChoice === 'session' || deviceStorageChoice === 'session-cleanup-incomplete') return fallback;
     try {
       const storageKey = localStorageKey(key);
       if (!storageKey) return fallback;
@@ -86,6 +105,29 @@
     else if (localResult) localResult.replaceChildren();
   }
 
+  let measurementIdSequence = 0;
+  function ensureMeasurementIds(records) {
+    if (!Array.isArray(records)) return false;
+    const reserved = new Set(records.filter(record => record && typeof record === 'object' && record.id !== null && record.id !== undefined && String(record.id).trim()).map(record => String(record.id)));
+    const seen = new Set();
+    let changed = false;
+    records.forEach(record => {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) return;
+      const currentId = record.id === null || record.id === undefined ? '' : String(record.id).trim();
+      if (currentId && !seen.has(currentId)) { seen.add(currentId); return; }
+      let id = '';
+      do {
+        measurementIdSequence += 1;
+        id = 'measurement-' + Date.now() + '-' + measurementIdSequence + '-' + Math.random().toString(36).slice(2, 8);
+      } while (reserved.has(id) || seen.has(id));
+      record.id = id;
+      seen.add(id);
+      reserved.add(id);
+      changed = true;
+    });
+    return changed;
+  }
+
   const state = {
     medications: read('medications', []),
     appointments: read('appointments', []),
@@ -98,6 +140,22 @@
     memoryEnabled: read('memory-enabled', false),
     memoryDetails: read('memory-details', [])
   };
+  function createMeasurementId() {
+    const used = new Set(state.measurements.filter(record => record && record.id !== null && record.id !== undefined).map(record => String(record.id)));
+    let id = '';
+    do {
+      measurementIdSequence += 1;
+      id = 'measurement-' + Date.now() + '-' + measurementIdSequence + '-' + Math.random().toString(36).slice(2, 8);
+    } while (used.has(id));
+    return id;
+  }
+  function createMeasurementTimelineId(measurementId) {
+    const base = 'timeline-measurement-' + String(measurementId);
+    let id = base;
+    let suffix = 1;
+    while (state.timeline.some(entry => String(entry?.id ?? '') === id)) id = base + '-' + suffix++;
+    return id;
+  }
 
   function healthStateSnapshot() {
     return {
@@ -114,6 +172,7 @@
     state.timeline = Array.isArray(value?.timeline) ? clone(value.timeline) : [];
     state.documents = Array.isArray(value?.documents) ? clone(value.documents) : [];
     state.measurements = Array.isArray(value?.measurements) ? clone(value.measurements) : [];
+    if (ensureMeasurementIds(state.measurements)) write('measurements', state.measurements);
     state.tasks = Array.isArray(value?.tasks) ? clone(value.tasks) : [];
     state.profile = { ...emptyProfile, ...(value?.profile || {}) };
     state.memoryEnabled = Boolean(value?.memoryEnabled);
@@ -297,6 +356,7 @@
   let googleCredentialInFlight = false;
   let medicationRulesVersion = '';
   let medicationContextPromise = Promise.resolve();
+  let medicationCheckStorageKey = '';
   const medicationCheckController = new window.DoctorAIMedicationCheck.Controller({
     request: async (payload, signal) => {
       const response = await fetch('/api/medication/safety', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(payload), signal });
@@ -304,9 +364,9 @@
       if (!response.ok) throw new Error(result.error || 'No medication check was returned.');
       return result;
     },
-    load: () => read('medication-check', null),
-    save: value => write('medication-check', value),
-    remove: () => { try { localStorage.removeItem(storagePrefix + 'medication-check'); } catch {} },
+    load: () => { medicationCheckStorageKey = localStorageKey('medication-check'); return read('medication-check', null); },
+    save: value => { medicationCheckStorageKey = localStorageKey('medication-check'); write('medication-check', value); },
+    remove: () => { try { if (medicationCheckStorageKey) localStorage.removeItem(medicationCheckStorageKey); } catch {} medicationCheckStorageKey = ''; },
     onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); renderHealthAlerts(); }
   });
 
@@ -405,14 +465,31 @@
     toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2800);
   };
   function setDeviceStorage(allowed) {
-    deviceStorageChoice = allowed ? 'yes' : 'session';
+    if (allowed && localStorageRemovalFailed && !removeDeviceHealthData()) {
+      showToast('Old browser health data still could not be removed. Clear this site\'s browser data before enabling device storage again.');
+      return;
+    }
+    let removed = true;
+    if (!allowed) {
+      let savedKeys = null;
+      try { savedKeys = deviceHealthStorageKeys(); } catch {}
+      if (savedKeys?.length && !window.confirm('Remove health-hub records already saved in this browser for every DoctorAI profile on this device? Signed-in account copies remain.')) return;
+      removed = removeDeviceHealthData(savedKeys);
+    }
+    deviceStorageChoice = allowed ? 'yes' : removed ? 'session' : 'session-cleanup-incomplete';
     localStorageAllowed = Boolean(allowed);
-    try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    let consentSaved = false;
+    try { localStorage.setItem(storageConsentKey, deviceStorageChoice); consentSaved = true; } catch {}
+    localStorageRemovalFailed = !allowed && (!removed || !consentSaved);
+    if (localStorageRemovalFailed && deviceStorageChoice === 'session') {
+      deviceStorageChoice = 'session-cleanup-incomplete';
+      try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    }
     if (storageConsent) storageConsent.hidden = true;
     if (allowed) saveState();
-    setSyncStatus(allowed ? 'Saved in this browser' : 'Device storage off · session only');
+    setSyncStatus(localStorageRemovalFailed ? 'Session only requested - old browser data may remain' : allowed ? 'Saved in this browser' : 'Device storage off · session only');
     refreshMedicationCheckContext().catch(() => {});
-    showToast(allowed ? 'This browser will keep your health hub between visits.' : 'Health-hub changes will stay only for this session unless account sync is active.');
+    showToast(localStorageRemovalFailed ? 'The browser could not confirm removal of old health data. Clear this site\'s browser data before sharing this device.' : allowed ? 'This browser will keep your health hub between visits.' : 'Saved browser health data was removed. New changes stay in this session unless account sync is active.');
     renderHomePrescriptionAlert();
   }
   const saveState = () => {
@@ -446,15 +523,18 @@
     state.timeline = Array.isArray(value.timeline) ? value.timeline : [];
     state.documents = Array.isArray(value.documents) ? value.documents : [];
     state.measurements = Array.isArray(value.measurements) ? value.measurements : [];
+    const migratedMeasurementIds = ensureMeasurementIds(state.measurements);
     state.tasks = Array.isArray(value.tasks) ? value.tasks : [];
     state.profile = { ...emptyProfile, ...(value.profile || {}) };
     clearMedicationSafetyResults();
     state.memoryEnabled = Boolean(value.memoryEnabled);
     state.memoryDetails = Array.isArray(value.memoryDetails) ? value.memoryDetails : [];
     write('medications', state.medications); write('appointments', state.appointments); write('providers', state.providers); write('timeline', state.timeline); write('documents', state.documents); write('measurements', state.measurements); write('tasks', state.tasks); write('profile', state.profile); write('memory-enabled', state.memoryEnabled); write('memory-details', state.memoryDetails);
+    if (migratedMeasurementIds) queueCloudSave();
   }
 
   function deviceStorageStatus() {
+    if (localStorageRemovalFailed) return 'Old browser data may remain';
     if (localStorageAllowed) return 'Saved in this browser';
     if (deviceStorageChoice === 'session') return 'Device storage off · session only';
     return 'Choose storage settings';
@@ -462,8 +542,8 @@
   function renderStorageStatus() {
     const device = $('#hub-device-storage-state');
     const deviceNote = $('#hub-device-storage-note');
-    if (device) device.textContent = localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
-    if (deviceNote) deviceNote.textContent = localStorageWriteFailed ? 'This browser refused a recent save. Check available storage or switch to session-only use; your last change may not persist on this device.' : 'You choose whether this browser keeps entries between visits.';
+    if (device) device.textContent = localStorageRemovalFailed ? 'Old browser data may remain' : localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
+    if (deviceNote) deviceNote.textContent = localStorageRemovalFailed ? 'This browser did not confirm removal of saved health data. Clear this site\'s browser data before sharing this device.' : localStorageWriteFailed ? 'This browser refused a recent save. Check available storage or switch to session-only use; your last change may not persist on this device.' : 'You choose whether this browser keeps entries between visits.';
     const account = $('#hub-account-sync-state'), note = $('#hub-account-sync-note');
     if (!account || !note) return;
     const syncState = !cloudSyncEnabled ? 'unavailable' : accountSyncState === 'ready' && !medicationAccountDataReady ? 'unconfirmed' : accountSyncState;
@@ -907,6 +987,35 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   const upcomingAppointments = () => appointmentGroups().upcoming;
 
+  function renderCompactToday() {
+    const medicines = $('#today-compact-medicine-list');
+    if (medicines) {
+      medicines.innerHTML = state.medications.length
+        ? `<ul>${state.medications.slice(0, 3).map(item => `<li><b>${escapeHTML(item.name || 'Medicine')}</b><span>${escapeHTML([item.dose, item.time].filter(Boolean).join(' · ') || 'Schedule not recorded')}</span></li>`).join('')}</ul>${state.medications.length > 3 ? `<p>And ${state.medications.length - 3} more in your saved list.</p>` : ''}`
+        : '<p>No medicines saved yet. Add only details you have checked against your label.</p>';
+    }
+    const next = $('#today-compact-appointment-copy');
+    if (next) {
+      const appointment = upcomingAppointments()[0];
+      next.innerHTML = appointment
+        ? `<p><b>${escapeHTML(appointment.title || 'Appointment')}</b><br>${escapeHTML(formatShortDate(appointment.date))}${appointment.time ? ' · ' + escapeHTML(formatTime(appointment.time)) : ''}<br><span>${escapeHTML(appointment.provider || 'Provider not recorded')}</span></p>`
+        : '<p>No upcoming appointment saved. Add one when you are ready.</p>';
+    }
+    const recent = $('#today-compact-recent-note');
+    if (recent) {
+      const note = state.timeline.filter(item => item.source === 'symptom-diary' || item.source === 'user-question')
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
+      recent.textContent = note ? `Latest diary note: ${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : 'No diary notes saved yet.';
+    }
+    const questions = $('#diary-question-list');
+    if (questions) {
+      const entries = state.timeline.filter(item => item.source === 'user-question' && item.type === 'question');
+      questions.innerHTML = entries.length
+        ? `<ul>${entries.slice(0, 6).map(item => `<li><span>${escapeHTML(item.description || '')}<small>${escapeHTML(formatDate(item.date))}</small></span><button type="button" class="text-button" data-delete-diary-question="${escapeHTML(item.id)}" aria-label="Delete question: ${escapeHTML(item.description || '')}">Delete</button></li>`).join('')}</ul>${entries.length > 6 ? `<p>${entries.length - 6} more question${entries.length - 6 === 1 ? '' : 's'} in History.</p>` : ''}`
+        : '<p>No questions saved yet. Write one on Today or your Medicines page.</p>';
+    }
+  }
+
   function renderTodayOverview() {
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -1096,7 +1205,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function refreshAppointmentDateViews() {
     const today = briefLocalDate(new Date());
     if (appointmentViewDay === today) return;
-    renderTodayOverview(); renderTodayAppointment(); renderAppointments();
+    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments();
     appointmentViewDay = today;
   }
 
@@ -1126,12 +1235,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     ];
     els.profileFacts.innerHTML = facts.map(([label, value, icon, tone]) => `<div class="profile-fact"><span class="profile-fact-label"><span class="profile-fact-icon feature-icon tone-${tone}" aria-hidden="true">${profileShortcutIconMarkup(icon)}</span><small>${escapeHTML(label)}</small></span><b title="${escapeHTML(value)}">${escapeHTML(value)}</b></div>`).join('');
     if (els.conditionsTags) {
-      const conditions = splitDetails(state.profile.conditions);
-      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition)}</span>`).join('')}<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>` : `<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>`;
+      const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure' }));
+      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition.label)} · ${escapeHTML(condition.source === 'legacy' ? 'older entry' : condition.status)}</span>`).join('')}<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>` : `<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>`;
     }
     if (els.allergiesList) {
-      const allergies = splitDetails(state.profile.allergies);
-      els.allergiesList.innerHTML = allergies.length ? allergies.map(allergy => `<div class="allergy-row"><b>${escapeHTML(allergy)}</b><span>Saved in your profile</span></div>`).join('') : '<div class="empty-inline">No allergies added</div>';
+      const allergies = window.DoctorAITerminology?.allergyEntries(state.profile) || splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy' }));
+      els.allergiesList.innerHTML = allergies.length ? allergies.map(allergy => `<div class="allergy-row"><b>${escapeHTML(allergy.substance)}</b><span>${allergy.reaction ? escapeHTML(allergy.reaction) + ' · ' : ''}${escapeHTML(allergy.certainty === 'legacy' ? 'older entry, review certainty' : allergy.certainty)}</span></div>`).join('') : '<div class="empty-inline">No allergies added</div>';
     }
     if (els.providersList) {
       els.providersList.innerHTML = state.providers.length ? state.providers.map(provider => {
@@ -1402,23 +1511,46 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
   }
 
+  const measurementTypeLabel = measurement => ({
+    'blood-pressure': 'Blood pressure',
+    'heart-rate': 'Heart rate',
+    sleep: 'Sleep',
+    weight: 'Weight',
+    temperature: 'Temperature',
+    mood: 'Mood / wellbeing'
+  }[String(measurement?.type || '')] || String(measurement?.type || 'Measurement').replace(/-/g, ' '));
+  function renderMeasurementHistory() {
+    if (!els.measurementChips) return;
+    const records = state.measurements.filter(record => record && typeof record === 'object').slice()
+      .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
+    const summary = measurementPills(records) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+    const rows = records.map(record => {
+      const type = measurementTypeLabel(record);
+      const date = record.date ? formatShortDate(record.date) : 'Date not recorded';
+      const value = [record.value, record.unit].filter(value => value !== null && value !== undefined && String(value).trim()).join(' ');
+      const note = record.note ? ' · ' + escapeHTML(record.note) : '';
+      const id = escapeHTML(String(record.id));
+      return '<article class="measurement-history-item"><div class="measurement-history-copy"><b>' + escapeHTML(type) + '</b><span>' + escapeHTML(value || 'Value not recorded') + '</span><small>' + escapeHTML(date) + note + '</small></div><div class="measurement-history-actions"><button type="button" data-edit-measurement="' + id + '" aria-label="Edit ' + escapeHTML(type) + ' from ' + escapeHTML(date) + '">Edit</button><button type="button" class="delete-item" data-delete-measurement="' + id + '" aria-label="Delete ' + escapeHTML(type) + ' from ' + escapeHTML(date) + '">Delete</button></div></article>';
+    }).join('');
+    els.measurementChips.innerHTML = '<div class="measurement-summary-chips" aria-label="Latest recorded measurements">' + summary + '</div><section class="measurement-history" aria-labelledby="measurement-history-title"><div class="measurement-history-heading"><h3 id="measurement-history-title">Saved measurements</h3><span>' + records.length + ' ' + (records.length === 1 ? 'reading' : 'readings') + '</span></div><div class="measurement-history-list">' + (rows || '<div class="measurement-history-empty">No measurements saved yet. Log a reading when you are ready.</div>') + '</div></section>';
+  }
   function renderMeasurement(range = trendRange) {
     trendRange = range;
-    const latest = state.measurements.find(item => item.type === range);
+    const latest = state.measurements.filter(item => item?.type === range).slice()
+      .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')))[0];
+    if (els.largeChart) els.largeChart.hidden = true;
     if (!latest) {
       if (els.measurementValue) els.measurementValue.textContent = 'No data yet';
       if (els.measurementLabel) els.measurementLabel.textContent = 'Log a measurement to start a trend';
       if (els.measurementStatus) els.measurementStatus.textContent = '';
-      if (els.largeChart) els.largeChart.hidden = true;
-      if (els.measurementChips) els.measurementChips.innerHTML = measurementPills(state.measurements) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+      renderMeasurementHistory();
       $$('[data-range]').forEach(button => button.classList.toggle('active', button.dataset.range === range));
       return;
     }
     if (els.measurementValue) els.measurementValue.innerHTML = escapeHTML(latest.value).replace(' / ', ' <small>/</small> ');
     if (els.measurementLabel) els.measurementLabel.textContent = `${range === 'blood-pressure' ? 'Blood pressure' : range[0].toUpperCase() + range.slice(1)} · ${formatShortDate(latest.date)}`;
-    if (els.measurementStatus) els.measurementStatus.textContent = range === 'blood-pressure' ? 'Within your usual range' : 'A useful pattern to keep watching';
-    if (els.largeChart) els.largeChart.hidden = false;
-    if (els.measurementChips) els.measurementChips.innerHTML = measurementPills(state.measurements) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+    if (els.measurementStatus) els.measurementStatus.textContent = 'Recorded value; no interpretation.';
+    renderMeasurementHistory();
     $$('[data-range]').forEach(button => button.classList.toggle('active', button.dataset.range === range));
   }
 
@@ -1481,6 +1613,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     applyBrandTheme();
     updateDate();
     renderTodayOverview();
+    renderCompactToday();
     renderCareHome();
     renderTodayMedications();
     renderMedicationLibrary();
@@ -1563,7 +1696,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
     refreshMedicationCheckContext().catch(() => {});
-    if (healthOwnerChanged) renderAll();
+    if (healthOwnerChanged) { discardPreparationDrafts(true); renderAll(); }
     const signedIn = Boolean(authUser);
     setAccountSyncState(signedIn ? 'checking' : 'not-signed-in');
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
@@ -1781,6 +1914,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   let careSummaryDraft = null;
+  let appointmentRequestDraft = null;
+  let preparationReturnFocus = false;
+  function discardPreparationDrafts(closeDialog = false, clearDialogContent = false) {
+    careSummaryDraft = null;
+    appointmentRequestDraft = null;
+    $('#care-summary-print')?.remove();
+    document.body.classList.remove('care-printing');
+    if (closeDialog) { preparationReturnFocus = false; closeModal(); }
+    if (closeDialog || clearDialogContent) els.modalBody.innerHTML = '';
+  }
+  function focusPreparationTitle() {
+    if (!els.modalTitle) return;
+    els.modalTitle.setAttribute('tabindex', '-1');
+    els.modalTitle.focus();
+  }
   const briefDate = value => {
     const date = String(value || '').slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '';
@@ -1805,7 +1953,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       group.hidden = !hasRecords;
     });
     form.querySelector('[data-brief-empty-all]').hidden = available > 0;
-    form.querySelector('[data-brief-count]').textContent = `${available} saved records available to choose. Saved medicine details are shown separately from dated notes; check which medicines you still take.`;
+    const selected = form.querySelectorAll('.care-summary-choice:not([hidden]) input:checked').length;
+    form.querySelector('[data-brief-count]').textContent = `${selected} of ${available} saved records selected for your brief. Saved medicine details are shown separately from dated notes; check which medicines you still take.`;
   }
   function openPersonalOverview() {
     const oneLine = (value, limit = 420) => {
@@ -2001,10 +2150,33 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openCareSummary() {
+    discardPreparationDrafts();
     const latest = items => items.slice().sort((a,b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0,100);
     const symptoms = latest(state.timeline.filter(item => item.type === 'symptom'));
+    const diaryQuestions = latest(state.timeline.filter(item => item.type === 'question' && item.source === 'user-question'));
     const measurements = latest(state.measurements);
     const notes = latest(state.timeline.filter(item => item.type === 'medication'));
+    const legacyProfileDetail = (value, qualifier) => {
+      const detail = String(value || '').replace(/\s+/g, ' ').trim();
+      return detail ? `${detail} (older entry; ${qualifier} unreviewed)` : '';
+    };
+    const conditionDetails = Array.isArray(state.profile.conditionEntries)
+      ? state.profile.conditionEntries.map(item => {
+        const label = String(item?.label || '').trim();
+        if (!label) return '';
+        const status = item.source === 'legacy' ? 'older entry; status unreviewed' : ({ current: 'current', historical: 'historical', unsure: 'unsure' }[item.status] || 'status unsure');
+        return `Conditions & history: ${label} (${status})`;
+      }).filter(Boolean)
+      : [legacyProfileDetail(state.profile.conditions, 'status')].filter(Boolean).map(value => `Conditions & history: ${value}`);
+    const allergyDetails = Array.isArray(state.profile.allergyEntries)
+      ? state.profile.allergyEntries.map(item => {
+        const substance = String(item?.substance || '').trim();
+        if (!substance) return '';
+        const reaction = String(item.reaction || '').trim();
+        const certainty = item.source === 'legacy' || item.certainty === 'legacy' ? 'older entry; certainty unreviewed' : ({ confirmed: 'recorded as confirmed by you', suspected: 'possible reaction', unsure: 'unsure' }[item.certainty] || 'certainty unsure');
+        return `Allergies & reactions: ${substance}${reaction ? `; reaction: ${reaction}` : ''} (${certainty})`;
+      }).filter(Boolean)
+      : [legacyProfileDetail(state.profile.allergies, 'certainty')].filter(Boolean).map(value => `Allergies & reactions: ${value}`);
     const symptomBriefText = item => {
       const severity = symptomSeverity(item.severity);
       const notes = String(item.notes || '').trim();
@@ -2021,8 +2193,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     };
     const groups = [
       { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(symptomBriefText) },
+      { title: 'Questions saved in my diary', dates: diaryQuestions.map(item => briefDate(item.date)), items: diaryQuestions.map(item => [item.date, String(item.description || '').trim()].filter(Boolean).join(' · ')) },
       { title: 'Saved medicine details (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions, item.startDate ? `Saved start date: ${item.startDate}` : '', item.endDate ? `Saved end date: ${item.endDate}` : ''].filter(Boolean).join(' · ')) },
-      { title: 'Saved health profile (not date filtered)', items: [['Conditions & history', state.profile.conditions], ['Allergies', state.profile.allergies], ['Blood type', state.profile.bloodType], ['Profile notes', state.profile.notes]].filter(([, value]) => String(value || '').trim()).map(([label, value]) => `${label}: ${String(value).trim()}`) },
+      { title: 'Saved health profile (not date filtered)', items: [...conditionDetails, ...allergyDetails, ...[['Blood type', state.profile.bloodType], ['Profile notes', state.profile.notes]].filter(([, value]) => String(value || '').trim()).map(([label, value]) => `${label}: ${String(value).trim()}`)] },
       { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
       { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
     ];
@@ -2046,7 +2219,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
+    form.addEventListener('change', event => { if (event.target.matches('input[name="entry"]')) updateBriefPeriod(form); });
     updateBriefPeriod(form);
+    focusPreparationTitle();
   }
 
   function reviewCareSummary(form) {
@@ -2074,6 +2249,34 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     careSummaryDraft.form = form;
     careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Saved medicine details are not date filtered; check which medicines you still take.</p>${appointmentDetails ? `<section><h2>Appointment</h2><p>${escapeHTML(appointmentDetails)}</p></section>` : ''}${sections.map(section => `<section class="care-brief-section${section.priority ? ' care-brief-priority' : ''}"><h2>${escapeHTML(section.title)}</h2><ul>${section.items.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section>`).join('')}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
     setModal('Review my visit brief', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy visit brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    focusPreparationTitle();
+  }
+
+  function openAppointmentRequest() {
+    discardPreparationDrafts();
+    appointmentRequestDraft = { form: null, text: '' };
+    setModal('Prepare an appointment request', 'Draft only', `<form class="modal-form appointment-request-form" data-appointment-request-form>
+      <p>Write a request to copy into a clinic's own contact channel. DoctorAI does not send this draft, contact a clinic or book an appointment.</p>
+      <label>Clinic or service (optional)<input name="clinic" type="text" maxlength="120" autocomplete="off" placeholder="Clinic name, if known"></label>
+      <label>Reason for requesting a visit <span aria-hidden="true">*</span><textarea name="reason" rows="3" maxlength="500" required placeholder="In your own words, what would you like to discuss?"></textarea></label>
+      <label>Preferred days or times (optional)<input name="preferred" type="text" maxlength="240" autocomplete="off" placeholder="For example, weekday mornings"></label>
+      <label>Questions to ask (optional)<textarea name="questions" rows="3" maxlength="1000" placeholder="Add questions you want the clinic to know about."></textarea></label>
+      <p class="appointment-request-boundary">This is not for emergencies. If you need urgent care, contact local urgent or emergency services. No request is saved or sent by DoctorAI.</p>
+      <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review request draft</button></div></form>`);
+    focusPreparationTitle();
+  }
+
+  function reviewAppointmentRequest(form) {
+    const data = new FormData(form);
+    const reason = String(data.get('reason') || '').trim().slice(0, 500);
+    if (!reason) { showToast('Add a reason for requesting the visit.'); form.elements.reason?.focus(); return; }
+    const clinic = String(data.get('clinic') || '').trim().slice(0, 120);
+    const preferred = String(data.get('preferred') || '').trim().slice(0, 240);
+    const questions = String(data.get('questions') || '').trim().slice(0, 1000);
+    const lines = ['Appointment request draft', clinic ? `Clinic or service: ${clinic}` : '', `Reason: ${reason}`, preferred ? `Preferred days or times: ${preferred}` : '', questions ? `Questions: ${questions}` : '', 'This is a request draft only. No appointment is booked.'].filter(Boolean);
+    appointmentRequestDraft = { form, text: lines.join('\n\n') };
+    setModal('Review appointment request', 'Check before copying', `<div class="care-summary-review"><p><b>No appointment has been requested or booked.</b> Check this draft, then copy it if you want to contact the clinic yourself.</p><article id="appointment-request-reviewed"><h2>Appointment request draft</h2>${lines.slice(1, -1).map(line => `<p>${escapeHTML(line)}</p>`).join('')}<p><b>This is a request draft only. No appointment is booked.</b></p></article><div class="care-print-actions"><button type="button" class="primary-button" data-copy-appointment-request>Copy request draft</button><button type="button" class="secondary-button" data-edit-appointment-request>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>Copying places this draft on your device's clipboard. You decide whether and where to send it.</small></p></div>`);
+    focusPreparationTitle();
   }
 
   function printCareSummary() {
@@ -2084,7 +2287,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     printRoot.id = 'care-summary-print'; printRoot.className = 'care-print-root';
     printRoot.innerHTML = careSummaryDraft.html;
     document.body.append(printRoot); document.body.classList.add('care-printing');
-    const cleanup = () => { printRoot.remove(); document.body.classList.remove('care-printing'); };
+    const cleanup = () => {
+      if (!printRoot.isConnected) return;
+      printRoot.remove();
+      document.body.classList.remove('care-printing');
+    };
     window.addEventListener('afterprint', cleanup, { once: true });
     try { window.print(); } catch { cleanup(); showToast('Printing is unavailable here. Please open DoctorAI in your browser.'); }
   }
@@ -2094,6 +2301,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.modalTitle.textContent = title;
     els.modalEyebrow.textContent = eyebrow;
     els.modalBody.innerHTML = body;
+    if (els.modalBody.querySelector('[data-modal-form="health"]')) window.DoctorAITermProfile?.mount(els.modalBody, state.profile);
     const modalFeatures = { medication: 'medications', appointment: 'appointments', symptom: 'symptoms', measurement: 'results', health: 'health' };
     els.modalBody.querySelectorAll('.modal-choice').forEach(button => {
       const name = modalFeatures[button.dataset.modal] || (button.hasAttribute('data-close-modal') ? 'close' : '');
@@ -2543,6 +2751,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     syncFollowup();
   }
 
+  function openMeasurementEditor(measurement) {
+    const id = String(measurement?.id ?? '');
+    const type = String(measurement?.type || '');
+    const types = [
+      ['blood-pressure', 'Blood pressure'], ['sleep', 'Sleep'], ['weight', 'Weight'],
+      ['heart-rate', 'Heart rate'], ['temperature', 'Temperature'], ['mood', 'Mood / wellbeing']
+    ];
+    const options = types.map(([value, label]) => '<option value="' + value + '"' + (type === value ? ' selected' : '') + '>' + label + '</option>').join('');
+    const legacyType = type && !types.some(([value]) => value === type)
+      ? '<option value="' + escapeHTML(type) + '" selected>' + escapeHTML(measurementTypeLabel(measurement)) + '</option>'
+      : '';
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(measurement?.date || '')) ? String(measurement.date) : '';
+    const html = '<form class="modal-form" data-modal-form="measurement" data-edit-measurement-id="' + escapeHTML(id) + '"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type" required>' + legacyType + options + '</select></label><label class="modal-field"><span>Value *</span><input name="value" required value="' + escapeHTML(measurement?.value || '') + '" placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required value="' + escapeHTML(date) + '"></label><label class="modal-field"><span>Optional note</span><input name="note" value="' + escapeHTML(measurement?.note || '') + '" placeholder="Anything useful to remember"></label></div><p class="modal-help">Correct the saved reading. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save changes <span aria-hidden="true">' + iconMarkup('arrow') + '</span></button></div></form>';
+    setModal('Edit measurement', 'Health tracking', html);
+  }
   function openMeasurementModal() {
     setModal('Log a measurement', 'Health tracking', `<form class="modal-form" data-modal-form="measurement"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type"><option value="blood-pressure">Blood pressure</option><option value="sleep">Sleep</option><option value="weight">Weight</option><option value="heart-rate">Heart rate</option><option value="temperature">Temperature</option><option value="mood">Mood / wellbeing</option></select></label><label class="modal-field"><span>Value *</span><input name="value" required placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Optional note</span><input name="note" placeholder="Anything useful to remember"></label></div><p class="modal-help">Tracking is optional. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save measurement <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
@@ -2922,13 +3145,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function deleteHealthData() {
     if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
-    if (!window.confirm('Delete all health hub data, including saved medications, symptom diary entries, appointments, measurements, timeline entries and documents? This cannot be undone.')) return;
+    if (!window.confirm('Delete health-hub records saved in this browser for every DoctorAI profile on this device? If signed in, this also deletes your current account\'s hub records and uploaded files. This cannot be undone.')) return;
     deleteHealthData.busy = true;
     window.clearTimeout(cloudSyncTimer);
     const syncWasEnabled = cloudSyncEnabled;
     cloudSyncEnabled = false;
     cloudSyncDirty = false;
     cloudSyncRevision += 1;
+    accountSessionRevision += 1; // Invalidate an earlier account-state load before it can restore deleted records.
+    const deletionScope = accountSyncScope();
+    const ownerChanged = () => {
+      if (deletionScope === accountSyncScope()) return false;
+      deleteHealthData.busy = false;
+      showToast('The account changed during deletion. Check the previous account before retrying; this page did not clear the new account.');
+      return true;
+    };
     let cloudDeletionFailed = false;
     showToast('Deleting health data… Please keep this page open.');
     if (authUser) {
@@ -2941,35 +3172,56 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         if (!response.ok || !Array.isArray(payload.documents)) throw new Error('Document inventory unavailable');
         documents = payload.documents;
       } catch { cloudDeletionFailed = true; }
+      if (ownerChanged()) return;
       for (const document of documents) {
+        if (ownerChanged()) return;
         try {
           const response = await fetch(`/api/documents?id=${encodeURIComponent(document.id)}`, { method: 'DELETE' });
           if (!response.ok && response.status !== 404) cloudDeletionFailed = true;
         } catch { cloudDeletionFailed = true; }
       }
+      if (ownerChanged()) return;
       try {
         if (cloudDeletionFailed) throw new Error('Document deletion incomplete');
         const response = await fetch('/api/health/state', { method: 'DELETE' });
         if (!response.ok) cloudDeletionFailed = true;
       } catch { cloudDeletionFailed = true; }
     }
+    if (ownerChanged()) return;
     deleteHealthData.busy = false;
     if (cloudDeletionFailed) {
       setSyncStatus('Deletion incomplete — retry in Privacy controls');
       showToast('Deletion could not finish. Some cloud files may already be removed. Your local record is kept; retry from Privacy controls when connected. Sync is paused until you reload.');
       return;
     }
+    await medicationCheckController.setConsent(false);
     state.medications = []; state.appointments = []; state.providers = []; state.timeline = []; state.documents = []; state.measurements = []; state.tasks = []; state.profile = clone(emptyProfile); state.memoryEnabled = false; state.memoryDetails = [];
-    write('medications', []); write('appointments', []); write('providers', []); write('timeline', []); write('documents', []); write('measurements', []); write('tasks', []); write('profile', state.profile); write('memory-enabled', false); write('memory-details', []); write('updated-at', Date.now());
+    localStateUpdatedAt = 0;
+    sessionHealthStateCache.clear();
+    discardPreparationDrafts(true);
+    const deviceCleared = removeDeviceHealthData();
+    localStorageRemovalFailed = !deviceCleared;
+    if (!deviceCleared) {
+      deviceStorageChoice = 'session-cleanup-incomplete';
+      localStorageAllowed = false;
+      try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    }
     clearChat({ confirm: false, notify: false });
-    cloudSyncEnabled = syncWasEnabled;
-    renderAll(); closePrivacy();
+    cloudSyncEnabled = deviceCleared && syncWasEnabled;
+    renderAll();
+    if (!deviceCleared) {
+      setSyncStatus('Browser cleanup incomplete - account sync paused');
+      showToast('Account deletion finished, but old browser data may remain. Clear this site\'s browser data before using this device again.');
+      return;
+    }
+    closePrivacy();
     setSyncStatus('Health data deleted');
     showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
   }
 
   function handleModalSubmit(event) {
     if (event.target.matches('[data-care-summary-form]')) { event.preventDefault(); reviewCareSummary(event.target); return; }
+    if (event.target.matches('[data-appointment-request-form]')) { event.preventDefault(); reviewAppointmentRequest(event.target); return; }
     const form = event.target.closest('[data-modal-form]');
     if (!form) return;
     event.preventDefault();
@@ -3096,15 +3348,41 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         ? `Pattern hint: ${newPattern.family.label} is noted near ${newPattern.context.label} in ${newPattern.count} entries. This is a correlation to review, not a cause.`
         : (existing ? 'Symptom entry updated.' : 'Symptom added to your private diary.');
     } else if (form.dataset.modalForm === 'measurement') {
-      state.measurements.unshift({ type: values.type, value: values.value, date: values.date, note: values.note || '' });
-      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'result', date: values.date, title: `${values.type.replace('-', ' ')} logged`, description: values.value, icon: '⌁' });
-      renderMeasurement(values.type);
-      showToast('Measurement added to your trends.');
+      const editingId = String(form.dataset.editMeasurementId || '');
+      const existingIndex = editingId ? state.measurements.findIndex(item => String(item?.id ?? '') === editingId) : -1;
+      if (editingId && existingIndex < 0) { showToast('This measurement is no longer in your history. Reopen the reading you want to edit.'); return; }
+      const existing = existingIndex >= 0 ? state.measurements[existingIndex] : null;
+      const type = String(values.type || existing?.type || '').trim();
+      const value = String(values.value || '').trim();
+      const date = String(values.date || '');
+      if (!type || !value || briefDate(date) !== date) {
+        showToast('Add a measurement, value and valid date before saving.');
+        (!type ? form.elements.type : !value ? form.elements.value : form.elements.date)?.focus();
+        return;
+      }
+      const measurement = { ...(existing || {}), id: existing ? existing.id : createMeasurementId(), type, value, date, note: String(values.note ?? '').trim() };
+      if (existing) {
+        state.measurements[existingIndex] = measurement;
+        const linkedEventIndex = state.timeline.findIndex(item => item?.type === 'result' && String(item.measurementId ?? '') === String(measurement.id));
+        if (linkedEventIndex >= 0) {
+          const linkedEvent = state.timeline[linkedEventIndex];
+          state.timeline[linkedEventIndex] = { ...linkedEvent, date, title: measurementTypeLabel(measurement) + ' logged', description: value };
+        }
+      } else {
+        state.measurements.unshift(measurement);
+        state.timeline.unshift({ id: createMeasurementTimelineId(measurement.id), type: 'result', measurementId: measurement.id, date, title: measurementTypeLabel(measurement) + ' logged', description: value, icon: '⌁' });
+      }
+      renderMeasurement(type);
+      showToast(existing ? 'Measurement updated.' : 'Measurement added to your trends.');
     } else if (form.dataset.modalForm === 'health') {
       const oldProfile = state.profile;
-      const nextAllergies = values.allergies || '';
-      const nextConditions = values.conditions || '';
-      state.profile = { ...oldProfile, name: values.name || '', bloodType: values.bloodType || '', conditions: nextConditions, allergies: nextAllergies, notes: values.notes || '' };
+      const selected = window.DoctorAITermProfile?.collect();
+      if (window.DoctorAITermProfile && !selected) return;
+      const compatibility = selected
+        ? window.DoctorAITerminology.compatibilityFields(selected.conditions, selected.allergies)
+        : { conditions: values.conditions || '', allergies: values.allergies || '' };
+      state.profile = { ...oldProfile, name: values.name || '', bloodType: values.bloodType || '', ...compatibility, notes: values.notes || '' };
+      if (selected) { state.profile.conditionEntries = selected.conditions; state.profile.allergyEntries = selected.allergies; }
       state.memoryDetails = [state.profile.conditions, state.profile.allergies, state.profile.bloodType].filter(Boolean);
       clearMedicationSafetyResults();
       showToast('Health profile updated.');
@@ -3298,6 +3576,23 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    const suggestedQuestion = event.target.closest('[data-question-suggestion]');
+    if (suggestedQuestion) {
+      event.preventDefault();
+      const input = $('#medicine-question');
+      if (input) { input.value = suggestedQuestion.dataset.questionSuggestion || ''; input.focus(); }
+      return;
+    }
+    const deleteDiaryQuestion = event.target.closest('[data-delete-diary-question]');
+    if (deleteDiaryQuestion) {
+      event.preventDefault();
+      const entry = state.timeline.find(item => item.source === 'user-question' && item.id === deleteDiaryQuestion.dataset.deleteDiaryQuestion);
+      if (entry && window.confirm('Delete this saved question from your diary?')) {
+        state.timeline = state.timeline.filter(item => item !== entry);
+        saveState(); renderCompactToday(); renderTimeline(); showToast('Question deleted from your diary.');
+      }
+      return;
+    }
     if (event.target.closest('[data-refresh-alerts]')) { event.preventDefault(); renderHealthAlerts(); showToast('Local notices refreshed from your saved details.'); return; }
     if (event.target.closest('#profile-drawer [data-install-app]')) closeProfile(true);
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }
@@ -3417,11 +3712,30 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
     if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
-    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
+    const summaryOpener = event.target.closest('[data-open-summary]');
+    if (summaryOpener) { event.preventDefault(); preparationReturnFocus = !summaryOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
+    const requestOpener = event.target.closest('[data-open-appointment-request]');
+    if (requestOpener) { event.preventDefault(); preparationReturnFocus = !requestOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openAppointmentRequest(); return; }
+    if (event.target.closest('[data-edit-appointment-request]') && appointmentRequestDraft?.form) {
+      event.preventDefault();
+      setModal('Prepare an appointment request', 'Draft only', '');
+      els.modalBody.append(appointmentRequestDraft.form);
+      appointmentRequestDraft.form.querySelector?.('[name="reason"]')?.focus();
+      return;
+    }
+    if (event.target.closest('[data-copy-appointment-request]')) {
+      event.preventDefault();
+      const text = appointmentRequestDraft?.text;
+      if (!text) return;
+      if (!navigator.clipboard?.writeText) { showToast('Copy is unavailable here. Select the text in this draft to copy it yourself.'); return; }
+      navigator.clipboard.writeText(text).then(() => showToast('Request draft copied. Contact the clinic yourself to ask for an appointment.')).catch(() => showToast('Copy was blocked. Select the text in this draft to copy it yourself.'));
+      return;
+    }
     if (event.target.closest('[data-edit-care-summary]') && careSummaryDraft?.form) {
       event.preventDefault();
       setModal('Prepare for my appointment', 'Build your visit brief', '');
       els.modalBody.append(careSummaryDraft.form);
+      careSummaryDraft.form.querySelector?.('[name="focus"]')?.focus();
       return;
     }
     if (event.target.closest('[data-print-care-summary]')) { event.preventDefault(); printCareSummary(); return; }
@@ -3512,6 +3826,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (modalType === 'timeline') openTimelineModal();
       return;
     }
+    const editMeasurement = event.target.closest('[data-edit-measurement]');
+    if (editMeasurement) {
+      event.preventDefault();
+      const id = String(editMeasurement.dataset.editMeasurement || '');
+      const measurement = state.measurements.find(item => String(item?.id ?? '') === id);
+      if (measurement) openMeasurementEditor(measurement);
+      else showToast('This measurement is no longer in your history.');
+      return;
+    }
     const editAppointment = event.target.closest('[data-edit-appointment]');
     if (editAppointment) {
       event.preventDefault();
@@ -3575,6 +3898,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         clearMedicationSafetyResults();
         saveState(); renderAll(); showToast('Medication removed from your health hub.');
       }
+      return;
+    }
+    const deleteMeasurement = event.target.closest('[data-delete-measurement]');
+    if (deleteMeasurement) {
+      event.preventDefault();
+      const id = String(deleteMeasurement.dataset.deleteMeasurement || '');
+      const measurement = state.measurements.find(item => String(item?.id ?? '') === id);
+      if (!measurement) { showToast('This measurement is no longer in your history.'); return; }
+      const summary = [measurementTypeLabel(measurement), measurement.value, measurement.date].filter(Boolean).join(' · ');
+      if (!window.confirm('Delete the saved measurement "' + summary + '"? This cannot be undone.')) return;
+      state.measurements = state.measurements.filter(item => String(item?.id ?? '') !== id);
+      state.timeline = state.timeline.filter(item => !(item?.type === 'result' && String(item.measurementId ?? '') === id));
+      saveState(); renderAll(); showToast('Measurement removed from your history.');
       return;
     }
     const deleteAppointment = event.target.closest('[data-delete-appointment]');
@@ -3799,6 +4135,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
   });
   document.addEventListener('click', handleClick);
+  document.addEventListener('submit', event => {
+    const form = event.target.closest('[data-diary-question-form]');
+    if (!form) return;
+    event.preventDefault();
+    const input = form.elements.question;
+    const question = window.DoctorAITodayDiary?.normaliseQuestion(input?.value);
+    const status = $('[data-diary-question-status]', form);
+    if (!question) { if (status) status.textContent = 'Write a question before saving.'; input?.focus(); return; }
+    const id = typeof window.crypto?.randomUUID === 'function' ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const prepared = window.DoctorAITodayDiary?.createQuestion(question, state.timeline, briefLocalDate(new Date()), id, Date.now());
+    if (!prepared?.entry) { if (status) status.textContent = prepared?.error === 'duplicate' ? 'That question is already in today\'s diary.' : 'Could not add this question. Please try again.'; return; }
+    if (!window.confirm('Add this question to your private diary?')) return;
+    state.timeline.unshift(prepared.entry);
+    saveState(); renderCompactToday(); renderTimeline();
+    form.reset();
+    if (status) status.textContent = 'Added to your diary. Check your storage status before relying on it between visits.';
+    showToast('Question added to your private diary.');
+  });
   els.medicationAlertModal?.addEventListener('cancel', event => event.preventDefault());
   els.medicationAlertModal?.addEventListener('close', () => {
     if (!medicationAlertFingerprint || medicationAlertAcknowledged(medicationAlertFingerprint)) return;
@@ -3845,6 +4199,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   $('#document-upload-inline')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
+  els.modal.addEventListener('close', () => {
+    if (els.modal.open) return;
+    const returnToVisitPrep = preparationReturnFocus;
+    const hadPreparation = Boolean(careSummaryDraft || appointmentRequestDraft);
+    preparationReturnFocus = false;
+    discardPreparationDrafts(false, hadPreparation);
+    if (returnToVisitPrep) requestAnimationFrame(() => {
+      const heading = $('#visit-prep-title');
+      if (els.modal.open || !heading || heading.closest('[hidden]')) return;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    });
+  });
   els.medicationScannerModal?.addEventListener('click', event => { if (event.target === els.medicationScannerModal) closeMedicationScanner(); });
   els.medicationScannerModal?.addEventListener('cancel', () => stopMedicationScannerCamera());
   els.medicationScannerModal?.addEventListener('close', () => stopMedicationScannerCamera());
@@ -3854,7 +4221,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     closeMedicationScanner(); const hash = location.hash.slice(1);
     if (hash === 'terms') { location.assign('/terms'); return; }
     if (hash === 'privacy') { showView('health', false); openPrivacy(); return; }
-    if (hash === 'summary') { showView('visit-prep', false); openCareSummary(); return; }
+    if (hash === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); return; }
     showView(hash || 'today', false, true, history.state?.view === hash ? history.state.panel : '');
   }
   window.addEventListener('hashchange', restoreHubLocation);
@@ -3877,7 +4244,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('visit-prep', false); openCareSummary(); }
+  else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});

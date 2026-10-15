@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
+const healthStateCore = require('../server-src/_lib/doctorai-core.cjs');
 const clone = value => JSON.parse(JSON.stringify(value));
 const escaped = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 const decode = value => String(value).replace(/&quot;|&#39;|&lt;|&gt;|&amp;/g, entity => ({ '&quot;': '"', '&#39;': "'", '&lt;': '<', '&gt;': '>', '&amp;': '&' })[entity]);
@@ -22,11 +23,18 @@ function declaration(name) {
 }
 const production = [
   declaration('escapeHTML'),
+  "let trendRange = 'blood-pressure';",
+  between('  let measurementIdSequence =', '  const state = {'),
   between('  function appointmentGroups(', '  function renderTodayOverview('),
   between('  const symptomImpactLabels =', '  const symptomLogDescription ='),
+  between('  const measurementPills =', '  const showToast ='),
+  between('  function createMeasurementId()', '  function healthStateSnapshot()'),
   between('  let careSummaryDraft =', '  function openPersonalOverview('),
   between('  function renderAppointments(', '  function renderProfileShortcuts('),
+  between('  const measurementTypeLabel =', '  function renderHealthAlerts('),
   between('  function openAppointmentModal(', '  function openProviderModal('),
+  between('  function openMeasurementEditor(', '  function openMeasurementModal()'),
+  between('  function openMeasurementModal()', '  function openHealthModal()'),
   between('  function openCareSummary(', '  function printCareSummary('),
   between('  function handleModalSubmit(', '  function renderLocalMedicationDatabaseResult('),
   between('  async function handleClick(', '  function setupQuickAccessOrbit(')
@@ -51,6 +59,21 @@ function appointmentForm(values, id = '') {
   for (const [name, value] of Object.entries(values)) form.elements[name] = { value, focused: false, focus() { this.focused = true; } };
   return form;
 }
+function measurementForm(values, id = '') {
+  const form = {
+    values, dataset: { modalForm: 'measurement', editMeasurementId: id }, elements: {},
+    matches: () => false,
+    closest: selector => selector === '[data-modal-form]' ? form : null
+  };
+  for (const [name, value] of Object.entries(values)) form.elements[name] = { value, focused: false, focus() { this.focused = true; } };
+  return form;
+}
+function appointmentRequestForm(values) {
+  const form = { values, elements: { reason: { focused: false, focus() { this.focused = true; } } },
+    matches: selector => selector === '[data-appointment-request-form]', closest: () => null,
+    querySelector: selector => selector === '[name="reason"]' ? form.elements.reason : null };
+  return form;
+}
 function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, decode(value)]));
 }
@@ -66,9 +89,11 @@ function prefilledForm(html) {
 }
 function briefForm(html) {
   const count = { textContent: '' }, emptyAll = { hidden: false };
+  const focusField = { focused: false, focus() { this.focused = true; } };
+  const listeners = {};
   const fields = [...html.matchAll(/<fieldset>([\s\S]*?)<\/fieldset>/g)].map(([, body]) => {
     const choices = [...body.matchAll(/<label class="care-summary-choice"([^>]*)>([\s\S]*?)<\/label>/g)].map(([, extra, contents]) => {
-      const attrs = attributes(extra), input = { checked: false, value: attributes(contents.match(/<input\b[^>]*>/)[0]).value };
+      const attrs = attributes(extra), input = { checked: false, value: attributes(contents.match(/<input\b[^>]*>/)[0]).value, matches: selector => selector === 'input[name="entry"]' };
       return { html: contents, hidden: false, dataset: { briefDate: attrs['data-brief-date'] },
         hasAttribute: name => Object.hasOwn(attrs, name), querySelector: selector => selector === 'input' ? input : null };
     });
@@ -81,26 +106,36 @@ function briefForm(html) {
     values: { focus: '', questions: '', appointment: '' },
     elements: { since: { value: since, addEventListener() {} } }, choices,
     matches: selector => selector === '[data-care-summary-form]',
+    addEventListener: (type, listener) => { listeners[type] = listener; },
+    dispatchChange: target => listeners.change?.({ target }),
     querySelectorAll: selector => selector === 'fieldset' ? fields : selector === '.care-summary-choice' ? choices : selector === '.care-summary-choice:not([hidden]) input:checked' ? choices.filter(choice => !choice.hidden && choice.querySelector('input').checked).map(choice => choice.querySelector('input')) : [],
-    querySelector: selector => selector === '[data-brief-count]' ? count : selector === '[data-brief-empty-all]' ? emptyAll : null
+    querySelector: selector => selector === '[data-brief-count]' ? count : selector === '[data-brief-empty-all]' ? emptyAll : selector === '[name="focus"]' ? focusField : null
   };
   return form;
 }
 function fixture(initial = {}) {
-  const state = { medications: [], appointments: [], providers: [], timeline: [], measurements: [], documents: [], tasks: [], profile: {}, ...clone(initial) };
-  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true };
+  const state = { medications: [], appointments: [], providers: [], timeline: [], measurements: [], documents: [], tasks: [], profile: {}, memoryEnabled: false, memoryDetails: [], ...clone(initial) };
+  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true, confirmations: [], reviewFocus: 0, printClassRemoved: 0, printRemoved: 0 };
   let activeBriefForm;
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
     state, Date: FixtureDate, FormData: FixtureFormData,
-    els: { appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {} },
-    document: { body: { classList: { contains: () => false } }, querySelector: () => null },
-    window: { confirm: () => observed.confirm, fetch: forbidden, open: forbidden },
+    els: {
+      appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {},
+      measurementValue: { textContent: '', innerHTML: '' }, measurementLabel: { textContent: '' },
+      measurementStatus: { textContent: '' }, largeChart: { hidden: false }, measurementChips: { innerHTML: '' },
+      modalBody: { append: item => observed.returnedForm = item },
+      modalTitle: { setAttribute() {}, focus: () => observed.reviewFocus++ }
+    },
+    document: { body: { classList: { contains: () => false, remove: () => observed.printClassRemoved++ } }, querySelector: () => null },
+    window: { confirm: message => { observed.confirmations.push(message); return observed.confirm; }, fetch: forbidden, open: forbidden },
     fetch: forbidden, localStorage: { getItem: forbidden, setItem: forbidden }, sessionStorage: { getItem: forbidden, setItem: forbidden },
     iconMarkup: () => '<svg aria-hidden="true"></svg>',
+    $$: () => [],
+    formatShortDate: value => 'Short ' + value,
     formatDate: value => `Formatted ${value}`, formatTime: value => value,
     appointmentParts: () => ({ day: '20', month: 'Oct', weekday: 'Tue' }),
-    $: selector => selector === '[data-care-summary-form]' ? activeBriefForm : null,
+    $: selector => selector === '[data-care-summary-form]' ? activeBriefForm : selector === '#care-summary-print' ? observed.printRoot || null : null,
     setModal: (title, eyebrow, html) => { observed.modals.push({ title, eyebrow, html }); if (html.includes('data-care-summary-form')) activeBriefForm = briefForm(html); },
     saveState: () => observed.saves.push(clone(state)), renderAll: () => observed.renders++,
     closeModal: () => observed.closes++, showToast: text => observed.toasts.push(text),
@@ -108,6 +143,49 @@ function fixture(initial = {}) {
   });
   vm.runInContext(production, context, { timeout: 1000, filename: 'health-hub-selected-record-functions.js' });
   return { context, state, observed, modal: () => observed.modals.at(-1), brief: () => activeBriefForm };
+}
+function serializeHealthState(state) {
+  const cloneSource = declaration('clone');
+  const serializerSource = source.match(/^  const serialiseHealthState = \(\) => \(\{[\s\S]*?^  \}\);/m)?.[0];
+  assert.ok(cloneSource && serializerSource, 'The actual browser serializer is available for measurement identity checks.');
+  const serialized = new vm.Script(cloneSource + '\n' + serializerSource + '\nserialiseHealthState();', { filename: 'health-hub.js:serialiseHealthState' }).runInNewContext({ state });
+  return JSON.parse(JSON.stringify(serialized));
+}
+async function healthStateApiRoundTrip(state) {
+  let stored = null;
+  const account = { sub: 'synthetic-measurement-owner', email: 'measurement@example.invalid' };
+  const serviceCore = {
+    ...healthStateCore,
+    identityFromRequest: async () => account,
+    storageConfigured: () => true,
+    accountKey: () => 'synthetic-measurement-owner',
+    rateLimit: async () => ({ allowed: true, retryAfter: 0 }),
+    saveHealthState: async (_owner, value) => { stored = { state: clone(value), updatedAt: 1700000000000 }; },
+    readHealthState: async () => stored ? clone(stored) : null
+  };
+  const handlerModule = { exports: {} };
+  const handlerSource = fs.readFileSync(require.resolve('../api/health/state.js'), 'utf8');
+  vm.runInNewContext(handlerSource, {
+    module: handlerModule,
+    require: name => {
+      assert.equal(name, '../../server-src/_lib/doctorai-core.cjs');
+      return serviceCore;
+    },
+    Date
+  }, { filename: 'api/health/state.js:measurement-roundtrip' });
+  const responseFor = () => ({
+    statusCode: 0, headers: {}, body: null,
+    setHeader(name, value) { this.headers[name] = value; },
+    status(code) { this.statusCode = code; return this; },
+    json(value) { this.body = clone(value); return this; }
+  });
+  const writeResponse = responseFor();
+  await handlerModule.exports({ method: 'PUT', body: JSON.stringify({ state }) }, writeResponse);
+  assert.equal(writeResponse.statusCode, 200, 'The actual API accepts the browser-serialized measurement state.');
+  const readResponse = responseFor();
+  await handlerModule.exports({ method: 'GET' }, readResponse);
+  assert.equal(readResponse.statusCode, 200, 'The actual API returns the saved measurement state.');
+  return readResponse.body.state;
 }
 function submit(context, form) {
   let prevented = false;
@@ -238,6 +316,204 @@ async function verifyAppointmentDateGroups() {
   assert.deepEqual(ids(repair.context.appointmentGroups().upcoming), ['date-missing'], 'A repaired valid date can become upcoming despite its preserved legacy past status.');
   assert.equal(repair.state.appointments[0].status, 'past');
   for (const item of [f, boundary, move, repair]) assert.equal(item.observed.forbiddenCalls, 0);
+}
+
+async function verifyMeasurementHistory() {
+  const linkedHistory = {
+    id: 'linked-measurement-event', type: 'result', measurementId: 'measurement-target',
+    date: '2026-10-13', title: 'Weight logged', description: '70', opaqueMetadata: { retain: 'linked event marker' }
+  };
+  const unlinkedHistory = {
+    id: 'legacy-result-history', type: 'result', date: '2026-10-11',
+    title: 'Older manual result', description: 'Keep this unlinked history',
+    opaqueMetadata: { retain: 'legacy history marker' }
+  };
+  const unrelatedHistory = { id: 'unrelated-visit-event', type: 'appointment', title: 'Other history' };
+  const target = {
+    id: 'measurement-target', type: 'weight', value: '70', date: '2026-10-13', unit: 'kg',
+    note: '<script>measurement note</script>', createdAt: 12345, opaqueMetadata: { retain: 'target marker' }
+  };
+  const legacy = {
+    type: 'weight', value: '71', date: '2026-10-14', unit: 'kg', note: 'Legacy note',
+    opaqueMetadata: { retain: 'older reading marker' }
+  };
+  const numericId = { id: 23, type: 'sleep', value: '7', date: '2026-10-12', unit: 'hours', sourceMetadata: { keep: true } };
+  const f = fixture({ measurements: [target, legacy, numericId], timeline: [linkedHistory, unlinkedHistory, unrelatedHistory] });
+  assert.equal(f.context.ensureMeasurementIds(f.state.measurements), true, 'Legacy readings receive persistent IDs.');
+  const migratedLegacyId = String(f.state.measurements[1].id);
+  assert.ok(migratedLegacyId && migratedLegacyId !== '23' && migratedLegacyId !== 'measurement-target');
+  assert.equal(f.state.measurements[2].id, 23, 'A unique existing numeric ID remains unchanged.');
+  assert.equal(f.context.ensureMeasurementIds(f.state.measurements), false, 'The migration leaves saved IDs stable on later renders and reloads.');
+  assert.equal(String(f.state.measurements[1].id), migratedLegacyId);
+  assert.deepEqual(f.state.measurements[1].opaqueMetadata, legacy.opaqueMetadata, 'Legacy metadata survives ID migration.');
+
+  const beforeRender = clone(f.state);
+  f.context.renderMeasurement('weight');
+  assert.equal(f.context.els.measurementValue.innerHTML, '71', 'The trend summary shows the newest dated reading.');
+  assert.match(f.context.els.measurementStatus.textContent, /recorded value; no interpretation/i, 'The trend status uses neutral recorded-value wording.');
+  assert.equal(f.context.els.largeChart.hidden, true, 'The decorative static chart stays hidden without data-backed chart points.');
+  const historyHTML = f.context.els.measurementChips.innerHTML;
+  assert.match(historyHTML, /measurement-summary-chips[^]*?<b>71<\/b>/, 'The summary chip uses the newest dated reading even after ID migration.');
+  for (const id of ['measurement-target', migratedLegacyId, '23']) {
+    assert.ok(historyHTML.includes('data-edit-measurement="' + escaped(id) + '"'), 'Each reading has an edit action keyed by its stable ID.');
+    assert.ok(historyHTML.includes('data-delete-measurement="' + escaped(id) + '"'), 'Each reading has a delete action keyed by its stable ID.');
+  }
+  assert.ok(historyHTML.includes('&lt;script&gt;measurement note&lt;/script&gt;') && !historyHTML.includes('<script>measurement note'), 'Legacy notes are escaped in the measurement history.');
+  assert.deepEqual(clone(f.state), beforeRender, 'History rendering does not rewrite saved records or timeline entries.');
+
+  await click(f.context, 'data-edit-measurement', 'measurement-target');
+  assert.equal(f.modal().title, 'Edit measurement');
+  assert.ok(f.modal().html.includes('data-edit-measurement-id="measurement-target"'), 'The edit form names only the chosen measurement.');
+  assert.ok(f.modal().html.includes('<option value="weight" selected>Weight</option>'), 'The measurement type is preselected for the selected record.');
+  assert.ok(f.modal().html.includes('value="70"') && f.modal().html.includes('value="2026-10-13"'), 'The selected value and date are prefilled.');
+  assert.ok(f.modal().html.includes('&lt;script&gt;measurement note&lt;/script&gt;') && !f.modal().html.includes('<script>measurement note'), 'The edit form safely escapes a legacy note.');
+  const beforeInvalidCorrection = clone(f.state);
+  for (const date of ['2026-02-30', '2026-13-01']) {
+    const invalid = measurementForm({ type: 'weight', value: '69.5', date, note: 'Should not save' }, 'measurement-target');
+    submit(f.context, invalid);
+    assert.deepEqual(clone(f.state), beforeInvalidCorrection, 'An impossible measurement date leaves saved readings unchanged.');
+    assert.ok(invalid.elements.date.focused, 'An impossible measurement date receives focus.');
+  }
+  assert.equal(f.observed.saves.length, 0, 'Invalid measurement dates never persist.');
+  const otherMeasurementsBeforeEdit = clone(f.state.measurements.filter(item => String(item.id) !== 'measurement-target'));
+  submit(f.context, measurementForm({ type: 'weight', value: '69.5', date: '2026-10-10', note: 'Corrected reading' }, 'measurement-target'));
+  const edited = f.state.measurements.find(item => String(item.id) === 'measurement-target');
+  assert.equal(edited.value, '69.5');
+  assert.equal(edited.date, '2026-10-10');
+  assert.equal(edited.note, 'Corrected reading');
+  assert.equal(edited.unit, 'kg');
+  assert.equal(edited.createdAt, 12345);
+  assert.deepEqual(edited.opaqueMetadata, target.opaqueMetadata, 'Editing spreads and preserves unknown measurement metadata.');
+  assert.deepEqual(clone(f.state.measurements.filter(item => String(item.id) !== 'measurement-target')), otherMeasurementsBeforeEdit, 'Editing one record does not replace or reorder older readings.');
+  assert.equal(f.state.measurements.length, 3, 'Correction does not create a second measurement.');
+  assert.equal(f.state.timeline.length, 3, 'Correction does not add a timeline event.');
+  const updatedEvent = f.state.timeline.find(item => item.id === linkedHistory.id);
+  assert.equal(updatedEvent.description, '69.5', 'A linked timeline event reflects the corrected value in place.');
+  assert.equal(updatedEvent.date, '2026-10-10');
+  assert.deepEqual(updatedEvent.opaqueMetadata, linkedHistory.opaqueMetadata, 'Editing preserves linked timeline metadata.');
+  assert.deepEqual(f.state.timeline.find(item => item.id === unlinkedHistory.id), unlinkedHistory, 'Legacy unlinked history is untouched.');
+  assert.deepEqual(f.state.timeline.find(item => item.id === unrelatedHistory.id), unrelatedHistory);
+  assert.equal(f.observed.saves.length, 1, 'A valid correction saves once.');
+
+  const serialized = serializeHealthState(f.state);
+  assert.equal(healthStateCore.validHealthState(serialized), true, 'The actual server validator accepts IDs and linked timeline references.');
+  const reloaded = JSON.parse(JSON.stringify(serialized));
+  assert.deepEqual(reloaded.measurements, clone(f.state.measurements), 'Measurement IDs and opaque metadata survive the state serialization roundtrip.');
+  assert.deepEqual(reloaded.timeline, clone(f.state.timeline), 'Linked measurement IDs and older timeline metadata survive the state serialization roundtrip.');
+  const apiReloaded = await healthStateApiRoundTrip(serialized);
+  assert.deepEqual(apiReloaded, reloaded, 'The actual API preserves measurement IDs and linked timeline identifiers after save and reload.');
+
+  const staleSnapshot = clone(f.state);
+  await click(f.context, 'data-edit-measurement', 'missing-measurement-id');
+  assert.match(f.observed.toasts.at(-1), /no longer in your history/i, 'A stale edit ID has a clear error state.');
+  submit(f.context, measurementForm({ type: 'sleep', value: 'fallback must not happen', date: '2026-10-14', note: '' }, 'missing-measurement-id'));
+  assert.match(f.observed.toasts.at(-1), /no longer in your history/i, 'Submitting a stale edit ID reports the missing record.');
+  assert.deepEqual(clone(f.state), staleSnapshot, 'A stale ID never falls back to another measurement.');
+  assert.equal(f.observed.saves.length, 1, 'Stale edits do not save.');
+
+  f.observed.confirm = false;
+  const beforeCancel = clone(f.state);
+  await click(f.context, 'data-delete-measurement', '23');
+  assert.match(f.observed.confirmations.at(-1), /Delete the saved measurement/i, 'Deleting a reading asks for confirmation.');
+  assert.deepEqual(clone(f.state), beforeCancel, 'Canceling deletion retains the selected reading and history.');
+  f.observed.confirm = true;
+  await click(f.context, 'data-delete-measurement', 'measurement-target');
+  assert.equal(f.state.measurements.length, 2, 'Confirmed deletion removes only the selected reading.');
+  assert.ok(f.state.measurements.some(item => String(item.id) === migratedLegacyId), 'Older readings remain after deletion.');
+  assert.ok(f.state.measurements.some(item => String(item.id) === '23'), 'Other existing measurements remain after deletion.');
+  assert.ok(!f.state.timeline.some(item => String(item.measurementId ?? '') === 'measurement-target'), 'Deletion removes only timeline entries explicitly linked to that reading.');
+  assert.deepEqual(f.state.timeline.find(item => item.id === unlinkedHistory.id), unlinkedHistory, 'Unlinked legacy history remains after reading deletion.');
+  assert.deepEqual(f.state.timeline.find(item => item.id === unrelatedHistory.id), unrelatedHistory);
+  assert.equal(f.observed.saves.length, 2, 'Confirmed deletion persists once.');
+
+  const add = fixture({ timeline: [unlinkedHistory] });
+  submit(add.context, measurementForm({ type: 'heart-rate', value: '68', date: '2026-10-14', note: 'First saved reading' }));
+  const added = add.state.measurements[0];
+  assert.ok(String(added.id).startsWith('measurement-'), 'New measurements receive stable IDs before persistence.');
+  assert.equal(add.state.timeline.length, 2, 'Adding one measurement creates one timeline entry.');
+  const addedEvent = add.state.timeline.find(item => String(item.measurementId) === String(added.id));
+  assert.ok(addedEvent, 'New timeline entries link to their source measurement.');
+  assert.equal(addedEvent.id, 'timeline-measurement-' + added.id, 'A linked timeline event has a stable ID derived from its measurement.');
+  const addedEventId = addedEvent.id;
+  const timelineLengthBeforeCorrection = add.state.timeline.length;
+  submit(add.context, measurementForm({ type: 'heart-rate', value: '69', date: '2026-10-14', note: 'Corrected after review' }, String(added.id)));
+  assert.equal(add.state.measurements.length, 1, 'Editing the new reading updates the same record.');
+  assert.equal(add.state.timeline.length, timelineLengthBeforeCorrection, 'Editing does not duplicate its linked timeline event.');
+  const correctedAddedEvent = add.state.timeline.find(item => String(item.measurementId) === String(added.id));
+  assert.equal(correctedAddedEvent.description, '69', 'The linked event changes in place.');
+  assert.equal(correctedAddedEvent.id, addedEventId, 'Editing preserves the linked event ID.');
+  assert.deepEqual(add.state.timeline.find(item => item.id === unlinkedHistory.id), unlinkedHistory, 'The add/edit flow preserves older unlinked history.');
+  assert.equal(healthStateCore.validHealthState(serializeHealthState(add.state)), true, 'The actual state validator accepts a newly saved measurement ID.');
+
+  const empty = fixture();
+  empty.context.renderMeasurement('blood-pressure');
+  assert.match(empty.context.els.measurementChips.innerHTML, /No measurements saved yet/ , 'An empty history has a clear next step.');
+  assert.equal(empty.context.els.largeChart.hidden, true);
+  assert.equal(empty.observed.forbiddenCalls, 0);
+  assert.equal(add.observed.forbiddenCalls, 0);
+  assert.equal(f.observed.forbiddenCalls, 0);
+}
+
+function verifyMeasurementOwnerScopedMigration() {
+  const prefix = 'doctorai-health-hub-';
+  const key = (scope, item) => scope === null ? prefix + item : prefix + 'account-' + scope + '-' + item;
+  const memory = new Map([
+    [key(null, 'measurements'), JSON.stringify([{ type: 'weight', value: 'anonymous-only', date: '2026-10-01', legacyMarker: 'anonymous' }])],
+    [key('scope-a', 'measurements'), JSON.stringify([{ type: 'weight', value: 'account-a-only', date: '2026-10-02', legacyMarker: 'account-a' }])],
+    [key('scope-b', 'measurements'), JSON.stringify([{ type: 'weight', value: 'account-b-only', date: '2026-10-03', legacyMarker: 'account-b' }])]
+  ]);
+  const writes = [];
+  const localStorage = {
+    getItem: storageKey => memory.get(storageKey) ?? null,
+    setItem: (storageKey, value) => { writes.push({ key: storageKey, value }); memory.set(storageKey, value); }
+  };
+  const sourceToRun = [
+    declaration('storagePrefix'),
+    declaration('accountScopedStorageKeys'),
+    'let localHealthAccountScope = null;',
+    'let localStorageAllowed = true;',
+    'let localStorageWriteFailed = false;',
+    'let deviceStorageChoice = "yes";',
+    between('  const localStorageKey = key => {', '  const clone = value =>'),
+    declaration('clone'),
+    declaration('emptyProfile'),
+    between('  let measurementIdSequence =', '  const state = {'),
+    'let localStateUpdatedAt = 0;',
+    'const sessionHealthStateCache = new Map();',
+    'let activeHealthDataOwner = "pending";',
+    'let cloudSyncTimer = 0; let cloudSyncDirty = false; let cloudSyncRevision = 0; let cloudSyncEnabled = true;',
+    'const clearMedicationSafetyResults = () => {};',
+    between('  function healthStateSnapshot()', '  const els = {')
+  ].join('\n');
+  const context = vm.createContext({
+    state: { medications: [], appointments: [], providers: [], timeline: [], documents: [], measurements: [], tasks: [], profile: {}, memoryEnabled: false, memoryDetails: [] },
+    localStorage, window: { clearTimeout() {} }, renderStorageStatus() {}
+  });
+  vm.runInContext(sourceToRun, context, { timeout: 1000, filename: 'health-hub-measurement-owner-migration.js' });
+
+  context.activateHealthDataOwner({ email: 'owner-a@example.invalid' }, 'scope-a', false);
+  const accountAId = String(context.state.measurements[0].id);
+  assert.ok(accountAId, 'Account A legacy records receive an ID in the account A namespace.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'account-a');
+  context.activateHealthDataOwner(null, '', true);
+  const anonymousId = String(context.state.measurements[0].id);
+  assert.ok(anonymousId && anonymousId !== accountAId, 'Sign-out restores and migrates only the anonymous legacy record.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'anonymous');
+  context.activateHealthDataOwner({ email: 'owner-b@example.invalid' }, 'scope-b', false);
+  const accountBId = String(context.state.measurements[0].id);
+  assert.ok(accountBId && accountBId !== accountAId && accountBId !== anonymousId, 'Account B receives its own stable migration ID.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'account-b');
+  context.activateHealthDataOwner({ email: 'owner-a@example.invalid' }, 'scope-a', false);
+  assert.equal(String(context.state.measurements[0].id), accountAId, 'Switching back restores the account A session record with its same ID.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'account-a', 'Account A cannot receive anonymous or account B records.');
+
+  const savedA = JSON.parse(memory.get(key('scope-a', 'measurements')));
+  const savedB = JSON.parse(memory.get(key('scope-b', 'measurements')));
+  const savedAnonymous = JSON.parse(memory.get(key(null, 'measurements')));
+  assert.equal(String(savedA[0].id), accountAId);
+  assert.equal(String(savedB[0].id), accountBId);
+  assert.equal(String(savedAnonymous[0].id), anonymousId);
+  assert.deepEqual(writes.map(write => write.key), [key('scope-a', 'measurements'), key(null, 'measurements'), key('scope-b', 'measurements')], 'Migration writes are limited to the currently active owner namespace.');
 }
 
 async function verifyAppointments() {
@@ -375,7 +651,7 @@ async function verifyLegacyNumericIDActions() {
   assert.equal(f.observed.forbiddenCalls, 0);
 }
 
-function verifyProfileBrief() {
+async function verifyProfileBrief() {
   const profile = {
     name: 'Fictional adult', bloodType: 'Fictional O positive',
     conditions: 'Fictional condition <script>blocked</script>',
@@ -384,20 +660,37 @@ function verifyProfileBrief() {
   const f = fixture({ profile });
   f.context.openCareSummary();
   const form = f.brief();
+  assert.equal(f.observed.reviewFocus, 1, 'Opening the visit brief focuses its current dialog title.');
   const choices = form.choices.filter(choice => choice.html.includes('Fictional'));
   assert.equal(choices.length, 4, 'The optional profile group offers conditions, allergies, blood type and notes.');
   assert.ok(choices.every(choice => !choice.querySelector('input').checked), 'Profile information requires explicit selection.');
+  assert.match(form.querySelector('[data-brief-count]').textContent, /^0 of 4 saved records selected/, 'The visible count starts with no saved details selected.');
   form.elements.since.value = '2026-10-14';
   f.context.updateBriefPeriod(form);
   assert.ok(choices.every(choice => !choice.hidden), 'Profile details without record dates remain available after the date filter changes.');
   const condition = choices.find(choice => choice.html.includes('Conditions &amp; history'));
+  const allergy = choices.find(choice => choice.html.includes('Allergies &amp; reactions'));
+  assert.ok(condition.html.includes('older entry; status unreviewed') && allergy.html.includes('older entry; certainty unreviewed'), 'Legacy profile fields explicitly show their unreviewed status and certainty.');
   condition.querySelector('input').checked = true;
+  form.dispatchChange(condition.querySelector('input'));
+  assert.match(form.querySelector('[data-brief-count]').textContent, /^1 of 4 saved records selected/, 'The count updates when a person selects an exact saved detail.');
   form.values.focus = 'Review this fictional history';
   submit(f.context, form);
   const html = f.modal().html;
-  assert.ok(html.includes('Conditions &amp; history: Fictional condition &lt;script&gt;blocked&lt;/script&gt;'), 'The explicitly chosen profile detail reaches the reviewed brief with escaping.');
+  assert.equal(f.observed.reviewFocus, 2, 'Review moves keyboard focus to the updated dialog heading.');
+  assert.ok(html.includes('Conditions &amp; history: Fictional condition &lt;script&gt;blocked&lt;/script&gt; (older entry; status unreviewed)'), 'The explicitly chosen legacy profile detail reaches the reviewed brief with its uncertainty and escaping.');
   for (const unselected of [profile.allergies, profile.bloodType, profile.notes, profile.name]) assert.ok(!html.includes(unselected), `Unselected profile detail is excluded: ${unselected}`);
   assert.equal(f.observed.saves.length, 0, 'Selecting profile context for a brief does not rewrite saved records.');
+  await click(f.context, 'data-edit-care-summary');
+  assert.equal(f.observed.returnedForm, form, 'Back to edit restores the same checked choices without persisting them.');
+  assert.equal(form.querySelector('[name="focus"]').focused, true, 'Back to edit returns keyboard focus to the agenda field.');
+  assert.equal(condition.querySelector('input').checked, true);
+  f.observed.printRoot = { remove: () => f.observed.printRemoved++ };
+  f.context.discardPreparationDrafts(true);
+  assert.equal(vm.runInContext('careSummaryDraft', f.context), null, 'Cancel clears the prepared visit brief from memory.');
+  assert.equal(f.observed.printRemoved, 1, 'Cancel removes any temporary print copy.');
+  assert.ok(f.observed.printClassRemoved > 0, 'Cancel clears the temporary print state.');
+  assert.equal(f.observed.closes, 1, 'An account change closes the prepared dialog.');
   assert.equal(f.observed.forbiddenCalls, 0);
 }
 
@@ -442,12 +735,146 @@ function verifySymptomBrief() {
   assert.equal(legacy.observed.forbiddenCalls, 0);
 }
 
+function verifyStructuredProfileAndDiaryQuestions() {
+  const f = fixture({
+    profile: {
+      conditions: 'Current fictional condition only', allergies: 'Earlier compatibility allergy',
+      conditionEntries: [
+        { label: 'Current fictional condition', status: 'current', source: 'user' },
+        { label: 'Historical fictional condition', status: 'historical', source: 'user' }
+      ],
+      allergyEntries: [
+        { substance: 'Fictional pollen', reaction: 'Fictional rash', certainty: 'confirmed', source: 'user' },
+        { substance: 'Fictional cream', reaction: 'Uncertain itch', certainty: 'suspected', source: 'user' }
+      ]
+    },
+    timeline: [
+      { id: 'fictional-q', type: 'question', source: 'user-question', date: '2026-10-13', description: 'Should I discuss my fictional sleep note?' },
+      { id: 'fictional-old-q', type: 'question', source: 'user-question', date: '2026-08-01', description: 'OLD_QUESTION_MUST_NOT_APPEAR' }
+    ]
+  });
+  f.context.openCareSummary();
+  const form = f.brief();
+  const condition = form.choices.find(choice => choice.html.includes('Historical fictional condition'));
+  const allergy = form.choices.find(choice => choice.html.includes('Fictional cream'));
+  const question = form.choices.find(choice => choice.html.includes('Should I discuss'));
+  const oldQuestion = form.choices.find(choice => choice.html.includes('OLD_QUESTION'));
+  assert.ok(condition && allergy && question && oldQuestion);
+  assert.ok(!condition.html.includes('Current fictional condition') && !allergy.html.includes('Fictional pollen'), 'Each structured condition and allergy has its own choice.');
+  assert.ok(!condition.querySelector('input').checked && !allergy.querySelector('input').checked && !question.querySelector('input').checked);
+  assert.ok(oldQuestion.hidden, 'The default date window hides older diary questions.');
+  condition.querySelector('input').checked = true;
+  allergy.querySelector('input').checked = true;
+  question.querySelector('input').checked = true;
+  oldQuestion.querySelector('input').checked = true;
+  submit(f.context, form);
+  const html = f.modal().html;
+  for (const text of ['Historical fictional condition (historical)', 'Fictional cream; reaction: Uncertain itch (possible reaction)', 'Should I discuss my fictional sleep note?']) assert.ok(html.includes(text), `Reviewed brief preserves selected status or question: ${text}`);
+  for (const text of ['Current fictional condition', 'Fictional pollen', 'OLD_QUESTION_MUST_NOT_APPEAR', 'Earlier compatibility allergy']) assert.ok(!html.includes(text), `Unselected or filtered profile and diary records stay out of the brief: ${text}`);
+  assert.equal(f.observed.saves.length, 0, 'Preparing a brief does not change saved health records.');
+}
+
+async function verifyAppointmentRequestDraft() {
+  const f = fixture({ profile: { name: 'Fictional person' }, appointments: [{ id: 'fictional-visit', title: 'Existing fictional visit' }] });
+  const before = clone(f.state);
+  f.context.openAppointmentRequest();
+  assert.equal(f.observed.reviewFocus, 1, 'Opening the request focuses its current dialog title.');
+  assert.match(f.modal().html, /does not send this draft, contact a clinic or book an appointment/i);
+  assert.match(f.modal().html, /data-appointment-request-form/);
+  const empty = appointmentRequestForm({ reason: '  ' });
+  submit(f.context, empty);
+  assert.ok(empty.elements.reason.focused, 'A blank reason returns focus to its field.');
+  assert.match(f.observed.toasts.at(-1), /reason/i);
+  assert.deepEqual(clone(f.state), before, 'Opening and validating a request changes no saved records.');
+  const values = { clinic: 'Fictional clinic <script>', reason: 'Discuss my fictional concern & question', preferred: 'Tuesday afternoon', questions: 'What should I prepare?\nNo real patient data.' };
+  const form = appointmentRequestForm(values);
+  submit(f.context, form);
+  assert.match(f.modal().html, /No appointment has been requested or booked/);
+  assert.equal(f.observed.reviewFocus, 2, 'Request review moves focus to the updated dialog heading.');
+  assert.ok(f.modal().html.includes(escaped(values.clinic)) && !f.modal().html.includes('<script>'), 'Review escapes clinic supplied text.');
+  const copied = [];
+  f.context.navigator = { clipboard: { writeText: async text => { copied.push(text); } } };
+  await click(f.context, 'data-copy-appointment-request');
+  assert.equal(copied.length, 1, 'Copy runs only after the explicit button action.');
+  assert.ok(copied[0].includes(values.reason) && copied[0].includes('No appointment is booked.'));
+  assert.ok(!copied[0].includes('Fictional person') && !copied[0].includes('Existing fictional visit'), 'Unselected saved details are excluded.');
+  await click(f.context, 'data-edit-appointment-request');
+  assert.equal(f.observed.returnedForm, form, 'Back to edit restores the draft form without saving it.');
+  assert.equal(form.elements.reason.focused, true, 'Back to edit returns keyboard focus to the request reason.');
+  f.context.discardPreparationDrafts(true);
+  assert.equal(vm.runInContext('appointmentRequestDraft', f.context), null, 'Cancel clears the unsent draft from memory.');
+  f.context.openAppointmentRequest();
+  assert.ok(!f.modal().html.includes(values.reason), 'Opening a later request starts blank after cancel.');
+  assert.deepEqual(clone(f.state), before);
+  assert.equal(f.observed.saves.length, 0);
+  assert.equal(f.observed.forbiddenCalls, 0, 'Request preparation has no network or browser storage calls.');
+}
+
+function verifyPreparationOwnerTransition() {
+  const observed = { closed: 0, rendered: 0, printRemoved: 0, printClassRemoved: 0 };
+  const script = [
+    'let careSummaryDraft = { html: "fictional owner A brief" };',
+    'let appointmentRequestDraft = { text: "fictional owner A request" };',
+    'let preparationReturnFocus = true;',
+    'let authUser = { email: "owner-a@example.invalid" };',
+    'let medicationAccountDataReady = true; let medicationLoginId = "";',
+    between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
+    between('  function renderAccountSession(', '  function renderEntitlementStatus('),
+    'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus });'
+  ].join('\n');
+  const context = {
+    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
+    activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
+    clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
+    setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAvatar() {}, loadCloudState() {},
+    Date: FixtureDate
+  };
+  const result = vm.runInNewContext(script, context, { timeout: 1000, filename: 'health-hub-preparation-owner-transition.js' });
+  assert.equal(result.careSummaryDraft, null, 'Switching away from an account clears its selected brief.');
+  assert.equal(result.appointmentRequestDraft, null, 'Switching away from an account clears its unsent request.');
+  assert.equal(result.preparationReturnFocus, false, 'Account switching drops any focus return to a prior owner.');
+  assert.equal(context.els.modalBody.innerHTML, '', 'Account switching removes hidden modal content from the previous owner.');
+  assert.deepEqual(observed, { closed: 1, rendered: 1, printRemoved: 1, printClassRemoved: 1 }, 'Account transition closes the modal and removes the temporary print copy before rendering the next owner.');
+}
+
+function verifyPreparationCloseFocus() {
+  const observed = { focused: 0, printClassRemoved: 0, onClose: null };
+  const heading = { closest: () => null, setAttribute() {}, focus: () => observed.focused++ };
+  const context = vm.createContext({
+    observed,
+    els: { modal: { open: false, addEventListener: (_type, listener) => { observed.onClose = listener; } }, modalBody: { innerHTML: 'fictional reviewed brief' } },
+    document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    $: selector => selector === '#visit-prep-title' ? heading : null,
+    requestAnimationFrame: callback => callback(), closeModal() {}
+  });
+  vm.runInContext([
+    'let careSummaryDraft = { html: "fictional reviewed brief" };',
+    'let appointmentRequestDraft = null; let preparationReturnFocus = true;',
+    between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
+    between("  els.modal.addEventListener('close',", "  els.medicationScannerModal?.addEventListener('click',")
+  ].join('\n'), context, { timeout: 1000, filename: 'health-hub-preparation-close-focus.js' });
+  assert.equal(typeof observed.onClose, 'function', 'The production modal close handler is registered.');
+  observed.onClose();
+  const result = vm.runInContext('({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus })', context);
+  assert.equal(result.careSummaryDraft, null, 'Closing removes the reviewed brief from memory.');
+  assert.equal(context.els.modalBody.innerHTML, '', 'Closing removes private review text from the hidden dialog.');
+  assert.equal(result.preparationReturnFocus, false, 'The focus fallback does not persist beyond the close.');
+  assert.equal(observed.focused, 1, 'Closing after navigation focuses the visible Visit prep heading.');
+}
+
 (async () => {
   verifyAppointmentDayRefresh();
   await verifyAppointmentDateGroups();
+  await verifyMeasurementHistory();
+  verifyMeasurementOwnerScopedMigration();
   await verifyAppointments();
   await verifyLegacyNumericIDActions();
-  verifyProfileBrief();
+  await verifyProfileBrief();
   verifySymptomBrief();
-  console.log('Record preparation passed: appointment day-refresh controller, date groups/ordering/day boundary/repair, record edit/add/cancel/stale/validation/delete flows, stringified legacy numeric IDs and exact appointment targeting, optional explicitly selected profile details, escaped prefill, history preservation and selected brief details. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
+  verifyStructuredProfileAndDiaryQuestions();
+  await verifyAppointmentRequestDraft();
+  verifyPreparationOwnerTransition();
+  verifyPreparationCloseFocus();
+  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,5 +1,7 @@
 # DoctorAI World readiness checklist - 15 October 2026
 
+**Historical audit baseline.** For the newer PR 75 preview and current open release gates, see [the PR 75 readiness checklist](2026-10-15-pr75-preview-readiness.md).
+
 Audit baseline: `main` at `aef725b916e7412fb39dea4caedb4a85229aa87d`, on isolated review branch `codex/doctorai-readiness-audit-20261015`. Evidence is source inspection or synthetic software checks unless marked live. Passing checks do not establish clinical validation.
 
 ## Prioritised checklist
