@@ -57,14 +57,17 @@
         <h1 id="hero-title">Your health,<em>all in one hub.</em></h1>
         <p class="home-lead">A place for your medicines, symptoms and questions. Bring the details together, then bring a personal brief to your next appointment.</p>
         <div class="home-actions">
-          <a class="home-button" href="/health-hub">Open my Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+          <div class="home-add-actions">
+            <a class="home-button home-add-detail" href="/health-hub#add"><span data-doctorai-icon="add" data-icon-size="flex" aria-hidden="true"></span>Add Health Detail</a>
+            <a class="home-scan-link" href="/health-hub#scan"><span data-doctorai-icon="hubMedicationScan" data-icon-size="flex" aria-hidden="true"></span>Scan medication <small>Pro</small></a>
+          </div>
           <a class="home-text-link" href="#how-it-works">See how it works <span data-doctorai-icon="chevronDown" data-icon-size="flex" aria-hidden="true"></span></a>
         </div>
         <p class="home-control-note"><span data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span>Free to start. Your record, your choices.</p>
         <p class="home-hero-limit">For health organisation. Not a replacement for medical care.</p>
       </div>
 
-      <div class="home-universe" data-home-universe data-home-theme="medicines">
+      <div class="home-universe" data-home-universe data-home-theme="today">
         <div class="home-universe-toolbar">
           <p class="home-universe-label">A little more connected.</p>
           <button class="home-motion-control" type="button" data-home-motion hidden>Pause animation</button>
@@ -79,16 +82,16 @@
             </div>
           </div>
           <div class="home-orbit-topics" data-home-topics role="group" aria-label="Explore the Health Hub" hidden>
-            <button class="home-orbit-topic home-orbit-medicines" type="button" data-home-topic="medicines" aria-pressed="true" aria-controls="home-topic-detail"><span data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span>Medicines</button>
-            <button class="home-orbit-topic home-orbit-symptoms" type="button" data-home-topic="symptoms" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="pulse" data-icon-size="flex" aria-hidden="true"></span>Symptom notes</button>
-            <button class="home-orbit-topic home-orbit-appointments" type="button" data-home-topic="appointments" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="calendar" data-icon-size="flex" aria-hidden="true"></span>Appointments</button>
-            <button class="home-orbit-topic home-orbit-visit" type="button" data-home-topic="visit" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="carePack" data-icon-size="flex" aria-hidden="true"></span>Visit prep</button>
+            <button class="home-orbit-topic home-orbit-today" type="button" data-home-topic="today" aria-pressed="true" aria-controls="home-topic-detail"><span data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today</button>
+            <button class="home-orbit-topic home-orbit-health" type="button" data-home-topic="health" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health</button>
+            <button class="home-orbit-topic home-orbit-visit" type="button" data-home-topic="visit" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep</button>
+            <button class="home-orbit-topic home-orbit-profile" type="button" data-home-topic="profile" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile</button>
           </div>
           <p class="home-orbit-caption" data-home-tour-hint hidden>Choose a part of your hub to explore</p>
         </div>
         <div class="home-topic-detail" id="home-topic-detail">
-          <div aria-live="polite" aria-atomic="true"><p class="home-topic-kicker">A place to begin</p><h2 data-home-topic-title>Your medicine details, together.</h2><p data-home-topic-copy>Keep a list of the medicines you take and the label details you want to remember.</p></div>
-          <a class="home-topic-link" data-home-topic-link href="/health-hub#medications">Open medicines <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+          <div aria-live="polite" aria-atomic="true"><p class="home-topic-kicker">A place to begin</p><h2 data-home-topic-title>Your day, at a glance.</h2><p data-home-topic-copy>See the medicines, appointments and tasks you have recorded for today.</p></div>
+          <a class="home-topic-link" data-home-topic-link href="/health-hub#today">Open Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
         </div>
       </div>
     </section>
@@ -140,19 +143,19 @@
         <p>Four familiar destinations keep the everyday details and your next appointment within reach.</p>
       </div>
       <div class="home-destination-grid">
-        <article class="home-destination">
+        <article class="home-destination" data-home-theme="today">
           <span class="home-destination-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>
           <div><h3><a href="/health-hub#today">Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>See the medicines, appointments and tasks you've recorded for your day.</p></div>
         </article>
-        <article class="home-destination">
+        <article class="home-destination" data-home-theme="health">
           <span class="home-destination-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#health">My health <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Review the health details you've saved and find your health tools.</p></div>
+          <div><h3><a href="/health-hub#health">My Health <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Review the health details you've saved and find your health tools.</p></div>
         </article>
-        <article class="home-destination">
+        <article class="home-destination" data-home-theme="visit">
           <span class="home-destination-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#visit-prep">Visit prep <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Choose details and questions, then review a brief for your appointment.</p></div>
+          <div><h3><a href="/health-hub#visit-prep">Visit Prep <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Choose details and questions, then review a brief for your appointment.</p></div>
         </article>
-        <article class="home-destination">
+        <article class="home-destination" data-home-theme="profile">
           <span class="home-destination-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>
           <div><h3><a href="/health-hub#profile">Profile <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Manage your account, storage choices, privacy and optional Health Memory controls.</p></div>
         </article>

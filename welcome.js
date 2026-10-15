@@ -10,10 +10,10 @@
   if (!universe) return;
 
   const topics = {
-    medicines: { title: 'Your medicine details, together.', copy: 'Keep a list of the medicines you take and the label details you want to remember.', label: 'Open medicines', href: '/health-hub#medications' },
-    symptoms: { title: 'A note today. Context for later.', copy: 'Record what you notice, when it happens and the details you want to discuss with your clinician.', label: 'Open symptom diary', href: '/health-hub#symptoms' },
-    appointments: { title: 'Make room for your next visit.', copy: 'Keep appointment dates and your own notes together, ready to come back to when you need them.', label: 'Open appointments', href: '/health-hub#appointments' },
-    visit: { title: 'Your next conversation, prepared.', copy: 'Choose saved details, add your questions and review your personal brief before you copy or print it.', label: 'Open visit prep', href: '/health-hub#visit-prep' }
+    today: { title: 'Your day, at a glance.', copy: 'See the medicines, appointments and tasks you have recorded for today.', label: 'Open Today', href: '/health-hub#today' },
+    health: { title: 'Your health details, together.', copy: 'Review the details you have saved and find your health tools in one place.', label: 'Open My Health', href: '/health-hub#health' },
+    visit: { title: 'Your next conversation, prepared.', copy: 'Choose saved details, add your questions and review your personal brief before you copy or print it.', label: 'Open Visit Prep', href: '/health-hub#visit-prep' },
+    profile: { title: 'Your information. Your choices.', copy: 'Manage your account, storage preferences, privacy and optional Health Memory controls.', label: 'Open Profile', href: '/health-hub#profile' }
   };
   const buttons = [...universe.querySelectorAll('[data-home-topic]')];
   const title = universe.querySelector('[data-home-topic-title]');
