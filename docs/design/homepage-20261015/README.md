@@ -11,6 +11,19 @@ This homepage makes the existing DoctorAI brand the centrepiece: the canonical h
 - Work was done in a fresh clone and isolated branch. No other local checkout or M-folder work was edited.
 - No generated artwork, video, AI requests or paid services were used.
 
+## Four icon themes
+
+The four hero entry points have distinct soft surfaces, 2px accent outlines, bolder 2.6px SVG strokes and navy labels. Selecting a topic also applies its surface/accent pair to the detail card and its destination link. The selected state retains an extra outline ring and `aria-pressed`.
+
+| Topic | Surface | Icon / outline | Destination | Icon and link contrast |
+| --- | --- | --- | --- | --- |
+| Medicines | `#EAF3FF` | `#0759B6` | `/health-hub#medications` | 6.03:1 |
+| Symptom notes | `#E8F6F1` | `#176B60` | `/health-hub#symptoms` | 5.71:1 |
+| Appointments | `#F2EDFC` | `#65439B` | `/health-hub#appointments` | 6.47:1 |
+| Visit prep | `#FFF4DE` | `#805418` | `/health-hub#visit-prep` | 6.02:1 |
+
+Navy labels (`#0A2340`) exceed 13:1 contrast on every surface; supporting copy (`#465F73`) exceeds 5.8:1. These values were measured from browser computed styles. [Exact tokens and ownership handoff](theme-tokens.md) are provided for the separately owned destination-page themes; no destination page was changed in this revision.
+
 ## Screenshots
 
 These are **local source previews**, served with the repository's Content Security Policy. They are not production or Vercel Preview screenshots. Final captures use reduced motion for stable framing; animation behaviour was checked separately.

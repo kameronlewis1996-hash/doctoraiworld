@@ -24,6 +24,7 @@
     button.addEventListener('click', () => {
       const topic = topics[button.dataset.homeTopic];
       if (!topic) return;
+      universe.dataset.homeTheme = button.dataset.homeTopic;
       buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
       title.textContent = topic.title;
       copy.textContent = topic.copy;

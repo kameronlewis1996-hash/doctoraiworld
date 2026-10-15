@@ -12,6 +12,14 @@
   --home-paper: #f7f9fc;
   --home-line: #d2deeb;
   --home-gutter: clamp(20px, 4vw, 64px);
+  --home-medicines-surface: #eaf3ff;
+  --home-medicines-accent: #0759b6;
+  --home-symptoms-surface: #e8f6f1;
+  --home-symptoms-accent: #176b60;
+  --home-appointments-surface: #f2edfc;
+  --home-appointments-accent: #65439b;
+  --home-visit-surface: #fff4de;
+  --home-visit-accent: #805418;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
@@ -78,20 +86,24 @@ h1, h2, h3 { margin: 0; }
 .home-logo-tilt { position: absolute; inset: -13% 4% -5%; transform: perspective(850px) rotateX(var(--home-tilt-x, 0deg)) rotateY(var(--home-tilt-y, 0deg)); transition: transform .35s ease-out; }
 .home-hero-logo { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 18px 16px #0759b61c); animation: home-logo-float 7s ease-in-out infinite; animation-play-state: paused; }
 .home-motion-ready:not(.home-motion-paused) :is(.home-hero-logo, .home-orbit-track) { animation-play-state: running; }
-.home-orbit-topic { position: absolute; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; max-width: 48%; padding: 13px 17px; border: 1px solid #d3e1ef; border-radius: 15px; background: #ffffffed; color: var(--home-ink); box-shadow: 0 7px 24px #0a234009; font-size: 14px; font-weight: 600; line-height: 1.4; text-align: left; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
-.home-orbit-topic > span { display: inline-flex; width: 23px; height: 23px; flex: 0 0 23px; color: var(--home-blue); }
-.home-orbit-topic:hover { transform: translateY(-3px); border-color: #85b8ed; box-shadow: 0 10px 24px #0a234010; }
-.home-orbit-topic[aria-pressed="true"] { border-color: var(--home-blue); background: #fff; box-shadow: 0 0 0 3px #0865df12, 0 8px 28px #0a234010; }
+[data-home-theme="medicines"], .home-orbit-medicines { --home-topic-surface: var(--home-medicines-surface); --home-topic-accent: var(--home-medicines-accent); }
+[data-home-theme="symptoms"], .home-orbit-symptoms { --home-topic-surface: var(--home-symptoms-surface); --home-topic-accent: var(--home-symptoms-accent); }
+[data-home-theme="appointments"], .home-orbit-appointments { --home-topic-surface: var(--home-appointments-surface); --home-topic-accent: var(--home-appointments-accent); }
+[data-home-theme="visit"], .home-orbit-visit { --home-topic-surface: var(--home-visit-surface); --home-topic-accent: var(--home-visit-accent); }
+.home-orbit-topic { position: absolute; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; max-width: 48%; padding: 11px 15px; border: 2px solid var(--home-topic-accent); border-radius: 15px; background: var(--home-topic-surface); color: var(--home-ink); box-shadow: 0 7px 24px #0a234009; font-size: 14px; font-weight: 700; line-height: 1.4; text-align: left; cursor: pointer; transition: box-shadow .2s ease, transform .2s ease; }
+.home-orbit-topic > span { display: inline-flex; width: 25px; height: 25px; flex: 0 0 25px; color: var(--home-topic-accent); }
+.home-orbit-topic:hover { transform: translateY(-3px); box-shadow: 0 10px 24px #0a234010; }
+.home-orbit-topic[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--home-paper), 0 0 0 4px var(--home-topic-accent), 0 8px 28px #0a234010; }
 .home-orbit-medicines { top: 15%; left: 0; }
 .home-orbit-symptoms { top: 28%; right: 0; }
 .home-orbit-appointments { bottom: 22%; left: 1%; }
 .home-orbit-visit { bottom: 14%; right: 3%; }
 .home-orbit-caption { position: absolute; bottom: 0; width: 100%; margin: 0; color: var(--home-muted); text-align: center; font-size: 12px; }
-.home-topic-detail { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 22px; min-height: 156px; margin-top: 18px; padding: 22px 24px; border: 1px solid #ccdfef; border-radius: 20px; background: #ffffffc9; box-shadow: 0 12px 32px #173b6705; }
-.home-topic-kicker { margin: 0 0 6px; color: var(--home-blue); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; }
+.home-topic-detail { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 22px; min-height: 156px; margin-top: 18px; padding: 22px 24px; border: 2px solid var(--home-topic-accent); border-radius: 20px; background: var(--home-topic-surface); box-shadow: 0 12px 32px #173b6705; }
+.home-topic-kicker { margin: 0 0 6px; color: var(--home-topic-accent); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; }
 .home-topic-detail h2 { font-size: 18px; font-weight: 600; letter-spacing: -.025em; line-height: 1.35; }
 .home-topic-detail [data-home-topic-copy] { margin: 8px 0 0; color: var(--home-muted); font-size: 14px; line-height: 1.6; }
-.home-topic-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 114px; max-width: 140px; min-height: 48px; font-size: 13px; font-weight: 600; line-height: 1.5; text-decoration: none; }
+.home-topic-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 114px; max-width: 140px; min-height: 48px; color: var(--home-topic-accent); font-size: 13px; font-weight: 600; line-height: 1.5; text-decoration: none; }
 .home-topic-link:hover { text-decoration: underline; }
 .home-topic-link > span { display: inline-flex; width: 18px; height: 18px; flex: 0 0 18px; }
 @keyframes home-logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
@@ -190,6 +202,7 @@ h1, h2, h3 { margin: 0; }
 .home-footer nav { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .home-footer nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--home-ink); }
 .home-button svg, .home-text-link svg, .home-icon svg, .home-topics svg, .home-brief-rows svg, .home-destination svg, .home-resources svg, .home-orbit-topic svg, .home-topic-link svg, .home-control-note svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.home-orbit-topic svg { stroke-width: 2.6; }
 @media (max-width: 1080px) {
   .home-nav { gap: 18px; }
   .home-nav-page { display: none !important; }
