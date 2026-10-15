@@ -342,6 +342,65 @@ async function verifyAppointments() {
   assert.equal(deletion.observed.forbiddenCalls, 0);
 }
 
+async function verifyLegacyNumericIDActions() {
+  const symptom = { id: 17, type: 'symptom', name: 'Fictional numeric-ID symptom', date: '2026-10-13' };
+  const firstAppointment = { id: 21, title: 'First fictional appointment', date: '2026-10-18', time: '08:00', status: 'upcoming' };
+  const selectedAppointment = { id: 22, title: 'Selected fictional appointment', date: '2026-10-20', time: '09:00', status: 'upcoming' };
+  const linkedAppointmentEvent = { id: 'numeric-appointment-event', type: 'appointment', appointmentId: 22, title: 'Fictional appointment event' };
+  const f = fixture({ timeline: [symptom, linkedAppointmentEvent], appointments: [firstAppointment, selectedAppointment] });
+  const openedSymptoms = [], preparedAppointments = [], symptomPrompts = [];
+  f.context.openSymptomModal = entry => openedSymptoms.push(entry);
+  f.context.prepareAppointment = appointment => preparedAppointments.push(appointment);
+  f.context.fillChat = prompt => symptomPrompts.push(prompt);
+  f.context.clearMedicationSafetyResults = () => {};
+
+  await click(f.context, 'data-edit-symptom', '17');
+  assert.equal(openedSymptoms[0]?.id, 17, 'A stringified symptom button ID finds the stored numeric ID for editing.');
+  await click(f.context, 'data-prepare-symptom', '17');
+  assert.match(symptomPrompts[0] || '', /Fictional numeric-ID symptom/, 'A stringified symptom button ID prepares the chosen numeric-ID diary entry.');
+  await click(f.context, 'data-delete-symptom', '17');
+  assert.deepEqual(clone(f.state.timeline), [linkedAppointmentEvent], 'Deleting a numeric-ID symptom removes only that selected entry.');
+
+  f.context.renderAppointments();
+  assert.ok(f.context.els.upcomingAppointments.innerHTML.includes('data-prepare-appointment="22"'), 'The selected numeric-ID appointment renders a prepare action.');
+  await click(f.context, 'data-prepare-appointment', '22');
+  assert.equal(preparedAppointments.at(-1)?.title, selectedAppointment.title, 'Prepare targets the chosen numeric-ID appointment, not an earlier one.');
+  const preparedCount = preparedAppointments.length;
+  await click(f.context, 'data-prepare-appointment', 'missing-fictional-appointment');
+  assert.equal(preparedAppointments.length, preparedCount, 'A stale prepare action does not fall back to a different upcoming appointment.');
+
+  await click(f.context, 'data-delete-appointment', '22');
+  assert.deepEqual(clone(f.state.appointments), [firstAppointment], 'A stringified appointment button ID deletes only the selected numeric-ID record.');
+  assert.deepEqual(clone(f.state.timeline), [], 'Deleting a numeric-ID appointment removes only its linked event.');
+  assert.equal(f.observed.forbiddenCalls, 0);
+}
+
+function verifyProfileBrief() {
+  const profile = {
+    name: 'Fictional adult', bloodType: 'Fictional O positive',
+    conditions: 'Fictional condition <script>blocked</script>',
+    allergies: 'Fictional allergy & reaction', notes: 'Fictional profile note <two>'
+  };
+  const f = fixture({ profile });
+  f.context.openCareSummary();
+  const form = f.brief();
+  const choices = form.choices.filter(choice => choice.html.includes('Fictional'));
+  assert.equal(choices.length, 4, 'The optional profile group offers conditions, allergies, blood type and notes.');
+  assert.ok(choices.every(choice => !choice.querySelector('input').checked), 'Profile information requires explicit selection.');
+  form.elements.since.value = '2026-10-14';
+  f.context.updateBriefPeriod(form);
+  assert.ok(choices.every(choice => !choice.hidden), 'Profile details without record dates remain available after the date filter changes.');
+  const condition = choices.find(choice => choice.html.includes('Conditions &amp; history'));
+  condition.querySelector('input').checked = true;
+  form.values.focus = 'Review this fictional history';
+  submit(f.context, form);
+  const html = f.modal().html;
+  assert.ok(html.includes('Conditions &amp; history: Fictional condition &lt;script&gt;blocked&lt;/script&gt;'), 'The explicitly chosen profile detail reaches the reviewed brief with escaping.');
+  for (const unselected of [profile.allergies, profile.bloodType, profile.notes, profile.name]) assert.ok(!html.includes(unselected), `Unselected profile detail is excluded: ${unselected}`);
+  assert.equal(f.observed.saves.length, 0, 'Selecting profile context for a brief does not rewrite saved records.');
+  assert.equal(f.observed.forbiddenCalls, 0);
+}
+
 function verifySymptomBrief() {
   const symptom = { id: 'fictional-symptom-one', type: 'symptom', source: 'symptom-diary', name: 'Fictional <symptom>', date: '2026-10-13', time: '07:45', severity: 4, duration: 'Ten minutes', location: 'Left <side>', frequency: 'Twice & briefly', quality: 'Pressure "feeling"', associatedSymptoms: 'Fictional companion', impact: 'some', interventions: 'Rested <script>fictional</script>', context: 'After a fictional task', triggers: 'A recorded context', notes: 'Question & detail', description: 'DERIVED_DIARY_DESCRIPTION_MUST_NOT_APPEAR', opaqueMetadata: { secret: 'OPAQUE_METADATA_MUST_NOT_APPEAR' }, internalSecret: 'UNKNOWN_FIELD_MUST_NOT_APPEAR' };
   const unchecked = { ...symptom, id: 'fictional-unchecked', date: '2026-10-12', name: 'UNCHECKED_SYMPTOM_MUST_NOT_APPEAR' };
@@ -387,6 +446,8 @@ function verifySymptomBrief() {
   verifyAppointmentDayRefresh();
   await verifyAppointmentDateGroups();
   await verifyAppointments();
+  await verifyLegacyNumericIDActions();
+  verifyProfileBrief();
   verifySymptomBrief();
-  console.log('Record preparation passed: actual appointment day-refresh controller, date groups/ordering/day boundary/repair, unmodified stored status/history, edit/add/cancel/stale/validation/delete flows, escaped prefill, legacy notes and metadata preservation; all appointment brief choices; selected structured symptom details, agenda order, date exclusion, escaping and legacy description handling. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
+  console.log('Record preparation passed: appointment day-refresh controller, date groups/ordering/day boundary/repair, record edit/add/cancel/stale/validation/delete flows, stringified legacy numeric IDs and exact appointment targeting, optional explicitly selected profile details, escaped prefill, history preservation and selected brief details. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

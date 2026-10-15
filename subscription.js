@@ -5,6 +5,7 @@
   const price = document.querySelector('[data-price]');
   const period = document.querySelector('[data-period]');
   const equivalent = document.querySelector('[data-equivalent]');
+  const pricingStatus = document.querySelector('#pricing-status');
   const selectedPlan = document.querySelector('#selected-plan-price');
   const dialog = document.querySelector('#checkout-dialog');
   const checkoutStatus = document.querySelector('#checkout-status');
@@ -49,7 +50,12 @@
     if (subscribeButton) subscribeButton.disabled = !available;
     if (confirmCheckoutButton) confirmCheckoutButton.disabled = !(available && termsConfirm?.checked);
   };
-  const formatUsd = amount => `US$${(Number(amount) / 100).toFixed(2)}`;
+  const formatPrice = (amount, currency = 'USD') => {
+    const value = (Number(amount) / 100).toFixed(2);
+    if (currency === 'NZD') return `NZ$${value}`;
+    if (currency === 'USD') return `US$${value}`;
+    return 'Unavailable';
+  };
   const setPlan = plan => {
     const selected = plan === 'annual' ? 'annual' : 'monthly';
     if (!planIsAvailable(selected)) return false;
@@ -64,32 +70,42 @@
     const monthly = planPricing.monthly;
     const yearly = planPricing.annual;
     const annualEquivalent = yearly?.available ? yearly.amount / 12 : 0;
-    const savings = monthly?.available && annualEquivalent > 0 && annualEquivalent < monthly.amount
+    const sameCurrency = monthly?.available && yearly?.available && monthly.currency === yearly.currency;
+    const savings = sameCurrency && annualEquivalent > 0 && annualEquivalent < monthly.amount
       ? Math.round((1 - annualEquivalent / monthly.amount) * 100)
       : 0;
     const savingsBadge = document.querySelector('[data-annual-savings]');
     if (savingsBadge) savingsBadge.textContent = savings ? `Save ${savings}%` : '';
-    if (price) price.textContent = formatUsd(current.amount);
+    if (price) price.textContent = formatPrice(current.amount, current.currency);
     if (period) period.textContent = current.interval === 'year' ? '/ year' : '/ month';
-    if (equivalent) equivalent.textContent = annual
-      ? `Equivalent to ${formatUsd(annualEquivalent)} a month${savings ? ` · save ${savings}%` : ''}`
-      : savings ? `Billed monthly · save ${savings}% with annual billing` : 'Billed monthly';
-    const planSummary = `${formatUsd(current.amount)} / ${current.interval}`;
+    if (equivalent) {
+      if (annual) {
+        equivalent.textContent = sameCurrency
+          ? `Equivalent to ${formatPrice(annualEquivalent, yearly.currency)} a month${savings ? ` · save ${savings}%` : ''}`
+          : 'Billed yearly';
+      } else {
+        equivalent.textContent = savings ? `Billed monthly · save ${savings}% with annual billing` : 'Billed monthly';
+      }
+    }
+    const planSummary = `${formatPrice(current.amount, current.currency)} / ${current.interval}`;
     if (selectedPlan) selectedPlan.textContent = planSummary;
-    if (renewalNote) renewalNote.textContent = `You will be charged ${formatUsd(current.amount)} ${current.interval === 'year' ? 'yearly' : 'monthly'}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
+    if (renewalNote) renewalNote.textContent = `You will be charged ${formatPrice(current.amount, current.currency)} ${current.interval === 'year' ? 'yearly' : 'monthly'}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
     syncPlanControls();
     return true;
   };
 
-  const setPricingUnavailable = () => {
+  const setPricingUnavailable = (message = 'DoctorAI Pro pricing could not be loaded. Checkout is disabled for now. The Free plan is still available.') => {
     planPricing = {};
     toggleButtons.forEach(button => { button.disabled = true; button.setAttribute('aria-disabled', 'true'); });
     if (price) price.textContent = 'Unavailable';
     if (period) period.textContent = 'for now';
-    if (equivalent) equivalent.textContent = 'Subscription pricing is temporarily unavailable. The Free plan is still available.';
+    if (equivalent) equivalent.textContent = message;
     if (selectedPlan) selectedPlan.textContent = 'Subscription pricing unavailable';
     if (renewalNote) renewalNote.textContent = 'Checkout cannot start until a valid Stripe subscription price is available.';
-    setCheckoutStatus('Subscription pricing is temporarily unavailable. Please try again later.', 'error');
+    if (pricingStatus) {
+      pricingStatus.textContent = message;
+    }
+    setCheckoutStatus(message, 'error');
     syncPlanControls();
   };
 
@@ -97,16 +113,27 @@
     try {
       const response = await fetch('/api/stripe/plans', { headers: { accept: 'application/json' }, cache: 'no-store' });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error('Pricing service unavailable.');
+      if (!response.ok) {
+        const detail = typeof payload.error === 'string' && payload.error.trim()
+          ? ` ${payload.error.trim()}`
+          : '';
+        setPricingUnavailable(`DoctorAI Pro pricing could not be loaded.${detail} Checkout is disabled for now. The Free plan is still available.`);
+        return;
+      }
       const raw = payload.plans || {};
       planPricing = {};
       for (const [name, interval] of [['monthly', 'month'], ['annual', 'year']]) {
         const item = raw[name];
         planPricing[name] = item?.available === true
           && Number.isSafeInteger(item.amount) && item.amount > 0
-          && item.currency === 'USD' && item.interval === interval
+          && ['USD', 'NZD'].includes(item.currency) && item.interval === interval
+          && (name !== 'monthly' || (item.amount === 2900 && item.currency === 'NZD'))
           ? { available: true, amount: item.amount, currency: item.currency, interval }
           : { available: false, interval };
+      }
+      if (!planIsAvailable('monthly')) {
+        setPricingUnavailable('DoctorAI Pro pricing could not be verified. Monthly billing is available only when Stripe confirms NZ$29.00 per month. Pro checkout is disabled until that price is configured; the Free plan is still available.');
+        return;
       }
       toggleButtons.forEach(button => {
         const available = planIsAvailable(button.dataset.plan);
@@ -116,10 +143,13 @@
       const chosen = planIsAvailable(requestedBillingPlan)
         ? requestedBillingPlan
         : planIsAvailable('monthly') ? 'monthly' : 'annual';
-      if (!planIsAvailable(chosen)) { setPricingUnavailable(); return; }
+      if (!planIsAvailable(chosen)) {
+        setPricingUnavailable('DoctorAI Pro pricing could not be loaded. Checkout is disabled for now. The Free plan is still available.');
+        return;
+      }
       setPlan(chosen);
     } catch {
-      setPricingUnavailable();
+      setPricingUnavailable('DoctorAI Pro pricing could not be loaded. Checkout is disabled for now. The Free plan is still available.');
     }
   };
 

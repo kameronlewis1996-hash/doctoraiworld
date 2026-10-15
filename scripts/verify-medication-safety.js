@@ -10,7 +10,27 @@ assert.equal(interaction.coverage.completeForRequest, false, 'A matched pair mus
 
 const allergy = review({ medications: ['amoxicillin'], allergies: ['penicillin'] });
 assert.equal(allergy.status, 'red');
-assert.ok(allergy.alerts.some(alert => alert.type === 'allergy'));
+assert.ok(allergy.alerts.some(alert => alert.type === 'allergy' && alert.ruleId === 'penicillin-class'));
+
+for (const wording of [
+  'no penicillin allergy',
+  'not allergic to penicillin',
+  'family history of penicillin allergy',
+  'possible penicillin allergy',
+  'uncertain penicillin allergy',
+  'not sure whether penicillin allergy is present',
+  'penicillin allergy?',
+  'penicillin allergy ruled out'
+]) {
+  const result = review({ medications: ['amoxicillin'], allergies: [wording] });
+  assert.equal(result.alerts.some(alert => alert.type === 'allergy'), false, `${wording} must not be treated as a positive personal allergy`);
+  assert.equal(result.status, 'unknown', 'Limited coverage must remain unknown without a positive alert.');
+  assert.equal(result.coverage.completeForRequest, false, 'A nonaffirmative allergy statement must not imply complete coverage.');
+}
+
+const mixedAllergyWording = review({ medications: ['amoxicillin', 'ibuprofen'], allergies: ['no penicillin allergy but ibuprofen rash'] });
+assert.equal(mixedAllergyWording.alerts.some(alert => alert.ruleId === 'penicillin-class'), false, 'A negated first clause must not create a penicillin alert.');
+assert.ok(mixedAllergyWording.alerts.some(alert => alert.type === 'allergy' && alert.message.includes('ibuprofen')), 'A positive clause after “but” must remain eligible for a direct ingredient alert.');
 
 const uncoveredCondition = review({ medications: ['paracetamol'], conditions: ['kidney disease'] });
 assert.equal(uncoveredCondition.status, 'unknown');

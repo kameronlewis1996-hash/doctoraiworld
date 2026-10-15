@@ -1,9 +1,11 @@
 'use strict';
 
 const plans = Object.freeze({
-  monthly: Object.freeze({ env: 'STRIPE_PRO_MONTHLY_PRICE_ID', interval: 'month' }),
+  monthly: Object.freeze({ env: 'STRIPE_PRO_MONTHLY_PRICE_ID', interval: 'month', currency: 'nzd', unitAmount: 2900 }),
   annual: Object.freeze({ env: 'STRIPE_PRO_ANNUAL_PRICE_ID', interval: 'year' })
 });
+
+const supportedCurrencies = new Set(['usd', 'nzd']);
 
 function keyMode(secretKey) {
   const value = String(secretKey || '');
@@ -24,12 +26,15 @@ function environmentModeMatches(secretKey, environment) {
 
 function isValidPlanPrice(price, plan, mode) {
   const definition = plans[plan];
+  const currency = String(price?.currency || '').toLowerCase();
   return Boolean(definition && (mode === 'live' || mode === 'test')
     && price?.active === true
     && price?.type === 'recurring'
     && Number.isSafeInteger(price?.unit_amount)
     && price.unit_amount > 0
-    && String(price.currency || '').toLowerCase() === 'usd'
+    && supportedCurrencies.has(currency)
+    && (!definition.currency || currency === definition.currency)
+    && (!definition.unitAmount || price.unit_amount === definition.unitAmount)
     && price.recurring?.interval === definition.interval
     && price.recurring?.interval_count === 1
     && price.livemode === (mode === 'live'));

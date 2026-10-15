@@ -6481,3 +6481,81 @@ html body[data-hub-theme] { background: linear-gradient(135deg, #edf7ff, #f3fbff
   body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) { background: linear-gradient(125deg, #0865df, #007b97); color: #fff; }
   body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) :is(span, svg, b) { color: #fff; }
 }
+
+/* Astra destination themes: apply only to the selected feature's headings and navigation. */
+body[data-active-feature="medications"] { --destination-bg: #EAF3FF; --destination-accent: #0759B6; }
+body[data-active-feature="symptoms"] { --destination-bg: #E8F6F1; --destination-accent: #176B60; }
+body[data-active-feature="appointments"] { --destination-bg: #F2EDFC; --destination-accent: #65439B; }
+body[data-active-feature="visit-prep"] { --destination-bg: #FFF4DE; --destination-accent: #805418; }
+
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep > .page-heading {
+  border: 2px solid var(--destination-accent);
+  border-radius: 20px;
+  background: var(--destination-bg);
+  box-shadow: inset 4px 0 var(--destination-accent), 0 8px 22px rgba(10,35,64,.08);
+}
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading::before,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading::before,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading::before { content: none; }
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading::after,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading::after,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading::after { content: none; }
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading :is(h1, h2, .eyebrow),
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading :is(h1, h2, .eyebrow),
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading :is(h1, h2, .eyebrow),
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep > .page-heading :is(h1, h2, .eyebrow) { color: #0A2340; }
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading .page-subtitle,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading .page-subtitle,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading .page-subtitle,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep > .page-heading .page-subtitle { color: #465F73; }
+
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading .page-heading-actions button,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading button,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading button,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep .reference-brief-card > button,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep .reference-visit-actions > button {
+  min-height: 44px;
+  border: 2px solid var(--destination-accent);
+  background: var(--destination-accent);
+  color: #fff;
+  box-shadow: none;
+}
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading .page-heading-actions .secondary-button,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading .secondary-button,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading .secondary-button,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep .reference-visit-actions > .secondary-button {
+  background: #fff;
+  color: var(--destination-accent);
+}
+body[data-active-feature="medications"] #hub-shell #view-add > .hub-panel-nav > [data-hub-panel-target="medications"],
+body[data-active-feature="symptoms"] #hub-shell #view-diary > .hub-panel-nav > [data-hub-panel-target="symptoms"],
+body[data-active-feature="appointments"] #hub-shell #view-diary > .hub-panel-nav > [data-hub-panel-target="appointments"] {
+  border: 2px solid var(--destination-accent);
+  border-bottom: 2px solid var(--destination-accent);
+  background: var(--destination-bg);
+  color: var(--destination-accent);
+  box-shadow: none;
+}
+body[data-active-feature="visit-prep"] #hub-shell .primary-nav > .nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]),
+body[data-active-feature="visit-prep"] #hub-shell .category-bar .category-tab[data-view="visit-prep"]:is(.active, [aria-current="page"]),
+body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bottom-nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) {
+  border: 2px solid var(--destination-accent);
+  background: var(--destination-bg);
+  color: var(--destination-accent);
+  box-shadow: none;
+}
+body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bottom-nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) :is(span, b) { color: var(--destination-accent); }
+
+body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading [data-doctorai-icon] svg,
+body[data-active-feature="medications"] #hub-shell #view-add > .hub-panel-nav > [data-hub-panel-target="medications"] svg,
+body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading [data-doctorai-icon] svg,
+body[data-active-feature="symptoms"] #hub-shell #view-diary > .hub-panel-nav > [data-hub-panel-target="symptoms"] svg,
+body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading [data-doctorai-icon] svg,
+body[data-active-feature="appointments"] #hub-shell #view-diary > .hub-panel-nav > [data-hub-panel-target="appointments"] svg,
+body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep :is(.page-heading, .reference-brief-card, .reference-visit-actions) [data-doctorai-icon] svg,
+body[data-active-feature="visit-prep"] #hub-shell .primary-nav > .nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg,
+body[data-active-feature="visit-prep"] #hub-shell .category-bar .category-tab[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg,
+body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bottom-nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg { stroke-width: 2.6px; }

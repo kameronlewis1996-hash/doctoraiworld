@@ -185,6 +185,15 @@ function call(method, body) {
   assert.equal(r.statusCode,200);assert.equal(r.body.status,'red');assert.equal(r.headers['Cache-Control'],'no-store, max-age=0');
   assert.equal(r.body.coverage.completeForRequest,false);
   assert.equal(r.body.provider.id,'doctorai-local-pharmac-rules');
+  const negatedAllergy=await call('POST',{consent:true,medications:['amoxicillin'],allergies:['no penicillin allergy'],conditions:[]});
+  assert.equal(negatedAllergy.statusCode,200);
+  assert.equal(negatedAllergy.body.alerts.some(alert=>alert.type==='allergy'),false,'A negated allergy statement must not emit a positive allergy alert.');
+  assert.equal(negatedAllergy.body.status,'unknown','The limited interaction coverage state must remain unknown.');
+  assert.equal(negatedAllergy.body.coverage.completeForRequest,false,'Ignoring a negated term must not imply complete coverage.');
+  const uncertainAllergy=await call('POST',{consent:true,medications:['amoxicillin'],allergies:['uncertain penicillin allergy'],conditions:[]});
+  assert.equal(uncertainAllergy.body.alerts.some(alert=>alert.type==='allergy'),false,'Uncertain allergy wording must not be reported as a confirmed personal allergy.');
+  const positiveAllergy=await call('POST',{consent:true,medications:['amoxicillin'],allergies:['penicillin'],conditions:[]});
+  assert.ok(positiveAllergy.body.alerts.some(alert=>alert.type==='allergy'&&alert.ruleId==='penicillin-class'),'A positive personal allergy term must retain its curated alert.');
   const labelPayload={consent:true,medications:[{name:'Marevan',dose:'1 mg',activeIngredients:['warfarin'],activeIngredientsConfirmed:true},{name:'Nurofen',dose:'200 mg',activeIngredients:['ibuprofen']}]};
   assert.equal((await call('POST',labelPayload)).statusCode,400,'The endpoint must reject ingredient text without an explicit confirmation flag.');
   const checked=await call('POST',{...labelPayload,medications:labelPayload.medications.map((item,index)=>index===1?{...item,activeIngredientsConfirmed:true}:item)});

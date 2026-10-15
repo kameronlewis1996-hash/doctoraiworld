@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('health-hub.html');
 const js = read('health-hub.js');
+const css = read('health-hub.css');
 const worker = read('service-worker.js');
 const main = ['today', 'health', 'visit-prep', 'profile'];
 const secondary = ['scan', 'add', 'diary', 'alerts'];
@@ -117,6 +118,38 @@ for (const [name, hash] of canonicalFixtures) {
   assert.equal(routeLocation.hash, hash, `The actual ${name} navigation writes a copyable section alias.`);
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
 }
+const destinationThemes = {
+  medications:{ bg:'#EAF3FF', accent:'#0759B6' },
+  symptoms:{ bg:'#E8F6F1', accent:'#176B60' },
+  appointments:{ bg:'#F2EDFC', accent:'#65439B' },
+  'visit-prep':{ bg:'#FFF4DE', accent:'#805418' }
+};
+const themeCss = css.split('/* Astra destination themes:')[1] || '';
+assert.ok(themeCss, 'Route destination theme rules are present.');
+const luminance = color => {
+  const channels = color.match(/[0-9A-F]{2}/gi).map(channel => parseInt(channel, 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
+  return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+};
+const contrast = (left, right) => {
+  const values = [luminance(left), luminance(right)].sort((a,b) => b-a);
+  return (values[0] + .05) / (values[1] + .05);
+};
+for (const [feature, tokens] of Object.entries(destinationThemes)) {
+  navigationContext.routeNavigate(feature, false, false);
+  assert.equal(navigationContext.document.body.dataset.activeFeature, feature, `The actual ${feature} route selects its matching theme.`);
+  const escapedFeature = feature.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const tokenRule = themeCss.match(new RegExp(`body\\[data-active-feature="${escapedFeature}"\\]\\s*\\{([^}]+)\\}`))?.[1] || '';
+  assert.ok(tokenRule.includes(`--destination-bg: ${tokens.bg}`), `${feature} uses the approved destination background.`);
+  assert.ok(tokenRule.includes(`--destination-accent: ${tokens.accent}`), `${feature} uses the approved destination accent.`);
+  assert.ok(contrast(tokens.accent, tokens.bg) >= 5.7, `${feature} accent contrast is at least 5.7:1 on its background.`);
+  assert.ok(contrast('#FFFFFF', tokens.accent) >= 4.5, `${feature} primary button text contrast meets 4.5:1.`);
+  assert.ok(contrast('#0A2340', tokens.bg) >= 4.5, `${feature} label contrast meets 4.5:1.`);
+  assert.ok(contrast('#465F73', tokens.bg) >= 4.5, `${feature} supporting text contrast meets 4.5:1.`);
+}
+assert.match(themeCss, /border:\s*2px solid var\(--destination-accent\)/, 'Destination feature surfaces keep the supplied 2px accent border.');
+assert.match(themeCss, /stroke-width:\s*2\.6px/, 'Destination feature icons use the supplied 2.6px SVG strokes.');
+assert.doesNotMatch(themeCss, /#view-alerts|hub-alert-/, 'Destination theming does not override clinical alert presentation.');
+navigationContext.routeNavigate('timeline', false, false);
 assert.equal(routeViews.diary.path.textContent, 'My health / Diary / History', 'The return path identifies the selected nested Diary section.');
 navigationContext.routeNavigate('medications', true, false);
 assert.equal(routeViews.add.path.textContent, 'My health / Medicines', 'The medicine path uses the actual selected nested section.');
@@ -135,12 +168,14 @@ for (const fixture of [
   { id:'signed-in-ready', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:true, device:'This session only', account:'Private account sync active' },
   { id:'signed-in-ready-without-data', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:false, device:'This session only', account:'Account sync not confirmed' },
   { id:'signed-in-failure', allowed:true, choice:'yes', user:{name:'Fictional user'}, sync:'unconfirmed', enabled:true, device:'Keep between visits', account:'Account sync not confirmed' },
+  { id:'device-write-failed', allowed:true, choice:'yes', storageFailed:true, user:null, sync:'not-signed-in', enabled:true, device:'Could not save on this device', account:'Not signed in' },
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
-  const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
+  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
+  if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
   assert.equal(nodes['#hub-account-sync-state'].textContent, fixture.account, `${fixture.id}: signed-in and unconfirmed sync states stay distinct.`);
   assert.ok(nodes['#hub-account-sync-note'].textContent, `${fixture.id}: account sync has explanatory text.`);
 }
@@ -210,7 +245,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false};
+    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -298,6 +333,144 @@ async function verifyAccountResponseBoundaries() {
     }
   }
 }
-verifyAccountResponseBoundaries().then(() => {
-  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards, 5 actual credential/GET-failure fixtures and 9 actual Google session GET-contract fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
+async function verifyAccountStateIsolation() {
+  const storageStart = js.indexOf('  const storagePrefix =');
+  const cloneStart = js.indexOf('  const clone =', storageStart);
+  const stateEnd = js.indexOf('  function healthStateSnapshot()', cloneStart);
+  const ownerEnd = js.indexOf('  const els =', stateEnd);
+  const storageStatusStart = js.indexOf('  function renderStorageStatus()');
+  const storageStatusEnd = js.indexOf('  function accountSyncScope(', storageStatusStart);
+  const scopeStart = js.indexOf('  function accountSyncScope(');
+  const scopeEnd = js.indexOf('  function setSyncStatus(', scopeStart);
+  const deriveStart = js.indexOf('  async function deriveLocalHealthScope(');
+  const deriveEnd = js.indexOf('  async function loadAccountSession(', deriveStart);
+  const cloudStart = js.indexOf('  async function loadCloudState(');
+  const cloudEnd = js.indexOf('  function updateDate(', cloudStart);
+  assert.ok(storageStart >= 0 && cloneStart > storageStart && stateEnd > cloneStart && ownerEnd > stateEnd && storageStatusStart >= 0 && storageStatusEnd > storageStatusStart, 'Actual account-scoped browser storage, error status and owner switching can be exercised.');
+  assert.ok(scopeStart >= 0 && scopeEnd > scopeStart && deriveStart >= 0 && deriveEnd > deriveStart && cloudStart >= 0 && cloudEnd > cloudStart, 'Actual account namespace, sync guards and empty-cloud behavior can be exercised.');
+
+  const local = new Map([
+    ['doctorai-health-hub-device-storage-consent', 'yes'],
+    ['doctorai-health-hub-medications', JSON.stringify([{ id: 'legacy-only', name: 'Synthetic legacy medication' }])],
+    ['doctorai-health-hub-profile', JSON.stringify({ name: 'Synthetic legacy profile' })],
+    ['doctorai-health-hub-updated-at', '123']
+  ]);
+  const storageNodes = { '#hub-device-storage-state': { textContent: '' }, '#hub-device-storage-note': { textContent: '' }, '#hub-account-sync-state': { textContent: '' }, '#hub-account-sync-note': { textContent: '' } };
+  let rejectLocalWrites = false;
+  const state = { medications: [], appointments: [], providers: [], timeline: [], documents: [], measurements: [], tasks: [], profile: {}, memoryEnabled: false, memoryDetails: [] };
+  const context = vm.createContext({
+    localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => { if (rejectLocalWrites) throw new Error('synthetic storage quota failure'); local.set(key, String(value)); } },
+    window: { crypto: require('node:crypto').webcrypto, clearTimeout() {} },
+    TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
+    cloudSyncRevision: 0, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
+    medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
+    $: selector => storageNodes[selector] || null,
+    setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAccountSyncState: undefined,
+    serialiseHealthState: undefined, hasHealthState: undefined, applyCloudState() {}, renderAll() {}, queueCloudSave() { this.queuedSaves = (this.queuedSaves || 0) + 1; },
+    fetch: async () => ({ ok: true, json: async () => ({ state: null, updatedAt: 0 }) }), queuedSaves: 0
+  });
+  vm.runInContext(js.slice(storageStart, cloneStart) + js.slice(cloneStart, stateEnd) +
+    "\nlet localStateUpdatedAt = Number(read('updated-at', 0)) || 0;\n" + js.slice(stateEnd, ownerEnd) +
+    js.slice(storageStatusStart, storageStatusEnd) + js.slice(scopeStart, scopeEnd) + js.slice(deriveStart, deriveEnd) + js.slice(cloudStart, cloudEnd) + `
+      const serialiseHealthState = () => ({ medications: clone(state.medications), appointments: clone(state.appointments), providers: clone(state.providers), timeline: clone(state.timeline), documents: clone(state.documents), measurements: clone(state.measurements), tasks: clone(state.tasks), profile: clone(state.profile), memoryEnabled: Boolean(state.memoryEnabled), memoryDetails: clone(state.memoryDetails) });
+      const hasHealthState = value => Boolean(value?.medications?.length || value?.appointments?.length || value?.providers?.length || value?.timeline?.length || value?.documents?.length || value?.measurements?.length || value?.tasks?.length || value?.memoryDetails?.length || Object.values(value?.profile || {}).some(Boolean));
+      this.isolation = { state, read, write, localStorageKey, activateHealthDataOwner, deriveLocalHealthScope, loadCloudState, sessionHealthStateCache, renderStorageStatus, storageWriteFailed: () => localStorageWriteFailed };
+    `, context, { timeout: 1000 });
+
+  const localScopeA = await context.isolation.deriveLocalHealthScope({ email: 'account-a@example.test', sub: 'fictional-secret-sub-a' });
+  const localScopeB = await context.isolation.deriveLocalHealthScope({ email: 'account-b@example.test', sub: 'fictional-secret-sub-b' });
+  assert.match(localScopeA, /^[a-f0-9]{64}$/, 'The browser namespace is a SHA-256 digest.');
+  assert.notEqual(localScopeA, localScopeB, 'Different synthetic accounts receive different browser namespaces.');
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'Startup remains blank while authentication is unverified, even when legacy device data exists.');
+  assert.equal(context.isolation.localStorageKey('medications'), '', 'Pending and unverified states cannot read or write account data.');
+
+  context.isolation.activateHealthDataOwner(null, '', false);
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'An unverified session does not import legacy device records.');
+  context.isolation.activateHealthDataOwner({ email: 'account-a@example.test', sub: 'fictional-secret-sub-a' }, localScopeA);
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'A new account does not inherit unowned legacy device records.');
+  context.isolation.state.medications = [{ id: 'a-only', name: 'Synthetic account A medication' }];
+  context.isolation.write('medications', context.isolation.state.medications);
+  const accountAKey = context.isolation.localStorageKey('medications');
+  assert.ok(accountAKey.includes(localScopeA), 'A record is persisted in account A’s scoped local namespace.');
+  assert.ok(!accountAKey.includes('account-a@example.test') && !accountAKey.includes('fictional-secret-sub-a'), 'Persistent keys contain neither raw email nor Google subject.');
+  rejectLocalWrites = true;
+  context.isolation.write('medications', context.isolation.state.medications);
+  assert.equal(context.isolation.storageWriteFailed(), true, 'A synthetic browser storage failure is tracked.');
+  assert.equal(storageNodes['#hub-device-storage-state'].textContent, 'Could not save on this device', 'A failed local save updates the device status.');
+  assert.match(storageNodes['#hub-device-storage-note'].textContent, /last change may not persist/, 'The local storage error explains that the recent change may not persist.');
+  rejectLocalWrites = false;
+  context.isolation.write('medications', context.isolation.state.medications);
+  assert.equal(context.isolation.storageWriteFailed(), false, 'A subsequent successful save clears the local storage error.');
+  assert.equal(storageNodes['#hub-device-storage-state'].textContent, 'Keep between visits');
+
+  context.isolation.activateHealthDataOwner(null, '', true);
+  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['legacy-only'], 'Signing out restores the separate unowned legacy device data.');
+  context.isolation.activateHealthDataOwner({ email: 'account-b@example.test', sub: 'fictional-secret-sub-b' }, localScopeB);
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'Account B starts blank and cannot see account A or legacy records.');
+  context.authUser = { email: 'account-b@example.test', sub: 'fictional-secret-sub-b' };
+  await context.isolation.loadCloudState();
+  assert.equal(context.queuedSaves, 0, 'An empty account B cloud does not auto-upload unowned or account A device state.');
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'An empty cloud response leaves account B isolated.');
+  assert.deepEqual(JSON.parse(local.get('doctorai-health-hub-medications')), [{ id: 'legacy-only', name: 'Synthetic legacy medication' }], 'Legacy device data is preserved without migration or deletion.');
+
+  let resolveAccountACloud;
+  context.fetch = url => {
+    assert.equal(url, '/api/health/state');
+    return new Promise(resolve => { resolveAccountACloud = resolve; });
+  };
+  context.accountSessionRevision += 1;
+  context.isolation.activateHealthDataOwner({ email: 'account-a@example.test', sub: 'fictional-secret-sub-a' }, localScopeA);
+  context.authUser = { email: 'account-a@example.test', sub: 'fictional-secret-sub-a' };
+  const staleAccountACloud = context.isolation.loadCloudState();
+  assert.equal(typeof resolveAccountACloud, 'function', 'The synthetic account A cloud request is pending.');
+  context.accountSessionRevision += 1;
+  context.isolation.activateHealthDataOwner({ email: 'account-b@example.test', sub: 'fictional-secret-sub-b' }, localScopeB);
+  context.authUser = { email: 'account-b@example.test', sub: 'fictional-secret-sub-b' };
+  resolveAccountACloud({ ok: true, json: async () => ({ state: { medications: [{ id: 'a-cloud-only', name: 'Synthetic account A cloud medication' }] }, updatedAt: 999 }) });
+  await staleAccountACloud;
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'A late A cloud response cannot render into B after the account switch.');
+  assert.equal(local.has(`doctorai-health-hub-account-${localScopeB}-medications`), false, 'A late A response cannot persist under B’s local namespace.');
+
+  context.authUser = null;
+  context.accountSessionRevision += 1;
+  context.isolation.activateHealthDataOwner(null, '', true);
+  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['legacy-only'], 'Signing out from B returns to the legacy device state.');
+  context.isolation.sessionHealthStateCache.clear();
+  context.isolation.activateHealthDataOwner({ email: 'account-a@example.test', sub: 'fictional-secret-sub-a' }, localScopeA);
+  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['a-only'], 'Returning to A recovers A’s own persisted state even after the in-memory session cache is cleared.');
+  assert.deepEqual(Array.from(context.isolation.sessionHealthStateCache.keys()).filter(key => String(key).includes('fictional-secret-sub-a')), [], 'Google subjects are not used as in-memory owner identifiers.');
+}
+async function verifySignOutResponseHandling() {
+  const start = js.indexOf('  async function signOut()');
+  const end = js.indexOf('  let googleSignInConfigured', start);
+  assert.ok(start >= 0 && end > start, 'The actual sign-out response handler can be exercised.');
+  for (const fixture of [
+    { label: 'server rejection', fetch: async () => ({ ok: false }), signedOut: false },
+    { label: 'network failure', fetch: async () => { throw new Error('synthetic offline'); }, signedOut: false },
+    { label: 'successful revocation', fetch: async () => ({ ok: true }), signedOut: true }
+  ]) {
+    const events = [];
+    const context = vm.createContext({
+      accountSessionRevision: 5, authUser: { email: 'fictional@example.test' }, medicationLoginId: 'fictional-login-id',
+      localHealthAccountScope: 'fictional-scope', fetch: fixture.fetch,
+      renderAccountSession: (...args) => events.push(['render', ...args]),
+      closeProfile: () => events.push(['close-profile']), showToast: message => events.push(['toast', message])
+    });
+    vm.runInContext(`${js.slice(start, end)}\nthis.runSignOut = signOut;`, context, { timeout: 1000 });
+    await context.runSignOut();
+    const sessionRender = events.find(event => event[0] === 'render');
+    if (fixture.signedOut) {
+      assert.equal(sessionRender?.[1], null, 'Successful server revocation clears the local account.');
+      assert.ok(events.some(event => event[0] === 'close-profile'), 'Successful revocation closes the account panel.');
+      assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /Signed out\./);
+    } else {
+      assert.equal(sessionRender?.[1]?.email, 'fictional@example.test', `A ${fixture.label} keeps the account visible.`);
+      assert.equal(sessionRender?.[2], 'fictional-login-id');
+      assert.ok(!events.some(event => event[0] === 'close-profile'), `A ${fixture.label} does not close the signed-in account panel.`);
+      assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /still signed in/);
+    }
+  }
+}
+verifyAccountResponseBoundaries().then(verifyAccountStateIsolation).then(verifySignOutResponseHandling).then(() => {
+  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards, synthetic A → sign-out → B/no-cloud isolation and same-account recovery, failed/successful DELETE sign-out handling, 5 actual credential/GET-failure fixtures and 9 actual Google session GET-contract fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
 }).catch(error => {console.error(error); process.exitCode=1;});
