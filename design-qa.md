@@ -1,3 +1,11 @@
+# Homepage polish review — 15 October 2026
+
+The latest homepage review is [documented with desktop/mobile evidence](docs/design/homepage-polish-20261015/design-qa.md). It builds on production main `01543ec14d82f8334a59d91d4fb4e3fd94f2dfc0`. Product changes are limited to `index.html`, `welcome.css` and `welcome.js`; the integrated Health Hub and medication release are retained.
+
+Homepage final result: passed
+
+The earlier Health Hub review below is retained as historical evidence.
+
 **Findings**
 
 - [P2, fixed] The first mobile storage banner inherited a vertical translation from the former floating consent dialog. The new inline banner now sets `transform: none`; the corrected capture places it below the logo.

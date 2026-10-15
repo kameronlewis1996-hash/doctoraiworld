@@ -10,13 +10,14 @@
   if (!universe) return;
 
   const topics = {
-    today: { title: 'Your day, at a glance.', copy: 'See the medicines, appointments and tasks you have recorded for today.', label: 'Open Today', href: '/health-hub#today' },
-    health: { title: 'Your health details, together.', copy: 'Review the details you have saved and find your health tools in one place.', label: 'Open My Health', href: '/health-hub#health' },
-    visit: { title: 'Your next conversation, prepared.', copy: 'Choose saved details, add your questions and review your personal brief before you copy or print it.', label: 'Open Visit Prep', href: '/health-hub#visit-prep' },
-    profile: { title: 'Your information. Your choices.', copy: 'Manage your account, storage preferences, privacy and optional Health Memory controls.', label: 'Open Profile', href: '/health-hub#profile' }
+    today: { kicker: '01 / Today', title: 'Your day, at a glance.', copy: "The medicines, appointments and tasks you've recorded for today.", label: 'Open Today', href: '/health-hub#today' },
+    health: { kicker: '02 / My Health', title: 'Your health details, together.', copy: 'Your saved medicines, symptoms, appointments and documents in one place.', label: 'Open My Health', href: '/health-hub#health' },
+    visit: { kicker: '03 / Visit Prep', title: 'Your next conversation, prepared.', copy: 'Choose saved details and questions. Review a personal brief to copy or print.', label: 'Open Visit Prep', href: '/health-hub#visit-prep' },
+    profile: { kicker: '04 / Profile', title: 'Your information. Your choices.', copy: 'Your account, storage preferences and optional Health Memory controls.', label: 'Open Profile', href: '/health-hub#profile' }
   };
   const buttons = [...universe.querySelectorAll('[data-home-topic]')];
   const title = universe.querySelector('[data-home-topic-title]');
+  const kicker = universe.querySelector('[data-home-topic-kicker]');
   const copy = universe.querySelector('[data-home-topic-copy]');
   const link = universe.querySelector('[data-home-topic-link]');
 
@@ -26,6 +27,7 @@
       if (!topic) return;
       universe.dataset.homeTheme = button.dataset.homeTopic;
       buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      kicker.textContent = topic.kicker;
       title.textContent = topic.title;
       copy.textContent = topic.copy;
       link.firstChild.textContent = topic.label + ' ';
@@ -86,4 +88,21 @@
   }
   universe.classList.add('home-motion-ready');
   syncMotion();
+})();
+
+// The native disclosure stays usable without JavaScript.
+(() => {
+  const menu = document.querySelector('[data-home-menu]');
+  if (!menu) return;
+  const summary = menu.querySelector('summary');
+  menu.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !menu.open) return;
+    menu.open = false;
+    summary.focus();
+    event.preventDefault();
+  });
+  document.addEventListener('click', event => {
+    if (!menu.open) return;
+    if (!menu.contains(event.target) || event.target.closest('a')) menu.open = false;
+  });
 })();
