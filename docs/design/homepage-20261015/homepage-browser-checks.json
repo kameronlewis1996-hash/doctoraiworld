@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-15T00:05:18.031Z",
+  "checkedAt": "2026-10-15T00:33:10.578Z",
   "baseline": "aef725b916e7412fb39dea4caedb4a85229aa87d",
   "checks": [
     "One main heading and unique element IDs",
@@ -9,14 +9,18 @@
     "All linked local page destinations resolve",
     "Keyboard skip link is first and visible",
     "Skip link focuses main content",
-    "Keyboard selection and destination: medicines",
-    "Accessible theme contrast and matching detail: medicines",
-    "Keyboard selection and destination: symptoms",
-    "Accessible theme contrast and matching detail: symptoms",
-    "Keyboard selection and destination: appointments",
-    "Accessible theme contrast and matching detail: appointments",
+    "Animated logo has subtle transparency",
+    "Four categories use the requested names and order",
+    "Add Health Detail has a clear plus and opens the existing category picker",
+    "Pro scanner sits beneath Add Health Detail and uses the existing scanner route",
+    "Keyboard selection and destination: today",
+    "Accessible theme contrast and matching detail: today",
+    "Keyboard selection and destination: health",
+    "Accessible theme contrast and matching detail: health",
     "Keyboard selection and destination: visit",
     "Accessible theme contrast and matching detail: visit",
+    "Keyboard selection and destination: profile",
+    "Accessible theme contrast and matching detail: profile",
     "Pause stops animation and resets tilt",
     "Resume restores animation",
     "Fine pointer tilts the logo",
@@ -37,6 +41,7 @@
     "Touch selects a topic without pointer tilt or horizontal overflow",
     "All eleven legacy root hashes still redirect to the Health Hub",
     "Homepage anchor remains on the homepage",
+    "Add and Scan links navigate to their existing secondary routes",
     "Forced colours retains a visible selected topic border"
   ],
   "widths": [
@@ -107,7 +112,7 @@
   "failedRequests": [],
   "browser": "155.0.4283.45",
   "themeContrast": {
-    "medicines": {
+    "today": {
       "surface": "rgb(234, 243, 255)",
       "accent": "rgb(7, 89, 182)",
       "labelContrast": 14.135455506720971,
@@ -116,22 +121,13 @@
       "copyContrast": 5.966149652489595,
       "matchingDetail": true
     },
-    "symptoms": {
+    "health": {
       "surface": "rgb(232, 246, 241)",
       "accent": "rgb(23, 107, 96)",
       "labelContrast": 14.22655475973182,
       "iconContrast": 5.707760575532302,
       "linkContrast": 5.707760575532302,
       "copyContrast": 6.004599900975349,
-      "matchingDetail": true
-    },
-    "appointments": {
-      "surface": "rgb(242, 237, 252)",
-      "accent": "rgb(101, 67, 155)",
-      "labelContrast": 13.782916662420137,
-      "iconContrast": 6.465696982254397,
-      "linkContrast": 6.465696982254397,
-      "copyContrast": 5.817353633683235,
       "matchingDetail": true
     },
     "visit": {
@@ -141,6 +137,15 @@
       "iconContrast": 6.016289019602337,
       "linkContrast": 6.016289019602337,
       "copyContrast": 6.120158563496917,
+      "matchingDetail": true
+    },
+    "profile": {
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "labelContrast": 13.782916662420137,
+      "iconContrast": 6.465696982254397,
+      "linkContrast": 6.465696982254397,
+      "copyContrast": 5.817353633683235,
       "matchingDetail": true
     }
   },
