@@ -36,11 +36,6 @@
       "source": "/marketplace",
       "destination": "/subscription",
       "permanent": true
-    },
-    {
-      "source": "/about",
-      "destination": "/health-hub#today",
-      "permanent": true
     }
   ],
   "rewrites": [
