@@ -6482,20 +6482,20 @@ html body[data-hub-theme] { background: linear-gradient(135deg, #edf7ff, #f3fbff
   body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) :is(span, svg, b) { color: #fff; }
 }
 
-/* Astra destination themes: apply only to the selected feature's headings and navigation. */
-body[data-active-feature="medications"] { --destination-bg: #EAF3FF; --destination-accent: #0759B6; }
-body[data-active-feature="symptoms"] { --destination-bg: #E8F6F1; --destination-accent: #176B60; }
-body[data-active-feature="appointments"] { --destination-bg: #F2EDFC; --destination-accent: #65439B; }
-body[data-active-feature="visit-prep"] { --destination-bg: #FFF4DE; --destination-accent: #805418; }
+/* One blue destination palette across the health tools; clinical status colours are separate. */
+body[data-active-feature="medications"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="symptoms"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="appointments"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="visit-prep"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
 
 body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading,
 body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading,
 body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading,
 body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep > .page-heading {
-  border: 2px solid var(--destination-accent);
+  border: 1px solid #c8d9ec;
   border-radius: 20px;
   background: var(--destination-bg);
-  box-shadow: inset 4px 0 var(--destination-accent), 0 8px 22px rgba(10,35,64,.08);
+  box-shadow: inset 3px 0 var(--destination-accent), 0 10px 28px rgba(10,35,64,.055);
 }
 body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading::before,
 body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading::before,

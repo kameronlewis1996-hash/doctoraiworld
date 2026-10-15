@@ -8,6 +8,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('health-hub.html');
 const js = read('health-hub.js');
 const css = read('health-hub.css');
+const categoryCss = read('hub-category-themes.css');
+const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
 const main = ['today', 'health', 'visit-prep', 'profile'];
 const secondary = ['scan', 'add', 'diary', 'alerts'];
@@ -119,12 +121,12 @@ for (const [name, hash] of canonicalFixtures) {
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
 }
 const destinationThemes = {
-  medications:{ bg:'#EAF3FF', accent:'#0759B6' },
-  symptoms:{ bg:'#E8F6F1', accent:'#176B60' },
-  appointments:{ bg:'#F2EDFC', accent:'#65439B' },
-  'visit-prep':{ bg:'#FFF4DE', accent:'#805418' }
+  medications:{ bg:'#F7FAFF', accent:'#0759B6' },
+  symptoms:{ bg:'#F7FAFF', accent:'#0759B6' },
+  appointments:{ bg:'#F7FAFF', accent:'#0759B6' },
+  'visit-prep':{ bg:'#F7FAFF', accent:'#0759B6' }
 };
-const themeCss = css.split('/* Astra destination themes:')[1] || '';
+const themeCss = css.split('/* One blue destination palette')[1] || '';
 assert.ok(themeCss, 'Route destination theme rules are present.');
 const luminance = color => {
   const channels = color.match(/[0-9A-F]{2}/gi).map(channel => parseInt(channel, 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
@@ -146,9 +148,26 @@ for (const [feature, tokens] of Object.entries(destinationThemes)) {
   assert.ok(contrast('#0A2340', tokens.bg) >= 4.5, `${feature} label contrast meets 4.5:1.`);
   assert.ok(contrast('#465F73', tokens.bg) >= 4.5, `${feature} supporting text contrast meets 4.5:1.`);
 }
-assert.match(themeCss, /border:\s*2px solid var\(--destination-accent\)/, 'Destination feature surfaces keep the supplied 2px accent border.');
+assert.match(themeCss, /border:\s*1px solid #c8d9ec/, 'Destination feature headings use a restrained border.');
+assert.match(themeCss, /box-shadow:\s*inset 3px 0 var\(--destination-accent\)/, 'Destination feature headings retain a visible blue edge.');
 assert.match(themeCss, /stroke-width:\s*2\.6px/, 'Destination feature icons use the supplied 2.6px SVG strokes.');
 assert.doesNotMatch(themeCss, /#view-alerts|hub-alert-/, 'Destination theming does not override clinical alert presentation.');
+for (const theme of ['today', 'health', 'profile', 'visit']) {
+  assert.match(homeCss, new RegExp(`--home-${theme}-surface: #eaf3ff;[\\s\\S]*?--home-${theme}-accent: #0759b6;`), `Homepage ${theme} category uses the blue palette.`);
+}
+for (const theme of ['today', 'health', 'profile', 'visit']) {
+  assert.match(categoryCss, new RegExp(`--hub-${theme}-surface: #f2f7ff;[\\s\\S]*?--hub-${theme}-accent: #0759b6;`), `Hub ${theme} category uses the blue palette.`);
+}
+assert.ok(contrast('#0759B6', '#EAF3FF') >= 6, 'Homepage blue category labels exceed 6:1 on their surface.');
+assert.ok(contrast('#0759B6', '#F2F7FF') >= 6, 'App blue category labels exceed 6:1 on their surface.');
+assert.ok(contrast('#0759B6', '#FFFFFF') >= 4.5, 'App blue controls retain readable contrast on white.');
+assert.match(categoryCss, /\[data-view\]:focus-visible\s*\{[^}]*outline:\s*3px solid/, 'Keyboard users keep a visible navigation outline.');
+assert.match(categoryCss, /@media \(max-width: 800px\)[\s\S]*?\.mobile-bottom-nav\s*\{[^}]*background:\s*#fff/, 'Mobile navigation uses the same calm surface.');
+assert.match(categoryCss, /\.today-compact-grid\s*\{\s*align-items:\s*start/, 'Empty Today cards no longer stretch to the height of the diary form.');
+assert.match(categoryCss, /\.today-compact-panel\s*\{[^}]*border-top-color:\s*#0759b6/, 'Today summary cards use the same blue accent.');
+for (const [level, ink] of [['green', '#166534'], ['orange', '#934407'], ['red', '#b42318']]) {
+  assert.ok(categoryCss.includes(`data-alert-level="${level}"] { --alert-ink: ${ink}`), `${level} clinical alert colour remains semantic.`);
+}
 navigationContext.routeNavigate('timeline', false, false);
 assert.equal(routeViews.diary.path.textContent, 'My health / Diary / History', 'The return path identifies the selected nested Diary section.');
 navigationContext.routeNavigate('medications', true, false);
