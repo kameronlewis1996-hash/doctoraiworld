@@ -86,6 +86,29 @@
     else if (localResult) localResult.replaceChildren();
   }
 
+  let measurementIdSequence = 0;
+  function ensureMeasurementIds(records) {
+    if (!Array.isArray(records)) return false;
+    const reserved = new Set(records.filter(record => record && typeof record === 'object' && record.id !== null && record.id !== undefined && String(record.id).trim()).map(record => String(record.id)));
+    const seen = new Set();
+    let changed = false;
+    records.forEach(record => {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) return;
+      const currentId = record.id === null || record.id === undefined ? '' : String(record.id).trim();
+      if (currentId && !seen.has(currentId)) { seen.add(currentId); return; }
+      let id = '';
+      do {
+        measurementIdSequence += 1;
+        id = 'measurement-' + Date.now() + '-' + measurementIdSequence + '-' + Math.random().toString(36).slice(2, 8);
+      } while (reserved.has(id) || seen.has(id));
+      record.id = id;
+      seen.add(id);
+      reserved.add(id);
+      changed = true;
+    });
+    return changed;
+  }
+
   const state = {
     medications: read('medications', []),
     appointments: read('appointments', []),
@@ -98,6 +121,22 @@
     memoryEnabled: read('memory-enabled', false),
     memoryDetails: read('memory-details', [])
   };
+  function createMeasurementId() {
+    const used = new Set(state.measurements.filter(record => record && record.id !== null && record.id !== undefined).map(record => String(record.id)));
+    let id = '';
+    do {
+      measurementIdSequence += 1;
+      id = 'measurement-' + Date.now() + '-' + measurementIdSequence + '-' + Math.random().toString(36).slice(2, 8);
+    } while (used.has(id));
+    return id;
+  }
+  function createMeasurementTimelineId(measurementId) {
+    const base = 'timeline-measurement-' + String(measurementId);
+    let id = base;
+    let suffix = 1;
+    while (state.timeline.some(entry => String(entry?.id ?? '') === id)) id = base + '-' + suffix++;
+    return id;
+  }
 
   function healthStateSnapshot() {
     return {
@@ -114,6 +153,7 @@
     state.timeline = Array.isArray(value?.timeline) ? clone(value.timeline) : [];
     state.documents = Array.isArray(value?.documents) ? clone(value.documents) : [];
     state.measurements = Array.isArray(value?.measurements) ? clone(value.measurements) : [];
+    if (ensureMeasurementIds(state.measurements)) write('measurements', state.measurements);
     state.tasks = Array.isArray(value?.tasks) ? clone(value.tasks) : [];
     state.profile = { ...emptyProfile, ...(value?.profile || {}) };
     state.memoryEnabled = Boolean(value?.memoryEnabled);
@@ -446,12 +486,14 @@
     state.timeline = Array.isArray(value.timeline) ? value.timeline : [];
     state.documents = Array.isArray(value.documents) ? value.documents : [];
     state.measurements = Array.isArray(value.measurements) ? value.measurements : [];
+    const migratedMeasurementIds = ensureMeasurementIds(state.measurements);
     state.tasks = Array.isArray(value.tasks) ? value.tasks : [];
     state.profile = { ...emptyProfile, ...(value.profile || {}) };
     clearMedicationSafetyResults();
     state.memoryEnabled = Boolean(value.memoryEnabled);
     state.memoryDetails = Array.isArray(value.memoryDetails) ? value.memoryDetails : [];
     write('medications', state.medications); write('appointments', state.appointments); write('providers', state.providers); write('timeline', state.timeline); write('documents', state.documents); write('measurements', state.measurements); write('tasks', state.tasks); write('profile', state.profile); write('memory-enabled', state.memoryEnabled); write('memory-details', state.memoryDetails);
+    if (migratedMeasurementIds) queueCloudSave();
   }
 
   function deviceStorageStatus() {
@@ -1431,23 +1473,46 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
   }
 
+  const measurementTypeLabel = measurement => ({
+    'blood-pressure': 'Blood pressure',
+    'heart-rate': 'Heart rate',
+    sleep: 'Sleep',
+    weight: 'Weight',
+    temperature: 'Temperature',
+    mood: 'Mood / wellbeing'
+  }[String(measurement?.type || '')] || String(measurement?.type || 'Measurement').replace(/-/g, ' '));
+  function renderMeasurementHistory() {
+    if (!els.measurementChips) return;
+    const records = state.measurements.filter(record => record && typeof record === 'object').slice()
+      .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
+    const summary = measurementPills(records) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+    const rows = records.map(record => {
+      const type = measurementTypeLabel(record);
+      const date = record.date ? formatShortDate(record.date) : 'Date not recorded';
+      const value = [record.value, record.unit].filter(value => value !== null && value !== undefined && String(value).trim()).join(' ');
+      const note = record.note ? ' · ' + escapeHTML(record.note) : '';
+      const id = escapeHTML(String(record.id));
+      return '<article class="measurement-history-item"><div class="measurement-history-copy"><b>' + escapeHTML(type) + '</b><span>' + escapeHTML(value || 'Value not recorded') + '</span><small>' + escapeHTML(date) + note + '</small></div><div class="measurement-history-actions"><button type="button" data-edit-measurement="' + id + '" aria-label="Edit ' + escapeHTML(type) + ' from ' + escapeHTML(date) + '">Edit</button><button type="button" class="delete-item" data-delete-measurement="' + id + '" aria-label="Delete ' + escapeHTML(type) + ' from ' + escapeHTML(date) + '">Delete</button></div></article>';
+    }).join('');
+    els.measurementChips.innerHTML = '<div class="measurement-summary-chips" aria-label="Latest recorded measurements">' + summary + '</div><section class="measurement-history" aria-labelledby="measurement-history-title"><div class="measurement-history-heading"><h3 id="measurement-history-title">Saved measurements</h3><span>' + records.length + ' ' + (records.length === 1 ? 'reading' : 'readings') + '</span></div><div class="measurement-history-list">' + (rows || '<div class="measurement-history-empty">No measurements saved yet. Log a reading when you are ready.</div>') + '</div></section>';
+  }
   function renderMeasurement(range = trendRange) {
     trendRange = range;
-    const latest = state.measurements.find(item => item.type === range);
+    const latest = state.measurements.filter(item => item?.type === range).slice()
+      .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')))[0];
+    if (els.largeChart) els.largeChart.hidden = true;
     if (!latest) {
       if (els.measurementValue) els.measurementValue.textContent = 'No data yet';
       if (els.measurementLabel) els.measurementLabel.textContent = 'Log a measurement to start a trend';
       if (els.measurementStatus) els.measurementStatus.textContent = '';
-      if (els.largeChart) els.largeChart.hidden = true;
-      if (els.measurementChips) els.measurementChips.innerHTML = measurementPills(state.measurements) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+      renderMeasurementHistory();
       $$('[data-range]').forEach(button => button.classList.toggle('active', button.dataset.range === range));
       return;
     }
     if (els.measurementValue) els.measurementValue.innerHTML = escapeHTML(latest.value).replace(' / ', ' <small>/</small> ');
     if (els.measurementLabel) els.measurementLabel.textContent = `${range === 'blood-pressure' ? 'Blood pressure' : range[0].toUpperCase() + range.slice(1)} · ${formatShortDate(latest.date)}`;
-    if (els.measurementStatus) els.measurementStatus.textContent = range === 'blood-pressure' ? 'Within your usual range' : 'A useful pattern to keep watching';
-    if (els.largeChart) els.largeChart.hidden = false;
-    if (els.measurementChips) els.measurementChips.innerHTML = measurementPills(state.measurements) || '<span class="trend-empty">Your personal signals will appear here.</span>';
+    if (els.measurementStatus) els.measurementStatus.textContent = 'Recorded value; no interpretation.';
+    renderMeasurementHistory();
     $$('[data-range]').forEach(button => button.classList.toggle('active', button.dataset.range === range));
   }
 
@@ -2037,6 +2102,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const diaryQuestions = latest(state.timeline.filter(item => item.type === 'question' && item.source === 'user-question'));
     const measurements = latest(state.measurements);
     const notes = latest(state.timeline.filter(item => item.type === 'medication'));
+    const legacyProfileDetail = (value, qualifier) => {
+      const detail = String(value || '').replace(/\s+/g, ' ').trim();
+      return detail ? `${detail} (older entry; ${qualifier} unreviewed)` : '';
+    };
     const conditionDetails = Array.isArray(state.profile.conditionEntries)
       ? state.profile.conditionEntries.map(item => {
         const label = String(item?.label || '').trim();
@@ -2044,7 +2113,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const status = item.source === 'legacy' ? 'older entry; status unreviewed' : ({ current: 'current', historical: 'historical', unsure: 'unsure' }[item.status] || 'status unsure');
         return `${label} (${status})`;
       }).filter(Boolean).join(' | ')
-      : state.profile.conditions;
+      : legacyProfileDetail(state.profile.conditions, 'status');
     const allergyDetails = Array.isArray(state.profile.allergyEntries)
       ? state.profile.allergyEntries.map(item => {
         const substance = String(item?.substance || '').trim();
@@ -2053,7 +2122,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const certainty = item.source === 'legacy' || item.certainty === 'legacy' ? 'older entry; certainty unreviewed' : ({ confirmed: 'recorded as confirmed by you', suspected: 'possible reaction', unsure: 'unsure' }[item.certainty] || 'certainty unsure');
         return `${substance}${reaction ? `; reaction: ${reaction}` : ''} (${certainty})`;
       }).filter(Boolean).join(' | ')
-      : state.profile.allergies;
+      : legacyProfileDetail(state.profile.allergies, 'certainty');
     const symptomBriefText = item => {
       const severity = symptomSeverity(item.severity);
       const notes = String(item.notes || '').trim();
@@ -2618,6 +2687,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     syncFollowup();
   }
 
+  function openMeasurementEditor(measurement) {
+    const id = String(measurement?.id ?? '');
+    const type = String(measurement?.type || '');
+    const types = [
+      ['blood-pressure', 'Blood pressure'], ['sleep', 'Sleep'], ['weight', 'Weight'],
+      ['heart-rate', 'Heart rate'], ['temperature', 'Temperature'], ['mood', 'Mood / wellbeing']
+    ];
+    const options = types.map(([value, label]) => '<option value="' + value + '"' + (type === value ? ' selected' : '') + '>' + label + '</option>').join('');
+    const legacyType = type && !types.some(([value]) => value === type)
+      ? '<option value="' + escapeHTML(type) + '" selected>' + escapeHTML(measurementTypeLabel(measurement)) + '</option>'
+      : '';
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(measurement?.date || '')) ? String(measurement.date) : '';
+    const html = '<form class="modal-form" data-modal-form="measurement" data-edit-measurement-id="' + escapeHTML(id) + '"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type" required>' + legacyType + options + '</select></label><label class="modal-field"><span>Value *</span><input name="value" required value="' + escapeHTML(measurement?.value || '') + '" placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required value="' + escapeHTML(date) + '"></label><label class="modal-field"><span>Optional note</span><input name="note" value="' + escapeHTML(measurement?.note || '') + '" placeholder="Anything useful to remember"></label></div><p class="modal-help">Correct the saved reading. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save changes <span aria-hidden="true">' + iconMarkup('arrow') + '</span></button></div></form>';
+    setModal('Edit measurement', 'Health tracking', html);
+  }
   function openMeasurementModal() {
     setModal('Log a measurement', 'Health tracking', `<form class="modal-form" data-modal-form="measurement"><div class="modal-form-grid"><label class="modal-field"><span>Measurement *</span><select name="type"><option value="blood-pressure">Blood pressure</option><option value="sleep">Sleep</option><option value="weight">Weight</option><option value="heart-rate">Heart rate</option><option value="temperature">Temperature</option><option value="mood">Mood / wellbeing</option></select></label><label class="modal-field"><span>Value *</span><input name="value" required placeholder="e.g. 118 / 76"></label><label class="modal-field"><span>Date *</span><input name="date" type="date" required></label><label class="modal-field"><span>Optional note</span><input name="note" placeholder="Anything useful to remember"></label></div><p class="modal-help">Tracking is optional. Trends are for your own context and should not replace clinical review.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save measurement <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
   }
@@ -3172,10 +3256,32 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         ? `Pattern hint: ${newPattern.family.label} is noted near ${newPattern.context.label} in ${newPattern.count} entries. This is a correlation to review, not a cause.`
         : (existing ? 'Symptom entry updated.' : 'Symptom added to your private diary.');
     } else if (form.dataset.modalForm === 'measurement') {
-      state.measurements.unshift({ type: values.type, value: values.value, date: values.date, note: values.note || '' });
-      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'result', date: values.date, title: `${values.type.replace('-', ' ')} logged`, description: values.value, icon: '⌁' });
-      renderMeasurement(values.type);
-      showToast('Measurement added to your trends.');
+      const editingId = String(form.dataset.editMeasurementId || '');
+      const existingIndex = editingId ? state.measurements.findIndex(item => String(item?.id ?? '') === editingId) : -1;
+      if (editingId && existingIndex < 0) { showToast('This measurement is no longer in your history. Reopen the reading you want to edit.'); return; }
+      const existing = existingIndex >= 0 ? state.measurements[existingIndex] : null;
+      const type = String(values.type || existing?.type || '').trim();
+      const value = String(values.value || '').trim();
+      const date = String(values.date || '');
+      if (!type || !value || briefDate(date) !== date) {
+        showToast('Add a measurement, value and valid date before saving.');
+        (!type ? form.elements.type : !value ? form.elements.value : form.elements.date)?.focus();
+        return;
+      }
+      const measurement = { ...(existing || {}), id: existing ? existing.id : createMeasurementId(), type, value, date, note: String(values.note ?? '').trim() };
+      if (existing) {
+        state.measurements[existingIndex] = measurement;
+        const linkedEventIndex = state.timeline.findIndex(item => item?.type === 'result' && String(item.measurementId ?? '') === String(measurement.id));
+        if (linkedEventIndex >= 0) {
+          const linkedEvent = state.timeline[linkedEventIndex];
+          state.timeline[linkedEventIndex] = { ...linkedEvent, date, title: measurementTypeLabel(measurement) + ' logged', description: value };
+        }
+      } else {
+        state.measurements.unshift(measurement);
+        state.timeline.unshift({ id: createMeasurementTimelineId(measurement.id), type: 'result', measurementId: measurement.id, date, title: measurementTypeLabel(measurement) + ' logged', description: value, icon: '⌁' });
+      }
+      renderMeasurement(type);
+      showToast(existing ? 'Measurement updated.' : 'Measurement added to your trends.');
     } else if (form.dataset.modalForm === 'health') {
       const oldProfile = state.profile;
       const selected = window.DoctorAITermProfile?.collect();
@@ -3624,6 +3730,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (modalType === 'timeline') openTimelineModal();
       return;
     }
+    const editMeasurement = event.target.closest('[data-edit-measurement]');
+    if (editMeasurement) {
+      event.preventDefault();
+      const id = String(editMeasurement.dataset.editMeasurement || '');
+      const measurement = state.measurements.find(item => String(item?.id ?? '') === id);
+      if (measurement) openMeasurementEditor(measurement);
+      else showToast('This measurement is no longer in your history.');
+      return;
+    }
     const editAppointment = event.target.closest('[data-edit-appointment]');
     if (editAppointment) {
       event.preventDefault();
@@ -3687,6 +3802,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         clearMedicationSafetyResults();
         saveState(); renderAll(); showToast('Medication removed from your health hub.');
       }
+      return;
+    }
+    const deleteMeasurement = event.target.closest('[data-delete-measurement]');
+    if (deleteMeasurement) {
+      event.preventDefault();
+      const id = String(deleteMeasurement.dataset.deleteMeasurement || '');
+      const measurement = state.measurements.find(item => String(item?.id ?? '') === id);
+      if (!measurement) { showToast('This measurement is no longer in your history.'); return; }
+      const summary = [measurementTypeLabel(measurement), measurement.value, measurement.date].filter(Boolean).join(' · ');
+      if (!window.confirm('Delete the saved measurement "' + summary + '"? This cannot be undone.')) return;
+      state.measurements = state.measurements.filter(item => String(item?.id ?? '') !== id);
+      state.timeline = state.timeline.filter(item => !(item?.type === 'result' && String(item.measurementId ?? '') === id));
+      saveState(); renderAll(); showToast('Measurement removed from your history.');
       return;
     }
     const deleteAppointment = event.target.closest('[data-delete-appointment]');
