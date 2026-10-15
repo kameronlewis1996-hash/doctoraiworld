@@ -1,19 +1,25 @@
-/* The selected aurora theme. Alert colours only present existing local results.
-   Keep category identity and clinical alert/card colours independent. */
+/* The selected aurora theme. Decorative icons use its blue/cyan/lilac range;
+   clinical status colours continue to represent existing local results. */
 html :is(.doctorai-homepage, body[data-hub-layout="reference"]) {
   --aurora-base: #f5f8ff;
-  --aurora-cyan: #a6e5fb99;
-  --aurora-lilac: #c7c5fb8c;
-  --aurora-blush: #f6d5f48c;
+  --aurora-cyan: #95dffbc4;
+  --aurora-lilac: #b9b8f9ad;
+  --aurora-blush: #f4c9f1ae;
+  --aurora-side: #8dacfac4;
+  --aurora-glow: #ad9bf4ae;
   --aurora-edge: #d6e4fa;
   --aurora-accent: #0865df;
   --aurora-glass: #ffffffb8;
   background-color: var(--aurora-base);
   background-image:
-    radial-gradient(ellipse at 24% 28%, var(--aurora-cyan), transparent 42%),
-    radial-gradient(ellipse at 87% 43%, var(--aurora-lilac), transparent 40%),
-    radial-gradient(ellipse at 8% 60%, var(--aurora-blush), transparent 37%),
-    radial-gradient(ellipse at 67% 80%, var(--aurora-cyan), transparent 43%);
+    radial-gradient(ellipse at 49% 33%, #ffffffc7, transparent 41%),
+    radial-gradient(ellipse 35% 27% at 0% 36%, var(--aurora-side), transparent 90%),
+    radial-gradient(ellipse 34% 30% at 100% 46%, var(--aurora-glow), transparent 90%),
+    radial-gradient(ellipse at 6% 28%, var(--aurora-cyan), transparent 44%),
+    radial-gradient(ellipse at 96% 32%, var(--aurora-cyan), transparent 45%),
+    radial-gradient(ellipse at 7% 53%, var(--aurora-blush), transparent 40%),
+    radial-gradient(ellipse at 88% 55%, var(--aurora-lilac), transparent 44%),
+    radial-gradient(ellipse at 48% 84%, var(--aurora-cyan), transparent 47%);
   background-size: 100% 1120px;
   background-repeat: no-repeat;
 }
@@ -22,6 +28,8 @@ html body[data-health-alert-level="orange"] {
   --aurora-cyan: #ffcf8b8c;
   --aurora-lilac: #ffb46d66;
   --aurora-blush: #ffe5bd99;
+  --aurora-side: #ffc77db8;
+  --aurora-glow: #f4aa62a6;
   --aurora-edge: #d29b53;
   --aurora-accent: #8b4a08;
 }
@@ -30,9 +38,28 @@ html body[data-health-alert-level="red"] {
   --aurora-cyan: #f8b4b980;
   --aurora-lilac: #f5a0af66;
   --aurora-blush: #f7cbd499;
+  --aurora-side: #e9a4b3b8;
+  --aurora-glow: #e0889ca6;
   --aurora-edge: #cf7883;
   --aurora-accent: #a12032;
 }
+
+/* The same four route colours appear in the homepage dock and Health Hub.
+   Labels and distinct shapes still identify each destination without colour. */
+.doctorai-homepage {
+  --home-today-surface: #e8f2ff;
+  --home-today-accent: #0759b6;
+  --home-health-surface: #e7f7fa;
+  --home-health-accent: #0a718e;
+  --home-visit-surface: #edf2ff;
+  --home-visit-accent: #335ca8;
+  --home-profile-surface: #f0edff;
+  --home-profile-accent: #5b4fa8;
+}
+body[data-hub-layout="reference"][data-active-feature="medications"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
+body[data-hub-layout="reference"][data-active-feature="symptoms"] { --destination-bg: #e7f7fa; --destination-accent: #0a718e; }
+body[data-hub-layout="reference"][data-active-feature="appointments"] { --destination-bg: #edf2ff; --destination-accent: #335ca8; }
+body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destination-bg: #edf2ff; --destination-accent: #335ca8; }
 
 /* Homepage: a centred, spacious first screen, with the existing flows below. */
 .doctorai-homepage .home-header { border: 0; padding-block: 16px; z-index: 2; }
@@ -74,13 +101,13 @@ html body[data-health-alert-level="red"] {
   width: clamp(250px, 32vw, 480px);
   aspect-ratio: 1;
   margin-top: -22px;
-  margin-bottom: -79px;
+  margin-bottom: -87px;
   border: 1px solid #ffffffe6;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 25%, #ffffff7a, #ffffff17 65%, #dfddff47);
   box-shadow: inset 0 0 35px #ffffff73, 0 15px 55px #668ed915;
 }
-.home-aurora-mark .home-logo-tilt { inset: 0; }
+.home-aurora-mark .home-logo-tilt { inset: -18px 0 18px; }
 .home-aurora-mark .home-hero-logo { object-fit: contain; opacity: .84; }
 .home-aurora-hero .home-hero-copy { position: relative; width: 100%; max-width: none; }
 .home-aurora-hero h1 {
@@ -98,16 +125,16 @@ html body[data-health-alert-level="red"] {
 .home-aurora-hero .home-add-detail { justify-content: center; min-height: 68px; border: 1px solid #ffffff80; border-radius: 50px; background: #0664ed; box-shadow: 0 8px 30px #0877f529; font-size: 22px; }
 .home-aurora-hero .home-add-detail:hover { background: #0759b6; }
 .home-aurora-hero .home-add-detail > span { width: 32px; height: 32px; flex-basis: 32px; }
-.home-aurora-hero .home-scan-link { min-height: 44px; font-size: 16px; color: #0759b6; }
+.home-aurora-hero .home-scan-link { min-height: 44px; font-size: 17px; color: #0759b6; }
 .home-aurora-hero .home-scan-link small { background: #ffffffb3; }
-.home-aurora-dock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1140px); margin-top: 22px; padding: 16px 26px; border: 2px solid #ffffffd9; border-radius: 64px; background: #ffffff69; box-shadow: 0 8px 32px #718dd50b; backdrop-filter: blur(14px); }
+.home-aurora-dock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1180px); margin-top: 26px; padding: 18px 26px; border: 2px solid #ffffffd9; border-radius: 64px; background: #ffffff69; box-shadow: 0 8px 32px #718dd50b; backdrop-filter: blur(14px); }
 .home-aurora-dock a { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 62px; padding: 0 15px; color: #061639; font-size: 17px; font-weight: 700; line-height: 1.35; text-decoration: none; }
 .home-aurora-dock a + a { border-left: 1px solid #b5ccef; }
 .home-aurora-dock a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.home-aurora-dock .home-dock-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 52px; width: 52px; height: 52px; padding: 13px; border-radius: 50%; background: var(--home-topic-surface); color: var(--home-topic-accent); }
-.home-aurora-dock svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.home-aurora-dock .home-dock-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 52px; width: 52px; height: 52px; padding: 10px; border: 1px solid #bed9f1; border-radius: 50%; background: var(--home-topic-surface); color: var(--home-topic-accent); box-shadow: inset 0 1px #fff; }
+.home-aurora-dock svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .home-dock-check { display: inline-flex; width: 18px; height: 18px; color: #0069ed; }
-.home-aurora-dock a:first-child::after { content: ''; position: absolute; bottom: -7px; height: 3px; left: 10%; right: 10%; border-radius: 4px; background: #0878f5; }
+.home-aurora-dock a:first-child::after { content: ''; position: absolute; bottom: -7px; height: 3px; left: 18%; right: 18%; border-radius: 4px; background: #0878f5; }
 .home-aurora-note { margin: 16px 0 0; color: #465f73; font-size: 15px; }
 .home-aurora-meta { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; margin-top: 6px; }
 .home-aurora-meta .home-hero-limit { max-width: none; margin: 0; font-size: 12px; color: #465f73; }
@@ -128,6 +155,134 @@ body[data-hub-layout="reference"][data-health-alert-level] #hub-shell .hub-main 
 body[data-hub-layout="reference"] #hub-shell .hub-topbar { background: var(--aurora-glass); }
 body[data-hub-layout="reference"] .mobile-bottom-nav { background: #fffffff2; }
 body[data-hub-layout="reference"] :is(.hub-alert-shortcut, .health-alert-card) { background-clip: padding-box; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="moderate"], [data-severity="low"]) {
+  border-color: #efc18e;
+  border-left: 4px solid #b85d12;
+  background: linear-gradient(110deg, #fffaf3, #fff);
+}
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="moderate"], [data-severity="low"]) .hub-alert-icon { background: #fff0dc; color: #934407; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) {
+  border-color: #e8aab0;
+  border-left: 4px solid #b42332;
+  background: linear-gradient(110deg, #fff5f6, #fff);
+}
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) .hub-alert-icon { background: #ffe9ec; color: #a12032; }
+
+/* Quiet navigation lets the icon and active state carry the route colour. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .primary-nav > .nav-item[data-view] {
+  min-height: 56px;
+  gap: 11px;
+  padding-inline: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .primary-nav > .nav-item[data-view]:is(.active, [aria-current="page"], :hover) {
+  border-color: #c9dcef;
+  background: var(--hub-category-surface);
+  box-shadow: inset 3px 0 var(--hub-category-accent);
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .primary-nav > .nav-item[data-view] .nav-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border: 1px solid #c7dff0;
+  border-radius: 11px;
+  background: var(--hub-category-surface);
+  color: var(--hub-category-accent);
+  box-shadow: inset 0 1px #fff;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .primary-nav > .nav-item[data-view] .nav-icon svg { width: 19px; height: 19px; color: inherit; }
+body[data-hub-layout="reference"] #hub-shell .doctorai-feature-mark,
+.doctorai-homepage :is(.home-orbit-topic, .home-destination, .home-topics, .home-brief-rows) svg.doctorai-feature-mark { stroke-width: 2.2; }
+
+/* Large panels use pale washes; the short category labels retain their
+   matching aurora colours. Secondary routes receive real header padding. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today > .reference-intro {
+  border: 1px solid var(--aurora-edge);
+  border-left: 3px solid var(--hub-category-accent);
+  background: linear-gradient(115deg, #ffffffed, var(--hub-category-surface));
+  box-shadow: 0 10px 28px #496eaa0b;
+}
+body[data-hub-layout="reference"][data-active-feature] #hub-shell :is(#view-add, #view-medications, #view-diary, #view-symptoms, #view-appointments) > .page-heading {
+  padding: 20px 24px;
+  border: 1px solid var(--aurora-edge);
+  border-left: 3px solid var(--destination-accent);
+  background: linear-gradient(115deg, #ffffffed, var(--destination-bg));
+  box-shadow: 0 10px 28px #496eaa0b;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) :is(.health-snapshot, .health-reminders-disclosure, .reference-brief-card, .profile-page-hero, .hub-storage-status article, .memory-card) {
+  border-color: var(--aurora-edge);
+  background: linear-gradient(115deg, #ffffffed, var(--hub-category-surface));
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .care-visit-card,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-visit-link {
+  border-color: #c9dcef;
+  background: linear-gradient(115deg, #ffffffed, var(--hub-visit-surface));
+}
+
+/* Feature and utility tiles reuse the same restrained surface language.
+   Alert cards, severity badges and clinical status icons are untouched. */
+body[data-hub-layout="reference"] #hub-shell :is(.refill-icon, .result-file-icon, .info-icon.coral, .overview-icon.coral, .provider-avatar, .drop-icon) {
+  border: 1px solid #c6dcef;
+  background: #edf5ff;
+  color: #0759b6;
+}
+body[data-hub-layout="reference"] #hub-shell :is(.info-icon.purple, .overview-icon.purple, .provider-avatar.pale) {
+  border: 1px solid #d0c8f0;
+  background: #f1efff;
+  color: #5b4fa8;
+}
+body[data-hub-layout="reference"] :is(.drawer-row-icon, .modal-choice > span, .profile-shortcut-add > span:first-child) {
+  border: 1px solid #c6dcef;
+  border-radius: 11px;
+  background: #edf5ff;
+  color: #0759b6;
+}
+body[data-hub-layout="reference"] #view-profile .profile-shortcut-card { border-color: #d2e2f0; background: #ffffffd9; }
+body[data-hub-layout="reference"] #view-profile .profile-shortcut-card:hover { border-color: #89b8e4; background: #f6faff; }
+body[data-hub-layout="reference"] #view-profile :is(.memory-large-icon, .memory-disclosure-chevron, .memory-disclosure-status) { color: var(--hub-profile-accent); }
+
+/* The Add Health Detail chooser has six distinct symbols within one palette. */
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice {
+  --choice-bg: #f8fbff;
+  --choice-border: #c6dcef;
+  --choice-accent: #0759b6;
+  --choice-icon-bg: #e8f2ff;
+  --choice-ink: #0759b6;
+  box-shadow: inset 3px 0 var(--choice-accent);
+}
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="health"] { --choice-bg: #f5fcfd; --choice-border: #c2e4ed; --choice-accent: #0a718e; --choice-icon-bg: #e7f7fa; --choice-ink: #0a718e; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="symptom"] { --choice-bg: #f7f8ff; --choice-border: #d0d8f0; --choice-accent: #335ca8; --choice-icon-bg: #edf2ff; --choice-ink: #335ca8; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="appointment"] { --choice-bg: #f9f8ff; --choice-border: #d0c8f0; --choice-accent: #5b4fa8; --choice-icon-bg: #f0edff; --choice-ink: #5b4fa8; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="measurement"] { --choice-bg: #f7faff; --choice-border: #c8d9ed; --choice-accent: #2863ae; --choice-icon-bg: #edf4ff; --choice-ink: #2863ae; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-view="documents"] { --choice-bg: #f5fcfd; --choice-border: #c2e4ed; --choice-accent: #0a718e; --choice-icon-bg: #e7f7fa; --choice-ink: #0a718e; }
+
+/* Navigation never repaints a clinical badge blue. */
+body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-nav-symbol[data-alert-level="green"] { color: #166534; background: #eefbf3; }
+body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-nav-symbol[data-alert-level="orange"] { color: #934407; background: #fff5e8; }
+body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-nav-symbol[data-alert-level="red"] { color: #b42318; background: #fff1f0; }
+
+@media (max-width: 800px) {
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] { border: 1px solid transparent; background: transparent; box-shadow: none; }
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view]:is(.active, [aria-current="page"]) { border-color: #c9dcef; background: var(--hub-category-surface); box-shadow: inset 0 2px var(--hub-category-accent); }
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] { grid-template-rows: 28px auto; height: 62px; }
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] > span:not(.hub-alert-nav-symbol) {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border: 1px solid #c7dff0;
+    border-radius: 9px;
+    background: var(--hub-category-surface);
+    color: var(--hub-category-accent);
+  }
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] > span:not(.hub-alert-nav-symbol) svg { width: 20px; height: 20px; color: inherit; }
+  body[data-hub-layout="reference"][data-active-feature] #hub-shell :is(#view-add, #view-medications, #view-diary, #view-symptoms, #view-appointments) > .page-heading { padding: 18px 16px; }
+}
 
 @media (max-width: 1080px) and (min-width: 681px) {
   .doctorai-homepage .home-nav-page { display: inline-flex !important; }
@@ -156,6 +311,7 @@ body[data-hub-layout="reference"] :is(.hub-alert-shortcut, .health-alert-card) {
   .doctorai-homepage .home-mobile-menu summary { padding-inline: 8px; font-size: 12px; }
   .home-aurora-hero { padding-top: 12px; }
   .home-aurora-mark { width: clamp(215px, 61vw, 290px); margin-top: 4px; margin-bottom: -18px; }
+  .home-aurora-mark .home-logo-tilt { inset: -10px 0 10px; }
   .home-aurora-hero h1 { font-size: clamp(36px, 8.4vw, 54px); letter-spacing: -.055em; line-height: 1.05; }
   .home-aurora-hero .home-lead { margin-top: 18px; font-size: 18px; }
   .home-aurora-hero .home-actions { margin-top: 22px; width: 100%; }
@@ -188,7 +344,9 @@ body[data-hub-layout="reference"] :is(.hub-alert-shortcut, .health-alert-card) {
   .home-aurora-dock { border-color: CanvasText; background: Canvas; }
   .home-aurora-dock a, .home-aurora-hero h1, .home-aurora-hero h1 em { color: CanvasText; }
   .home-aurora-dock a:first-child::after { background: LinkText; }
-  .home-aurora-dock .home-dock-icon { background: Canvas; color: LinkText; }
+  .home-aurora-dock .home-dock-icon { border-color: CanvasText; background: Canvas; color: LinkText; }
+  body[data-hub-layout="reference"] #hub-shell .primary-nav > .nav-item[data-view] .nav-icon,
+  body[data-hub-layout="reference"] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] > span:not(.hub-alert-nav-symbol) { border-color: CanvasText; background: Canvas; color: LinkText; }
   body[data-hub-layout="reference"][data-health-alert-level] #hub-shell .hub-main { border-color: CanvasText; }
 }
 @media print {

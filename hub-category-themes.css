@@ -1,14 +1,14 @@
 /* Main-category identity matches the homepage. Keep clinical severity colours separate.
    Loaded after the layout; uses existing route attributes without changing navigation. */
 body[data-hub-layout="reference"][data-hub-theme] {
-  --hub-today-surface: #eaf3ff;
+  --hub-today-surface: #e8f2ff;
   --hub-today-accent: #0759b6;
-  --hub-health-surface: #e8f6f1;
-  --hub-health-accent: #176b60;
-  --hub-visit-surface: #fff4de;
-  --hub-visit-accent: #805418;
-  --hub-profile-surface: #f2edfc;
-  --hub-profile-accent: #65439b;
+  --hub-health-surface: #e7f7fa;
+  --hub-health-accent: #0a718e;
+  --hub-visit-surface: #edf2ff;
+  --hub-visit-accent: #335ca8;
+  --hub-profile-surface: #f0edff;
+  --hub-profile-accent: #5b4fa8;
   --hub-category-ink: #0a2340;
   --hub-category-copy: #465f73;
 }

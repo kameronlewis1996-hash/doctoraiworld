@@ -4,7 +4,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const viewNames = ['today', 'health', 'visit-prep', 'profile', 'scan', 'add', 'diary', 'alerts'];
-  const viewLabels = { today: 'Today', 'visit-prep': 'Visit prep', profile: 'Profile', health: 'My Health', scan: 'Scan Medication', add: 'Add Health Details', diary: 'My Diary', alerts: 'Alerts' };
+  const viewLabels = { today: 'Today', 'visit-prep': 'Visit prep', profile: 'Profile', health: 'My Health', scan: 'Scan Medication', add: 'Add Health Detail', diary: 'My Diary', alerts: 'Alerts' };
   const hubPanels = { today: [], 'visit-prep': [], profile: [], health: ['details', 'ask'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
   const legacyHubRoutes = { visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['diary', 'results'], timeline: ['diary', 'timeline'], documents: ['add', 'documents'], medications: ['add', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['health', 'details'] };
   function resolveHubRoute(name, requestedPanel = '') {
@@ -606,7 +606,7 @@
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     const featureLabels = { medications: 'Medicines', documents: 'Documents', symptoms: 'Symptoms', appointments: 'Appointments', results: 'Measurements & results', timeline: 'History' };
-    const secondaryLabels = { scan: 'Scan a label', add: 'Add details', diary: 'My diary', alerts: 'Alerts' };
+    const secondaryLabels = { scan: 'Scan a label', add: 'Add Health Detail', diary: 'My diary', alerts: 'Alerts' };
     const section = document.querySelector('[data-view-panel="' + next + '"]');
     const label = next === 'diary' ? 'My diary' : featureLabels[route.panel] || secondaryLabels[next] || viewLabels[next];
     const heading = section?.querySelector(':scope > .page-heading h1');

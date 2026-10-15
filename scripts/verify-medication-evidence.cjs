@@ -111,12 +111,12 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=87/);
+  assert.match(hubHtml, /health-hub\.js\?v=88/);
   assert.match(hubHtml, /health-hub\.css\?v=85/);
   assert.match(hubHtml, /health-alerts\.js\?v=4/);
-  assert.match(serviceWorker, /doctorai-shell-v145/);
+  assert.match(serviceWorker, /doctorai-shell-v148/);
   assert.match(serviceWorker, /health-alerts\.js\?v=4/);
-  assert.match(serviceWorker, /health-hub\.js\?v=87/);
+  assert.match(serviceWorker, /health-hub\.js\?v=88/);
 
   console.log('Medication rights, retained-data provenance, Pharmac attribution, three corrected ingredient mappings, incomplete-product fail-closed handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
