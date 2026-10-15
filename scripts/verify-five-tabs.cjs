@@ -169,13 +169,15 @@ for (const fixture of [
   { id:'signed-in-ready-without-data', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:true, dataReady:false, device:'This session only', account:'Account sync not confirmed' },
   { id:'signed-in-failure', allowed:true, choice:'yes', user:{name:'Fictional user'}, sync:'unconfirmed', enabled:true, device:'Keep between visits', account:'Account sync not confirmed' },
   { id:'device-write-failed', allowed:true, choice:'yes', storageFailed:true, user:null, sync:'not-signed-in', enabled:true, device:'Could not save on this device', account:'Not signed in' },
+  { id:'device-removal-failed', allowed:false, choice:'session', removalFailed:true, user:null, sync:'not-signed-in', enabled:true, device:'Old browser data may remain', account:'Not signed in' },
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
+  if (fixture.removalFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /Clear this site's browser data/, 'Failed removal gives a persistent cleanup instruction.');
   assert.equal(nodes['#hub-account-sync-state'].textContent, fixture.account, `${fixture.id}: signed-in and unconfirmed sync states stay distinct.`);
   assert.ok(nodes['#hub-account-sync-note'].textContent, `${fixture.id}: account sync has explanatory text.`);
 }
@@ -245,7 +247,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
+    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();

@@ -24,7 +24,8 @@
   let deviceStorageChoice = '';
   let localStorageAllowed = false;
   let localStorageWriteFailed = false;
-  try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; } catch {}
+  let localStorageRemovalFailed = false;
+  try { deviceStorageChoice = localStorage.getItem(storageConsentKey) || ''; localStorageAllowed = deviceStorageChoice === 'yes'; localStorageRemovalFailed = deviceStorageChoice === 'session-cleanup-incomplete'; } catch {}
 
   const localStorageKey = key => {
     if (!accountScopedStorageKeys.has(key)) return storagePrefix + key;
@@ -32,8 +33,26 @@
     if (!localHealthAccountScope) return '';
     return `${storagePrefix}account-${localHealthAccountScope}-${key}`;
   };
+  const deviceHealthStorageKeys = () => {
+    const keys = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (typeof key !== 'string' || !key.startsWith(storagePrefix)) continue;
+      const suffix = key.slice(storagePrefix.length);
+      const accountSuffix = /^account-[a-f0-9]{64}-(.+)$/.exec(suffix)?.[1];
+      if (accountScopedStorageKeys.has(suffix) || (accountSuffix && accountScopedStorageKeys.has(accountSuffix))) keys.push(key);
+    }
+    return keys;
+  };
+  const removeDeviceHealthData = keys => {
+    try {
+      const healthKeys = keys || deviceHealthStorageKeys();
+      healthKeys.forEach(key => localStorage.removeItem(key));
+      return healthKeys.every(key => localStorage.getItem(key) === null);
+    } catch { return false; }
+  };
   const read = (key, fallback) => {
-    if (deviceStorageChoice === 'session') return fallback;
+    if (deviceStorageChoice === 'session' || deviceStorageChoice === 'session-cleanup-incomplete') return fallback;
     try {
       const storageKey = localStorageKey(key);
       if (!storageKey) return fallback;
@@ -337,6 +356,7 @@
   let googleCredentialInFlight = false;
   let medicationRulesVersion = '';
   let medicationContextPromise = Promise.resolve();
+  let medicationCheckStorageKey = '';
   const medicationCheckController = new window.DoctorAIMedicationCheck.Controller({
     request: async (payload, signal) => {
       const response = await fetch('/api/medication/safety', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(payload), signal });
@@ -344,9 +364,9 @@
       if (!response.ok) throw new Error(result.error || 'No medication check was returned.');
       return result;
     },
-    load: () => read('medication-check', null),
-    save: value => write('medication-check', value),
-    remove: () => { try { localStorage.removeItem(storagePrefix + 'medication-check'); } catch {} },
+    load: () => { medicationCheckStorageKey = localStorageKey('medication-check'); return read('medication-check', null); },
+    save: value => { medicationCheckStorageKey = localStorageKey('medication-check'); write('medication-check', value); },
+    remove: () => { try { if (medicationCheckStorageKey) localStorage.removeItem(medicationCheckStorageKey); } catch {} medicationCheckStorageKey = ''; },
     onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); renderHealthAlerts(); }
   });
 
@@ -445,14 +465,31 @@
     toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2800);
   };
   function setDeviceStorage(allowed) {
-    deviceStorageChoice = allowed ? 'yes' : 'session';
+    if (allowed && localStorageRemovalFailed && !removeDeviceHealthData()) {
+      showToast('Old browser health data still could not be removed. Clear this site\'s browser data before enabling device storage again.');
+      return;
+    }
+    let removed = true;
+    if (!allowed) {
+      let savedKeys = null;
+      try { savedKeys = deviceHealthStorageKeys(); } catch {}
+      if (savedKeys?.length && !window.confirm('Remove health-hub records already saved in this browser for every DoctorAI profile on this device? Signed-in account copies remain.')) return;
+      removed = removeDeviceHealthData(savedKeys);
+    }
+    deviceStorageChoice = allowed ? 'yes' : removed ? 'session' : 'session-cleanup-incomplete';
     localStorageAllowed = Boolean(allowed);
-    try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    let consentSaved = false;
+    try { localStorage.setItem(storageConsentKey, deviceStorageChoice); consentSaved = true; } catch {}
+    localStorageRemovalFailed = !allowed && (!removed || !consentSaved);
+    if (localStorageRemovalFailed && deviceStorageChoice === 'session') {
+      deviceStorageChoice = 'session-cleanup-incomplete';
+      try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    }
     if (storageConsent) storageConsent.hidden = true;
     if (allowed) saveState();
-    setSyncStatus(allowed ? 'Saved in this browser' : 'Device storage off · session only');
+    setSyncStatus(localStorageRemovalFailed ? 'Session only requested - old browser data may remain' : allowed ? 'Saved in this browser' : 'Device storage off · session only');
     refreshMedicationCheckContext().catch(() => {});
-    showToast(allowed ? 'This browser will keep your health hub between visits.' : 'Health-hub changes will stay only for this session unless account sync is active.');
+    showToast(localStorageRemovalFailed ? 'The browser could not confirm removal of old health data. Clear this site\'s browser data before sharing this device.' : allowed ? 'This browser will keep your health hub between visits.' : 'Saved browser health data was removed. New changes stay in this session unless account sync is active.');
     renderHomePrescriptionAlert();
   }
   const saveState = () => {
@@ -497,6 +534,7 @@
   }
 
   function deviceStorageStatus() {
+    if (localStorageRemovalFailed) return 'Old browser data may remain';
     if (localStorageAllowed) return 'Saved in this browser';
     if (deviceStorageChoice === 'session') return 'Device storage off · session only';
     return 'Choose storage settings';
@@ -504,8 +542,8 @@
   function renderStorageStatus() {
     const device = $('#hub-device-storage-state');
     const deviceNote = $('#hub-device-storage-note');
-    if (device) device.textContent = localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
-    if (deviceNote) deviceNote.textContent = localStorageWriteFailed ? 'This browser refused a recent save. Check available storage or switch to session-only use; your last change may not persist on this device.' : 'You choose whether this browser keeps entries between visits.';
+    if (device) device.textContent = localStorageRemovalFailed ? 'Old browser data may remain' : localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
+    if (deviceNote) deviceNote.textContent = localStorageRemovalFailed ? 'This browser did not confirm removal of saved health data. Clear this site\'s browser data before sharing this device.' : localStorageWriteFailed ? 'This browser refused a recent save. Check available storage or switch to session-only use; your last change may not persist on this device.' : 'You choose whether this browser keeps entries between visits.';
     const account = $('#hub-account-sync-state'), note = $('#hub-account-sync-note');
     if (!account || !note) return;
     const syncState = !cloudSyncEnabled ? 'unavailable' : accountSyncState === 'ready' && !medicationAccountDataReady ? 'unconfirmed' : accountSyncState;
@@ -3107,13 +3145,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   async function deleteHealthData() {
     if (cloudSyncBusy) { showToast('A private save is finishing. Please try deletion again in a moment.'); return; }
     if (deleteHealthData.busy) return;
-    if (!window.confirm('Delete all health hub data, including saved medications, symptom diary entries, appointments, measurements, timeline entries and documents? This cannot be undone.')) return;
+    if (!window.confirm('Delete health-hub records saved in this browser for every DoctorAI profile on this device? If signed in, this also deletes your current account\'s hub records and uploaded files. This cannot be undone.')) return;
     deleteHealthData.busy = true;
     window.clearTimeout(cloudSyncTimer);
     const syncWasEnabled = cloudSyncEnabled;
     cloudSyncEnabled = false;
     cloudSyncDirty = false;
     cloudSyncRevision += 1;
+    accountSessionRevision += 1; // Invalidate an earlier account-state load before it can restore deleted records.
+    const deletionScope = accountSyncScope();
+    const ownerChanged = () => {
+      if (deletionScope === accountSyncScope()) return false;
+      deleteHealthData.busy = false;
+      showToast('The account changed during deletion. Check the previous account before retrying; this page did not clear the new account.');
+      return true;
+    };
     let cloudDeletionFailed = false;
     showToast('Deleting health data… Please keep this page open.');
     if (authUser) {
@@ -3126,29 +3172,49 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         if (!response.ok || !Array.isArray(payload.documents)) throw new Error('Document inventory unavailable');
         documents = payload.documents;
       } catch { cloudDeletionFailed = true; }
+      if (ownerChanged()) return;
       for (const document of documents) {
+        if (ownerChanged()) return;
         try {
           const response = await fetch(`/api/documents?id=${encodeURIComponent(document.id)}`, { method: 'DELETE' });
           if (!response.ok && response.status !== 404) cloudDeletionFailed = true;
         } catch { cloudDeletionFailed = true; }
       }
+      if (ownerChanged()) return;
       try {
         if (cloudDeletionFailed) throw new Error('Document deletion incomplete');
         const response = await fetch('/api/health/state', { method: 'DELETE' });
         if (!response.ok) cloudDeletionFailed = true;
       } catch { cloudDeletionFailed = true; }
     }
+    if (ownerChanged()) return;
     deleteHealthData.busy = false;
     if (cloudDeletionFailed) {
       setSyncStatus('Deletion incomplete — retry in Privacy controls');
       showToast('Deletion could not finish. Some cloud files may already be removed. Your local record is kept; retry from Privacy controls when connected. Sync is paused until you reload.');
       return;
     }
+    await medicationCheckController.setConsent(false);
     state.medications = []; state.appointments = []; state.providers = []; state.timeline = []; state.documents = []; state.measurements = []; state.tasks = []; state.profile = clone(emptyProfile); state.memoryEnabled = false; state.memoryDetails = [];
-    write('medications', []); write('appointments', []); write('providers', []); write('timeline', []); write('documents', []); write('measurements', []); write('tasks', []); write('profile', state.profile); write('memory-enabled', false); write('memory-details', []); write('updated-at', Date.now());
+    localStateUpdatedAt = 0;
+    sessionHealthStateCache.clear();
+    discardPreparationDrafts(true);
+    const deviceCleared = removeDeviceHealthData();
+    localStorageRemovalFailed = !deviceCleared;
+    if (!deviceCleared) {
+      deviceStorageChoice = 'session-cleanup-incomplete';
+      localStorageAllowed = false;
+      try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
+    }
     clearChat({ confirm: false, notify: false });
-    cloudSyncEnabled = syncWasEnabled;
-    renderAll(); closePrivacy();
+    cloudSyncEnabled = deviceCleared && syncWasEnabled;
+    renderAll();
+    if (!deviceCleared) {
+      setSyncStatus('Browser cleanup incomplete - account sync paused');
+      showToast('Account deletion finished, but old browser data may remain. Clear this site\'s browser data before using this device again.');
+      return;
+    }
+    closePrivacy();
     setSyncStatus('Health data deleted');
     showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
   }
