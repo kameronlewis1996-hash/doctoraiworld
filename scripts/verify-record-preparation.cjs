@@ -660,6 +660,7 @@ async function verifyProfileBrief() {
   const f = fixture({ profile });
   f.context.openCareSummary();
   const form = f.brief();
+  assert.equal(f.observed.reviewFocus, 1, 'Opening the visit brief focuses its current dialog title.');
   const choices = form.choices.filter(choice => choice.html.includes('Fictional'));
   assert.equal(choices.length, 4, 'The optional profile group offers conditions, allergies, blood type and notes.');
   assert.ok(choices.every(choice => !choice.querySelector('input').checked), 'Profile information requires explicit selection.');
@@ -676,7 +677,7 @@ async function verifyProfileBrief() {
   form.values.focus = 'Review this fictional history';
   submit(f.context, form);
   const html = f.modal().html;
-  assert.equal(f.observed.reviewFocus, 1, 'Review moves keyboard focus to the updated dialog heading.');
+  assert.equal(f.observed.reviewFocus, 2, 'Review moves keyboard focus to the updated dialog heading.');
   assert.ok(html.includes('Conditions &amp; history: Fictional condition &lt;script&gt;blocked&lt;/script&gt; (older entry; status unreviewed)'), 'The explicitly chosen legacy profile detail reaches the reviewed brief with its uncertainty and escaping.');
   for (const unselected of [profile.allergies, profile.bloodType, profile.notes, profile.name]) assert.ok(!html.includes(unselected), `Unselected profile detail is excluded: ${unselected}`);
   assert.equal(f.observed.saves.length, 0, 'Selecting profile context for a brief does not rewrite saved records.');
@@ -759,6 +760,7 @@ function verifyStructuredProfileAndDiaryQuestions() {
   const question = form.choices.find(choice => choice.html.includes('Should I discuss'));
   const oldQuestion = form.choices.find(choice => choice.html.includes('OLD_QUESTION'));
   assert.ok(condition && allergy && question && oldQuestion);
+  assert.ok(!condition.html.includes('Current fictional condition') && !allergy.html.includes('Fictional pollen'), 'Each structured condition and allergy has its own choice.');
   assert.ok(!condition.querySelector('input').checked && !allergy.querySelector('input').checked && !question.querySelector('input').checked);
   assert.ok(oldQuestion.hidden, 'The default date window hides older diary questions.');
   condition.querySelector('input').checked = true;
@@ -767,8 +769,8 @@ function verifyStructuredProfileAndDiaryQuestions() {
   oldQuestion.querySelector('input').checked = true;
   submit(f.context, form);
   const html = f.modal().html;
-  for (const text of ['Current fictional condition (current)', 'Historical fictional condition (historical)', 'Fictional pollen; reaction: Fictional rash (recorded as confirmed by you)', 'Fictional cream; reaction: Uncertain itch (possible reaction)', 'Should I discuss my fictional sleep note?']) assert.ok(html.includes(text), `Reviewed brief preserves selected status or question: ${text}`);
-  assert.ok(!html.includes('OLD_QUESTION_MUST_NOT_APPEAR') && !html.includes('Earlier compatibility allergy'), 'Historical date filtering and structured profile precedence remain intact.');
+  for (const text of ['Historical fictional condition (historical)', 'Fictional cream; reaction: Uncertain itch (possible reaction)', 'Should I discuss my fictional sleep note?']) assert.ok(html.includes(text), `Reviewed brief preserves selected status or question: ${text}`);
+  for (const text of ['Current fictional condition', 'Fictional pollen', 'OLD_QUESTION_MUST_NOT_APPEAR', 'Earlier compatibility allergy']) assert.ok(!html.includes(text), `Unselected or filtered profile and diary records stay out of the brief: ${text}`);
   assert.equal(f.observed.saves.length, 0, 'Preparing a brief does not change saved health records.');
 }
 
@@ -776,6 +778,7 @@ async function verifyAppointmentRequestDraft() {
   const f = fixture({ profile: { name: 'Fictional person' }, appointments: [{ id: 'fictional-visit', title: 'Existing fictional visit' }] });
   const before = clone(f.state);
   f.context.openAppointmentRequest();
+  assert.equal(f.observed.reviewFocus, 1, 'Opening the request focuses its current dialog title.');
   assert.match(f.modal().html, /does not send this draft, contact a clinic or book an appointment/i);
   assert.match(f.modal().html, /data-appointment-request-form/);
   const empty = appointmentRequestForm({ reason: '  ' });
@@ -787,7 +790,7 @@ async function verifyAppointmentRequestDraft() {
   const form = appointmentRequestForm(values);
   submit(f.context, form);
   assert.match(f.modal().html, /No appointment has been requested or booked/);
-  assert.equal(f.observed.reviewFocus, 1, 'Request review moves focus to the updated dialog heading.');
+  assert.equal(f.observed.reviewFocus, 2, 'Request review moves focus to the updated dialog heading.');
   assert.ok(f.modal().html.includes(escaped(values.clinic)) && !f.modal().html.includes('<script>'), 'Review escapes clinic supplied text.');
   const copied = [];
   f.context.navigator = { clipboard: { writeText: async text => { copied.push(text); } } };
@@ -812,14 +815,15 @@ function verifyPreparationOwnerTransition() {
   const script = [
     'let careSummaryDraft = { html: "fictional owner A brief" };',
     'let appointmentRequestDraft = { text: "fictional owner A request" };',
+    'let preparationReturnFocus = true;',
     'let authUser = { email: "owner-a@example.invalid" };',
     'let medicationAccountDataReady = true; let medicationLoginId = "";',
-    between('  function discardPreparationDrafts(', '  function focusPreparationReview('),
+    between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
     between('  function renderAccountSession(', '  function renderEntitlementStatus('),
-    'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft });'
+    'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus });'
   ].join('\n');
   const context = {
-    observed, els: {}, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
     activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
     clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
@@ -829,7 +833,34 @@ function verifyPreparationOwnerTransition() {
   const result = vm.runInNewContext(script, context, { timeout: 1000, filename: 'health-hub-preparation-owner-transition.js' });
   assert.equal(result.careSummaryDraft, null, 'Switching away from an account clears its selected brief.');
   assert.equal(result.appointmentRequestDraft, null, 'Switching away from an account clears its unsent request.');
+  assert.equal(result.preparationReturnFocus, false, 'Account switching drops any focus return to a prior owner.');
+  assert.equal(context.els.modalBody.innerHTML, '', 'Account switching removes hidden modal content from the previous owner.');
   assert.deepEqual(observed, { closed: 1, rendered: 1, printRemoved: 1, printClassRemoved: 1 }, 'Account transition closes the modal and removes the temporary print copy before rendering the next owner.');
+}
+
+function verifyPreparationCloseFocus() {
+  const observed = { focused: 0, printClassRemoved: 0, onClose: null };
+  const heading = { closest: () => null, setAttribute() {}, focus: () => observed.focused++ };
+  const context = vm.createContext({
+    observed,
+    els: { modal: { open: false, addEventListener: (_type, listener) => { observed.onClose = listener; } }, modalBody: { innerHTML: 'fictional reviewed brief' } },
+    document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    $: selector => selector === '#visit-prep-title' ? heading : null,
+    requestAnimationFrame: callback => callback(), closeModal() {}
+  });
+  vm.runInContext([
+    'let careSummaryDraft = { html: "fictional reviewed brief" };',
+    'let appointmentRequestDraft = null; let preparationReturnFocus = true;',
+    between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
+    between("  els.modal.addEventListener('close',", "  els.medicationScannerModal?.addEventListener('click',")
+  ].join('\n'), context, { timeout: 1000, filename: 'health-hub-preparation-close-focus.js' });
+  assert.equal(typeof observed.onClose, 'function', 'The production modal close handler is registered.');
+  observed.onClose();
+  const result = vm.runInContext('({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus })', context);
+  assert.equal(result.careSummaryDraft, null, 'Closing removes the reviewed brief from memory.');
+  assert.equal(context.els.modalBody.innerHTML, '', 'Closing removes private review text from the hidden dialog.');
+  assert.equal(result.preparationReturnFocus, false, 'The focus fallback does not persist beyond the close.');
+  assert.equal(observed.focused, 1, 'Closing after navigation focuses the visible Visit prep heading.');
 }
 
 (async () => {
@@ -844,5 +875,6 @@ function verifyPreparationOwnerTransition() {
   verifyStructuredProfileAndDiaryQuestions();
   await verifyAppointmentRequestDraft();
   verifyPreparationOwnerTransition();
-  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; opt-in visit selection counts, review/back focus and draft cleanup on cancel/account switch; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
+  verifyPreparationCloseFocus();
+  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1877,14 +1877,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   let careSummaryDraft = null;
   let appointmentRequestDraft = null;
-  function discardPreparationDrafts(closeDialog = false) {
+  let preparationReturnFocus = false;
+  function discardPreparationDrafts(closeDialog = false, clearDialogContent = false) {
     careSummaryDraft = null;
     appointmentRequestDraft = null;
     $('#care-summary-print')?.remove();
     document.body.classList.remove('care-printing');
-    if (closeDialog) closeModal();
+    if (closeDialog) { preparationReturnFocus = false; closeModal(); }
+    if (closeDialog || clearDialogContent) els.modalBody.innerHTML = '';
   }
-  function focusPreparationReview() {
+  function focusPreparationTitle() {
     if (!els.modalTitle) return;
     els.modalTitle.setAttribute('tabindex', '-1');
     els.modalTitle.focus();
@@ -2125,18 +2127,18 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const label = String(item?.label || '').trim();
         if (!label) return '';
         const status = item.source === 'legacy' ? 'older entry; status unreviewed' : ({ current: 'current', historical: 'historical', unsure: 'unsure' }[item.status] || 'status unsure');
-        return `${label} (${status})`;
-      }).filter(Boolean).join(' | ')
-      : legacyProfileDetail(state.profile.conditions, 'status');
+        return `Conditions & history: ${label} (${status})`;
+      }).filter(Boolean)
+      : [legacyProfileDetail(state.profile.conditions, 'status')].filter(Boolean).map(value => `Conditions & history: ${value}`);
     const allergyDetails = Array.isArray(state.profile.allergyEntries)
       ? state.profile.allergyEntries.map(item => {
         const substance = String(item?.substance || '').trim();
         if (!substance) return '';
         const reaction = String(item.reaction || '').trim();
         const certainty = item.source === 'legacy' || item.certainty === 'legacy' ? 'older entry; certainty unreviewed' : ({ confirmed: 'recorded as confirmed by you', suspected: 'possible reaction', unsure: 'unsure' }[item.certainty] || 'certainty unsure');
-        return `${substance}${reaction ? `; reaction: ${reaction}` : ''} (${certainty})`;
-      }).filter(Boolean).join(' | ')
-      : legacyProfileDetail(state.profile.allergies, 'certainty');
+        return `Allergies & reactions: ${substance}${reaction ? `; reaction: ${reaction}` : ''} (${certainty})`;
+      }).filter(Boolean)
+      : [legacyProfileDetail(state.profile.allergies, 'certainty')].filter(Boolean).map(value => `Allergies & reactions: ${value}`);
     const symptomBriefText = item => {
       const severity = symptomSeverity(item.severity);
       const notes = String(item.notes || '').trim();
@@ -2155,7 +2157,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       { title: 'What I noticed', dates: symptoms.map(item => briefDate(item.date)), items: symptoms.map(symptomBriefText) },
       { title: 'Questions saved in my diary', dates: diaryQuestions.map(item => briefDate(item.date)), items: diaryQuestions.map(item => [item.date, String(item.description || '').trim()].filter(Boolean).join(' · ')) },
       { title: 'Saved medicine details (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions, item.startDate ? `Saved start date: ${item.startDate}` : '', item.endDate ? `Saved end date: ${item.endDate}` : ''].filter(Boolean).join(' · ')) },
-      { title: 'Saved health profile (not date filtered)', items: [['Conditions & history', conditionDetails], ['Allergies & reactions', allergyDetails], ['Blood type', state.profile.bloodType], ['Profile notes', state.profile.notes]].filter(([, value]) => String(value || '').trim()).map(([label, value]) => `${label}: ${String(value).trim()}`) },
+      { title: 'Saved health profile (not date filtered)', items: [...conditionDetails, ...allergyDetails, ...[['Blood type', state.profile.bloodType], ['Profile notes', state.profile.notes]].filter(([, value]) => String(value || '').trim()).map(([label, value]) => `${label}: ${String(value).trim()}`)] },
       { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
       { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
     ];
@@ -2181,6 +2183,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
     form.addEventListener('change', event => { if (event.target.matches('input[name="entry"]')) updateBriefPeriod(form); });
     updateBriefPeriod(form);
+    focusPreparationTitle();
   }
 
   function reviewCareSummary(form) {
@@ -2208,7 +2211,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     careSummaryDraft.form = form;
     careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Saved medicine details are not date filtered; check which medicines you still take.</p>${appointmentDetails ? `<section><h2>Appointment</h2><p>${escapeHTML(appointmentDetails)}</p></section>` : ''}${sections.map(section => `<section class="care-brief-section${section.priority ? ' care-brief-priority' : ''}"><h2>${escapeHTML(section.title)}</h2><ul>${section.items.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section>`).join('')}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
     setModal('Review my visit brief', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy visit brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
-    focusPreparationReview();
+    focusPreparationTitle();
   }
 
   function openAppointmentRequest() {
@@ -2222,6 +2225,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <label>Questions to ask (optional)<textarea name="questions" rows="3" maxlength="1000" placeholder="Add questions you want the clinic to know about."></textarea></label>
       <p class="appointment-request-boundary">This is not for emergencies. If you need urgent care, contact local urgent or emergency services. No request is saved or sent by DoctorAI.</p>
       <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review request draft</button></div></form>`);
+    focusPreparationTitle();
   }
 
   function reviewAppointmentRequest(form) {
@@ -2234,7 +2238,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const lines = ['Appointment request draft', clinic ? `Clinic or service: ${clinic}` : '', `Reason: ${reason}`, preferred ? `Preferred days or times: ${preferred}` : '', questions ? `Questions: ${questions}` : '', 'This is a request draft only. No appointment is booked.'].filter(Boolean);
     appointmentRequestDraft = { form, text: lines.join('\n\n') };
     setModal('Review appointment request', 'Check before copying', `<div class="care-summary-review"><p><b>No appointment has been requested or booked.</b> Check this draft, then copy it if you want to contact the clinic yourself.</p><article id="appointment-request-reviewed"><h2>Appointment request draft</h2>${lines.slice(1, -1).map(line => `<p>${escapeHTML(line)}</p>`).join('')}<p><b>This is a request draft only. No appointment is booked.</b></p></article><div class="care-print-actions"><button type="button" class="primary-button" data-copy-appointment-request>Copy request draft</button><button type="button" class="secondary-button" data-edit-appointment-request>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>Copying places this draft on your device's clipboard. You decide whether and where to send it.</small></p></div>`);
-    focusPreparationReview();
+    focusPreparationTitle();
   }
 
   function printCareSummary() {
@@ -3642,8 +3646,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
     if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
-    if (event.target.closest('[data-open-summary]')) { event.preventDefault(); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
-    if (event.target.closest('[data-open-appointment-request]')) { event.preventDefault(); setMobileMenuOpen(false); showView('visit-prep'); openAppointmentRequest(); return; }
+    const summaryOpener = event.target.closest('[data-open-summary]');
+    if (summaryOpener) { event.preventDefault(); preparationReturnFocus = !summaryOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
+    const requestOpener = event.target.closest('[data-open-appointment-request]');
+    if (requestOpener) { event.preventDefault(); preparationReturnFocus = !requestOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openAppointmentRequest(); return; }
     if (event.target.closest('[data-edit-appointment-request]') && appointmentRequestDraft?.form) {
       event.preventDefault();
       setModal('Prepare an appointment request', 'Draft only', '');
@@ -4127,7 +4133,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   $('#document-upload-inline')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
-  els.modal.addEventListener('close', () => { if (!els.modal.open) discardPreparationDrafts(); });
+  els.modal.addEventListener('close', () => {
+    if (els.modal.open) return;
+    const returnToVisitPrep = preparationReturnFocus;
+    const hadPreparation = Boolean(careSummaryDraft || appointmentRequestDraft);
+    preparationReturnFocus = false;
+    discardPreparationDrafts(false, hadPreparation);
+    if (returnToVisitPrep) requestAnimationFrame(() => {
+      const heading = $('#visit-prep-title');
+      if (els.modal.open || !heading || heading.closest('[hidden]')) return;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    });
+  });
   els.medicationScannerModal?.addEventListener('click', event => { if (event.target === els.medicationScannerModal) closeMedicationScanner(); });
   els.medicationScannerModal?.addEventListener('cancel', () => stopMedicationScannerCamera());
   els.medicationScannerModal?.addEventListener('close', () => stopMedicationScannerCamera());
@@ -4137,7 +4155,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     closeMedicationScanner(); const hash = location.hash.slice(1);
     if (hash === 'terms') { location.assign('/terms'); return; }
     if (hash === 'privacy') { showView('health', false); openPrivacy(); return; }
-    if (hash === 'summary') { showView('visit-prep', false); openCareSummary(); return; }
+    if (hash === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); return; }
     showView(hash || 'today', false, true, history.state?.view === hash ? history.state.panel : '');
   }
   window.addEventListener('hashchange', restoreHubLocation);
@@ -4160,7 +4178,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
-  else if (initialView === 'summary') { showView('visit-prep', false); openCareSummary(); }
+  else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
