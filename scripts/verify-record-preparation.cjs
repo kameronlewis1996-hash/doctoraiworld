@@ -70,7 +70,8 @@ function measurementForm(values, id = '') {
 }
 function appointmentRequestForm(values) {
   const form = { values, elements: { reason: { focused: false, focus() { this.focused = true; } } },
-    matches: selector => selector === '[data-appointment-request-form]', closest: () => null };
+    matches: selector => selector === '[data-appointment-request-form]', closest: () => null,
+    querySelector: selector => selector === '[name="reason"]' ? form.elements.reason : null };
   return form;
 }
 function attributes(tag) {
@@ -88,9 +89,11 @@ function prefilledForm(html) {
 }
 function briefForm(html) {
   const count = { textContent: '' }, emptyAll = { hidden: false };
+  const focusField = { focused: false, focus() { this.focused = true; } };
+  const listeners = {};
   const fields = [...html.matchAll(/<fieldset>([\s\S]*?)<\/fieldset>/g)].map(([, body]) => {
     const choices = [...body.matchAll(/<label class="care-summary-choice"([^>]*)>([\s\S]*?)<\/label>/g)].map(([, extra, contents]) => {
-      const attrs = attributes(extra), input = { checked: false, value: attributes(contents.match(/<input\b[^>]*>/)[0]).value };
+      const attrs = attributes(extra), input = { checked: false, value: attributes(contents.match(/<input\b[^>]*>/)[0]).value, matches: selector => selector === 'input[name="entry"]' };
       return { html: contents, hidden: false, dataset: { briefDate: attrs['data-brief-date'] },
         hasAttribute: name => Object.hasOwn(attrs, name), querySelector: selector => selector === 'input' ? input : null };
     });
@@ -103,14 +106,16 @@ function briefForm(html) {
     values: { focus: '', questions: '', appointment: '' },
     elements: { since: { value: since, addEventListener() {} } }, choices,
     matches: selector => selector === '[data-care-summary-form]',
+    addEventListener: (type, listener) => { listeners[type] = listener; },
+    dispatchChange: target => listeners.change?.({ target }),
     querySelectorAll: selector => selector === 'fieldset' ? fields : selector === '.care-summary-choice' ? choices : selector === '.care-summary-choice:not([hidden]) input:checked' ? choices.filter(choice => !choice.hidden && choice.querySelector('input').checked).map(choice => choice.querySelector('input')) : [],
-    querySelector: selector => selector === '[data-brief-count]' ? count : selector === '[data-brief-empty-all]' ? emptyAll : null
+    querySelector: selector => selector === '[data-brief-count]' ? count : selector === '[data-brief-empty-all]' ? emptyAll : selector === '[name="focus"]' ? focusField : null
   };
   return form;
 }
 function fixture(initial = {}) {
   const state = { medications: [], appointments: [], providers: [], timeline: [], measurements: [], documents: [], tasks: [], profile: {}, memoryEnabled: false, memoryDetails: [], ...clone(initial) };
-  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true, confirmations: [] };
+  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true, confirmations: [], reviewFocus: 0, printClassRemoved: 0, printRemoved: 0 };
   let activeBriefForm;
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
@@ -119,9 +124,10 @@ function fixture(initial = {}) {
       appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {},
       measurementValue: { textContent: '', innerHTML: '' }, measurementLabel: { textContent: '' },
       measurementStatus: { textContent: '' }, largeChart: { hidden: false }, measurementChips: { innerHTML: '' },
-      modalBody: { append: item => observed.returnedForm = item }
+      modalBody: { append: item => observed.returnedForm = item },
+      modalTitle: { setAttribute() {}, focus: () => observed.reviewFocus++ }
     },
-    document: { body: { classList: { contains: () => false } }, querySelector: () => null },
+    document: { body: { classList: { contains: () => false, remove: () => observed.printClassRemoved++ } }, querySelector: () => null },
     window: { confirm: message => { observed.confirmations.push(message); return observed.confirm; }, fetch: forbidden, open: forbidden },
     fetch: forbidden, localStorage: { getItem: forbidden, setItem: forbidden }, sessionStorage: { getItem: forbidden, setItem: forbidden },
     iconMarkup: () => '<svg aria-hidden="true"></svg>',
@@ -129,7 +135,7 @@ function fixture(initial = {}) {
     formatShortDate: value => 'Short ' + value,
     formatDate: value => `Formatted ${value}`, formatTime: value => value,
     appointmentParts: () => ({ day: '20', month: 'Oct', weekday: 'Tue' }),
-    $: selector => selector === '[data-care-summary-form]' ? activeBriefForm : null,
+    $: selector => selector === '[data-care-summary-form]' ? activeBriefForm : selector === '#care-summary-print' ? observed.printRoot || null : null,
     setModal: (title, eyebrow, html) => { observed.modals.push({ title, eyebrow, html }); if (html.includes('data-care-summary-form')) activeBriefForm = briefForm(html); },
     saveState: () => observed.saves.push(clone(state)), renderAll: () => observed.renders++,
     closeModal: () => observed.closes++, showToast: text => observed.toasts.push(text),
@@ -645,7 +651,7 @@ async function verifyLegacyNumericIDActions() {
   assert.equal(f.observed.forbiddenCalls, 0);
 }
 
-function verifyProfileBrief() {
+async function verifyProfileBrief() {
   const profile = {
     name: 'Fictional adult', bloodType: 'Fictional O positive',
     conditions: 'Fictional condition <script>blocked</script>',
@@ -657,6 +663,7 @@ function verifyProfileBrief() {
   const choices = form.choices.filter(choice => choice.html.includes('Fictional'));
   assert.equal(choices.length, 4, 'The optional profile group offers conditions, allergies, blood type and notes.');
   assert.ok(choices.every(choice => !choice.querySelector('input').checked), 'Profile information requires explicit selection.');
+  assert.match(form.querySelector('[data-brief-count]').textContent, /^0 of 4 saved records selected/, 'The visible count starts with no saved details selected.');
   form.elements.since.value = '2026-10-14';
   f.context.updateBriefPeriod(form);
   assert.ok(choices.every(choice => !choice.hidden), 'Profile details without record dates remain available after the date filter changes.');
@@ -664,12 +671,25 @@ function verifyProfileBrief() {
   const allergy = choices.find(choice => choice.html.includes('Allergies &amp; reactions'));
   assert.ok(condition.html.includes('older entry; status unreviewed') && allergy.html.includes('older entry; certainty unreviewed'), 'Legacy profile fields explicitly show their unreviewed status and certainty.');
   condition.querySelector('input').checked = true;
+  form.dispatchChange(condition.querySelector('input'));
+  assert.match(form.querySelector('[data-brief-count]').textContent, /^1 of 4 saved records selected/, 'The count updates when a person selects an exact saved detail.');
   form.values.focus = 'Review this fictional history';
   submit(f.context, form);
   const html = f.modal().html;
+  assert.equal(f.observed.reviewFocus, 1, 'Review moves keyboard focus to the updated dialog heading.');
   assert.ok(html.includes('Conditions &amp; history: Fictional condition &lt;script&gt;blocked&lt;/script&gt; (older entry; status unreviewed)'), 'The explicitly chosen legacy profile detail reaches the reviewed brief with its uncertainty and escaping.');
   for (const unselected of [profile.allergies, profile.bloodType, profile.notes, profile.name]) assert.ok(!html.includes(unselected), `Unselected profile detail is excluded: ${unselected}`);
   assert.equal(f.observed.saves.length, 0, 'Selecting profile context for a brief does not rewrite saved records.');
+  await click(f.context, 'data-edit-care-summary');
+  assert.equal(f.observed.returnedForm, form, 'Back to edit restores the same checked choices without persisting them.');
+  assert.equal(form.querySelector('[name="focus"]').focused, true, 'Back to edit returns keyboard focus to the agenda field.');
+  assert.equal(condition.querySelector('input').checked, true);
+  f.observed.printRoot = { remove: () => f.observed.printRemoved++ };
+  f.context.discardPreparationDrafts(true);
+  assert.equal(vm.runInContext('careSummaryDraft', f.context), null, 'Cancel clears the prepared visit brief from memory.');
+  assert.equal(f.observed.printRemoved, 1, 'Cancel removes any temporary print copy.');
+  assert.ok(f.observed.printClassRemoved > 0, 'Cancel clears the temporary print state.');
+  assert.equal(f.observed.closes, 1, 'An account change closes the prepared dialog.');
   assert.equal(f.observed.forbiddenCalls, 0);
 }
 
@@ -767,6 +787,7 @@ async function verifyAppointmentRequestDraft() {
   const form = appointmentRequestForm(values);
   submit(f.context, form);
   assert.match(f.modal().html, /No appointment has been requested or booked/);
+  assert.equal(f.observed.reviewFocus, 1, 'Request review moves focus to the updated dialog heading.');
   assert.ok(f.modal().html.includes(escaped(values.clinic)) && !f.modal().html.includes('<script>'), 'Review escapes clinic supplied text.');
   const copied = [];
   f.context.navigator = { clipboard: { writeText: async text => { copied.push(text); } } };
@@ -776,9 +797,39 @@ async function verifyAppointmentRequestDraft() {
   assert.ok(!copied[0].includes('Fictional person') && !copied[0].includes('Existing fictional visit'), 'Unselected saved details are excluded.');
   await click(f.context, 'data-edit-appointment-request');
   assert.equal(f.observed.returnedForm, form, 'Back to edit restores the draft form without saving it.');
+  assert.equal(form.elements.reason.focused, true, 'Back to edit returns keyboard focus to the request reason.');
+  f.context.discardPreparationDrafts(true);
+  assert.equal(vm.runInContext('appointmentRequestDraft', f.context), null, 'Cancel clears the unsent draft from memory.');
+  f.context.openAppointmentRequest();
+  assert.ok(!f.modal().html.includes(values.reason), 'Opening a later request starts blank after cancel.');
   assert.deepEqual(clone(f.state), before);
   assert.equal(f.observed.saves.length, 0);
   assert.equal(f.observed.forbiddenCalls, 0, 'Request preparation has no network or browser storage calls.');
+}
+
+function verifyPreparationOwnerTransition() {
+  const observed = { closed: 0, rendered: 0, printRemoved: 0, printClassRemoved: 0 };
+  const script = [
+    'let careSummaryDraft = { html: "fictional owner A brief" };',
+    'let appointmentRequestDraft = { text: "fictional owner A request" };',
+    'let authUser = { email: "owner-a@example.invalid" };',
+    'let medicationAccountDataReady = true; let medicationLoginId = "";',
+    between('  function discardPreparationDrafts(', '  function focusPreparationReview('),
+    between('  function renderAccountSession(', '  function renderEntitlementStatus('),
+    'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft });'
+  ].join('\n');
+  const context = {
+    observed, els: {}, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
+    activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
+    clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
+    setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAvatar() {}, loadCloudState() {},
+    Date: FixtureDate
+  };
+  const result = vm.runInNewContext(script, context, { timeout: 1000, filename: 'health-hub-preparation-owner-transition.js' });
+  assert.equal(result.careSummaryDraft, null, 'Switching away from an account clears its selected brief.');
+  assert.equal(result.appointmentRequestDraft, null, 'Switching away from an account clears its unsent request.');
+  assert.deepEqual(observed, { closed: 1, rendered: 1, printRemoved: 1, printClassRemoved: 1 }, 'Account transition closes the modal and removes the temporary print copy before rendering the next owner.');
 }
 
 (async () => {
@@ -788,9 +839,10 @@ async function verifyAppointmentRequestDraft() {
   verifyMeasurementOwnerScopedMigration();
   await verifyAppointments();
   await verifyLegacyNumericIDActions();
-  verifyProfileBrief();
+  await verifyProfileBrief();
   verifySymptomBrief();
   verifyStructuredProfileAndDiaryQuestions();
   await verifyAppointmentRequestDraft();
-  console.log('Record preparation passed: appointment date grouping and record flows; measurement ID migration, owner-scoped sign-out/account switching, per-reading edit/delete, stale IDs, metadata preservation, linked timeline updates and state roundtrip; and selected visit briefs and appointment request drafts. Fictional data only; no browser, real storage or network. Browser timer execution remains unverified.');
+  verifyPreparationOwnerTransition();
+  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; opt-in visit selection counts, review/back focus and draft cleanup on cancel/account switch; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

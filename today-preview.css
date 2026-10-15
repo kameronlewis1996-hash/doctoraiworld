@@ -58,9 +58,20 @@
 .term-saved-list .term-list-empty { color: #597082; }
 .appointment-request-boundary { max-width: 90ch; margin: 13px 0 0; color: #526879; font-size: 14px; line-height: 1.6; }
 .appointment-request-form .appointment-request-boundary { padding: 12px 14px; border-left: 3px solid #9a733b; background: #fff9ee; }
+.appointment-request-form { gap: 17px; }
+.appointment-request-form > label { display: grid; gap: 8px; color: #14344e; font-size: 16px; font-weight: 700; line-height: 1.4; }
+.appointment-request-form > label :is(input, textarea) { width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid #93b1c5; border-radius: 10px; background: #fff; color: #14344e; font: inherit; font-size: 16px; font-weight: 400; }
+.appointment-request-form > label textarea { min-height: 100px; resize: vertical; }
+.appointment-request-form > label :is(input, textarea):focus-visible { outline: 3px solid #087ac5; outline-offset: 2px; }
+.appointment-request-form > p { font-size: 14px; line-height: 1.6; }
+.appointment-request-form .modal-actions, .care-summary-review .care-print-actions { flex-wrap: wrap; }
+.appointment-request-form .modal-actions > button, .care-summary-review .care-print-actions > button { min-height: 44px; font-size: 14px; }
+.care-summary-form .care-summary-choice { min-height: 44px; cursor: pointer; }
+.care-summary-form .care-summary-choice:focus-within { outline: 3px solid #087ac5; outline-offset: 2px; }
 #appointment-request-reviewed { padding: 18px; border: 1px solid #cfdee7; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
 #appointment-request-reviewed h2 { margin-top: 0; }
 #appointment-request-reviewed p { white-space: pre-wrap; }
 @media (max-width: 1050px) { .today-compact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .today-compact-diary { grid-column: 1 / -1; } }
 @media (max-width: 680px) { .today-compact-grid { grid-template-columns: minmax(0, 1fr); } .today-compact-diary { grid-column: auto; } .today-compact-panel { padding: 18px; } .today-panel-heading h2 { font-size: 21px; } .today-compact-list { min-height: auto; } .today-compact-list li { display: block; } .today-compact-list li span { display: block; margin-top: 3px; text-align: left; } .term-profile-section { padding: 13px; } }
+@media (max-width: 520px) { .appointment-request-form .modal-actions > button, .care-summary-review .care-print-actions > button { flex: 1 1 100%; } }
 @media (forced-colors: active) { .today-compact-panel, .medication-learning-panel, .diary-question-panel, .term-profile-section, .term-options { border: 1px solid CanvasText; } }

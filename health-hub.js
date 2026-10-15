@@ -1658,7 +1658,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
     refreshMedicationCheckContext().catch(() => {});
-    if (healthOwnerChanged) renderAll();
+    if (healthOwnerChanged) { discardPreparationDrafts(true); renderAll(); }
     const signedIn = Boolean(authUser);
     setAccountSyncState(signedIn ? 'checking' : 'not-signed-in');
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
@@ -1877,6 +1877,18 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   let careSummaryDraft = null;
   let appointmentRequestDraft = null;
+  function discardPreparationDrafts(closeDialog = false) {
+    careSummaryDraft = null;
+    appointmentRequestDraft = null;
+    $('#care-summary-print')?.remove();
+    document.body.classList.remove('care-printing');
+    if (closeDialog) closeModal();
+  }
+  function focusPreparationReview() {
+    if (!els.modalTitle) return;
+    els.modalTitle.setAttribute('tabindex', '-1');
+    els.modalTitle.focus();
+  }
   const briefDate = value => {
     const date = String(value || '').slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '';
@@ -1901,7 +1913,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       group.hidden = !hasRecords;
     });
     form.querySelector('[data-brief-empty-all]').hidden = available > 0;
-    form.querySelector('[data-brief-count]').textContent = `${available} saved records available to choose. Saved medicine details are shown separately from dated notes; check which medicines you still take.`;
+    const selected = form.querySelectorAll('.care-summary-choice:not([hidden]) input:checked').length;
+    form.querySelector('[data-brief-count]').textContent = `${selected} of ${available} saved records selected for your brief. Saved medicine details are shown separately from dated notes; check which medicines you still take.`;
   }
   function openPersonalOverview() {
     const oneLine = (value, limit = 420) => {
@@ -2097,6 +2110,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function openCareSummary() {
+    discardPreparationDrafts();
     const latest = items => items.slice().sort((a,b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0,100);
     const symptoms = latest(state.timeline.filter(item => item.type === 'symptom'));
     const diaryQuestions = latest(state.timeline.filter(item => item.type === 'question' && item.source === 'user-question'));
@@ -2165,6 +2179,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Review my visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></form>`);
     const form = $('[data-care-summary-form]');
     form.elements.since.addEventListener('change', () => updateBriefPeriod(form));
+    form.addEventListener('change', event => { if (event.target.matches('input[name="entry"]')) updateBriefPeriod(form); });
     updateBriefPeriod(form);
   }
 
@@ -2193,9 +2208,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     careSummaryDraft.form = form;
     careSummaryDraft.html = `<h1>Things to discuss at my appointment</h1><p>Prepared ${escapeHTML(new Date().toLocaleDateString('en-GB'))} · Personal record</p><p>${since ? `Notes from ${escapeHTML(since)} through ${briefLocalDate(new Date())}, inclusive.` : 'All available dated notes through today.'} Saved medicine details are not date filtered; check which medicines you still take.</p>${appointmentDetails ? `<section><h2>Appointment</h2><p>${escapeHTML(appointmentDetails)}</p></section>` : ''}${sections.map(section => `<section class="care-brief-section${section.priority ? ' care-brief-priority' : ''}"><h2>${escapeHTML(section.title)}</h2><ul>${section.items.map(value => `<li>${escapeHTML(value)}</li>`).join('')}</ul></section>`).join('')}<hr><p>Selected, self-reported information only; this may not be a complete medical record. These are recorded observations, not a verified history of changes. Check all details with your clinician. DoctorAI does not diagnose, prescribe or recommend treatment changes.</p>`;
     setModal('Review my visit brief', 'Review before sharing', `<div class="care-summary-review"><p><b>Check that this includes only what you intend to share.</b> If you need to change a saved detail, close this brief and edit the original entry.</p><article id="care-summary-reviewed">${careSummaryDraft.html}</article><div class="care-print-actions"><button type="button" class="primary-button" data-print-care-summary>Print / save as PDF</button><button type="button" class="secondary-button" data-copy-care-summary>Copy visit brief</button><button type="button" class="secondary-button" data-edit-care-summary>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>PDF saving uses your browser’s print dialog. Copying places this selected information on your device’s clipboard.</small></p></div>`);
+    focusPreparationReview();
   }
 
   function openAppointmentRequest() {
+    discardPreparationDrafts();
     appointmentRequestDraft = { form: null, text: '' };
     setModal('Prepare an appointment request', 'Draft only', `<form class="modal-form appointment-request-form" data-appointment-request-form>
       <p>Write a request to copy into a clinic's own contact channel. DoctorAI does not send this draft, contact a clinic or book an appointment.</p>
@@ -2217,6 +2234,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const lines = ['Appointment request draft', clinic ? `Clinic or service: ${clinic}` : '', `Reason: ${reason}`, preferred ? `Preferred days or times: ${preferred}` : '', questions ? `Questions: ${questions}` : '', 'This is a request draft only. No appointment is booked.'].filter(Boolean);
     appointmentRequestDraft = { form, text: lines.join('\n\n') };
     setModal('Review appointment request', 'Check before copying', `<div class="care-summary-review"><p><b>No appointment has been requested or booked.</b> Check this draft, then copy it if you want to contact the clinic yourself.</p><article id="appointment-request-reviewed"><h2>Appointment request draft</h2>${lines.slice(1, -1).map(line => `<p>${escapeHTML(line)}</p>`).join('')}<p><b>This is a request draft only. No appointment is booked.</b></p></article><div class="care-print-actions"><button type="button" class="primary-button" data-copy-appointment-request>Copy request draft</button><button type="button" class="secondary-button" data-edit-appointment-request>Back to edit</button><button type="button" class="secondary-button" data-close-modal>Close</button></div><p><small>Copying places this draft on your device's clipboard. You decide whether and where to send it.</small></p></div>`);
+    focusPreparationReview();
   }
 
   function printCareSummary() {
@@ -2227,7 +2245,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     printRoot.id = 'care-summary-print'; printRoot.className = 'care-print-root';
     printRoot.innerHTML = careSummaryDraft.html;
     document.body.append(printRoot); document.body.classList.add('care-printing');
-    const cleanup = () => { printRoot.remove(); document.body.classList.remove('care-printing'); };
+    const cleanup = () => {
+      if (!printRoot.isConnected) return;
+      printRoot.remove();
+      document.body.classList.remove('care-printing');
+    };
     window.addEventListener('afterprint', cleanup, { once: true });
     try { window.print(); } catch { cleanup(); showToast('Printing is unavailable here. Please open DoctorAI in your browser.'); }
   }
@@ -3626,6 +3648,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       event.preventDefault();
       setModal('Prepare an appointment request', 'Draft only', '');
       els.modalBody.append(appointmentRequestDraft.form);
+      appointmentRequestDraft.form.querySelector?.('[name="reason"]')?.focus();
       return;
     }
     if (event.target.closest('[data-copy-appointment-request]')) {
@@ -3640,6 +3663,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       event.preventDefault();
       setModal('Prepare for my appointment', 'Build your visit brief', '');
       els.modalBody.append(careSummaryDraft.form);
+      careSummaryDraft.form.querySelector?.('[name="focus"]')?.focus();
       return;
     }
     if (event.target.closest('[data-print-care-summary]')) { event.preventDefault(); printCareSummary(); return; }
@@ -4103,7 +4127,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   $('#document-upload-inline')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
-  els.modal.addEventListener('close', () => { if (!els.modal.open) appointmentRequestDraft = null; });
+  els.modal.addEventListener('close', () => { if (!els.modal.open) discardPreparationDrafts(); });
   els.medicationScannerModal?.addEventListener('click', event => { if (event.target === els.medicationScannerModal) closeMedicationScanner(); });
   els.medicationScannerModal?.addEventListener('cancel', () => stopMedicationScannerCamera());
   els.medicationScannerModal?.addEventListener('close', () => stopMedicationScannerCamera());
