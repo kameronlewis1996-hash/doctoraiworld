@@ -71,4 +71,71 @@ check('both locations update and stale green clears after failure', () => {
   nodes.forEach(n=>assert.equal(n.dataset.alertLevel,'orange'));render(null,doc);
   nodes.forEach(n=>{assert.equal(n.dataset.alertLevel,'neutral');assert.match(n['aria-label'],/Checks unavailable/);assert.equal(n.parts['[data-alert-symbol]'].textContent,'?');});
 });
+function presentationDOM() {
+  const summaries = Array.from({ length: 2 }, () => ({
+    dataset: {}, parts: {}, attributes: {},
+    querySelector(selector) { return this.parts[selector] ||= {}; },
+    setAttribute(name, value) { this.attributes[name] = value; }
+  }));
+  const todayButtons = Array.from({ length: 3 }, () => ({
+    children: [], attributes: {},
+    querySelector(selector) { return selector === '.hub-alert-nav-symbol' ? this.children[0] || null : null; },
+    appendChild(child) { this.children.push(child); },
+    setAttribute(name, value) { this.attributes[name] = value; }
+  }));
+  const body = { dataset: { hubTheme: 'health', activeFeature: 'medications', hubPanel: 'medications' } };
+  const doc = {
+    body,
+    querySelectorAll(selector) {
+      if (selector === '[data-alert-summary]') return summaries;
+      if (selector.includes('[data-view="today"]')) return todayButtons;
+      return [];
+    },
+    createElement(tagName) {
+      assert.equal(tagName, 'em', 'Status symbols must remain separate from the span/i icon hydrator.');
+      return { dataset: {}, attributes: {}, setAttribute(name, value) { this.attributes[name] = value; } };
+    }
+  };
+  return { doc, body, summaries, todayButtons };
+}
+function assertPresentation(dom, result, expectedLevel, expectedTitle) {
+  render(result, dom.doc);
+  const status = describe(result);
+  assert.equal(status.level, expectedLevel);
+  assert.equal(status.title, expectedTitle);
+  assert.equal(dom.body.dataset.healthAlertLevel, expectedLevel, 'The backdrop must follow the current result.');
+  assert.deepEqual(dom.body.dataset, {
+    hubTheme: 'health', activeFeature: 'medications', hubPanel: 'medications', healthAlertLevel: expectedLevel
+  }, 'Alert presentation must preserve the selected category and medication panel.');
+  for (const summary of dom.summaries) {
+    assert.equal(summary.dataset.alertLevel, expectedLevel);
+    assert.equal(summary.parts['[data-alert-title]'].textContent, expectedTitle);
+    assert.equal(summary.parts['[data-alert-note]'].textContent, status.note);
+    assert.equal(summary.parts['[data-alert-symbol]'].textContent, status.symbol);
+    assert.equal(summary.attributes['aria-label'], `Alerts: ${status.title}. ${status.note} Open alerts.`);
+  }
+  for (const button of dom.todayButtons) {
+    assert.equal(button.children.length, 1, 'Repeated updates must reuse each Today status symbol.');
+    const symbol = button.children[0];
+    assert.equal(symbol.className, 'hub-alert-nav-symbol');
+    assert.equal(symbol.attributes['aria-hidden'], 'true');
+    assert.equal(symbol.dataset.alertLevel, expectedLevel);
+    assert.equal(symbol.textContent, status.symbol);
+    assert.equal(symbol.hidden, expectedLevel === 'neutral');
+    assert.equal(button.attributes['aria-label'], expectedLevel === 'neutral' ? 'Today' : `Today. Alerts: ${status.title}. ${status.note}`);
+  }
+}
+check('aurora severity state updates with real current results and resets after failure', () => {
+  const dom = presentationDOM();
+  assertPresentation(dom, evaluate({}), 'neutral', 'Add details to check');
+  assertPresentation(dom, known, 'orange', 'Some details need review');
+  assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
+  assertPresentation(dom, null, 'neutral', 'Checks unavailable');
+});
+check('urgent results retain stronger instructions within the red theme and clear when records empty', () => {
+  const dom = presentationDOM();
+  assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
+  assertPresentation(dom, evaluate({ timeline: [{ id: 'urgent', type: 'symptom', source: 'symptom-diary', title: 'Severe difficulty breathing', date: '2026-10-10' }] }), 'red', 'Urgent medical help');
+  assertPresentation(dom, evaluate({}), 'neutral', 'Add details to check');
+});
 console.log(`Alert status verified: ${checks} checks passed.`);

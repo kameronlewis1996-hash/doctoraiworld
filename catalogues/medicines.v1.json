@@ -1,0 +1,17 @@
+{
+  "catalogue": "medicine-identities",
+  "schemaVersion": 1,
+  "version": "2026-10-15.1",
+  "language": "en",
+  "source": {
+    "name": "ChEBI, EMBL-EBI",
+    "url": "https://www.ebi.ac.uk/chebi/",
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "ingredients": [
+    { "id": "CHEBI:46195", "label": "paracetamol", "aliases": ["acetaminophen"], "sourceUrl": "https://www.ebi.ac.uk/chebi/CHEBI:46195" },
+    { "id": "CHEBI:6801", "label": "metformin", "aliases": [], "sourceUrl": "https://www.ebi.ac.uk/chebi/CHEBI:6801" }
+  ],
+  "localProducts": []
+}

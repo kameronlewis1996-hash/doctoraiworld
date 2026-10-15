@@ -76,6 +76,8 @@
     const doc = documentRoot || (typeof document !== 'undefined' ? document : null);
     if (!doc) return;
     const status = describe(result);
+    // Presentation follows the current result only; never persist an alert tint.
+    if (doc.body) doc.body.dataset.healthAlertLevel = status.level;
     doc.querySelectorAll('[data-alert-summary]').forEach(button => {
       button.dataset.alertLevel = status.level;
       button.querySelector('[data-alert-symbol]').textContent = status.symbol;

@@ -6482,20 +6482,20 @@ html body[data-hub-theme] { background: linear-gradient(135deg, #edf7ff, #f3fbff
   body[data-hub-theme] .mobile-bottom-nav :is(.mobile-bottom-nav-item.active, [aria-current="page"]) :is(span, svg, b) { color: #fff; }
 }
 
-/* Astra destination themes: apply only to the selected feature's headings and navigation. */
-body[data-active-feature="medications"] { --destination-bg: #EAF3FF; --destination-accent: #0759B6; }
-body[data-active-feature="symptoms"] { --destination-bg: #E8F6F1; --destination-accent: #176B60; }
-body[data-active-feature="appointments"] { --destination-bg: #F2EDFC; --destination-accent: #65439B; }
-body[data-active-feature="visit-prep"] { --destination-bg: #FFF4DE; --destination-accent: #805418; }
+/* One blue destination palette across the health tools; clinical status colours are separate. */
+body[data-active-feature="medications"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="symptoms"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="appointments"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
+body[data-active-feature="visit-prep"] { --destination-bg: #F7FAFF; --destination-accent: #0759B6; }
 
 body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading,
 body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading,
 body[data-active-feature="appointments"] #hub-shell :is(#view-diary, #view-appointments) > .page-heading,
 body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep > .page-heading {
-  border: 2px solid var(--destination-accent);
+  border: 1px solid #c8d9ec;
   border-radius: 20px;
   background: var(--destination-bg);
-  box-shadow: inset 4px 0 var(--destination-accent), 0 8px 22px rgba(10,35,64,.08);
+  box-shadow: inset 3px 0 var(--destination-accent), 0 10px 28px rgba(10,35,64,.055);
 }
 body[data-active-feature="medications"] #hub-shell :is(#view-add, #view-medications) > .page-heading::before,
 body[data-active-feature="symptoms"] #hub-shell :is(#view-diary, #view-symptoms) > .page-heading::before,
@@ -6559,3 +6559,27 @@ body[data-active-feature="visit-prep"] #hub-shell #view-visit-prep :is(.page-hea
 body[data-active-feature="visit-prep"] #hub-shell .primary-nav > .nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg,
 body[data-active-feature="visit-prep"] #hub-shell .category-bar .category-tab[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg,
 body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bottom-nav-item[data-view="visit-prep"]:is(.active, [aria-current="page"]) svg { stroke-width: 2.6px; }
+
+/* Saved measurement history in Results & trends */
+#measurement-chips.measurement-chips { display: block; }
+.measurement-summary-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.measurement-summary-chips span { font-size: 13px; }
+.measurement-summary-chips .trend-empty { font-size: 14px; }
+.measurement-history { margin-top: 18px; }
+.measurement-history-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--line-soft); }
+.measurement-history-heading h3 { margin: 0; color: var(--navy); font-size: 17px; }
+.measurement-history-heading > span { color: var(--muted-light); font-size: 13px; }
+.measurement-history-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+.measurement-history-copy { display: grid; min-width: 0; gap: 3px; }
+.measurement-history-copy b { margin-left: 0; color: var(--navy); font-size: 15px; }
+.measurement-history-copy span { padding: 0; background: transparent; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.measurement-history-copy small { color: var(--muted-light); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.measurement-history-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
+.measurement-history-actions button { min-width: 44px; min-height: 44px; padding: 9px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--blue-strong); font-size: 14px; font-weight: 700; cursor: pointer; }
+.measurement-history-actions button:hover { text-decoration: underline; }
+.measurement-history-actions button:focus-visible { outline: 3px solid var(--blue-strong); outline-offset: 2px; }
+.measurement-history-empty { padding: 16px 12px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted-light); font-size: 14px; line-height: 1.55; text-align: center; }
+@media (max-width: 520px) {
+  .measurement-history-item { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .measurement-history-actions { align-self: flex-end; }
+}

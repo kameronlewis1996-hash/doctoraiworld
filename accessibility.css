@@ -1,11 +1,12 @@
 /* Shared DoctorAI reading, interaction and feature-icon rules. */
 :root {
-  --feature-cyan: #087fa6;
-  --feature-blue: #2866b3;
-  --feature-violet: #3166b5;
-  --feature-coral: #076b94;
-  --feature-mint: #087997;
-  --feature-yellow: #234e83;
+  /* Decorative marks remain blue; warning colours are reserved for alerts. */
+  --feature-cyan: #0759b6;
+  --feature-blue: #0759b6;
+  --feature-violet: #0759b6;
+  --feature-coral: #0759b6;
+  --feature-mint: #0759b6;
+  --feature-yellow: #0759b6;
 }
 body, body[data-hub-theme], body.doctorai-public-page {
   --muted: #465f73;
@@ -27,34 +28,35 @@ body :is(button, a) { touch-action: manipulation; }
 }
 .doctorai-skip-link:focus { transform: none; }
 
-/* The colour belongs to the feature; use the same artwork and tile everywhere. */
+/* One restrained blue treatment for decorative feature icons. */
 body :is(.feature-icon, .profile-shortcut-icon) {
-  --feature-ink: var(--feature-blue); --feature-tint: #f1f6ff; --feature-line: #c4d6ee;
+  --feature-ink: var(--feature-blue); --feature-tint: #edf5ff; --feature-line: #c6dcef;
   color: var(--feature-ink);
   background: linear-gradient(145deg, #fff, var(--feature-tint));
-  box-shadow: 0 5px 12px rgba(23,53,80,.08), inset 0 0 0 1px var(--feature-line);
+  box-shadow: inset 0 0 0 1px var(--feature-line);
   border: 1px solid #fff;
   border-radius: 12px;
   display: inline-grid; place-items: center;
   width: 36px; height: 36px; padding: 7px; flex: 0 0 36px;
 }
-body :is(.feature-icon, .profile-shortcut-icon).tone-cyan { --feature-ink: var(--feature-cyan); --feature-tint: #effcfe; --feature-line: #bce5ea; }
-body :is(.feature-icon, .profile-shortcut-icon).tone-blue { --feature-ink: var(--feature-blue); --feature-tint: #f1f6ff; --feature-line: #c4d6ee; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-cyan { --feature-ink: var(--feature-cyan); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-blue { --feature-ink: var(--feature-blue); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
 body :is(.feature-icon, .profile-shortcut-icon).tone-violet,
-body :is(.feature-icon, .profile-shortcut-icon).tone-purple { --feature-ink: var(--feature-violet); --feature-tint: #f1f6ff; --feature-line: #a9c7eb; }
-body :is(.feature-icon, .profile-shortcut-icon).tone-coral { --feature-ink: var(--feature-coral); --feature-tint: #eff9ff; --feature-line: #91c5df; }
-body :is(.feature-icon, .profile-shortcut-icon).tone-mint { --feature-ink: var(--feature-mint); --feature-tint: #effaff; --feature-line: #98ccdd; }
-body :is(.feature-icon, .profile-shortcut-icon).tone-yellow { --feature-ink: var(--feature-yellow); --feature-tint: #f2f7ff; --feature-line: #a6bdd9; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-purple { --feature-ink: var(--feature-violet); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-coral { --feature-ink: var(--feature-coral); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-mint { --feature-ink: var(--feature-mint); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
+body :is(.feature-icon, .profile-shortcut-icon).tone-yellow { --feature-ink: var(--feature-yellow); --feature-tint: #edf5ff; --feature-line: #c6dcef; }
 body :is(.feature-icon, .profile-shortcut-icon)[class*="tone-"] { color: var(--feature-ink); background: linear-gradient(145deg, #fff, var(--feature-tint)); }
+.doctorai-icon-slot > svg.doctorai-feature-mark { stroke-width: 2.2; }
 .feature-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .feature-icon .icon-fill { fill: currentColor; stroke: none; opacity: .18; }
 .feature-icon .icon-solid { fill: currentColor; stroke: none; }
-body .profile-shortcut-card:has(.tone-cyan) { background: #f2fcfe; border-color: #bce5ea; }
-body .profile-shortcut-card:has(.tone-blue) { background: #f5f8ff; border-color: #c4d6ee; }
-body .profile-shortcut-card:has(.tone-violet) { background: #f1f6ff; border-color: #a9c7eb; }
-body .profile-shortcut-card:has(.tone-coral) { background: #eff9ff; border-color: #91c5df; }
-body .profile-shortcut-card:has(.tone-mint) { background: #effaff; border-color: #98ccdd; }
-body .profile-shortcut-card:has(.tone-yellow) { background: #f2f7ff; border-color: #a6bdd9; }
+body .profile-shortcut-card:has(.tone-cyan) { background: #f5f9ff; border-color: #c6dcef; }
+body .profile-shortcut-card:has(.tone-blue) { background: #f5f9ff; border-color: #c6dcef; }
+body .profile-shortcut-card:has(.tone-violet) { background: #f5f9ff; border-color: #c6dcef; }
+body .profile-shortcut-card:has(.tone-coral) { background: #f5f9ff; border-color: #c6dcef; }
+body .profile-shortcut-card:has(.tone-mint) { background: #f5f9ff; border-color: #c6dcef; }
+body .profile-shortcut-card:has(.tone-yellow) { background: #f5f9ff; border-color: #c6dcef; }
 
 /* Reading sizes are deliberate: regular labels 14px, supporting text 12px. */
 body #hub-shell :is(.page-subtitle, .profile-shortcuts-intro, .profile-page-email, .empty-state, .empty-inline, .safety-note p) { font-size: 14px; line-height: 1.6; color: #465f73; }

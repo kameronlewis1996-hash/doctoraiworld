@@ -1,0 +1,13 @@
+'use strict';
+const assert = require('node:assert/strict');
+const { createQuestion, normaliseQuestion } = require('../today-diary-core.js');
+assert.equal(normaliseQuestion('  Could   food help?  '), 'Could food help?');
+assert.deepEqual(createQuestion('', [], '2026-10-15', '1', 1), { error: 'empty' });
+assert.deepEqual(createQuestion('Hi', [], 'tomorrow', '1', 1), { error: 'date' });
+const saved = createQuestion(' Could food affect how I take this? ', [], '2026-10-15', 'a', 100);
+assert.equal(saved.entry.description, 'Could food affect how I take this?');
+assert.equal(saved.entry.source, 'user-question');
+assert.equal(saved.entry.type, 'question');
+assert.deepEqual(createQuestion('could FOOD affect how I take this?', [saved.entry], '2026-10-15', 'b', 101), { error: 'duplicate' });
+assert.ok(createQuestion('could FOOD affect how I take this?', [saved.entry], '2026-10-16', 'b', 101).entry);
+console.log('Today diary question validation and duplicate checks passed.');

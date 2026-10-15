@@ -1,0 +1,17 @@
+{
+  "catalogue": "conditions-history",
+  "schemaVersion": 1,
+  "version": "2026-10-15.1",
+  "language": "en",
+  "source": {
+    "name": "Human Disease Ontology",
+    "url": "https://disease-ontology.org/",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "entries": [
+    { "id": "DOID:2841", "label": "asthma", "aliases": [], "sourceUrl": "https://disease-ontology.org/term/DOID:2841/" },
+    { "id": "DOID:9352", "label": "type 2 diabetes mellitus", "aliases": ["type 2 diabetes", "NIDDM"], "sourceUrl": "https://disease-ontology.org/term/DOID:9352/" },
+    { "id": "DOID:10763", "label": "hypertension", "aliases": ["HTN"], "sourceUrl": "https://disease-ontology.org/term/DOID:10763/" }
+  ]
+}

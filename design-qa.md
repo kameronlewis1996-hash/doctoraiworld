@@ -1,4 +1,8 @@
-# Homepage polish review — 15 October 2026
+# Aurora theme review - 16 October 2026
+
+The current selected-theme review and browser evidence are [documented here](docs/design/aurora-alert-theme-20261016/design-qa.md), based on main `09c0353dfcb29754f62fb7e9116b87f5ef31a3e1`. Current scoped final result: passed. The earlier review is retained below as historical evidence.
+
+## Homepage polish review - 15 October 2026
 
 The latest homepage review is [documented with desktop/mobile evidence](docs/design/homepage-polish-20261015/design-qa.md). It builds on production main `01543ec14d82f8334a59d91d4fb4e3fd94f2dfc0`. Product changes are limited to `index.html`, `welcome.css` and `welcome.js`; the integrated Health Hub and medication release are retained.
 

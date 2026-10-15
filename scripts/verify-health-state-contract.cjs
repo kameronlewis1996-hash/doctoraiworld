@@ -8,6 +8,7 @@ const vm = require('node:vm');
 // Only synthetic records and an in-memory service stand-in are used below.
 global.fetch = async () => { throw new Error('Health-state contract checks must not access the network.'); };
 const core = require('../server-src/_lib/doctorai-core.cjs');
+const terminology = require('../term-catalogues.js');
 const copy = value => JSON.parse(JSON.stringify(value));
 const clientSource = fs.readFileSync(path.join(__dirname, '../health-hub.js'), 'utf8');
 const cloneSource = clientSource.match(/^  const clone = value => JSON\.parse\(JSON\.stringify\(value\)\);\r?$/m)?.[0];
@@ -101,7 +102,19 @@ function emptyBrowserState() {
   const populatedState = emptyBrowserState();
   populatedState.providers.push({ id: 'provider-synthetic', name: 'Dr Synthetic', practice: 'Example clinic', phone: 'not-a-real-number', email: 'doctor@example.invalid', address: 'Synthetic address', notes: 'Bring the selected visit brief.' });
   populatedState.timeline.push({ id: 'symptom-synthetic', type: 'symptom', name: 'Synthetic observation', date: '2026-10-10', severity: 3, notes: 'Fictional regression record.' });
+  populatedState.timeline.push({ id: 'question-synthetic', source: 'user-question', type: 'question', date: '2026-10-15', title: 'Question saved by you', description: 'Could food affect how I take this?', createdAt: 123456789 });
   populatedState.profile.notes = 'Synthetic account notes.';
+  populatedState.profile.conditionEntries = [
+    { id: 'DOID:2841', label: 'asthma', status: 'current', source: 'DOID' },
+    { id: 'custom:older', label: 'Older fictional condition', status: 'historical', source: 'user' }
+  ];
+  populatedState.profile.allergyEntries = [
+    { id: 'CHEBI:17334', substance: 'penicillin', reactionId: 'SYMP:0000487', reaction: 'rash', certainty: 'confirmed', source: 'CHEBI' },
+    { id: 'custom:uncertain', substance: 'Fictional substance', reactionId: '', reaction: 'not sure', certainty: 'suspected', source: 'user' }
+  ];
+  Object.assign(populatedState.profile, terminology.compatibilityFields(populatedState.profile.conditionEntries, populatedState.profile.allergyEntries));
+  assert.equal(populatedState.profile.conditions, 'asthma', 'Historical conditions must not enter the current-condition compatibility field.');
+  assert.equal(populatedState.profile.allergies, 'penicillin', 'Uncertain reactions must not enter the confirmed-allergy compatibility field.');
   const populated = browserPayload(populatedState);
   response = await invoke('PUT', JSON.stringify({ state: populated }));
   assert.equal(response.statusCode, 200, 'Providers and other saved records must pass together through JSON transport.');
@@ -110,6 +123,9 @@ function emptyBrowserState() {
   assert.equal(response.body.configured, true);
   assert.equal(response.body.updatedAt, 123456789);
   assert.deepEqual(response.body.state, populated, 'GET must return the complete state saved by the actual browser serializer.');
+  assert.deepEqual(response.body.state.profile.conditionEntries, populatedState.profile.conditionEntries, 'Status-tagged conditions must survive browser serialization and API storage.');
+  assert.deepEqual(response.body.state.profile.allergyEntries, populatedState.profile.allergyEntries, 'Substance, reaction and certainty must survive browser serialization and API storage.');
+  assert.equal(response.body.state.timeline.find(item => item.id === 'question-synthetic')?.description, 'Could food affect how I take this?', 'Diary questions must survive the same account-state roundtrip.');
   assert.deepEqual(calls, ['identity', 'storage', 'rate', 'read']);
 
   const legacy = copy(populated);
@@ -174,5 +190,5 @@ function emptyBrowserState() {
   assert.equal(response.statusCode, 405);
   assert.ok(!calls.includes('write') && !calls.includes('read'));
 
-  console.log('Health-state contract verification passed (actual browser serializer, API and validator; synthetic providers, legacy data, roundtrips, rejection and account/storage guards).');
+  console.log('Health-state contract verification passed (actual browser serializer, API and validator; synthetic providers, structured terminology, diary questions, legacy data, roundtrips, rejection and account/storage guards).');
 })().catch(error => { console.error(error); process.exit(1); });

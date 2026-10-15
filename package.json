@@ -11,6 +11,7 @@
     "verify:scan": "node scripts/verify-medication-scan.js",
     "verify:server": "node scripts/verify-server-core.js",
     "verify:health-state": "node scripts/verify-health-state-contract.cjs",
+    "verify:device-storage": "node scripts/verify-device-health-storage.cjs",
     "verify:record-preparation": "node scripts/verify-record-preparation.cjs",
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
@@ -28,7 +29,9 @@
     "verify:alerts-presentation": "node scripts/verify-alerts-presentation.cjs",
     "verify:five-tabs": "node scripts/verify-five-tabs.cjs",
     "verify:about": "node scripts/verify-about-route.cjs",
-    "verify:stripe": "node scripts/verify-stripe-pricing.js"
+    "verify:stripe": "node scripts/verify-stripe-pricing.js",
+    "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
+    "verify:today-diary": "node scripts/verify-today-diary.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

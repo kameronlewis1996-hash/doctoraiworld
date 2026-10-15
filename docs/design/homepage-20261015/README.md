@@ -1,5 +1,7 @@
 # DoctorAI homepage review
 
+**Current draft preview update:** PR75 returns the homepage and Health Hub to a unified blue palette with quieter white cards and headings. See [current tokens](theme-tokens.md), the [app palette and new local screenshots](hub-themes.md). The older colours, screenshot links, browser results and branch history below document the earlier multicolour review.
+
 Latest: [accessibility, simpler screens and alert-status audit](accessibility-alerts.md), including updated desktop/mobile screenshots.
 
 This homepage makes the existing DoctorAI brand the centrepiece: the canonical head mark floats gently inside an orbit of the four main categories: Today, My Health, Visit Prep and Profile. The animated logo is slightly transparent (84% opacity). Each selection explains a real destination and offers a direct link. The existing full logo remains in the header and footer. A clearly labelled example visit brief connects the introduction to the product's useful next step.
