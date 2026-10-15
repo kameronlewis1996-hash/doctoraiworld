@@ -3,12 +3,12 @@
 body[data-hub-layout="reference"][data-hub-theme] {
   --hub-today-surface: #e8f2ff;
   --hub-today-accent: #0759b6;
-  --hub-health-surface: #e7f7fa;
-  --hub-health-accent: #0a718e;
-  --hub-visit-surface: #edf2ff;
-  --hub-visit-accent: #335ca8;
-  --hub-profile-surface: #f0edff;
-  --hub-profile-accent: #5b4fa8;
+  --hub-health-surface: #e8f2ff;
+  --hub-health-accent: #0759b6;
+  --hub-visit-surface: #e8f2ff;
+  --hub-visit-accent: #0759b6;
+  --hub-profile-surface: #e8f2ff;
+  --hub-profile-accent: #0759b6;
   --hub-category-ink: #0a2340;
   --hub-category-copy: #465f73;
 }

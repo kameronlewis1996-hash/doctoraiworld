@@ -155,9 +155,9 @@ assert.match(themeCss, /stroke-width:\s*2\.6px/, 'Destination feature icons use 
 assert.doesNotMatch(themeCss, /#view-alerts|hub-alert-/, 'Destination theming does not override clinical alert presentation.');
 const mainRoutePalettes = {
   today: { surface: '#e8f2ff', accent: '#0759b6' },
-  health: { surface: '#e7f7fa', accent: '#0a718e' },
-  visit: { surface: '#edf2ff', accent: '#335ca8' },
-  profile: { surface: '#f0edff', accent: '#5b4fa8' }
+  health: { surface: '#e8f2ff', accent: '#0759b6' },
+  visit: { surface: '#e8f2ff', accent: '#0759b6' },
+  profile: { surface: '#e8f2ff', accent: '#0759b6' }
 };
 for (const [theme, tokens] of Object.entries(mainRoutePalettes)) {
   assert.match(auroraCss, new RegExp(`--home-${theme}-surface: ${tokens.surface};[\\s\\S]*?--home-${theme}-accent: ${tokens.accent};`), `Homepage ${theme} uses the selected aurora route palette.`);
@@ -165,6 +165,8 @@ for (const [theme, tokens] of Object.entries(mainRoutePalettes)) {
   assert.ok(contrast(tokens.accent, tokens.surface) >= 4.5, `${theme} route label contrast meets 4.5:1 on its surface.`);
   assert.ok(contrast(tokens.accent, '#FFFFFF') >= 4.5, `${theme} route accent remains readable on white.`);
 }
+assert.doesNotMatch(categoryCss.split('/* Every tab')[0], /#(?:5b4fa8|0a718e|335ca8|805418|b42332)/i, 'Decorative route identities do not use purple, teal, amber or alert red.');
+assert.doesNotMatch(auroraCss.split('/* Homepage:')[0], /--home-(?:health|visit|profile)-accent:\s*#(?!0759b6)/i, 'Aurora route icons keep the same restrained blue.');
 assert.match(categoryCss, /\[data-view\]:focus-visible\s*\{[^}]*outline:\s*3px solid/, 'Keyboard users keep a visible navigation outline.');
 assert.match(categoryCss, /@media \(max-width: 800px\)[\s\S]*?\.mobile-bottom-nav\s*\{[^}]*background:\s*#fff/, 'Mobile navigation uses the same calm surface.');
 assert.match(categoryCss, /\.today-compact-grid\s*\{\s*align-items:\s*start/, 'Empty Today cards no longer stretch to the height of the diary form.');

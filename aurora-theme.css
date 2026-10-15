@@ -1,5 +1,5 @@
-/* The selected aurora theme. Decorative icons use its blue/cyan/lilac range;
-   clinical status colours continue to represent existing local results. */
+/* The selected aurora theme keeps cyan/lilac in the atmosphere, while
+   decorative icons stay blue and clinical warning colours stay semantic. */
 html :is(.doctorai-homepage, body[data-hub-layout="reference"]) {
   --aurora-base: #f5f8ff;
   --aurora-cyan: #95dffbc4;
@@ -44,22 +44,22 @@ html body[data-health-alert-level="red"] {
   --aurora-accent: #a12032;
 }
 
-/* The same four route colours appear in the homepage dock and Health Hub.
-   Labels and distinct shapes still identify each destination without colour. */
+/* Route icons and headings share one restrained blue treatment. Labels and
+   distinct shapes identify each destination without relying on colour. */
 .doctorai-homepage {
   --home-today-surface: #e8f2ff;
   --home-today-accent: #0759b6;
-  --home-health-surface: #e7f7fa;
-  --home-health-accent: #0a718e;
-  --home-visit-surface: #edf2ff;
-  --home-visit-accent: #335ca8;
-  --home-profile-surface: #f0edff;
-  --home-profile-accent: #5b4fa8;
+  --home-health-surface: #e8f2ff;
+  --home-health-accent: #0759b6;
+  --home-visit-surface: #e8f2ff;
+  --home-visit-accent: #0759b6;
+  --home-profile-surface: #e8f2ff;
+  --home-profile-accent: #0759b6;
 }
 body[data-hub-layout="reference"][data-active-feature="medications"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
-body[data-hub-layout="reference"][data-active-feature="symptoms"] { --destination-bg: #e7f7fa; --destination-accent: #0a718e; }
-body[data-hub-layout="reference"][data-active-feature="appointments"] { --destination-bg: #edf2ff; --destination-accent: #335ca8; }
-body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destination-bg: #edf2ff; --destination-accent: #335ca8; }
+body[data-hub-layout="reference"][data-active-feature="symptoms"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
+body[data-hub-layout="reference"][data-active-feature="appointments"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
+body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
 
 /* Homepage: a centred, spacious first screen, with the existing flows below. */
 .doctorai-homepage .home-header { border: 0; padding-block: 16px; z-index: 2; }
@@ -233,9 +233,9 @@ body[data-hub-layout="reference"] #hub-shell :is(.refill-icon, .result-file-icon
   color: #0759b6;
 }
 body[data-hub-layout="reference"] #hub-shell :is(.info-icon.purple, .overview-icon.purple, .provider-avatar.pale) {
-  border: 1px solid #d0c8f0;
-  background: #f1efff;
-  color: #5b4fa8;
+  border: 1px solid #c6dcef;
+  background: #edf5ff;
+  color: #0759b6;
 }
 body[data-hub-layout="reference"] :is(.drawer-row-icon, .modal-choice > span, .profile-shortcut-add > span:first-child) {
   border: 1px solid #c6dcef;
@@ -247,7 +247,7 @@ body[data-hub-layout="reference"] #view-profile .profile-shortcut-card { border-
 body[data-hub-layout="reference"] #view-profile .profile-shortcut-card:hover { border-color: #89b8e4; background: #f6faff; }
 body[data-hub-layout="reference"] #view-profile :is(.memory-large-icon, .memory-disclosure-chevron, .memory-disclosure-status) { color: var(--hub-profile-accent); }
 
-/* The Add Health Detail chooser has six distinct symbols within one palette. */
+/* The Add Health Detail chooser has six distinct symbols in one blue palette. */
 body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice {
   --choice-bg: #f8fbff;
   --choice-border: #c6dcef;
@@ -256,11 +256,6 @@ body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice {
   --choice-ink: #0759b6;
   box-shadow: inset 3px 0 var(--choice-accent);
 }
-body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="health"] { --choice-bg: #f5fcfd; --choice-border: #c2e4ed; --choice-accent: #0a718e; --choice-icon-bg: #e7f7fa; --choice-ink: #0a718e; }
-body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="symptom"] { --choice-bg: #f7f8ff; --choice-border: #d0d8f0; --choice-accent: #335ca8; --choice-icon-bg: #edf2ff; --choice-ink: #335ca8; }
-body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="appointment"] { --choice-bg: #f9f8ff; --choice-border: #d0c8f0; --choice-accent: #5b4fa8; --choice-icon-bg: #f0edff; --choice-ink: #5b4fa8; }
-body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-modal="measurement"] { --choice-bg: #f7faff; --choice-border: #c8d9ed; --choice-accent: #2863ae; --choice-icon-bg: #edf4ff; --choice-ink: #2863ae; }
-body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice[data-view="documents"] { --choice-bg: #f5fcfd; --choice-border: #c2e4ed; --choice-accent: #0a718e; --choice-icon-bg: #e7f7fa; --choice-ink: #0a718e; }
 
 /* Navigation never repaints a clinical badge blue. */
 body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-nav-symbol[data-alert-level="green"] { color: #166534; background: #eefbf3; }
