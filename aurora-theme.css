@@ -328,6 +328,20 @@ body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-na
   .doctorai-homepage .home-brand-wordmark img { width: 112px; height: 75px; margin: -51px 0 0 -15px; }
   .doctorai-homepage .home-nav .home-button { padding-inline: 9px; }
 }
+body[data-hub-layout="reference"] #view-timeline .timeline-history-label {
+  display: block;
+  margin-top: 7px;
+  color: #315276;
+  font-size: 12px;
+  font-weight: 700;
+}
+body[data-hub-layout="reference"] #view-timeline [data-delete-medication-history] {
+  margin-top: 5px;
+  margin-left: -10px;
+}
+body[data-hub-layout="reference"] #view-profile :is(.secondary-button, .text-button) .doctorai-icon-slot[data-doctorai-icon="arrow"] {
+  color: #0759b6;
+}
 @media (prefers-reduced-motion: reduce) {
   .home-aurora-hero .home-hero-logo { animation: none !important; }
   .home-aurora-hero .home-logo-tilt { transform: none !important; transition: none; }

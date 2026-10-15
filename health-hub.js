@@ -1182,7 +1182,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderMedicationHistory() {
     if (!els.medicationHistory) return;
     const history = state.timeline.filter(entry => entry.type === 'medication');
-    els.medicationHistory.innerHTML = history.length ? history.slice(0, 4).map(entry => `<div class="history-item"><span class="history-dot changed"></span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)}</small></div><span aria-hidden="true">${iconMarkup('arrow')}</span></div>`).join('') : '<div class="empty-inline">Medication changes will appear here.</div>';
+    els.medicationHistory.innerHTML = history.length ? history.slice(0, 4).map(entry => `<div class="history-item"><span class="history-dot changed"></span><div><b>${escapeHTML(entry.title)}</b><small>${escapeHTML(entry.description)} · ${escapeHTML(medicineHistoryLabel(entry))}</small></div><span aria-hidden="true">${iconMarkup('arrow')}</span></div>`).join('') : '<div class="empty-inline">Medication changes will appear here.</div>';
+  }
+
+  function medicineHistoryLabel(entry) {
+    if (entry.source === 'medication-list-change' && entry.medicationId) return 'Saved-list change · History only';
+    if (entry.source === 'user') return 'Your note · History only';
+    return 'Older entry · History only; origin unconfirmed';
   }
 
   function renderAppointments() {
@@ -1486,7 +1492,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const entries = visibleTimeline.filter(entry => timelineFilter === 'all' || entry.type === timelineFilter);
     els.timelineList.innerHTML = entries.length ? entries.map(entry => {
       const description = entry.type === 'symptom' ? symptomLogDescription(entry) : entry.description;
-      return `<article class="timeline-entry ${escapeHTML(entry.type)}"><span class="timeline-dot">${timelineIconMarkup(entry)}</span><div><h3>${escapeHTML(entry.title)}</h3><p>${escapeHTML(description)}</p></div><time>${formatDate(entry.date)}</time></article>`;
+      const medicationHistory = entry.type === 'medication' ? `<small class="timeline-history-label">${escapeHTML(medicineHistoryLabel(entry))} · Not your current medicine list</small><button type="button" class="quiet-button" data-delete-medication-history="${state.timeline.indexOf(entry)}">Delete history entry</button>` : '';
+      return `<article class="timeline-entry ${escapeHTML(entry.type)}"><span class="timeline-dot">${timelineIconMarkup(entry)}</span><div><h3>${escapeHTML(entry.title)}</h3><p>${escapeHTML(description)}</p>${medicationHistory}</div><time>${formatDate(entry.date)}</time></article>`;
     }).join('') : '<div class="empty-state">No entries match this filter yet.</div>';
   }
 
@@ -2197,7 +2204,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       { title: 'Saved medicine details (not date filtered)', items: state.medications.map(item => [item.name, item.dose, item.frequency, item.instructions, item.startDate ? `Saved start date: ${item.startDate}` : '', item.endDate ? `Saved end date: ${item.endDate}` : ''].filter(Boolean).join(' · ')) },
       { title: 'Saved health profile (not date filtered)', items: [...conditionDetails, ...allergyDetails, ...[['Blood type', state.profile.bloodType], ['Profile notes', state.profile.notes]].filter(([, value]) => String(value || '').trim()).map(([label, value]) => `${label}: ${String(value).trim()}`)] },
       { title: 'Measurements recorded', dates: measurements.map(item => briefDate(item.date)), items: measurements.map(item => [item.type || item.label, item.value, item.unit, item.systolic ? `${item.systolic}/${item.diastolic}` : '', item.date, item.note].filter(value => value !== '' && value !== undefined && value !== null).join(' · ')) },
-      { title: 'Medicine notes recorded', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [item.date, item.title, item.description].filter(Boolean).join(' · ')) }
+      { title: 'Past medicine changes and notes (not current list)', dates: notes.map(item => briefDate(item.date)), items: notes.map(item => [medicineHistoryLabel(item), item.date, item.title, item.description].filter(Boolean).join(' · ')) }
     ];
     careSummaryDraft = { groups, appointments: state.appointments.slice(), html: '' };
     const today = briefLocalDate(new Date());
@@ -3285,7 +3292,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (existingIndex >= 0) state.medications[existingIndex] = medicationRecord;
       else state.medications.push(medicationRecord);
       clearMedicationSafetyResults();
-      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: 'medication', date: values.startDate || existingMedication?.startDate || today, title: `${name} ${editingId ? 'updated' : 'added'}`, description: `${dose} · ${frequency || 'schedule needs review'}`, icon: '▣' });
+      state.timeline.unshift({ id: `timeline-${Date.now()}`, source: 'medication-list-change', medicationId: medicationRecord.id, type: 'medication', date: briefLocalDate(new Date()), title: `${name} ${editingId ? 'updated' : 'added'}`, description: `${dose} · ${frequency || 'schedule needs review'}`, icon: '▣' });
       if (editingId) {
         destinationView = 'medications';
         postSaveToast = 'Medication updated. Review the details you saved; any local check has limited coverage.';
@@ -3388,7 +3395,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('Health profile updated.');
     } else if (form.dataset.modalForm === 'timeline') {
       if (!['medication', 'appointment', 'result'].includes(values.type)) { showToast('Choose a valid timeline entry type.'); form.elements.type?.focus(); return; }
-      state.timeline.unshift({ id: `timeline-${Date.now()}`, type: values.type, date: values.date, title: String(values.title || '').trim().slice(0, 100), description: String(values.description || 'Added by you').trim().slice(0, 500), icon: values.type === 'appointment' ? '◷' : values.type === 'medication' ? '▣' : '⌁' });
+      state.timeline.unshift({ id: `timeline-${Date.now()}`, source: 'user', type: values.type, date: values.date, title: String(values.title || '').trim().slice(0, 100), description: String(values.description || 'Added by you').trim().slice(0, 500), icon: values.type === 'appointment' ? '◷' : values.type === 'medication' ? '▣' : '⌁' });
       showToast('Timeline entry added.');
     }
     saveState();
@@ -3892,11 +3899,23 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const deleteMedication = event.target.closest('[data-delete-medication]');
     if (deleteMedication) {
       event.preventDefault();
-      const medication = state.medications.find(item => item.id === deleteMedication.dataset.deleteMedication);
-      if (medication && window.confirm(`Delete ${medication.name} ${medication.dose || ''} from your medication list?`)) {
-        state.medications = state.medications.filter(item => item.id !== medication.id);
+      const medication = state.medications.find(item => String(item.id) === String(deleteMedication.dataset.deleteMedication));
+      if (medication && window.confirm(`Delete ${medication.name} ${medication.dose || ''} from your current medicine list? Automatically saved changes for this entry will be deleted too. Notes you added to History will remain.`)) {
+        state.medications = state.medications.filter(item => String(item.id) !== String(medication.id));
+        state.timeline = state.timeline.filter(item => !(item.type === 'medication' && item.source === 'medication-list-change' && String(item.medicationId ?? '') === String(medication.id)));
         clearMedicationSafetyResults();
-        saveState(); renderAll(); showToast('Medication removed from your health hub.');
+        saveState(); renderAll(); showToast('Medicine removed from your current list. Your own history notes remain.');
+      }
+      return;
+    }
+    const deleteMedicationHistory = event.target.closest('[data-delete-medication-history]');
+    if (deleteMedicationHistory) {
+      event.preventDefault();
+      const index = Number(deleteMedicationHistory.dataset.deleteMedicationHistory);
+      const entry = Number.isSafeInteger(index) && index >= 0 ? state.timeline[index] : null;
+      if (entry?.type === 'medication' && window.confirm(`Delete the history entry "${entry.title}"? This does not change your current medicine list.`)) {
+        state.timeline.splice(index, 1);
+        saveState(); renderAll(); showToast('Medicine history entry deleted.');
       }
       return;
     }

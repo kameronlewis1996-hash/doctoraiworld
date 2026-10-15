@@ -2,9 +2,13 @@
 
 **Deliverable type:** screenshot walkthrough and timed narration/caption script; no video recording is claimed.
 
-**Capture limits:** This subtask has no supported way to persist a fresh browser screenshot to the repository. The isolated in-app browser returned a zero-width capture, then timed out at `Page.captureScreenshot` after applying the requested 1487 × 1058 viewport. Visible IAB is unavailable in a subagent thread, and the user's Chrome preview belongs to another browser session. The existing local image files below are explicitly **pre-refresh** evidence; they are included as visual references, not represented as current captures. The exact reference attachment remains inline in the parent conversation and has no local export.
+**Capture boundary:** Fresh desktop and mobile screenshots were captured in the supported in-app browser against the worktree preview at http://127.0.0.1:4188/. The browser displayed the captures in the task output, but screenshot export was explicitly blocked and the interface provides no supported way to save those image bytes into this repository. I did not try another tool or route. Do not present the saved JPEGs below as current: they are explicitly **pre-refresh** visual references. The exact selected reference remains inline in the parent conversation and has no local export. No video or audio recording was produced.
 
-The parent captured the current desktop preview live at CSS viewport **1487 × 1058** (usable page area 1472 × 1058). The measured composition is close to the reference: current halo x506-982 vs reference ~495-982; heading y472 vs y473; primary CTA y714 vs y711; dock y858 vs y857. More saturated cyan/blue/lilac peripheral bokeh was added in the final refresh. That fresh screenshot could not be exported into this artifact. The current mobile homepage was visually inspected at 390 × 844, with no horizontal overflow, but its slices could not be persisted here. Existing responsive metrics report matching content/viewport widths at 320, 390, 680, 768, 1024, and 1487 CSS px; see [responsive.json](responsive.json).
+**Current live desktop capture:** CSS viewport **1487 x 1058**; the browser image is **1472 x 1058** because the vertical scrollbar uses 15 px. The aurora mark bounds are x498/y78/w476, versus reference x~495-982; the heading begins y467 versus y473; the Add Health Detail pill begins y714 versus y711; and the glass dock begins y858 versus y857. The centered logo, two-line navy/cobalt headline, lead, primary pill, Pro scan link, and four-item dock are in the selected order. The composition is closely aligned; the background remains smoother and more evenly blended than the reference's richer peripheral bokeh.
+
+**Current live mobile capture:** CSS viewport **390 x 844**; the browser image is **375 x 812** after the scrollbar. The page width and content width both measure 375 CSS px, so there is no horizontal overflow. The centered mark is x69/y80/w238; the two-line heading x20/y300/w335; Add Health Detail x20/y463/w335/h66; and the two-column four-item dock x20/y599/w335/h148. The scan link remains directly below the primary action. Existing responsive metrics cover 320, 390, 680, 768, 1024, and 1487 CSS px; see [responsive.json](responsive.json).
+
+The final live capture used accessibility.css v14, aurora-theme.css v6, hub-category-themes.css v3, health-hub.js v95, and service-worker cache v156. Those tags identify the worktree version inspected; the live screenshots are not attached to this file.
 
 ## Visual references (pre-refresh)
 
@@ -42,8 +46,11 @@ All story content is fictional. Do not enter or change any health details during
 
 ## Verification boundary
 
-- Desktop current layout measurements above were relayed from a fresh parent-task capture; the image is not stored here.
+- Desktop and mobile measurements above came from fresh live captures of the exact worktree preview after the icon correction. The browser images were displayed in task output but could not be saved here.
+- All four homepage dock icons, all four Health Hub bottom-navigation icons, all six Add Health Detail chooser icons, and all six Profile shortcut-card icons use the shared blue, rgb(7, 89, 182). At final tag aurora-theme.css v6, `#view-profile .profile-page-hero > .secondary-button` and `#view-profile .memory-card-actions > .text-button` arrow icons (Account & settings and Privacy controls) also compute to rgb(7, 89, 182).
+- The empty “No saved details have been assessed yet” alert remained neutral. Synthetic orange preview retained an exclamation symbol and “Review needed”; synthetic red retained an exclamation symbol and “Contact a professional” plus professional-review guidance. Both local QA states visibly carried “Synthetic alert preview: no personal records.”
+- The parent-supplied Vercel alias loaded in the existing Chrome session without a login wall at checkpoint 4d2b7cd. That alias is for the earlier checkpoint; current-head hosted verification remains pending the next deployment.
 - The two saved homepage images and two warning images are pre-refresh repository captures. They must not be presented as current final screenshots.
-- Current mobile and Add Health Detail chooser views were inspected live, but screenshots were not persisted in this document.
+- Current mobile homepage, Health Hub, Add Health Detail chooser, Profile, and synthetic orange/red states were inspected live. No current screenshot file was persisted in this document.
 - No actual video, audio, or voice track was created. The companion [WebVTT captions](demo-captions-20261016.vtt) provide timed on-screen caption overlays; the full narration is in the table above, not in the VTT as a verbatim speech transcript.
 - No health records, external service, scanner, camera, or personal account were used by this artifact.

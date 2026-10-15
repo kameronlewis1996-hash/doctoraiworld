@@ -44,7 +44,10 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   };
   const state = {
     medications: [{ name: 'Fictional medicine' }], appointments: [{ id: 'fictional-appointment' }], providers: [],
-    timeline: [], documents: [], measurements: [], tasks: [], profile: { name: 'Fictional patient' },
+    timeline: [
+      { id: 'generated-medicine-history', source: 'medication-list-change', medicationId: 'fictional-medicine', type: 'medication', title: 'Fictional change' },
+      { id: 'user-medicine-history', source: 'user', type: 'medication', title: 'Fictional personal note' }
+    ], documents: [], measurements: [], tasks: [], profile: { name: 'Fictional patient' },
     memoryEnabled: true, memoryDetails: [{ text: 'Fictional note' }]
   };
   const context = vm.createContext({
@@ -125,6 +128,7 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   assert.equal(deletion.calls.consents[0], false, 'Delete revokes and clears the previous medication-check result.');
   assert.equal(deletion.api.status().cacheSize, 0, 'Deleted data cannot return from the in-memory account cache.');
   assert.equal(deletion.state.medications.length, 0);
+  assert.equal(deletion.state.timeline.length, 0, 'Full-data deletion clears generated and user-authored medicine history.');
   assert.equal(deletion.state.profile.name, '');
   for (const key of healthKeys.filter(key => !key.endsWith('-allergies'))) assert.equal(deletion.memory.has(key), false, 'Delete clears browser health records even when device writes are disabled.');
   assert.equal(deletion.calls.close, 1);
@@ -137,11 +141,13 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   assert.equal(account.context.accountSessionRevision, 3, 'An in-flight earlier account-state load is invalidated.');
   assert.equal(account.context.cloudSyncEnabled, true);
   assert.equal(account.calls.saves, 0, 'Deletion cannot re-upload the old browser record.');
+  assert.equal(account.state.timeline.length, 0, 'Account deletion clears both kinds of medicine history after the cloud request succeeds.');
 
   const cloud = fixture({ signedIn: true, cloudFailure: true });
   await cloud.api.deleteHealthData();
   assert.ok(cloud.memory.has(prefix + 'medications'), 'Cloud failure retains the browser copy for retry or export.');
   assert.equal(cloud.state.medications.length, 1);
+  assert.equal(cloud.state.timeline.length, 2, 'Incomplete cloud deletion keeps historical entries for retry or export.');
   assert.equal(cloud.context.cloudSyncEnabled, false, 'Sync is paused after incomplete cloud deletion.');
   assert.match(cloud.calls.toasts.at(-1), /Deletion could not finish/);
 

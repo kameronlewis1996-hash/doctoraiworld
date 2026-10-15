@@ -24,11 +24,14 @@ function declaration(name) {
 const production = [
   declaration('escapeHTML'),
   "let trendRange = 'blood-pressure';",
+  "let timelineFilter = 'all';",
   between('  let measurementIdSequence =', '  const state = {'),
   between('  function appointmentGroups(', '  function renderTodayOverview('),
   between('  const symptomImpactLabels =', '  const symptomLogDescription ='),
   between('  const measurementPills =', '  const showToast ='),
   between('  function createMeasurementId()', '  function healthStateSnapshot()'),
+  between('  function renderMedicationHistory()', '  function renderAppointments('),
+  between('  function renderTimeline()', '  function renderDocuments()'),
   between('  let careSummaryDraft =', '  function openPersonalOverview('),
   between('  function renderAppointments(', '  function renderProfileShortcuts('),
   between('  const measurementTypeLabel =', '  function renderHealthAlerts('),
@@ -122,6 +125,7 @@ function fixture(initial = {}) {
     state, Date: FixtureDate, FormData: FixtureFormData,
     els: {
       appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {},
+      medicationHistory: { innerHTML: '' }, timelineList: { innerHTML: '' },
       measurementValue: { textContent: '', innerHTML: '' }, measurementLabel: { textContent: '' },
       measurementStatus: { textContent: '' }, largeChart: { hidden: false }, measurementChips: { innerHTML: '' },
       modalBody: { append: item => observed.returnedForm = item },
@@ -131,6 +135,9 @@ function fixture(initial = {}) {
     window: { confirm: message => { observed.confirmations.push(message); return observed.confirm; }, fetch: forbidden, open: forbidden },
     fetch: forbidden, localStorage: { getItem: forbidden, setItem: forbidden }, sessionStorage: { getItem: forbidden, setItem: forbidden },
     iconMarkup: () => '<svg aria-hidden="true"></svg>',
+    timelineIconMarkup: () => '<svg aria-hidden="true"></svg>',
+    hasProAccess: () => true, isDocumentEntry: () => false,
+    symptomLogDescription: item => item.description || '',
     $$: () => [],
     formatShortDate: value => 'Short ' + value,
     formatDate: value => `Formatted ${value}`, formatTime: value => value,
@@ -138,6 +145,7 @@ function fixture(initial = {}) {
     $: selector => selector === '[data-care-summary-form]' ? activeBriefForm : selector === '#care-summary-print' ? observed.printRoot || null : null,
     setModal: (title, eyebrow, html) => { observed.modals.push({ title, eyebrow, html }); if (html.includes('data-care-summary-form')) activeBriefForm = briefForm(html); },
     saveState: () => observed.saves.push(clone(state)), renderAll: () => observed.renders++,
+    clearMedicationSafetyResults: () => {},
     closeModal: () => observed.closes++, showToast: text => observed.toasts.push(text),
     showView: (...route) => observed.routes.push(route)
   });
@@ -863,6 +871,71 @@ function verifyPreparationCloseFocus() {
   assert.equal(observed.focused, 1, 'Closing after navigation focuses the visible Visit prep heading.');
 }
 
+async function verifyMedicineHistoryDeletion() {
+  const legacy = { id: 'legacy-medicine-history', type: 'medication', date: '2026-10-10', title: 'Fictional new medicine added', description: 'Legacy saved-list event with unknown provenance' };
+  const unrelated = { id: 'other-medicine-change', source: 'medication-list-change', medicationId: 'other-medicine', type: 'medication', date: '2026-10-12', title: 'Other medicine added', description: 'Other saved-list event' };
+  const f = fixture({ medications: [{ id: 'other-medicine', name: 'Other medicine', dose: '2 mg' }], timeline: [legacy, unrelated] });
+  const medication = appointmentForm({ name: 'Fictional new medicine', dose: '10 mg', frequency: 'Once daily', startDate: '2020-01-01' });
+  medication.dataset.modalForm = 'medication';
+  submit(f.context, medication);
+  const saved = f.state.medications.find(item => item.name === 'Fictional new medicine');
+  assert.ok(saved, 'The actual submit handler saves the fictional medicine to the current list.');
+  const generated = f.state.timeline[0];
+  assert.equal(generated.source, 'medication-list-change', 'Automatically saved list changes have explicit provenance.');
+  assert.equal(generated.medicationId, saved.id, 'The generated event links to its medicine by ID.');
+  const localDay = new FixtureDate();
+  assert.equal(generated.date, `${localDay.getFullYear()}-${String(localDay.getMonth() + 1).padStart(2, '0')}-${String(localDay.getDate()).padStart(2, '0')}`, 'The change event records the local day it was saved, not a historical medicine start date.');
+
+  const note = appointmentForm({ type: 'medication', date: '2026-10-11', title: 'My own medicine note', description: 'A separate note I wrote' });
+  note.dataset.modalForm = 'timeline';
+  submit(f.context, note);
+  const authored = f.state.timeline[0];
+  assert.equal(authored.source, 'user', 'A manually written history entry remains distinguishable from generated list changes.');
+  const synced = await healthStateApiRoundTrip(serializeHealthState(f.state));
+  assert.ok(synced.timeline.some(item => item.source === 'medication-list-change' && item.medicationId === saved.id), 'The linked generated event survives the actual browser serializer and account API roundtrip.');
+  assert.ok(synced.timeline.some(item => item.source === 'user' && item.title === authored.title), 'User-authored provenance survives the same account roundtrip.');
+  f.context.renderTimeline();
+  assert.match(f.context.els.timelineList.innerHTML, /History only[^<]*Not your current medicine list/, 'Every medicine timeline entry is visibly historical.');
+  assert.match(f.context.els.timelineList.innerHTML, /Your note[^<]*History only/, 'A user-authored entry is labelled as the user\'s note.');
+  assert.match(f.context.els.timelineList.innerHTML, /Older entry[^<]*origin unconfirmed/, 'An unlinked legacy entry does not falsely claim a known source.');
+  assert.match(f.context.els.timelineList.innerHTML, /data-delete-medication-history="\d+"/, 'Medicine history has a separate explicit delete control.');
+  f.context.renderMedicationHistory();
+  assert.match(f.context.els.medicationHistory.innerHTML, /Saved-list change[^<]*History only/, 'The medicine archive distinguishes automatic saved-list changes.');
+  f.context.openCareSummary();
+  assert.match(f.modal().html, /Past medicine changes and notes \(not current list\)/, 'Visit Prep distinguishes past medicine events from the current list.');
+  assert.match(f.modal().html, /History only/, 'Historical medicine choices remain labelled when a user elects to include them.');
+
+  f.observed.confirm = false;
+  await click(f.context, 'data-delete-medication', saved.id);
+  assert.ok(f.state.medications.some(item => item.id === saved.id), 'Cancelling the confirmation keeps the saved medicine.');
+  f.observed.confirm = true;
+  await click(f.context, 'data-delete-medication', saved.id);
+  assert.ok(!f.state.medications.some(item => item.id === saved.id), 'Single-medicine deletion removes only that current medicine.');
+  assert.ok(!f.state.timeline.includes(generated), 'Its linked automatic list-change event is removed.');
+  assert.ok(f.state.timeline.includes(authored), 'A user-authored medicine note remains intact.');
+  assert.ok(f.state.timeline.some(item => item.id === legacy.id), 'An old unlinked event is preserved because its provenance is unknown.');
+  assert.ok(f.state.timeline.some(item => item.id === unrelated.id), 'Another medicine\'s generated history remains intact.');
+  assert.match(f.observed.confirmations.at(-1), /Notes you added to History will remain/, 'The deletion confirmation explains the different data effects.');
+  f.context.openCareSummary();
+  assert.doesNotMatch(f.modal().html, /10 mg/, 'A deleted current medicine and its linked generated event cannot reappear in Visit Prep.');
+  assert.match(f.modal().html, /Legacy saved-list event with unknown provenance/, 'An unlinked historical event remains clearly selectable as history.');
+  assert.match(f.modal().html, /Other medicine/, 'The unrelated current medicine remains available.');
+
+  const legacyIndex = f.state.timeline.findIndex(item => item.id === legacy.id);
+  await click(f.context, 'data-delete-medication-history', String(legacyIndex));
+  assert.ok(!f.state.timeline.some(item => item.id === legacy.id), 'The user can explicitly remove an unlinked legacy medicine event.');
+  assert.ok(f.state.timeline.includes(authored), 'Removing one history event does not erase a separate user note.');
+  assert.equal(f.state.medications.length, 1, 'Deleting a history event does not change the current medicine list.');
+  assert.equal(f.observed.forbiddenCalls, 0);
+
+  const numeric = fixture({ medications: [{ id: 42, name: 'Legacy numeric medicine', dose: '1 mg' }], timeline: [
+    { id: 'linked-numeric-event', source: 'medication-list-change', medicationId: 42, type: 'medication', title: 'Legacy numeric medicine added' }
+  ] });
+  await click(numeric.context, 'data-delete-medication', '42');
+  assert.equal(numeric.state.medications.length, 0, 'An older numeric medicine ID can still be deleted through the string-valued browser control.');
+  assert.equal(numeric.state.timeline.length, 0, 'Its linked generated event is removed using the same normalized ID.');
+}
+
 (async () => {
   verifyAppointmentDayRefresh();
   await verifyAppointmentDateGroups();
@@ -876,5 +949,6 @@ function verifyPreparationCloseFocus() {
   await verifyAppointmentRequestDraft();
   verifyPreparationOwnerTransition();
   verifyPreparationCloseFocus();
-  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
+  await verifyMedicineHistoryDeletion();
+  console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; medicine history provenance and deletion; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
