@@ -1,0 +1,355 @@
+{
+  "checkedAt": "2026-10-15T01:15:27.353Z",
+  "mode": "Local production CSP; isolated browser; synthetic alert results and unauthenticated API fixtures",
+  "routes": [
+    {
+      "name": "homepage",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "targets": [
+            [
+              ".home-topics"
+            ]
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".home-universe-label"
+            ],
+            [
+              ".home-orbit-caption"
+            ]
+          ]
+        }
+      ],
+      "passes": 27
+    },
+    {
+      "name": "alerts-green",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ],
+            [
+              ".mobile-bottom-nav-item[data-view=\"today\"][type=\"button\"] > .hub-alert-nav-symbol"
+            ],
+            [
+              "#toast"
+            ]
+          ]
+        }
+      ],
+      "passes": 23
+    },
+    {
+      "name": "alerts-orange",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ]
+          ]
+        }
+      ],
+      "passes": 23
+    },
+    {
+      "name": "alerts-red",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ]
+          ]
+        }
+      ],
+      "passes": 23
+    },
+    {
+      "name": "alerts-urgent",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ]
+          ]
+        }
+      ],
+      "passes": 23
+    },
+    {
+      "name": "alerts-failure",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ]
+          ]
+        }
+      ],
+      "passes": 23
+    },
+    {
+      "name": "profile-memory-open",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "form-field-multiple-labels",
+          "targets": [
+            [
+              "#health-memory-toggle"
+            ]
+          ]
+        }
+      ],
+      "passes": 24
+    },
+    {
+      "name": "medicine-dialog",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [],
+      "passes": 18
+    },
+    {
+      "name": "symptom-dialog",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".primary-button[type=\"submit\"]"
+            ]
+          ]
+        }
+      ],
+      "passes": 22
+    },
+    {
+      "name": "alert-coverage-open",
+      "width": 390,
+      "overflow": false,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "targets": [
+            [
+              ".alerts-intro > div > .eyebrow"
+            ],
+            [
+              "#alerts-title"
+            ],
+            [
+              ".alerts-intro > div > .page-subtitle"
+            ],
+            [
+              "button[data-refresh-alerts=\"\"]"
+            ],
+            [
+              "#alerts-count"
+            ],
+            [
+              "#alerts-status"
+            ]
+          ]
+        }
+      ],
+      "passes": 26
+    }
+  ],
+  "states": [
+    {
+      "state": "green",
+      "summaries": [
+        {
+          "level": "green",
+          "title": "No flagged notices",
+          "label": "Alerts: No flagged notices. Limited checks. No alert does not mean safe. Open alerts."
+        },
+        {
+          "level": "green",
+          "title": "No flagged notices",
+          "label": "Alerts: No flagged notices. Limited checks. No alert does not mean safe. Open alerts."
+        }
+      ]
+    },
+    {
+      "state": "orange",
+      "summaries": [
+        {
+          "level": "orange",
+          "title": "Review needed",
+          "label": "Alerts: Review needed. 1 notice in your saved details. Open to review. Open alerts."
+        },
+        {
+          "level": "orange",
+          "title": "Review needed",
+          "label": "Alerts: Review needed. 1 notice in your saved details. Open to review. Open alerts."
+        }
+      ]
+    },
+    {
+      "state": "red",
+      "summaries": [
+        {
+          "level": "red",
+          "title": "Contact a professional",
+          "label": "Alerts: Contact a professional. 1 notice. Ask a pharmacist or clinician to review. Open alerts."
+        },
+        {
+          "level": "red",
+          "title": "Contact a professional",
+          "label": "Alerts: Contact a professional. 1 notice. Ask a pharmacist or clinician to review. Open alerts."
+        }
+      ]
+    },
+    {
+      "state": "urgent",
+      "summaries": [
+        {
+          "level": "red",
+          "title": "Urgent medical help",
+          "label": "Alerts: Urgent medical help. 1 notice. Open now for the next step. Open alerts."
+        },
+        {
+          "level": "red",
+          "title": "Urgent medical help",
+          "label": "Alerts: Urgent medical help. 1 notice. Open now for the next step. Open alerts."
+        }
+      ]
+    },
+    {
+      "state": "failure",
+      "summaries": [
+        {
+          "level": "neutral",
+          "title": "Checks unavailable",
+          "label": "Alerts: Checks unavailable. Open Alerts for details. Your records are not cleared. Open alerts."
+        },
+        {
+          "level": "neutral",
+          "title": "Checks unavailable",
+          "label": "Alerts: Checks unavailable. Open Alerts for details. Your records are not cleared. Open alerts."
+        }
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "browser": "155.0.4283.45",
+  "forcedColors": "status text and symbol border remain",
+  "result": "passed"
+}
