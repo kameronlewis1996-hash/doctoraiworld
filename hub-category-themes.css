@@ -132,3 +132,91 @@ body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .refere
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view][aria-current="page"],
   body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view][aria-current="page"] { border: 3px solid Highlight; }
 }
+
+/* Compact, accessible summaries: status text and a symbol accompany every colour. */
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut {
+  --alert-ink: #465f73;
+  --alert-surface: #f1f5f9;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 88px;
+  margin: 0 0 22px;
+  padding: 16px 20px;
+  border: 2px solid var(--alert-ink);
+  border-radius: 14px;
+  background: var(--alert-surface);
+  color: var(--alert-ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut[data-alert-level="green"] { --alert-ink: #166534; --alert-surface: #eefbf3; }
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut[data-alert-level="orange"] { --alert-ink: #934407; --alert-surface: #fff5e8; }
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut[data-alert-level="red"] { --alert-ink: #b42318; --alert-surface: #fff1f0; }
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut:focus-visible { outline: 3px solid var(--alert-ink); outline-offset: 4px; }
+body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut:hover { box-shadow: inset 0 0 0 1px var(--alert-ink); }
+.hub-alert-status-symbol { display: grid; place-items: center; width: 36px; height: 36px; border: 2px solid currentColor; border-radius: 50%; font-size: 24px; font-weight: 700; line-height: 1; }
+.hub-alert-shortcut[data-alert-level="red"] .hub-alert-status-symbol { border-radius: 8px; }
+.hub-alert-shortcut-copy { display: grid; gap: 3px; min-width: 0; }
+.hub-alert-shortcut-copy small { font-weight: 600; }
+.hub-alert-shortcut-copy strong { font-size: 17px; line-height: 1.35; }
+.hub-alert-shortcut-copy > span { font-size: 14px; line-height: 1.5; }
+.hub-alert-shortcut-arrow { display: inline-flex; width: 22px; height: 22px; color: inherit; }
+.hub-alert-shortcut-arrow svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; fill: none; }
+.hub-alert-nav-symbol { display: grid; place-items: center; flex: 0 0 20px; width: 20px; height: 20px; margin-left: auto; border: 1.5px solid currentColor; border-radius: 50%; font-size: 14px; font-style: normal; font-weight: 800; line-height: 1; }
+.hub-alert-nav-symbol[hidden] { display: none; }
+.hub-alert-nav-symbol[data-alert-level="green"] { color: #166534; background: #eefbf3; }
+.hub-alert-nav-symbol[data-alert-level="orange"] { color: #934407; background: #fff5e8; }
+.hub-alert-nav-symbol[data-alert-level="red"] { color: #b42318; background: #fff1f0; border-radius: 5px; }
+.mobile-bottom-nav > [data-view="today"] { position: relative; }
+.mobile-bottom-nav .hub-alert-nav-symbol { position: absolute; right: 4px; top: 2px; width: 18px; height: 18px; font-size: 12px; }
+
+/* The disclosure moved from My Health to Profile; keep its layout with its content. */
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure { min-height: 0; padding: 0; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-summary { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 18px; list-style: none; cursor: pointer; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-summary::-webkit-details-marker { display: none; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title { flex: 1; min-width: 0; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title :is(b, small) { display: block; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title small { margin-top: 4px; color: #465f73; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-status { flex: 0 0 auto; color: #65439b; }
+body[data-hub-layout="reference"] #hub-shell #view-profile :is(.memory-large-icon, .memory-disclosure-chevron) { flex: 0 0 24px; width: 24px; height: 24px; color: #65439b; background: transparent; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure[open] .memory-disclosure-chevron { transform: rotate(180deg); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-content { padding: 18px; border-top: 1px solid #b4a1d3; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-card-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+body[data-hub-layout="reference"] #hub-shell .profile-simple-links { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-block: 20px; }
+body[data-hub-layout="reference"] #hub-shell .profile-simple-links button { min-height: 44px; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-scan-button,
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-scan-button > span { color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card { --notice-ink: #934407; --notice-surface: #fff5e8; border-left: 4px solid var(--notice-ink); }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) { --notice-ink: #b42318; --notice-surface: #fff1f0; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card .hub-alert-icon { color: var(--notice-ink); background: var(--notice-surface); }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card .card-kicker { color: var(--notice-ink); }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-about { margin-block: 16px; color: #465f73; font-size: 14px; line-height: 1.6; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-about > summary { min-height: 44px; padding-block: 10px; cursor: pointer; font-weight: 600; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-coverage > small { color: #465f73; }
+body[data-hub-layout="reference"] #hub-shell .hub-footer { color: #465f73; font-size: 12px; gap: 12px; }
+body[data-hub-layout="reference"] #hub-shell .hub-footer a { display: inline-flex; align-items: center; min-height: 44px; color: #465f73; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-triggers { border: 1px solid #c7d5e3; border-radius: 10px; padding: 0 14px; margin-block: 16px; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-triggers summary { min-height: 44px; padding-block: 12px; font-weight: 600; color: #0a2340; cursor: pointer; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-triggers ul { padding-bottom: 12px; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-source summary,
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-coverage summary { min-height: 44px; cursor: pointer; }
+@media (max-width: 800px) {
+  html { scroll-padding-bottom: 96px; }
+  body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut { grid-template-columns: 32px minmax(0, 1fr) 18px; gap: 10px; padding: 14px 12px; }
+  .hub-alert-status-symbol { width: 30px; height: 30px; font-size: 21px; }
+  .hub-alert-shortcut-copy strong { font-size: 16px; }
+  .hub-alert-shortcut-arrow { width: 18px; height: 18px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-summary { flex-wrap: wrap; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-title { flex-basis: calc(100% - 40px); }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-status { margin-left: 36px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-chevron { margin-left: auto; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut,
+  .hub-alert-status-symbol { border-color: ButtonText; color: ButtonText; }
+}

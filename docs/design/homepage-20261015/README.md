@@ -1,5 +1,7 @@
 # DoctorAI homepage review
 
+Latest: [accessibility, simpler screens and alert-status audit](accessibility-alerts.md), including updated desktop/mobile screenshots.
+
 This homepage makes the existing DoctorAI brand the centrepiece: the canonical head mark floats gently inside an orbit of the four main categories: Today, My Health, Visit Prep and Profile. The animated logo is slightly transparent (84% opacity). Each selection explains a real destination and offers a direct link. The existing full logo remains in the header and footer. A clearly labelled example visit brief connects the introduction to the product's useful next step.
 
 ## Scope and baseline
@@ -54,4 +56,4 @@ The tour does not read health data, write browser storage or make API requests. 
 
 All existing navigation destinations, resource links, share behaviour, privacy information and clinical limits remain. The animation has a visible pause control, respects reduced motion, stops offscreen or in a hidden tab, and remains static without JavaScript. The tour never changes health records or implies that label capture verifies medication safety.
 
-Review the draft PR and its exact preview before release. No production merge, deployment, credential change, purchase, live account test or medication workflow change is part of this work. The separate functional audit owns non-homepage fixes.
+Review the draft PR72 and its exact preview before release. The combined PR includes the functional readiness work; this visual pass does not establish clinical validation. No production merge, deployment, credential change, purchase or live account test was part of these checks.

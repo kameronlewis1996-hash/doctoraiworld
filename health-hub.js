@@ -1430,6 +1430,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       status.textContent = 'Local alert rules could not load. Your records have not been assessed. Reload or discuss your concerns with a healthcare professional.';
       list.replaceChildren();
       controls?.replaceChildren();
+      window.DoctorAIAlertStatus?.render(null);
       return;
     }
     let result;
@@ -1440,8 +1441,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       status.textContent = 'These saved details could not be checked. No current alert result is available. A pharmacist or clinician can help review your concerns.';
       list.replaceChildren();
       controls?.replaceChildren();
+      window.DoctorAIAlertStatus?.render(null);
       return;
     }
+    window.DoctorAIAlertStatus?.render(result);
     const alerts = result.alerts || [], coverage = result.coverage || {};
     count.textContent = `${alerts.length} ${alerts.length === 1 ? 'notice' : 'notices'} to review`;
     status.textContent = `Recalculated from your current saved details on this device. ${coverage.medications?.resolved || 0} of ${coverage.medications?.requested || 0} medicine entries matched the local catalogue. Coverage remains limited.`;
@@ -1455,7 +1458,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const checkedOn = source.checkedOn || source.linkCheckAttemptedOn || '';
         return `<li>${reference}${checkedOn ? `<small>Source checked: ${escapeHTML(checkedOn)}</small>` : ''}${note ? `<small>${escapeHTML(note)}</small>` : ''}</li>`;
       }).join('');
-      return `<article class="hub-alert-card" data-severity="${severity}"><header><span class="hub-alert-icon" aria-hidden="true">${iconMarkup(severity === 'urgent' || severity === 'high' ? 'alert' : 'info')}</span><div><p class="card-kicker">${severity === 'urgent' ? 'Urgent concern in a recent entry' : 'Saved details to review'}</p><h2 class="hub-alert-title">${escapeHTML(alert.title)}</h2></div></header><p>${escapeHTML(alert.message)}</p><div class="hub-alert-triggers"><b>What triggered this</b><ul>${(alert.triggers || []).map(trigger => `<li><span>${escapeHTML(trigger.label || trigger.kind)}:</span> ${escapeHTML(trigger.value)}</li>`).join('')}</ul></div><div class="hub-alert-next-action"><b>Next step</b><p>${escapeHTML(alert.nextAction)}</p></div>${sources ? `<details class="hub-alert-source"><summary>Rule and source information</summary><ul>${sources}</ul><small>Limited rule: ${escapeHTML(alert.ruleId)}. This notice does not establish a diagnosis or cause.</small></details>` : ''}</article>`;
+      return `<article class="hub-alert-card" data-severity="${severity}"><header><span class="hub-alert-icon" aria-hidden="true">${iconMarkup(severity === 'urgent' || severity === 'high' ? 'alert' : 'info')}</span><div><p class="card-kicker">${severity === 'urgent' ? 'Urgent concern in a recent entry' : severity === 'high' ? 'Contact a professional' : 'Review needed'}</p><h2 class="hub-alert-title">${escapeHTML(alert.title)}</h2></div></header><p>${escapeHTML(alert.message)}</p><details class="hub-alert-triggers"><summary>What triggered this</summary><ul>${(alert.triggers || []).map(trigger => `<li><span>${escapeHTML(trigger.label || trigger.kind)}:</span> ${escapeHTML(trigger.value)}</li>`).join('')}</ul></details><div class="hub-alert-next-action"><b>Next step</b><p>${escapeHTML(alert.nextAction)}</p></div>${sources ? `<details class="hub-alert-source"><summary>Rule and source information</summary><ul>${sources}</ul><small>Limited rule: ${escapeHTML(alert.ruleId)}. This notice does not establish a diagnosis or cause.</small></details>` : ''}</article>`;
     }).join('') : '<div class="empty-state"><b>No matching notices in the limited checks</b><p>This result does not confirm safety. Missing, unrecognised and unassessed details remain unknown. Add accurate details and ask a pharmacist or clinician about concerns.</p></div>';
     if (controls) {
       const amount = value => Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : 0;
