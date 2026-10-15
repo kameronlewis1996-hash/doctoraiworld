@@ -33,7 +33,7 @@
   </script>
   <link rel="icon" href="/doctorai-app-icon.png?v=10"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=8"><link rel="stylesheet" href="/resource-share.css?v=2"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=3"></script><script defer src="/resource-share.js?v=1"></script>
+  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=9"><link rel="stylesheet" href="/resource-share.css?v=2"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=4"></script><script defer src="/resource-share.js?v=1"></script>
 </head>
 <body class="doctorai-homepage">
   <a class="home-skip" href="#main">Skip to main content</a>
@@ -44,10 +44,14 @@
     <nav class="home-nav" aria-label="Main">
       <a class="home-nav-page" href="#how-it-works">How it works</a>
       <a class="home-nav-page" href="#features">Inside the hub</a>
-      <a class="home-nav-page" href="/subscription">Pro</a>
+      <a class="home-nav-page" href="/about">Our story</a>
       <a class="home-nav-signin" href="/health-hub#profile">Sign in</a>
-      <a class="home-button home-button-small" href="/health-hub">Open Health Hub <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
+      <a class="home-button home-button-small" href="/health-hub"><span class="home-nav-label">Open <span class="home-nav-full">Health </span>Hub</span><span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
     </nav>
+    <details class="home-mobile-menu" data-home-menu>
+      <summary>Menu <span data-doctorai-icon="chevronDown" data-icon-size="flex" aria-hidden="true"></span></summary>
+      <nav aria-label="More navigation"><a href="#how-it-works">How it works</a><a href="#features">Inside the hub</a><a href="/about">Our story</a><a href="/subscription">Free and Pro</a><a href="/health-hub#profile">Sign in</a></nav>
+    </details>
   </header>
 
   <main class="home-wrap" id="main" tabindex="-1">
@@ -55,7 +59,7 @@
       <div class="home-hero-copy">
         <p class="home-eyebrow home-hero-eyebrow"><span aria-hidden="true"></span>Your free personal Health Hub</p>
         <h1 id="hero-title">Your health,<em>all in one hub.</em></h1>
-        <p class="home-lead">A place for your medicines, symptoms and questions. Bring the details together, then bring a personal brief to your next appointment.</p>
+        <p class="home-lead">Keep your medicines, symptoms and questions together. Prepare a personal brief for your next health conversation.</p>
         <div class="home-actions">
           <div class="home-add-actions">
             <a class="home-button home-add-detail" href="/health-hub#add"><span data-doctorai-icon="add" data-icon-size="flex" aria-hidden="true"></span>Add Health Detail</a>
@@ -63,13 +67,13 @@
           </div>
           <a class="home-text-link" href="#how-it-works">See how it works <span data-doctorai-icon="chevronDown" data-icon-size="flex" aria-hidden="true"></span></a>
         </div>
-        <p class="home-control-note"><span data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span>Free to start. Your record, your choices.</p>
+        <p class="home-control-note"><span data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span>Core Health Hub is free. Start with one detail.</p>
         <p class="home-hero-limit">For health organisation. Not a replacement for medical care.</p>
       </div>
 
       <div class="home-universe" data-home-universe data-home-theme="today">
         <div class="home-universe-toolbar">
-          <p class="home-universe-label">A little more connected.</p>
+          <p class="home-universe-label"><span class="home-preview-dot" aria-hidden="true"></span>Explore your Health Hub</p>
           <button class="home-motion-control" type="button" data-home-motion hidden>Pause animation</button>
         </div>
         <div class="home-orbit" data-home-orbit>
@@ -82,22 +86,22 @@
             </div>
           </div>
           <div class="home-orbit-topics" data-home-topics role="group" aria-label="Explore the Health Hub" hidden>
-            <button class="home-orbit-topic home-orbit-today" type="button" data-home-topic="today" aria-pressed="true" aria-controls="home-topic-detail"><span data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today</button>
-            <button class="home-orbit-topic home-orbit-health" type="button" data-home-topic="health" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health</button>
-            <button class="home-orbit-topic home-orbit-visit" type="button" data-home-topic="visit" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep</button>
-            <button class="home-orbit-topic home-orbit-profile" type="button" data-home-topic="profile" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile</button>
+            <button class="home-orbit-topic home-orbit-today" type="button" data-home-topic="today" aria-pressed="true" aria-controls="home-topic-detail"><span data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
+            <button class="home-orbit-topic home-orbit-health" type="button" data-home-topic="health" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
+            <button class="home-orbit-topic home-orbit-visit" type="button" data-home-topic="visit" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
+            <button class="home-orbit-topic home-orbit-profile" type="button" data-home-topic="profile" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
           </div>
-          <p class="home-orbit-caption" data-home-tour-hint hidden>Choose a part of your hub to explore</p>
+          <p class="home-orbit-caption" data-home-tour-hint hidden>Four simple places. One connected hub.</p>
         </div>
         <div class="home-topic-detail" id="home-topic-detail">
-          <div aria-live="polite" aria-atomic="true"><p class="home-topic-kicker">A place to begin</p><h2 data-home-topic-title>Your day, at a glance.</h2><p data-home-topic-copy>See the medicines, appointments and tasks you have recorded for today.</p></div>
+          <div aria-live="polite" aria-atomic="true"><p class="home-topic-kicker" data-home-topic-kicker>01 / Today</p><h2 data-home-topic-title>Your day, at a glance.</h2><p data-home-topic-copy>The medicines, appointments and tasks you've recorded for today.</p></div>
           <a class="home-topic-link" data-home-topic-link href="/health-hub#today">Open Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
         </div>
       </div>
     </section>
 
-    <div class="home-topics" aria-label="What you can keep in your Health Hub">
-      <p>Life happens<br><span>between appointments.</span></p>
+    <div class="home-topics" role="group" aria-label="What you can keep in your Health Hub">
+      <p>Small details.<br><span>A clearer starting point.</span></p>
       <ul>
         <li><span data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span>Medicines</li>
         <li><span data-doctorai-icon="pulse" data-icon-size="flex" aria-hidden="true"></span>Symptom notes</li>
@@ -113,7 +117,7 @@
           <p class="home-eyebrow">For you and your care team</p>
           <h2 id="journey-title">Keep the details.<br><em>Prepare the conversation.</em></h2>
           </div>
-          <p>Bring a personal brief of the saved details and questions you want to discuss. A clearer starting point for your appointment.</p>
+          <p>Turn the details you've saved into a personal visit brief. Choose what matters, check it, and bring it with you.</p>
         </div>
         <article class="home-brief" aria-labelledby="brief-example-title">
           <div class="home-brief-heading"><span class="home-icon" data-doctorai-icon="carePack" data-icon-size="flex" aria-hidden="true"></span><p class="home-eyebrow">Example visit brief</p></div>
@@ -127,38 +131,38 @@
         </article>
       </div>
       <ol class="home-steps">
-        <li><span class="home-step-number">01</span><h3>Keep a note</h3><p>Record symptoms, medicine details, appointments and the questions you want to remember.</p></li>
-        <li><span class="home-step-number">02</span><h3>Choose for this visit</h3><p>Select the saved entries and add your own questions. Nothing is selected automatically.</p></li>
-        <li><span class="home-step-number">03</span><h3>Review and bring</h3><p>Check your brief, then copy it, print it or save it as a PDF using your browser's print dialog.</p></li>
+        <li><span class="home-step-number">01</span><h3>Keep a note</h3><p>A symptom, medicine detail, or question you want to remember.</p></li>
+        <li><span class="home-step-number">02</span><h3>Choose what matters</h3><p>Select entries for this visit. Nothing is selected automatically.</p></li>
+        <li><span class="home-step-number">03</span><h3>Review and bring</h3><p>Check your brief. Copy, print, or use your browser to save a PDF.</p></li>
       </ol>
       <div class="home-journey-bottom">
         <a class="home-button home-button-light" href="/health-hub#visit-prep">Prepare my visit brief <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
-        <p>Your brief is built on your device from the details you select. Preparing it does not need an AI request.</p>
+        <p>Built on your device from your selected details. Creating a brief doesn't send it to anyone.</p>
       </div>
     </section>
 
     <section class="home-features" id="features" aria-labelledby="features-title">
       <div class="home-section-heading">
         <div><p class="home-eyebrow">Inside your Health Hub</p><h2 id="features-title">One place to<br><em>come back to.</em></h2></div>
-        <p>Four familiar destinations keep the everyday details and your next appointment within reach.</p>
+        <p>From the everyday details to your next appointment. Find what you need and pick up where you left off.</p>
       </div>
       <div class="home-destination-grid">
-        <article class="home-destination" data-home-theme="today">
+        <a class="home-destination" data-home-theme="today" href="/health-hub#today">
           <span class="home-destination-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#today">Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>See the medicines, appointments and tasks you've recorded for your day.</p></div>
-        </article>
-        <article class="home-destination" data-home-theme="health">
+          <div><p class="home-destination-label">Your daily starting point</p><h3 id="destination-today">Today<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>See the medicines, appointments and tasks you've recorded for your day.</p></div>
+        </a>
+        <a class="home-destination" data-home-theme="health" href="/health-hub#health">
           <span class="home-destination-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#health">My Health <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Review the health details you've saved and find your health tools.</p></div>
-        </article>
-        <article class="home-destination" data-home-theme="visit">
+          <div><p class="home-destination-label">The details, together</p><h3 id="destination-health">My Health<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your saved medicines, symptoms, appointments and documents.</p></div>
+        </a>
+        <a class="home-destination" data-home-theme="visit" href="/health-hub#visit-prep">
           <span class="home-destination-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#visit-prep">Visit Prep <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Choose details and questions, then review a brief for your appointment.</p></div>
-        </article>
-        <article class="home-destination" data-home-theme="profile">
+          <div><p class="home-destination-label">Your next conversation</p><h3 id="destination-visit">Visit Prep<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Choose the details and questions to bring to your appointment.</p></div>
+        </a>
+        <a class="home-destination" data-home-theme="profile" href="/health-hub#profile">
           <span class="home-destination-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>
-          <div><h3><a href="/health-hub#profile">Profile <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></h3><p>Manage your account, storage choices, privacy and optional Health Memory controls.</p></div>
-        </article>
+          <div><p class="home-destination-label">A hub that feels like yours</p><h3 id="destination-profile">Profile<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your account, storage choices and optional Health Memory controls.</p></div>
+        </a>
       </div>
       <nav class="home-shortcuts" aria-label="Popular Health Hub tools">
         <span>Go straight to</span><a href="/health-hub#medications">Medicines</a><a href="/health-hub#symptoms">Symptom diary</a><a href="/health-hub#appointments">Appointments</a>
@@ -166,20 +170,21 @@
     </section>
 
     <section class="home-control" aria-labelledby="control-title">
-      <div class="home-control-copy"><p class="home-eyebrow">Your choices come first</p><h2 id="control-title">Your information.<br><em>Your choices.</em></h2><p>Add the details you want to remember. For an appointment, include only the entries and questions you want to discuss.</p><a class="home-text-link" href="/privacy">Read the privacy notice <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></div>
+      <div class="home-control-copy"><p class="home-eyebrow">Your choices come first</p><h2 id="control-title">Personal to you.<br><em>Chosen by you.</em></h2><p>Choose what to record, where this browser keeps it, and what goes into your visit brief.</p><a class="home-text-link" href="/privacy">Read the privacy notice <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a></div>
       <ul class="home-control-list">
-        <li><b>Choose device or session storage</b><p>Choose whether this browser keeps entries between visits or only for the session. Signed-in account syncing is separate.</p></li>
-        <li><b>Select each part of your brief</b><p>Nothing is selected automatically. Choose what matters for this visit.</p></li>
-        <li><b>Review before you share</b><p>Check your selected details before you copy, print or show the brief to someone.</p></li>
+        <li><b>Choose your storage</b><p>Keep entries on this browser or just for the session. Signed-in account syncing is separate.</p></li>
+        <li><b>Include what matters</b><p>You select each entry and question for your brief.</p></li>
+        <li><b>Share when you're ready</b><p>Review your brief before you copy, print or show it.</p></li>
       </ul>
     </section>
 
     <section class="home-faq" aria-labelledby="faq-title">
       <div><p class="home-eyebrow">A few things to know</p><h2 id="faq-title">A clear start.</h2><p>You can begin with one detail and build from there.</p></div>
       <div class="home-faq-list">
-        <details><summary>Is the Health Hub free?</summary><p>The core Health Hub is free for organising notes, symptoms, medicines and appointments. <a href="/subscription">Compare Free and Pro</a> for additional tools, including private document uploads.</p></details>
+        <details><summary>Is the Health Hub free?</summary><p>The core Health Hub is free for organising notes, symptoms, medicines and appointments. Optional Pro tools include label scanning and private document uploads. <a href="/subscription">Compare Free and Pro</a>.</p></details>
         <details><summary>Does my brief get sent to a clinician?</summary><p>Creating a visit brief does not send it to a clinician. Review it, then decide whether to copy, print or show it to someone.</p></details>
         <details><summary>Does DoctorAI provide medical care?</summary><p>DoctorAI helps with health organisation and education. It does not diagnose, prescribe or replace professional advice. A clinician should interpret health information in context.</p></details>
+        <details><summary>Who is behind DoctorAI?</summary><p>DoctorAI was created by Kam (Kameron Lewis) in Taupō, New Zealand, around work and family life. <a href="/about">Read the story behind DoctorAI</a>.</p></details>
       </div>
     </section>
 
@@ -205,8 +210,8 @@
 
   <footer class="home-footer home-wrap">
     <div><a class="home-footer-brand" href="/" aria-label="DoctorAI World home"><img src="/doctorai-public-logo-transparent.png?v=10" alt="" width="168" height="84"></a><p>Your health, all in one hub.</p><span class="home-copyright">© DoctorAI World</span></div>
-    <nav aria-label="Product"><a href="/health-hub">Health Hub</a><a href="/health-hub#profile">Sign in</a><a href="/subscription">Compare Free and Pro</a><a href="/download">Get the app</a><a href="/research">Latest research</a></nav>
-    <nav aria-label="Support and policies"><a href="/about">About DoctorAI</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Contact support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer">LinkedIn <span class="home-sr-only">(opens in a new tab)</span></a></nav>
+    <nav aria-label="Product"><p class="home-footer-label">Explore</p><a href="/health-hub">Health Hub</a><a href="/health-hub#profile">Sign in</a><a href="/subscription">Compare Free and Pro</a><a href="/download">Get the app</a><a href="/research">Latest research</a></nav>
+    <nav aria-label="Support and policies"><p class="home-footer-label">DoctorAI World</p><a href="/about">About DoctorAI</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:support@doctoraiworld.com">Contact support</a><a href="https://www.linkedin.com/company/doctoraiworld/" target="_blank" rel="noopener noreferrer">LinkedIn <span class="home-sr-only">(opens in a new tab)</span></a></nav>
   </footer>
 </body>
 </html>
