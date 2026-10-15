@@ -1,0 +1,197 @@
+/* The selected aurora theme. Alert colours only present existing local results.
+   Keep category identity and clinical alert/card colours independent. */
+html :is(.doctorai-homepage, body[data-hub-layout="reference"]) {
+  --aurora-base: #f5f8ff;
+  --aurora-cyan: #a6e5fb99;
+  --aurora-lilac: #c7c5fb8c;
+  --aurora-blush: #f6d5f48c;
+  --aurora-edge: #d6e4fa;
+  --aurora-accent: #0865df;
+  --aurora-glass: #ffffffb8;
+  background-color: var(--aurora-base);
+  background-image:
+    radial-gradient(ellipse at 24% 28%, var(--aurora-cyan), transparent 42%),
+    radial-gradient(ellipse at 87% 43%, var(--aurora-lilac), transparent 40%),
+    radial-gradient(ellipse at 8% 60%, var(--aurora-blush), transparent 37%),
+    radial-gradient(ellipse at 67% 80%, var(--aurora-cyan), transparent 43%);
+  background-size: 100% 1120px;
+  background-repeat: no-repeat;
+}
+html body[data-health-alert-level="orange"] {
+  --aurora-base: #fffbf5;
+  --aurora-cyan: #ffcf8b8c;
+  --aurora-lilac: #ffb46d66;
+  --aurora-blush: #ffe5bd99;
+  --aurora-edge: #d29b53;
+  --aurora-accent: #8b4a08;
+}
+html body[data-health-alert-level="red"] {
+  --aurora-base: #fff8f8;
+  --aurora-cyan: #f8b4b980;
+  --aurora-lilac: #f5a0af66;
+  --aurora-blush: #f7cbd499;
+  --aurora-edge: #cf7883;
+  --aurora-accent: #a12032;
+}
+
+/* Homepage: a centred, spacious first screen, with the existing flows below. */
+.doctorai-homepage .home-header { border: 0; padding-block: 16px; z-index: 2; }
+.doctorai-homepage .home-brand { gap: 2px; }
+.doctorai-homepage .home-brand-symbol { width: 60px; height: 68px; overflow: hidden; }
+.doctorai-homepage .home-brand-symbol img { width: 108px; height: 108px; max-width: none; margin: -21px 0 0 -23px; }
+.doctorai-homepage .home-brand-wordmark { width: 164px; height: 46px; overflow: hidden; }
+.doctorai-homepage .home-brand-wordmark img { width: 220px; height: 147px; max-width: none; margin: -101px 0 0 -28px; }
+.doctorai-homepage .home-nav { gap: 32px; }
+.doctorai-homepage .home-nav .home-button { padding: 14px 22px; border-radius: 13px; }
+.doctorai-homepage .home-nav .home-nav-full { display: inline; }
+.home-aurora-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding-block: 0 22px;
+  text-align: center;
+  isolation: isolate;
+}
+.home-aurora-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 290px;
+  left: 50%;
+  width: calc(100% + var(--home-gutter) + var(--home-gutter));
+  height: 580px;
+  transform: translateX(-50%);
+  border-top: 1px solid #ffffffd9;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(#ffffff61, #ffffff00);
+  pointer-events: none;
+}
+.doctorai-homepage { overflow-x: clip; }
+.home-aurora-mark {
+  position: relative;
+  width: clamp(250px, 32vw, 480px);
+  aspect-ratio: 1;
+  margin-top: -22px;
+  margin-bottom: -79px;
+  border: 1px solid #ffffffe6;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #ffffff7a, #ffffff17 65%, #dfddff47);
+  box-shadow: inset 0 0 35px #ffffff73, 0 15px 55px #668ed915;
+}
+.home-aurora-mark .home-logo-tilt { inset: 0; }
+.home-aurora-mark .home-hero-logo { object-fit: contain; opacity: .84; }
+.home-aurora-hero .home-hero-copy { position: relative; width: 100%; max-width: none; }
+.home-aurora-hero h1 {
+  max-width: none;
+  color: #061639;
+  font-size: clamp(46px, 6vw, 86px);
+  font-weight: 700;
+  line-height: .9;
+  letter-spacing: -.06em;
+}
+.home-aurora-hero h1 em { display: inline; font: inherit; color: #0664ed; letter-spacing: inherit; }
+.home-aurora-hero .home-lead { max-width: 48ch; margin: 16px auto 0; color: #3e5676; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.32; }
+.home-aurora-hero .home-actions { justify-content: center; margin-top: 18px; }
+.home-aurora-hero .home-add-actions { width: min(100%, 365px); gap: 6px; }
+.home-aurora-hero .home-add-detail { justify-content: center; min-height: 68px; border: 1px solid #ffffff80; border-radius: 50px; background: #0664ed; box-shadow: 0 8px 30px #0877f529; font-size: 22px; }
+.home-aurora-hero .home-add-detail:hover { background: #0759b6; }
+.home-aurora-hero .home-add-detail > span { width: 32px; height: 32px; flex-basis: 32px; }
+.home-aurora-hero .home-scan-link { min-height: 44px; font-size: 16px; color: #0759b6; }
+.home-aurora-hero .home-scan-link small { background: #ffffffb3; }
+.home-aurora-dock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 1140px); margin-top: 22px; padding: 16px 26px; border: 2px solid #ffffffd9; border-radius: 64px; background: #ffffff69; box-shadow: 0 8px 32px #718dd50b; backdrop-filter: blur(14px); }
+.home-aurora-dock a { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 62px; padding: 0 15px; color: #061639; font-size: 17px; font-weight: 700; line-height: 1.35; text-decoration: none; }
+.home-aurora-dock a + a { border-left: 1px solid #b5ccef; }
+.home-aurora-dock a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.home-aurora-dock .home-dock-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 52px; width: 52px; height: 52px; padding: 13px; border-radius: 50%; background: var(--home-topic-surface); color: var(--home-topic-accent); }
+.home-aurora-dock svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.home-dock-check { display: inline-flex; width: 18px; height: 18px; color: #0069ed; }
+.home-aurora-dock a:first-child::after { content: ''; position: absolute; bottom: -7px; height: 3px; left: 10%; right: 10%; border-radius: 4px; background: #0878f5; }
+.home-aurora-note { margin: 16px 0 0; color: #465f73; font-size: 15px; }
+.home-aurora-meta { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; margin-top: 6px; }
+.home-aurora-meta .home-hero-limit { max-width: none; margin: 0; font-size: 12px; color: #465f73; }
+.home-aurora-meta .home-motion-control { font-size: 12px; color: #465f73; }
+.doctorai-homepage .home-topics { margin-top: 20px; }
+
+/* Health Hub: keep text on readable surfaces; tint the surroundings, not data.
+   Orange also covers unassessed/limited checks, not just a known risk. */
+body[data-hub-layout="reference"] #hub-shell { background: transparent; }
+body[data-hub-layout="reference"] #hub-shell .sidebar {
+  background: var(--aurora-glass);
+  border-right-color: var(--aurora-edge);
+  backdrop-filter: blur(18px);
+}
+body[data-hub-layout="reference"] #hub-shell #view-today.view { background: #ffffffb8; border-color: var(--aurora-edge); }
+body[data-hub-layout="reference"] #hub-shell .view-stack { padding-top: 12px; }
+body[data-hub-layout="reference"][data-health-alert-level] #hub-shell .hub-main { border-top: 4px solid var(--aurora-accent); }
+body[data-hub-layout="reference"] #hub-shell .hub-topbar { background: var(--aurora-glass); }
+body[data-hub-layout="reference"] .mobile-bottom-nav { background: #fffffff2; }
+body[data-hub-layout="reference"] :is(.hub-alert-shortcut, .health-alert-card) { background-clip: padding-box; }
+
+@media (max-width: 1080px) and (min-width: 681px) {
+  .doctorai-homepage .home-nav-page { display: inline-flex !important; }
+  .doctorai-homepage .home-mobile-menu { display: none; }
+}
+@media (max-width: 860px) {
+  .home-aurora-mark { margin-top: 0; margin-bottom: -26px; }
+  .home-aurora-hero h1 { font-size: clamp(42px, 6.3vw, 64px); }
+  .home-aurora-hero::before { top: 180px; }
+  .home-aurora-dock { padding: 12px; border-radius: 30px; }
+  .home-aurora-dock a { gap: 9px; padding-inline: 8px; font-size: 15px; }
+  .home-aurora-dock .home-dock-icon { flex-basis: 40px; width: 40px; height: 40px; padding: 9px; }
+  .home-dock-check { display: none; }
+}
+@media (max-width: 680px) {
+  .doctorai-homepage { --home-gutter: 20px; background-size: 100% 900px; }
+  .doctorai-homepage .home-header { gap: 10px; padding-block: 8px; }
+  .doctorai-homepage .home-brand { gap: 0; }
+  .doctorai-homepage .home-brand-symbol { width: 39px; height: 48px; }
+  .doctorai-homepage .home-brand-symbol img { width: 74px; height: 74px; margin: -13px 0 0 -17px; }
+  .doctorai-homepage .home-brand-wordmark { width: 97px; height: 28px; }
+  .doctorai-homepage .home-brand-wordmark img { width: 130px; height: 87px; margin: -59px 0 0 -16px; }
+  .doctorai-homepage .home-nav { gap: 0; }
+  .doctorai-homepage .home-nav .home-button { min-height: 44px; padding: 10px 12px; font-size: 12px; gap: 6px; border-radius: 10px; }
+  .doctorai-homepage .home-nav .home-nav-full { display: none; }
+  .doctorai-homepage .home-mobile-menu summary { padding-inline: 8px; font-size: 12px; }
+  .home-aurora-hero { padding-top: 12px; }
+  .home-aurora-mark { width: clamp(215px, 61vw, 290px); margin-top: 4px; margin-bottom: -18px; }
+  .home-aurora-hero h1 { font-size: clamp(36px, 8.4vw, 54px); letter-spacing: -.055em; line-height: 1.05; }
+  .home-aurora-hero .home-lead { margin-top: 18px; font-size: 18px; }
+  .home-aurora-hero .home-actions { margin-top: 22px; width: 100%; }
+  .home-aurora-hero .home-add-actions { width: min(100%, 340px); }
+  .home-aurora-hero .home-add-detail { min-height: 60px; padding-inline: 16px; gap: 12px; font-size: 20px; }
+  .home-aurora-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; margin-top: 20px; padding: 14px 8px; border-radius: 26px; }
+  .home-aurora-dock a { min-height: 52px; justify-content: flex-start; padding-inline: 10px; font-size: 14px; gap: 8px; }
+  .home-aurora-dock a:nth-child(3) { border-left: 0; }
+  .home-aurora-dock a:first-child::after { bottom: -5px; }
+  .home-aurora-note { max-width: 31ch; margin-top: 18px; font-size: 14px; }
+  .home-aurora-meta { flex-wrap: wrap; justify-content: center; gap: 0; margin-top: 8px; }
+  .home-aurora-meta .home-hero-limit { font-size: 12px; }
+  .home-aurora-meta .home-motion-control { padding: 12px; }
+  body[data-hub-layout="reference"] #hub-shell .view-stack { padding-top: 8px; }
+}
+@media (max-width: 359px) {
+  .doctorai-homepage { --home-gutter: 14px; }
+  .doctorai-homepage .home-brand-wordmark { width: 81px; }
+  .doctorai-homepage .home-brand-wordmark img { width: 112px; height: 75px; margin: -51px 0 0 -15px; }
+  .doctorai-homepage .home-nav .home-button { padding-inline: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-aurora-hero .home-hero-logo { animation: none !important; }
+  .home-aurora-hero .home-logo-tilt { transform: none !important; transition: none; }
+}
+@media (forced-colors: active) {
+  html :is(.doctorai-homepage, body[data-hub-layout="reference"]) { background: Canvas; }
+  .home-aurora-mark { border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .home-aurora-hero::before { content: none; }
+  .home-aurora-dock { border-color: CanvasText; background: Canvas; }
+  .home-aurora-dock a, .home-aurora-hero h1, .home-aurora-hero h1 em { color: CanvasText; }
+  .home-aurora-dock a:first-child::after { background: LinkText; }
+  .home-aurora-dock .home-dock-icon { background: Canvas; color: LinkText; }
+  body[data-hub-layout="reference"][data-health-alert-level] #hub-shell .hub-main { border-color: CanvasText; }
+}
+@media print {
+  html :is(.doctorai-homepage, body[data-hub-layout="reference"]) { background: white; }
+  .home-aurora-hero::before, .home-motion-control { display: none; }
+}

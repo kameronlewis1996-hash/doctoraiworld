@@ -33,19 +33,18 @@
   </script>
   <link rel="icon" href="/doctorai-app-icon.png?v=10"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=9"><link rel="stylesheet" href="/resource-share.css?v=2"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=4"></script><script defer src="/resource-share.js?v=1"></script>
+  <link rel="stylesheet" href="/accessibility.css?v=12"><link rel="stylesheet" href="/welcome.css?v=10"><link rel="stylesheet" href="/resource-share.css?v=2"><link rel="stylesheet" href="/aurora-theme.css?v=1"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=5"></script><script defer src="/resource-share.js?v=1"></script>
 </head>
 <body class="doctorai-homepage">
   <a class="home-skip" href="#main">Skip to main content</a>
   <header class="home-header home-wrap">
     <a class="home-brand" href="/" aria-label="DoctorAI World home">
-      <img src="/doctorai-public-logo-transparent.png?v=10" alt="" width="168" height="84">
+      <span class="home-brand-symbol" aria-hidden="true"><img src="/doctorai-head-logo-transparent.png?v=10" alt="" width="1024" height="1024"></span>
+      <span class="home-brand-wordmark" aria-hidden="true"><img src="/doctorai-public-logo-transparent.png?v=10" alt="" width="1535" height="1024"></span>
     </a>
     <nav class="home-nav" aria-label="Main">
       <a class="home-nav-page" href="#how-it-works">How it works</a>
-      <a class="home-nav-page" href="#features">Inside the hub</a>
       <a class="home-nav-page" href="/about">Our story</a>
-      <a class="home-nav-signin" href="/health-hub#profile">Sign in</a>
       <a class="home-button home-button-small" href="/health-hub"><span class="home-nav-label">Open <span class="home-nav-full">Health </span>Hub</span><span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
     </nav>
     <details class="home-mobile-menu" data-home-menu>
@@ -55,49 +54,30 @@
   </header>
 
   <main class="home-wrap" id="main" tabindex="-1">
-    <section class="home-hero" aria-labelledby="hero-title">
+    <section class="home-hero home-aurora-hero" data-home-universe aria-labelledby="hero-title">
+      <div class="home-aurora-mark" data-home-orbit aria-hidden="true">
+        <div class="home-logo-tilt" data-home-logo>
+          <img class="home-hero-logo" src="/doctorai-head-logo-transparent.png?v=10" width="1024" height="1024" alt="" fetchpriority="high" decoding="async">
+        </div>
+      </div>
       <div class="home-hero-copy">
-        <p class="home-eyebrow home-hero-eyebrow"><span aria-hidden="true"></span>Your free personal Health Hub</p>
-        <h1 id="hero-title">Your health,<em>all in one hub.</em></h1>
-        <p class="home-lead">Keep your medicines, symptoms and questions together. Prepare a personal brief for your next health conversation.</p>
+        <h1 id="hero-title">Your health, with<br>a little <em>more clarity.</em></h1>
+        <p class="home-lead">Medicines, symptoms and questions,<br>together in one personal Health Hub.</p>
         <div class="home-actions">
           <div class="home-add-actions">
             <a class="home-button home-add-detail" href="/health-hub#add"><span data-doctorai-icon="add" data-icon-size="flex" aria-hidden="true"></span>Add Health Detail</a>
             <a class="home-scan-link" href="/health-hub#scan"><span data-doctorai-icon="hubMedicationScan" data-icon-size="flex" aria-hidden="true"></span>Scan medication <small>Pro</small></a>
           </div>
-          <a class="home-text-link" href="#how-it-works">See how it works <span data-doctorai-icon="chevronDown" data-icon-size="flex" aria-hidden="true"></span></a>
-        </div>
-        <p class="home-control-note"><span data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span>Core Health Hub is free. Start with one detail.</p>
-        <p class="home-hero-limit">For health organisation. Not a replacement for medical care.</p>
-      </div>
-
-      <div class="home-universe" data-home-universe data-home-theme="today">
-        <div class="home-universe-toolbar">
-          <p class="home-universe-label"><span class="home-preview-dot" aria-hidden="true"></span>Explore your Health Hub</p>
-          <button class="home-motion-control" type="button" data-home-motion hidden>Pause animation</button>
-        </div>
-        <div class="home-orbit" data-home-orbit>
-          <div class="home-orbit-art" aria-hidden="true">
-            <div class="home-orbit-ring home-orbit-ring-outer"></div>
-            <div class="home-orbit-ring home-orbit-ring-inner"></div>
-            <div class="home-orbit-track"><span></span><span></span></div>
-            <div class="home-logo-tilt" data-home-logo>
-              <img class="home-hero-logo" src="/doctorai-head-logo-transparent.png?v=10" width="1024" height="1024" alt="" fetchpriority="high" decoding="async">
-            </div>
-          </div>
-          <div class="home-orbit-topics" data-home-topics role="group" aria-label="Explore the Health Hub" hidden>
-            <button class="home-orbit-topic home-orbit-today" type="button" data-home-topic="today" aria-pressed="true" aria-controls="home-topic-detail"><span data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
-            <button class="home-orbit-topic home-orbit-health" type="button" data-home-topic="health" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
-            <button class="home-orbit-topic home-orbit-visit" type="button" data-home-topic="visit" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
-            <button class="home-orbit-topic home-orbit-profile" type="button" data-home-topic="profile" aria-pressed="false" aria-controls="home-topic-detail"><span data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile<span class="home-topic-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></button>
-          </div>
-          <p class="home-orbit-caption" data-home-tour-hint hidden>Four simple places. One connected hub.</p>
-        </div>
-        <div class="home-topic-detail" id="home-topic-detail">
-          <div aria-live="polite" aria-atomic="true"><p class="home-topic-kicker" data-home-topic-kicker>01 / Today</p><h2 data-home-topic-title>Your day, at a glance.</h2><p data-home-topic-copy>The medicines, appointments and tasks you've recorded for today.</p></div>
-          <a class="home-topic-link" data-home-topic-link href="/health-hub#today">Open Today <span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></a>
         </div>
       </div>
+      <nav class="home-aurora-dock" aria-label="Open your Health Hub">
+        <a data-home-theme="today" href="/health-hub#today"><span class="home-dock-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today<span class="home-dock-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></a>
+        <a data-home-theme="health" href="/health-hub#health"><span class="home-dock-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health</a>
+        <a data-home-theme="visit" href="/health-hub#visit-prep"><span class="home-dock-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep</a>
+        <a data-home-theme="profile" href="/health-hub#profile"><span class="home-dock-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile</a>
+      </nav>
+      <p class="home-aurora-note">Start small. Everything you choose to keep, within reach.</p>
+      <div class="home-aurora-meta"><p class="home-hero-limit">Health organisation and education. Not medical care.</p><button class="home-motion-control" type="button" data-home-motion hidden>Pause animation</button></div>
     </section>
 
     <div class="home-topics" role="group" aria-label="What you can keep in your Health Hub">
