@@ -1,0 +1,19 @@
+{
+  "catalogue": "allergies-reactions",
+  "schemaVersion": 1,
+  "version": "2026-10-15.1",
+  "language": "en",
+  "substances": [
+    { "id": "CHEBI:17334", "label": "penicillin", "aliases": [], "kind": "chemical-class", "sourceUrl": "https://www.ebi.ac.uk/chebi/CHEBI:17334", "source": "ChEBI", "license": "CC-BY-4.0" }
+  ],
+  "reactions": [
+    { "id": "SYMP:0000432", "label": "itching", "aliases": ["pruritus"], "sourceUrl": "https://raw.githubusercontent.com/DiseaseOntology/SymptomOntology/master/src/ontology/symp.obo", "source": "Symptom Ontology", "license": "CC0-1.0" },
+    { "id": "SYMP:0000458", "label": "nausea", "aliases": [], "sourceUrl": "https://raw.githubusercontent.com/DiseaseOntology/SymptomOntology/master/src/ontology/symp.obo", "source": "Symptom Ontology", "license": "CC0-1.0" },
+    { "id": "SYMP:0000487", "label": "rash", "aliases": ["skin rash"], "sourceUrl": "https://raw.githubusercontent.com/DiseaseOntology/SymptomOntology/master/src/ontology/symp.obo", "source": "Symptom Ontology", "license": "CC0-1.0" },
+    { "id": "SYMP:0000504", "label": "headache", "aliases": [], "sourceUrl": "https://raw.githubusercontent.com/DiseaseOntology/SymptomOntology/master/src/ontology/symp.obo", "source": "Symptom Ontology", "license": "CC0-1.0" }
+  ],
+  "sources": [
+    { "name": "ChEBI, EMBL-EBI", "url": "https://www.ebi.ac.uk/chebi/", "license": "CC-BY-4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/" },
+    { "name": "Symptom Ontology", "url": "https://obofoundry.org/ontology/symp.html", "license": "CC0-1.0", "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/" }
+  ]
+}

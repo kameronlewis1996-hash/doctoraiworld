@@ -907,6 +907,35 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   const upcomingAppointments = () => appointmentGroups().upcoming;
 
+  function renderCompactToday() {
+    const medicines = $('#today-compact-medicine-list');
+    if (medicines) {
+      medicines.innerHTML = state.medications.length
+        ? `<ul>${state.medications.slice(0, 3).map(item => `<li><b>${escapeHTML(item.name || 'Medicine')}</b><span>${escapeHTML([item.dose, item.time].filter(Boolean).join(' · ') || 'Schedule not recorded')}</span></li>`).join('')}</ul>${state.medications.length > 3 ? `<p>And ${state.medications.length - 3} more in your saved list.</p>` : ''}`
+        : '<p>No medicines saved yet. Add only details you have checked against your label.</p>';
+    }
+    const next = $('#today-compact-appointment-copy');
+    if (next) {
+      const appointment = upcomingAppointments()[0];
+      next.innerHTML = appointment
+        ? `<p><b>${escapeHTML(appointment.title || 'Appointment')}</b><br>${escapeHTML(formatShortDate(appointment.date))}${appointment.time ? ' · ' + escapeHTML(formatTime(appointment.time)) : ''}<br><span>${escapeHTML(appointment.provider || 'Provider not recorded')}</span></p>`
+        : '<p>No upcoming appointment saved. Add one when you are ready.</p>';
+    }
+    const recent = $('#today-compact-recent-note');
+    if (recent) {
+      const note = state.timeline.filter(item => item.source === 'symptom-diary' || item.source === 'user-question')
+        .sort((a, b) => `${b.date || ''} ${b.createdAt || ''}`.localeCompare(`${a.date || ''} ${a.createdAt || ''}`))[0];
+      recent.textContent = note ? `Latest diary note: ${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : 'No diary notes saved yet.';
+    }
+    const questions = $('#diary-question-list');
+    if (questions) {
+      const entries = state.timeline.filter(item => item.source === 'user-question' && item.type === 'question');
+      questions.innerHTML = entries.length
+        ? `<ul>${entries.slice(0, 6).map(item => `<li><span>${escapeHTML(item.description || '')}<small>${escapeHTML(formatDate(item.date))}</small></span><button type="button" class="text-button" data-delete-diary-question="${escapeHTML(item.id)}" aria-label="Delete question: ${escapeHTML(item.description || '')}">Delete</button></li>`).join('')}</ul>${entries.length > 6 ? `<p>${entries.length - 6} more question${entries.length - 6 === 1 ? '' : 's'} in History.</p>` : ''}`
+        : '<p>No questions saved yet. Write one on Today or your Medicines page.</p>';
+    }
+  }
+
   function renderTodayOverview() {
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -1096,7 +1125,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function refreshAppointmentDateViews() {
     const today = briefLocalDate(new Date());
     if (appointmentViewDay === today) return;
-    renderTodayOverview(); renderTodayAppointment(); renderAppointments();
+    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments();
     appointmentViewDay = today;
   }
 
@@ -1126,12 +1155,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     ];
     els.profileFacts.innerHTML = facts.map(([label, value, icon, tone]) => `<div class="profile-fact"><span class="profile-fact-label"><span class="profile-fact-icon feature-icon tone-${tone}" aria-hidden="true">${profileShortcutIconMarkup(icon)}</span><small>${escapeHTML(label)}</small></span><b title="${escapeHTML(value)}">${escapeHTML(value)}</b></div>`).join('');
     if (els.conditionsTags) {
-      const conditions = splitDetails(state.profile.conditions);
-      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition)}</span>`).join('')}<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>` : `<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>`;
+      const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure' }));
+      els.conditionsTags.innerHTML = conditions.length ? `${conditions.map(condition => `<span>${escapeHTML(condition.label)} · ${escapeHTML(condition.source === 'legacy' ? 'older entry' : condition.status)}</span>`).join('')}<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>` : `<span class="muted-tag"><span aria-hidden="true">${iconMarkup('add')}</span> Add condition</span>`;
     }
     if (els.allergiesList) {
-      const allergies = splitDetails(state.profile.allergies);
-      els.allergiesList.innerHTML = allergies.length ? allergies.map(allergy => `<div class="allergy-row"><b>${escapeHTML(allergy)}</b><span>Saved in your profile</span></div>`).join('') : '<div class="empty-inline">No allergies added</div>';
+      const allergies = window.DoctorAITerminology?.allergyEntries(state.profile) || splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy' }));
+      els.allergiesList.innerHTML = allergies.length ? allergies.map(allergy => `<div class="allergy-row"><b>${escapeHTML(allergy.substance)}</b><span>${allergy.reaction ? escapeHTML(allergy.reaction) + ' · ' : ''}${escapeHTML(allergy.certainty === 'legacy' ? 'older entry, review certainty' : allergy.certainty)}</span></div>`).join('') : '<div class="empty-inline">No allergies added</div>';
     }
     if (els.providersList) {
       els.providersList.innerHTML = state.providers.length ? state.providers.map(provider => {
@@ -1481,6 +1510,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     applyBrandTheme();
     updateDate();
     renderTodayOverview();
+    renderCompactToday();
     renderCareHome();
     renderTodayMedications();
     renderMedicationLibrary();
@@ -2094,6 +2124,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     els.modalTitle.textContent = title;
     els.modalEyebrow.textContent = eyebrow;
     els.modalBody.innerHTML = body;
+    if (els.modalBody.querySelector('[data-modal-form="health"]')) window.DoctorAITermProfile?.mount(els.modalBody, state.profile);
     const modalFeatures = { medication: 'medications', appointment: 'appointments', symptom: 'symptoms', measurement: 'results', health: 'health' };
     els.modalBody.querySelectorAll('.modal-choice').forEach(button => {
       const name = modalFeatures[button.dataset.modal] || (button.hasAttribute('data-close-modal') ? 'close' : '');
@@ -3102,9 +3133,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('Measurement added to your trends.');
     } else if (form.dataset.modalForm === 'health') {
       const oldProfile = state.profile;
-      const nextAllergies = values.allergies || '';
-      const nextConditions = values.conditions || '';
-      state.profile = { ...oldProfile, name: values.name || '', bloodType: values.bloodType || '', conditions: nextConditions, allergies: nextAllergies, notes: values.notes || '' };
+      const selected = window.DoctorAITermProfile?.collect();
+      if (window.DoctorAITermProfile && !selected) return;
+      const compatibility = selected
+        ? window.DoctorAITerminology.compatibilityFields(selected.conditions, selected.allergies)
+        : { conditions: values.conditions || '', allergies: values.allergies || '' };
+      state.profile = { ...oldProfile, name: values.name || '', bloodType: values.bloodType || '', ...compatibility, notes: values.notes || '' };
+      if (selected) { state.profile.conditionEntries = selected.conditions; state.profile.allergyEntries = selected.allergies; }
       state.memoryDetails = [state.profile.conditions, state.profile.allergies, state.profile.bloodType].filter(Boolean);
       clearMedicationSafetyResults();
       showToast('Health profile updated.');
@@ -3298,6 +3333,23 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    const suggestedQuestion = event.target.closest('[data-question-suggestion]');
+    if (suggestedQuestion) {
+      event.preventDefault();
+      const input = $('#medicine-question');
+      if (input) { input.value = suggestedQuestion.dataset.questionSuggestion || ''; input.focus(); }
+      return;
+    }
+    const deleteDiaryQuestion = event.target.closest('[data-delete-diary-question]');
+    if (deleteDiaryQuestion) {
+      event.preventDefault();
+      const entry = state.timeline.find(item => item.source === 'user-question' && item.id === deleteDiaryQuestion.dataset.deleteDiaryQuestion);
+      if (entry && window.confirm('Delete this saved question from your diary?')) {
+        state.timeline = state.timeline.filter(item => item !== entry);
+        saveState(); renderCompactToday(); renderTimeline(); showToast('Question deleted from your diary.');
+      }
+      return;
+    }
     if (event.target.closest('[data-refresh-alerts]')) { event.preventDefault(); renderHealthAlerts(); showToast('Local notices refreshed from your saved details.'); return; }
     if (event.target.closest('#profile-drawer [data-install-app]')) closeProfile(true);
     if (event.target.closest('[data-device-storage-allow]')) { event.preventDefault(); setDeviceStorage(true); return; }
@@ -3799,6 +3851,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
   });
   document.addEventListener('click', handleClick);
+  document.addEventListener('submit', event => {
+    const form = event.target.closest('[data-diary-question-form]');
+    if (!form) return;
+    event.preventDefault();
+    const input = form.elements.question;
+    const question = window.DoctorAITodayDiary?.normaliseQuestion(input?.value);
+    const status = $('[data-diary-question-status]', form);
+    if (!question) { if (status) status.textContent = 'Write a question before saving.'; input?.focus(); return; }
+    const id = typeof window.crypto?.randomUUID === 'function' ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const prepared = window.DoctorAITodayDiary?.createQuestion(question, state.timeline, briefLocalDate(new Date()), id, Date.now());
+    if (!prepared?.entry) { if (status) status.textContent = prepared?.error === 'duplicate' ? 'That question is already in today\'s diary.' : 'Could not add this question. Please try again.'; return; }
+    if (!window.confirm('Add this question to your private diary?')) return;
+    state.timeline.unshift(prepared.entry);
+    saveState(); renderCompactToday(); renderTimeline();
+    form.reset();
+    if (status) status.textContent = 'Added to your diary. Check your storage status before relying on it between visits.';
+    showToast('Question added to your private diary.');
+  });
   els.medicationAlertModal?.addEventListener('cancel', event => event.preventDefault());
   els.medicationAlertModal?.addEventListener('close', () => {
     if (!medicationAlertFingerprint || medicationAlertAcknowledged(medicationAlertFingerprint)) return;

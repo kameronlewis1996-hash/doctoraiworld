@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-10-15.1",
+  "purpose": "Evidence-reviewed mappings from user-selected terminology IDs to clinical alert rules",
+  "rules": [],
+  "policy": "A catalogue label or alias is never a clinical rule. Each future mapping needs an explicitly reusable source, record-level attribution, product/formulation/route and jurisdiction scope, clinical review, and a safe unknown fallback."
+}

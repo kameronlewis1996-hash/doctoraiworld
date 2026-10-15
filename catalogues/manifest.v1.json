@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-10-15.1",
+  "reviewedOn": "2026-10-15",
+  "catalogues": [
+    { "path": "conditions.v1.json", "count": 3, "source": "Human Disease Ontology", "license": "CC0-1.0" },
+    { "path": "medicines.v1.json", "count": 2, "source": "ChEBI", "license": "CC-BY-4.0" },
+    { "path": "allergies-reactions.v1.json", "count": 5, "source": "ChEBI and Symptom Ontology", "licenses": ["CC-BY-4.0", "CC0-1.0"] },
+    { "path": "alert-mappings.v1.json", "count": 0, "source": "DoctorAI policy", "license": "DoctorAI authored" }
+  ],
+  "coverage": {
+    "conditions": 3,
+    "medicineIngredients": 2,
+    "localMedicineProducts": 0,
+    "allergySubstances": 1,
+    "reactionLabels": 4,
+    "clinicalRulesFromTheseCatalogues": 0,
+    "jurisdictionsWithProductMapping": 0,
+    "languages": ["en"]
+  },
+  "rightsPolicy": "These terminology subsets are for user-selected labels only. No source term creates a clinical alert. Product, formulation, strength, route, jurisdiction and evidence mappings require separate review. Rights-restricted NZF and Medsafe CMI content are not included."
+}
