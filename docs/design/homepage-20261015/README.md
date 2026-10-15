@@ -6,7 +6,7 @@ This homepage makes the existing DoctorAI brand the centrepiece: the canonical h
 
 - Branch: `codex/astra-homepage-20261015`.
 - Verified main: `aef725b916e7412fb39dea4caedb4a85229aa87d` (checked again before PR preparation).
-- Product changes: `index.html`, `welcome.css`, `welcome.js` only.
+- Product changes: `index.html`, `welcome.css`, `welcome.js`, plus `hub-category-themes.css` and its stylesheet link in `health-hub.html` for the user's follow-up colour correction.
 - Existing logo files, application code, medication checking, authentication, storage, billing, APIs, service worker and deployment configuration are unchanged.
 - Work was done in a fresh clone and isolated branch. No other local checkout or M-folder work was edited.
 - No generated artwork, video, AI requests or paid services were used.
@@ -22,7 +22,7 @@ The four hero entry points have distinct soft surfaces, 2px accent outlines, bol
 | Visit Prep | `#FFF4DE` | `#805418` | `/health-hub#visit-prep` | 6.02:1 |
 | Profile | `#F2EDFC` | `#65439B` | `/health-hub#profile` | 6.47:1 |
 
-Navy labels (`#0A2340`) exceed 13:1 contrast on every surface; supporting copy (`#465F73`) exceeds 5.8:1. These values were measured from browser computed styles. [Exact tokens and ownership handoff](theme-tokens.md) are provided for the separately owned destination-page themes; no destination page was changed in this revision.
+Navy labels (`#0A2340`) exceed 13:1 contrast on every surface; supporting copy (`#465F73`) exceeds 5.8:1. These values were measured from browser computed styles. [Exact tokens](theme-tokens.md) and the [main-app colour correction with desktop/mobile screenshots](hub-themes.md) cover the requested matching sidebar, mobile navigation and page themes.
 
 The clear plus action, **Add Health Detail**, opens the existing secondary category picker at `/health-hub#add`: Medication, Health profile, Symptom, Appointment, Measurement, and Document or photo. **Scan medication · Pro** sits directly below and links to the existing scanner start page at `/health-hub#scan`. The homepage does not initiate a scan, access a camera or bypass the app's consent/access checks.
 

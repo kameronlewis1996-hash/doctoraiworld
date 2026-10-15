@@ -1,0 +1,764 @@
+{
+  "checkedAt": "2026-10-15T00:46:28.456Z",
+  "checks": [
+    "All four sidebar/mobile tabs retain their own homepage colours in every selected state",
+    "Page headings match their category surface and accent",
+    "Keyboard navigation, current-page semantics and focus remain",
+    "All targets at least 44px, no horizontal overflow at 320, 390, 768, 935 and 1440px",
+    "Existing Add Detail categories and symptom dialog still open",
+    "Scan route remains an explicit start screen, without camera access",
+    "Alerts view colours unchanged by category stylesheet",
+    "Forced-colour mode preserves selected-tab border"
+  ],
+  "routes": [
+    {
+      "width": 935,
+      "view": "today",
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "icon": "rgb(7, 89, 182)",
+      "headerSurface": "rgb(234, 243, 255)",
+      "headerAccent": "rgb(7, 89, 182)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 935,
+      "view": "health",
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "icon": "rgb(23, 107, 96)",
+      "headerSurface": "rgb(232, 246, 241)",
+      "headerAccent": "rgb(23, 107, 96)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 935,
+      "view": "visit-prep",
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "icon": "rgb(128, 84, 24)",
+      "headerSurface": "rgb(255, 244, 222)",
+      "headerAccent": "rgb(128, 84, 24)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 935,
+      "view": "profile",
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "icon": "rgb(101, 67, 155)",
+      "headerSurface": "rgb(242, 237, 252)",
+      "headerAccent": "rgb(101, 67, 155)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "today",
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "icon": "rgb(7, 89, 182)",
+      "headerSurface": "rgb(234, 243, 255)",
+      "headerAccent": "rgb(7, 89, 182)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "health",
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "icon": "rgb(23, 107, 96)",
+      "headerSurface": "rgb(232, 246, 241)",
+      "headerAccent": "rgb(23, 107, 96)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "visit-prep",
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "icon": "rgb(128, 84, 24)",
+      "headerSurface": "rgb(255, 244, 222)",
+      "headerAccent": "rgb(128, 84, 24)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "profile",
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "icon": "rgb(101, 67, 155)",
+      "headerSurface": "rgb(242, 237, 252)",
+      "headerAccent": "rgb(101, 67, 155)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 44
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 44
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 44
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "today",
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "icon": "rgb(7, 89, 182)",
+      "headerSurface": "rgb(234, 243, 255)",
+      "headerAccent": "rgb(7, 89, 182)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "health",
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "icon": "rgb(23, 107, 96)",
+      "headerSurface": "rgb(232, 246, 241)",
+      "headerAccent": "rgb(23, 107, 96)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "visit-prep",
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "icon": "rgb(128, 84, 24)",
+      "headerSurface": "rgb(255, 244, 222)",
+      "headerAccent": "rgb(128, 84, 24)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "profile",
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "icon": "rgb(101, 67, 155)",
+      "headerSurface": "rgb(242, 237, 252)",
+      "headerAccent": "rgb(101, 67, 155)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "today",
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "icon": "rgb(7, 89, 182)",
+      "headerSurface": "rgb(234, 243, 255)",
+      "headerAccent": "rgb(7, 89, 182)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "health",
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "icon": "rgb(23, 107, 96)",
+      "headerSurface": "rgb(232, 246, 241)",
+      "headerAccent": "rgb(23, 107, 96)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "visit-prep",
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "icon": "rgb(128, 84, 24)",
+      "headerSurface": "rgb(255, 244, 222)",
+      "headerAccent": "rgb(128, 84, 24)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "profile",
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "icon": "rgb(101, 67, 155)",
+      "headerSurface": "rgb(242, 237, 252)",
+      "headerAccent": "rgb(101, 67, 155)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "view": "today",
+      "surface": "rgb(234, 243, 255)",
+      "accent": "rgb(7, 89, 182)",
+      "icon": "rgb(7, 89, 182)",
+      "headerSurface": "rgb(234, 243, 255)",
+      "headerAccent": "rgb(7, 89, 182)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "view": "health",
+      "surface": "rgb(232, 246, 241)",
+      "accent": "rgb(23, 107, 96)",
+      "icon": "rgb(23, 107, 96)",
+      "headerSurface": "rgb(232, 246, 241)",
+      "headerAccent": "rgb(23, 107, 96)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "view": "visit-prep",
+      "surface": "rgb(255, 244, 222)",
+      "accent": "rgb(128, 84, 24)",
+      "icon": "rgb(128, 84, 24)",
+      "headerSurface": "rgb(255, 244, 222)",
+      "headerAccent": "rgb(128, 84, 24)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "view": "profile",
+      "surface": "rgb(242, 237, 252)",
+      "accent": "rgb(101, 67, 155)",
+      "icon": "rgb(101, 67, 155)",
+      "headerSurface": "rgb(242, 237, 252)",
+      "headerAccent": "rgb(101, 67, 155)",
+      "overflow": false,
+      "focus": "none",
+      "controls": [
+        {
+          "view": "today",
+          "surface": "rgb(234, 243, 255)",
+          "icon": "rgb(7, 89, 182)",
+          "height": 54
+        },
+        {
+          "view": "health",
+          "surface": "rgb(232, 246, 241)",
+          "icon": "rgb(23, 107, 96)",
+          "height": 54
+        },
+        {
+          "view": "visit-prep",
+          "surface": "rgb(255, 244, 222)",
+          "icon": "rgb(128, 84, 24)",
+          "height": 54
+        },
+        {
+          "view": "profile",
+          "surface": "rgb(242, 237, 252)",
+          "icon": "rgb(101, 67, 155)",
+          "height": 54
+        }
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "apiRequests": [
+    "/api/auth/google",
+    "/api/stripe/entitlement",
+    "/api/auth/config"
+  ],
+  "mode": "Local rendering; unauthenticated API fixtures; no live account or medical records",
+  "browser": "155.0.4283.45",
+  "result": "passed"
+}

@@ -1,0 +1,134 @@
+/* Main-category identity matches the homepage. Keep clinical severity colours separate.
+   Loaded after the layout; uses existing route attributes without changing navigation. */
+body[data-hub-layout="reference"][data-hub-theme] {
+  --hub-today-surface: #eaf3ff;
+  --hub-today-accent: #0759b6;
+  --hub-health-surface: #e8f6f1;
+  --hub-health-accent: #176b60;
+  --hub-visit-surface: #fff4de;
+  --hub-visit-accent: #805418;
+  --hub-profile-surface: #f2edfc;
+  --hub-profile-accent: #65439b;
+  --hub-category-ink: #0a2340;
+  --hub-category-copy: #465f73;
+}
+body[data-hub-theme="today"],
+body[data-hub-layout="reference"][data-hub-theme] [data-view-panel="today"],
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view="today"] {
+  --hub-category-surface: var(--hub-today-surface);
+  --hub-category-accent: var(--hub-today-accent);
+}
+body[data-hub-theme="health"],
+body[data-hub-layout="reference"][data-hub-theme] [data-view-panel="health"],
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view="health"] {
+  --hub-category-surface: var(--hub-health-surface);
+  --hub-category-accent: var(--hub-health-accent);
+}
+body[data-hub-theme="visit-prep"],
+body[data-hub-layout="reference"][data-hub-theme] [data-view-panel="visit-prep"],
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view="visit-prep"] {
+  --hub-category-surface: var(--hub-visit-surface);
+  --hub-category-accent: var(--hub-visit-accent);
+}
+body[data-hub-theme="profile"],
+body[data-hub-layout="reference"][data-hub-theme] [data-view-panel="profile"],
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view="profile"] {
+  --hub-category-surface: var(--hub-profile-surface);
+  --hub-category-accent: var(--hub-profile-accent);
+}
+
+/* Each tab keeps its own identity even when another category is selected. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view],
+body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] {
+  border: 2px solid transparent;
+  background: var(--hub-category-surface);
+  color: var(--hub-category-accent);
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view]:is(.active, [aria-current="page"], :hover),
+body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view]:is(.active, [aria-current="page"], :hover) {
+  border-color: var(--hub-category-accent);
+  background: var(--hub-category-surface);
+  color: var(--hub-category-accent);
+  box-shadow: inset 3px 0 var(--hub-category-accent);
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .sidebar .primary-nav > .nav-item[data-view] :is(span, svg),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell .category-bar > [data-view] :is(span, svg),
+body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] :is(span, svg, b) {
+  color: var(--hub-category-accent);
+}
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view] svg { stroke-width: 2.6; }
+body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-bar, .mobile-bottom-nav) [data-view]:focus-visible {
+  outline: 3px solid var(--hub-category-accent);
+  outline-offset: 3px;
+}
+
+/* Limit category styling to the four main pages, leaving Alerts and record states alone. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today > .reference-intro {
+  padding: 22px 24px;
+  margin: 0 0 24px;
+  border: 2px solid var(--hub-category-accent);
+  border-radius: 16px;
+  background: var(--hub-category-surface);
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading::before,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading::after { content: none; }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading :is(h1, h2),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro h1 { color: var(--hub-category-ink); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading .eyebrow { color: var(--hub-category-accent); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading .page-subtitle,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro :is(.reference-greeting, .page-subtitle) { color: var(--hub-category-copy); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro h1 span { color: var(--hub-category-accent) !important; }
+
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-today, #view-health, #view-visit-prep, #view-profile) .primary-button {
+  background: var(--hub-category-accent);
+  border-color: var(--hub-category-accent);
+  color: #fff;
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-today, #view-health, #view-visit-prep, #view-profile) :is(.secondary-button, .text-button),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health :is(.health-tools-nav > button, .hub-panel-nav > button),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-review-medicines {
+  color: var(--hub-category-accent);
+  border-color: var(--hub-category-accent);
+  background: #fff;
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .hub-panel-nav > button:is(.active, [aria-current="page"]),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .health-tools-nav > button:hover { background: var(--hub-category-surface); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure),
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile :is(.profile-page-hero, .hub-storage-status article, .memory-card) {
+  background: var(--hub-category-surface);
+  border-color: var(--hub-category-accent);
+  color: var(--hub-category-ink);
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile .profile-page-hero :is(h2, .eyebrow) { color: var(--hub-category-ink); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile .profile-page-hero p { color: var(--hub-category-copy); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > span { color: var(--hub-category-accent); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile #profile-page-avatar { background: var(--hub-profile-surface); border-color: var(--hub-profile-accent); color: var(--hub-profile-accent); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-today, #view-health, #view-visit-prep, #view-profile) :focus-visible { outline-color: var(--hub-category-accent); }
+/* This cross-category shortcut keeps the colour of its Visit Prep destination. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-visit-link,
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .care-visit-card {
+  background: var(--hub-visit-surface);
+  border-color: var(--hub-visit-accent);
+  color: var(--hub-visit-accent);
+  box-shadow: none;
+}
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .care-visit-card button { background: #fff; border-color: var(--hub-visit-accent); color: var(--hub-visit-accent); }
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-visit-link small { color: var(--hub-category-copy); }
+
+@media (max-width: 800px) {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today > .reference-intro { padding: 18px 16px; border-radius: 12px; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro h1 { white-space: normal; }
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] { border-radius: 10px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view][aria-current="page"],
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view][aria-current="page"] { border: 3px solid Highlight; }
+}
