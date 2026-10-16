@@ -1,0 +1,43 @@
+{
+  "result": "passed",
+  "checks": [
+    "Pixel limit and reset during delayed decode fail closed",
+    "1440px: keyboard, metadata/no reference, EXIF orientation/removal, rotate, uncertainty/mismatch, repeated formats, validation, remove/reset, save, reopen and refresh isolation",
+    "Anonymous/A/B transition and sign-out clear photo and in-flight context",
+    "390px: keyboard, metadata/no reference, EXIF orientation/removal, rotate, uncertainty/mismatch, repeated formats, validation, remove/reset, save, reopen and refresh isolation",
+    "320px: keyboard, metadata/no reference, EXIF orientation/removal, rotate, uncertainty/mismatch, repeated formats, validation, remove/reset, save, reopen and refresh isolation"
+  ],
+  "axe": [
+    {
+      "label": "empty-1440",
+      "violations": []
+    },
+    {
+      "label": "populated-1440",
+      "violations": []
+    },
+    {
+      "label": "empty-390",
+      "violations": []
+    },
+    {
+      "label": "populated-390",
+      "violations": []
+    },
+    {
+      "label": "empty-320",
+      "violations": []
+    },
+    {
+      "label": "populated-320",
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "forbiddenRequests": [],
+  "screenshots": [
+    "photo-comparison-1440.png",
+    "photo-comparison-390.png",
+    "photo-comparison-320.png"
+  ]
+}
