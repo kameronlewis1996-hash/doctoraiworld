@@ -174,12 +174,13 @@ check('pure-input-no-mutation-stable-identities', () => {
   assert.equal(JSON.stringify(input), before);
   assert.deepEqual(left, right);
 });
-check('official-source-links-only', () => {
+check('official-and-exact-retained-source-links-only', () => {
   const results = [evaluate({ medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('b', 'Coughing up blood')] }), ...pairs.map(([, left, right]) => evaluate({ medications: [label('l', left), label('r', right)] }))];
   const allowed = new Set(['www.nhs.uk', 'sps.nhs.uk', 'www.medsafe.govt.nz', 'medsafe.govt.nz', 'www.accessdata.fda.gov', 'accessdata.fda.gov', 'schedule.pharmac.govt.nz']);
+  const retained = new Set(['https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2816687', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/', 'https://link.springer.com/article/10.1186/s40780-026-00560-8']);
   for (const alert of results.flatMap(result => result.alerts)) {
     assert.ok(alert.triggers.length && alert.nextAction && alert.message && alert.sources.length);
-    for (const source of alert.sources.filter(item => item.url)) { const url = new URL(source.url); assert.equal(url.protocol, 'https:'); assert.ok(allowed.has(url.hostname)); }
+    for (const source of alert.sources.filter(item => item.url)) { const url = new URL(source.url); assert.equal(url.protocol, 'https:'); assert.ok(allowed.has(url.hostname) || retained.has(url.href)); }
     assert.doesNotMatch(alert.nextAction, /(?:start|stop|increase|reduce|double) (?:taking |your )?(?:warfarin|ibuprofen|dose|medication)/i);
   }
 });
