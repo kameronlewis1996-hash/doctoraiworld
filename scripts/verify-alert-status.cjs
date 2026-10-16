@@ -9,8 +9,10 @@ const label = (id, ingredient) => ({ id, name: `Fictional ${id}`, activeIngredie
 let checks = 0;
 function check(name, fn) { fn(); checks++; console.log(`PASS ${name}`); }
 const known = evaluate({ medications: [label('one', 'paracetamol')], profile: { noKnownAllergies: true, conditions: 'No known conditions' }, timeline: [{id:'old-symptom',type:'symptom',source:'symptom-diary',title:'Old headache',date:'2026-10-01'}] });
-check('recognised medicine never becomes green under very limited coverage', () => {
-  assert.equal(describe(known).level, 'orange');
+check('recognised medicine without a notice stays neutral under very limited coverage', () => {
+  assert.equal(describe(known).level, 'neutral');
+  assert.equal(describe(known).symbol, '?');
+  assert.equal(describe(known).title, 'Some details unassessed');
   assert.match(describe(known).note, /very limited/i);
   assert.match(describe(known).note, /No alert does not mean safe/);
 });
@@ -25,12 +27,16 @@ check('resolved warfarin and ibuprofen remain unassessed and never green', () =>
   assert.match(describe(result).note, /1 of 1 saved medicine pairs/);
 });
 check('empty records never imply clearance', () => assert.equal(describe(evaluate({})).level, 'neutral'));
-check('incomplete records need review rather than green', () => assert.equal(describe(evaluate({ medications: [label('one', 'paracetamol')] })).level, 'orange'));
-check('uncertain allergy needs review even without a matching alert', () => {
+check('incomplete records remain neutral rather than green', () => assert.equal(describe(evaluate({ medications: [label('one', 'paracetamol')] })).level, 'neutral'));
+check('uncertain allergy is visibly unassessed without implying a clinical alert', () => {
   const status = describe(evaluate({ medications: [label('one','paracetamol')], profile: { allergies: 'possible penicillin allergy', conditions: 'No known conditions' }, timeline: [{id:'old-symptom',type:'symptom',source:'symptom-diary',title:'Old headache',date:'2026-10-01'}] }));
-  assert.equal(status.level, 'orange'); assert.equal(status.title, 'Some details need review');
+  assert.equal(status.level, 'neutral'); assert.equal(status.title, 'Some details unassessed');
 });
-check('unrecognised medicine needs review', () => assert.equal(describe(evaluate({ medications: [{id:'unknown',name:'Invented unmapped medicine'}] })).level, 'orange'));
+check('unrecognised medicine notice is orange with no safety claim', () => {
+  const result = evaluate({ medications: [{id:'unknown',name:'Invented unmapped medicine'}] });
+  assert.ok(result.alerts.length > 0);
+  assert.equal(describe(result).level, 'orange');
+});
 check('retained interaction keeps professional-review status', () => {
   const status = describe(evaluate({ medications: [label('one','warfarin'),label('two','sulfamethoxazole')] }));
   assert.equal(status.level, 'red'); assert.equal(status.title, 'Contact a professional');
@@ -58,7 +64,7 @@ check('unsupported or omitted records prevent green', () => {
     coverage => { coverage.symptoms.omittedByLimit = 1; }
   ];
   for (const mutate of mutations) {
-    const value=structuredClone(known);mutate(value.coverage);assert.equal(describe(value).level,'orange');
+    const value=structuredClone(known);mutate(value.coverage);assert.equal(describe(value).level,'neutral');
   }
 });
 check('unknown severity cannot imply clearance, highest urgency wins', () => {
@@ -68,7 +74,7 @@ check('unknown severity cannot imply clearance, highest urgency wins', () => {
 check('both locations update and stale green clears after failure', () => {
   const nodes=Array.from({length:2},()=>({dataset:{},parts:{},querySelector(key){return this.parts[key] ||= {};},setAttribute(key,value){this[key]=value;}}));
   const doc={querySelectorAll:selector=>selector==='[data-alert-summary]'?nodes:[]}; render(known,doc);
-  nodes.forEach(n=>assert.equal(n.dataset.alertLevel,'orange'));render(null,doc);
+  nodes.forEach(n=>assert.equal(n.dataset.alertLevel,'neutral'));render(null,doc);
   nodes.forEach(n=>{assert.equal(n.dataset.alertLevel,'neutral');assert.match(n['aria-label'],/Checks unavailable/);assert.equal(n.parts['[data-alert-symbol]'].textContent,'?');});
 });
 function presentationDOM() {
@@ -128,14 +134,15 @@ function assertPresentation(dom, result, expectedLevel, expectedTitle) {
     assert.equal(symbol.attributes['aria-hidden'], 'true');
     assert.equal(symbol.dataset.alertLevel, expectedLevel);
     assert.equal(symbol.textContent, status.symbol);
-    assert.equal(symbol.hidden, expectedLevel === 'neutral');
-    assert.equal(button.attributes['aria-label'], expectedLevel === 'neutral' ? 'Today' : `Today. Alerts: ${status.title}. ${status.note}`);
+    const empty = expectedLevel === 'neutral' && ['No current medicines', 'Add details to check'].includes(status.title);
+    assert.equal(symbol.hidden, empty);
+    assert.equal(button.attributes['aria-label'], empty ? 'Today' : `Today. ${expectedLevel === 'neutral' ? 'Status' : 'Alerts'}: ${status.title}. ${status.note}`);
   }
 }
 check('aurora severity state updates with real current results and resets after failure', () => {
   const dom = presentationDOM();
   assertPresentation(dom, evaluate({}), 'neutral', 'No current medicines');
-  assertPresentation(dom, known, 'orange', 'Some details need review');
+  assertPresentation(dom, known, 'neutral', 'Some details unassessed');
   assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
   assertPresentation(dom, null, 'neutral', 'Checks unavailable');
 });
