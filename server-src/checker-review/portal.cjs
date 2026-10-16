@@ -105,6 +105,7 @@ function createReviewHandler({enabled=false,workspaceId='',origin='',store=null,
     const existing=body.id&&state.feedback[body.id];if(body.id&&(!existing||existing.workspaceId!==workspaceId||existing.version!==version))return json(404,{error:'Feedback not found.'});
     if(existing&&(existing.authorId!==member.id||existing.testId!==body.testId))return json(403,{error:'You can update only your own feedback for its original case.'});
     if(existing&&existing.revision!==Number(body.revision))return json(409,{error:'Feedback changed. Reload before saving.'});
+    if(existing&&existing.build!==clean(body.build,160))return json(409,{error:'The observed build cannot change on existing feedback. Create a new record for another build.'});
     const id=existing?.id||crypto.randomUUID();state.feedback[id]={id,workspaceId,version,testId:body.testId,authorId:member.id,status:body.status,note:clean(body.note,4000),build:clean(body.build,160),createdAt:existing?.createdAt||time,updatedAt:time,revision:(existing?.revision||0)+1};log('feedback',member.id,id);response.setHeader('Location','/api/checker-review/portal#feedback');return response.status(303).send('');
    }
    if(route==='pack'&&request.method==='GET')return json(200,pack);
