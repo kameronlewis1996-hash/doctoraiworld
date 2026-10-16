@@ -1,0 +1,46 @@
+{
+  "baselineCommit": "7bec9131662b72d74e45efbf1aaaea0eda220dbe",
+  "datasetVersion": "2026.10.15-r149",
+  "scope": "Draft rights and evidence inventory; no rule activation or clinical approval",
+  "r149": {
+    "totalCandidateRules": 1274,
+    "retained": { "interactionRules": 2, "combinationRules": 1, "contraindicationRules": 0, "allergyRules": 2, "total": 5 },
+    "excluded": { "interactionRules": 1115, "combinationRules": 17, "contraindicationRules": 133, "allergyRules": 4, "total": 1269 },
+    "excludedByRightsGap": {
+      "reuse-status-unverified-or-conditional": 1214,
+      "reuse-status-missing": 41,
+      "record-level-license-or-attribution-incomplete": 12,
+      "additional-source-rights-not-explicit": 2
+    },
+    "excludedByCategoryAndRightsGap": {
+      "interactionRules": { "reuse-status-unverified-or-conditional": 1083, "reuse-status-missing": 24, "record-level-license-or-attribution-incomplete": 6, "additional-source-rights-not-explicit": 2 },
+      "combinationRules": { "reuse-status-unverified-or-conditional": 17 },
+      "contraindicationRules": { "reuse-status-unverified-or-conditional": 110, "reuse-status-missing": 17, "record-level-license-or-attribution-incomplete": 6 },
+      "allergyRules": { "reuse-status-unverified-or-conditional": 4 }
+    },
+    "sourceGroups": [
+      { "source": "Rahman et al. 2024; JAMA Network Open", "retained": 1, "excluded": 0, "rightsState": "record-level CC BY 4.0 and attribution recorded", "clinicalState": "adjudication outstanding", "ruleIds": ["oral-anticoagulant-ssri"] },
+      { "source": "Vega et al. 2023; Life (Basel)", "retained": 1, "excluded": 0, "rightsState": "record-level CC BY 4.0 and attribution recorded", "clinicalState": "adjudication outstanding", "ruleIds": ["warfarin-sulfamethoxazole"] },
+      { "source": "Kunitsu et al. 2026; Journal of Pharmaceutical Health Care and Sciences", "retained": 1, "excluded": 0, "rightsState": "record-level CC BY 4.0 and attribution recorded", "clinicalState": "adjudication outstanding", "ruleIds": ["ras-inhibitor-diuretic-nsaid-aki"] },
+      { "source": "DoctorAI internally authored class prompts", "retained": 2, "excluded": 0, "rightsState": "internal authorship and attribution recorded; no external source attached in r149", "clinicalState": "adjudication outstanding", "ruleIds": ["penicillin-class", "nsaid-class"] },
+      { "source": "Unresolved: excluded rule source metadata absent from release ledger", "retained": 0, "excluded": 1269, "rightsState": "blocked; source-specific rights and attribution cannot be established from the release artifact", "clinicalState": "adjudication outstanding for every rule", "ruleIdsReference": "../medication-provenance-exclusions.json#/exclusions" }
+    ]
+  },
+  "nhsWrapper": {
+    "sourceReferences": 8,
+    "promptIdsUsingNhsSources": [
+      "severe-breathing-or-swelling",
+      "chest-warning-context",
+      "severe-chest-pain-context",
+      "asthma-breathing-context",
+      "warfarin-bleeding-symptom",
+      "ibuprofen-bleeding-symptom",
+      "asthma-nsaid-breathing-context",
+      "penicillin-class",
+      "nsaid-class"
+    ],
+    "rightsState": "No reuse license or permission fields on the NHS/NHS SPS source metadata; source links alone do not establish permission",
+    "clinicalState": "Wrapper prompts and attached context need separate clinical adjudication",
+    "chestPainSourceReviewDue": "2026-08-08"
+  }
+}
