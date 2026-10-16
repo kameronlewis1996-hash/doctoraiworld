@@ -1,0 +1,21 @@
+{
+  "result": "passed",
+  "groups": 15,
+  "checks": [
+    "Default endpoint remains disabled even with an activation environment variable",
+    "Unauthenticated, ordinary health-user and forged-role requests cannot read review data",
+    "Pack projection withholds unapproved source contents and never marks clinical cases passed",
+    "CSRF/origin, workspace/version/object ownership, update revisions and status allowlist enforced",
+    "Owner revocation invalidates every reviewer session and future password login",
+    "Idle, absolute session and membership expiry all fail closed",
+    "Membership workspace and credential-version changes invalidate stale sessions",
+    "Single-use setup code is consumed atomically; only salted scrypt hash persists, no password in audit",
+    "Expired invites and real/clinically-passed tests or unapproved excerpts are rejected",
+    "Storage commit failure cannot emit a login cookie or protected response",
+    "Review cookie cannot authenticate actual health identity or staff handler",
+    "Protected HTML/JSON are withheld when durable transaction commit fails",
+    "Sign-out destroys the server session",
+    "Old and draft service workers bypass every private API path; no friendly rewrite/redirect can cache protected content",
+    "No auto-deploy for draft branch; public bundles omit pack/source/test contents"
+  ]
+}

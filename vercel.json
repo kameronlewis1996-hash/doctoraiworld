@@ -151,5 +151,10 @@
         }
       ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "codex/private-checker-review-draft-20261016": false
+    }
+  }
 }

@@ -36,6 +36,8 @@
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
     "verify:today-diary": "node scripts/verify-today-diary.cjs",
+    "verify:reviewer-portal": "node scripts/verify-reviewer-portal.cjs",
+    "verify:reviewer-portal-browser": "node scripts/verify-reviewer-portal-browser.cjs",
     "verify:today-records": "node scripts/verify-today-records-browser.cjs"
   },
   "dependencies": {

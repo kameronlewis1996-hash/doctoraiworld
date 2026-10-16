@@ -16,3 +16,4 @@ audit-*.png
 
 .env*
 .vercel
+/private-review-import/
