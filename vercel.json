@@ -80,6 +80,10 @@
       "destination": "/health-hub.html"
     },
     {
+      "source": "/next-steps-demo",
+      "destination": "/next-steps-demo.html"
+    },
+    {
       "source": "/appointment-checklist",
       "destination": "/appointment-checklist.html"
     },

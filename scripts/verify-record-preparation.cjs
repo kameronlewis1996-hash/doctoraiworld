@@ -837,16 +837,18 @@ function verifyPreparationOwnerTransition() {
     observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
     activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
-    clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
+    clearChat() {}, alignCompanionDemoOwner: () => { observed.companionOwnerAligned = true; },
+    refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
     setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAvatar() {}, loadCloudState() {},
     Date: FixtureDate
   };
   const result = vm.runInNewContext(script, context, { timeout: 1000, filename: 'health-hub-preparation-owner-transition.js' });
   assert.equal(result.careSummaryDraft, null, 'Switching away from an account clears its selected brief.');
+  assert.equal(observed.companionOwnerAligned, true, 'The companion preview owner is reconciled during an account transition.');
   assert.equal(result.appointmentRequestDraft, null, 'Switching away from an account clears its unsent request.');
   assert.equal(result.preparationReturnFocus, false, 'Account switching drops any focus return to a prior owner.');
   assert.equal(context.els.modalBody.innerHTML, '', 'Account switching removes hidden modal content from the previous owner.');
-  assert.deepEqual(observed, { closed: 1, rendered: 1, printRemoved: 1, printClassRemoved: 1 }, 'Account transition closes the modal and removes the temporary print copy before rendering the next owner.');
+  assert.deepEqual(observed, { closed: 1, rendered: 1, printRemoved: 1, printClassRemoved: 1, companionOwnerAligned: true }, 'Account transition closes the modal and removes the temporary print copy before rendering the next owner.');
 }
 
 function verifyPreparationCloseFocus() {

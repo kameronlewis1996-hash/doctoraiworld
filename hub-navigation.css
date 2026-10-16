@@ -88,3 +88,48 @@ body[data-hub-layout="reference"] #hub-shell #view-medications .library-card > .
 @media (forced-colors: active) {
   body[data-hub-layout="reference"] #hub-shell [aria-current="page"] { outline: 2px solid Highlight; outline-offset: -2px; }
 }
+
+/* A companion prototype sits under Diary without becoming a fourth main tab. */
+body[data-hub-layout="reference"] #hub-shell #view-diary > .hub-panel-nav > a.hub-companion-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #bfd5eb;
+  border-radius: 10px;
+  background: #ffffffcf;
+  color: #405a76;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 650;
+  text-decoration: none;
+  text-align: center;
+}
+body[data-hub-layout="reference"] #hub-shell #view-diary > .hub-panel-nav > a.hub-companion-link small {
+  padding: 2px 5px;
+  border: 1px solid #a5c9ed;
+  border-radius: 5px;
+  color: #0759b6;
+  font-size: 10px;
+}
+body[data-hub-layout="reference"] #hub-shell #view-diary > .hub-panel-nav > a.hub-companion-link:hover,
+body[data-hub-layout="reference"] #hub-shell .hub-companion-visit-link:hover { background: #e8f2ff; color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell .hub-companion-visit-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #9cbfe8;
+  border-radius: 10px;
+  background: #fff;
+  color: #0759b6;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+@media (max-width: 640px) {
+  body[data-hub-layout="reference"] #hub-shell #view-diary > .hub-panel-nav > a.hub-companion-link { width: 100%; padding: 9px 7px; flex-wrap: wrap; }
+}
