@@ -77,6 +77,12 @@ function presentationDOM() {
     querySelector(selector) { return this.parts[selector] ||= {}; },
     setAttribute(name, value) { this.attributes[name] = value; }
   }));
+  // The third summary is the compact banner shown outside Today and Medicines.
+  summaries.push({
+    dataset: { alertThemeBanner: '' }, hidden: true, parts: {}, attributes: {},
+    querySelector(selector) { return this.parts[selector] ||= {}; },
+    setAttribute(name, value) { this.attributes[name] = value; }
+  });
   const todayButtons = Array.from({ length: 3 }, () => ({
     children: [], attributes: {},
     querySelector(selector) { return selector === '.hub-alert-nav-symbol' ? this.children[0] || null : null; },
@@ -113,6 +119,7 @@ function assertPresentation(dom, result, expectedLevel, expectedTitle) {
     assert.equal(summary.parts['[data-alert-note]'].textContent, status.note);
     assert.equal(summary.parts['[data-alert-symbol]'].textContent, status.symbol);
     assert.equal(summary.attributes['aria-label'], `Alerts: ${status.title}. ${status.note} Open alerts.`);
+    if ('alertThemeBanner' in summary.dataset) assert.equal(summary.hidden, expectedLevel !== 'orange' && expectedLevel !== 'red', 'Only actionable alert states should reveal the contextual banner.');
   }
   for (const button of dom.todayButtons) {
     assert.equal(button.children.length, 1, 'Repeated updates must reuse each Today status symbol.');
