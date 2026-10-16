@@ -254,18 +254,39 @@
 }
 .doctorai-public-page main.shell .back:hover { background: #eaf3ff; text-decoration: underline; text-underline-offset: 4px; }
 
+/* Match the site's DM Sans voice and keep legal pages easy to scan. */
+.doctorai-public-page { font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif; }
+.doctorai-public-page main { padding-bottom: 48px; }
+.doctorai-public-page main > .panel { padding: clamp(24px, 4vw, 48px); }
+.doctorai-public-page main > .panel h1 { font-size: clamp(36px, 5.7vw, 60px); }
+.doctorai-public-page main > .panel .grid { gap: 12px; margin-top: 28px; }
+.doctorai-public-page main > .panel .grid section { padding: 18px 18px 17px; }
+
+/* Bring the primary download action into view sooner while preserving room on phones. */
+.doctorai-public-page main.shell {
+  margin-block: clamp(22px, 4vw, 46px);
+  padding: clamp(25px, 4.5vw, 48px);
+}
+.doctorai-public-page main.shell .logo { height: 104px; }
+.doctorai-public-page main.shell > .eyebrow { margin-top: 12px; }
+.doctorai-public-page main.shell > p:not(.eyebrow) { margin-top: 14px; }
+.doctorai-public-page main.shell .app-actions { margin-top: 17px; }
+.doctorai-public-page main.shell .stores { margin-top: 20px; }
+.doctorai-public-page main.shell .back { margin-top: 12px; }
+
 @media (max-width: 680px) {
-  .doctorai-public-page main > .panel { padding: 28px 20px; border-radius: 22px; }
+  .doctorai-public-page main > .panel { padding: 25px 20px; border-radius: 22px; }
   .doctorai-public-page main > .panel .grid { grid-template-columns: 1fr; gap: 11px; margin-top: 25px; }
   .doctorai-public-page main > .panel .grid section { padding: 17px 17px 16px; }
   .doctorai-public-page main > .panel .lead { padding: 16px; font-size: 15px; }
-  .doctorai-public-page main.shell { width: calc(100% - 24px); padding: 30px 22px; border-radius: 24px; }
+  .doctorai-public-page main.shell { width: calc(100% - 24px); margin-block: 20px; padding: 25px 22px; border-radius: 24px; }
+  .doctorai-public-page main.shell .logo { height: 98px; }
   .doctorai-public-page main.shell .stores { grid-template-columns: 1fr; width: min(100%, 390px); }
 }
 
 @media (max-width: 360px) {
   .doctorai-public-page main > .panel { padding-inline: 17px; }
-  .doctorai-public-page main.shell { padding-inline: 18px; }
+  .doctorai-public-page main.shell { padding: 22px 18px; }
   .doctorai-public-page main.shell h1 { font-size: 34px; }
 }
 

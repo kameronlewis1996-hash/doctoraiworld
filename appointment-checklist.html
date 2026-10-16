@@ -26,10 +26,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/appointment-checklist.css?v=4">
+  <link rel="stylesheet" href="/appointment-checklist.css?v=5">
   <link rel="stylesheet" href="/resource-share.css?v=2">
   <link rel="stylesheet" href="/accessibility.css?v=14" media="screen">
-  <link rel="stylesheet" href="/aurora-pages.css?v=1">
+  <link rel="stylesheet" href="/aurora-pages.css?v=2">
   <script defer src="/appointment-checklist.js"></script>
   <script defer src="/resource-share.js?v=1"></script>
   <script defer src="/feature-icons.js?v=8"></script>
@@ -49,6 +49,7 @@
   <main id="main" class="page-main" tabindex="-1">
     <article>
       <header class="hero">
+        <div class="resource-mark" aria-hidden="true"><span data-doctorai-icon="calendar" data-icon-size="28"></span></div>
         <p class="eyebrow">Free, printable Aotearoa resource</p>
         <h1>New Zealand doctor appointment checklist: what to bring</h1>
         <p class="intro">Use this fill-in checklist to get ready for a GP or other health care visit. Print it or save it as a PDF from your browser when you are ready.</p>
@@ -57,10 +58,10 @@
           <p><strong>Free digital version:</strong> Scan or visit <a href="/health-hub#appointments">www.doctoraiworld.com/health-hub#appointments</a></p>
         </div>
         <div class="hero-actions" role="group" aria-label="Checklist actions">
-          <button class="button" id="print-checklist" type="button">Print this checklist</button>
-          <button class="button button-secondary" data-share-resource data-share-title="Free New Zealand doctor appointment checklist" data-share-text="Share this fill-in checklist for preparing for a GP or other health care visit." type="button">Share this free checklist</button>
-          <a class="button button-secondary" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.doctoraiworld.com%2Fappointment-checklist&amp;media=https%3A%2F%2Fwww.doctoraiworld.com%2Fappointment-checklist-social-preview.png&amp;description=Free%20New%20Zealand%20doctor%20appointment%20checklist%20to%20fill%20in%20and%20print." target="_blank" rel="noopener noreferrer" aria-label="Save this public checklist to Pinterest (opens in a new tab)">Save to Pinterest</a>
-          <a class="button button-secondary" href="/health-hub#appointments">Use the free Health Hub</a>
+          <button class="button" id="print-checklist" type="button"><span data-doctorai-icon="printer" aria-hidden="true"></span>Print this checklist</button>
+          <button class="button button-secondary" data-share-resource data-share-title="Free New Zealand doctor appointment checklist" data-share-text="Share this fill-in checklist for preparing for a GP or other health care visit." type="button"><span data-doctorai-icon="share" aria-hidden="true"></span>Share this free checklist</button>
+          <a class="button button-secondary" href="https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fwww.doctoraiworld.com%2Fappointment-checklist&amp;media=https%3A%2F%2Fwww.doctoraiworld.com%2Fappointment-checklist-social-preview.png&amp;description=Free%20New%20Zealand%20doctor%20appointment%20checklist%20to%20fill%20in%20and%20print." target="_blank" rel="noopener noreferrer" aria-label="Save this public checklist to Pinterest (opens in a new tab)"><span data-doctorai-icon="external" aria-hidden="true"></span>Save to Pinterest</a>
+          <a class="button button-secondary" href="/health-hub#appointments"><span data-doctorai-icon="home" aria-hidden="true"></span>Use the free Health Hub</a>
           <input class="resource-share-link" data-share-link type="url" readonly autocomplete="off" hidden aria-label="Public page link to share">
         </div>
         <p class="privacy-note">These fields are not sent to or saved by DoctorAI. Entries remain on this page until you clear them. If you choose Pinterest, the link includes only this public page URL, its public preview image, and fixed text—not your entries. Opening Pinterest may share activity with Pinterest. If you use a shared device, clear entries before leaving.<span class="resource-share-status" data-share-status role="status" aria-live="polite"></span></p>
@@ -70,7 +71,7 @@
       <section class="details-section" aria-labelledby="details-title">
         <div class="section-heading">
           <p class="eyebrow">Optional — fill in only what you want to keep</p>
-          <h2 id="details-title">Appointment details</h2>
+          <h2 id="details-title"><span class="section-icon" data-doctorai-icon="calendar" aria-hidden="true"></span>Appointment details</h2>
         </div>
         <div class="detail-fields">
           <label for="visit-date">Date and time<input id="visit-date" type="text" autocomplete="off"></label>
@@ -82,24 +83,24 @@
       <section class="checklist-section" aria-labelledby="before-title">
         <div class="section-heading">
           <p class="eyebrow">A few details can help you feel prepared</p>
-          <h2 id="before-title">What to bring or arrange</h2>
+          <h2 id="before-title"><span class="section-icon" data-doctorai-icon="clipboard" aria-hidden="true"></span>What to bring or arrange</h2>
         </div>
         <ul class="checklist">
           <li class="checklist-item">
             <input id="visit-details" type="checkbox">
-            <div><label for="visit-details">Bring your medicines and supplements list.</label><p>Make a list of the medicines and supplements you take. Our <a href="/medication-list-template">free blank medicine-list template</a> has room for label details and questions.</p></div>
+            <div><label for="visit-details"><span class="item-icon" data-doctorai-icon="capsule" aria-hidden="true"></span><span>Bring your medicines and supplements list.</span></label><p>Make a list of the medicines and supplements you take. Our <a href="/medication-list-template">free blank medicine-list template</a> has room for label details and questions.</p></div>
           </li>
           <li class="checklist-item">
             <input id="documents" type="checkbox">
-            <div><label for="documents">Bring any useful documents you already have.</label><p>Follow any instructions from your practice. Health New Zealand gives examples such as a Yellow Card or hospital discharge letter, if you have one.</p></div>
+            <div><label for="documents"><span class="item-icon" data-doctorai-icon="document" aria-hidden="true"></span><span>Bring any useful documents you already have.</span></label><p>Follow any instructions from your practice. Health New Zealand gives examples such as a Yellow Card or hospital discharge letter, if you have one.</p></div>
           </li>
           <li class="checklist-item">
             <input id="concerns" type="checkbox">
-            <div><label for="concerns">Write down your main concerns or questions.</label><p>A short reminder can help you bring up the things that matter to you.</p></div>
+            <div><label for="concerns"><span class="item-icon" data-doctorai-icon="chat" aria-hidden="true"></span><span>Write down your main concerns or questions.</span></label><p>A short reminder can help you bring up the things that matter to you.</p></div>
           </li>
           <li class="checklist-item">
             <input id="support" type="checkbox">
-            <div><label for="support">Arrange any support you would like.</label><p>You can take a support person or whānau member. If you need an interpreter, Health New Zealand recommends telling the practice when booking and allowing at least 24 hours.</p></div>
+            <div><label for="support"><span class="item-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Arrange any support you would like.</span></label><p>You can take a support person or whānau member. If you need an interpreter, Health New Zealand recommends telling the practice when booking and allowing at least 24 hours.</p></div>
           </li>
         </ul>
         <div class="checklist-actions">
@@ -109,19 +110,19 @@
       </section>
 
       <section class="visit-note" aria-labelledby="during-title">
-        <h2 id="during-title">At the visit</h2>
+        <h2 id="during-title"><span class="section-icon" data-doctorai-icon="chat" aria-hidden="true"></span>At the visit</h2>
         <p>The official guide suggests saying if you do not understand, if a drawing could help, or if you are having problems with medicines or treatment or cannot afford them. It also suggests noting what to do next.</p>
       </section>
 
       <section class="source-note" aria-labelledby="source-title">
-        <h2 id="source-title">Source and scope</h2>
+        <h2 id="source-title"><span class="section-icon" data-doctorai-icon="info" aria-hidden="true"></span>Source and scope</h2>
         <p>This checklist uses an original layout based on guidance from <a href="https://www.healthnz.govt.nz/hospitals-services/services-support/general-practices/preparing-for-your-doctors-visit" rel="noopener noreferrer">Health New Zealand | Te Whatu Ora</a> and the <a href="https://www.hqsc.govt.nz/resources/resource-library/lets-plan-for-your-next-health-care-visit/" rel="noopener noreferrer">Health Quality &amp; Safety Commission Te Tāhū Hauora</a>. The HQSC page includes translated and accessible versions.</p>
         <p>This is an AI-assisted summary of those public resources, not a clinical review or medical advice. For complete guidance, use the official pages or ask your health care team.</p>
         <p class="checked-date"><strong>Last source check:</strong> 2 October 2026</p>
       </section>
 
       <section class="measurement-section" aria-labelledby="measurement-title">
-        <h2 id="measurement-title">Help improve this free resource</h2>
+        <h2 id="measurement-title"><span class="section-icon" data-doctorai-icon="chart" aria-hidden="true"></span>Help improve this free resource</h2>
         <p>If you allow, Vercel can count this page visit using its cookie-free Web Analytics service. The same generic resource URL is reported for everyone; your checklist entries and Health Hub details are not included. Your choice applies to this visit and is not saved. <a href="/privacy">Read the privacy notice</a>.</p>
         <div class="hero-actions" role="group" aria-label="Optional page counting">
           <button class="button" id="measurement-allow" type="button" disabled>Allow for this visit</button>
@@ -134,7 +135,7 @@
       <section class="hub-cta" aria-labelledby="hub-title">
         <div>
           <p class="eyebrow">Keep your visit details together</p>
-          <h2 id="hub-title">Prefer a digital appointments list?</h2>
+          <h2 id="hub-title"><span class="section-icon" data-doctorai-icon="home" aria-hidden="true"></span>Prefer a digital appointments list?</h2>
           <p>Open the free DoctorAI Health Hub to organise appointments and notes. You choose whether information stays in this browser or only for this session.</p>
         </div>
         <a class="button" href="/health-hub#appointments">Open the free Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>

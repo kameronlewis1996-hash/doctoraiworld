@@ -1,14 +1,14 @@
 :root {
   color-scheme: light;
-  --ink: #18364e;
-  --muted: #526b80;
-  --line: #d7e4ec;
-  --blue: #126aa5;
-  --paper: #f3f9fc;
-  --teal: #347c6e;
-  --warning-ink: #5a3317;
-  --warning-paper: #fff4e4;
-  --warning-line: #d89b53;
+  --ink: #071b46;
+  --muted: #405a79;
+  --line: #cbdcf5;
+  --blue: #0865df;
+  --paper: #f5f8ff;
+  --teal: #0756ba;
+  --warning-ink: #543b1e;
+  --warning-paper: #fff8eb;
+  --warning-line: #d6a75f;
 }
 
 * { box-sizing: border-box; }
@@ -250,4 +250,46 @@ blockquote { margin: 0; padding: 15px 17px; border-left: 3px solid #72a99b; bord
   .site-footer { padding: 6mm 0 0; }
   a { color: inherit; text-decoration: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Keep this fictional concept aligned with the site's Aurora blue surfaces.
+   The amber notice remains distinct so the invented-data warning stays clear. */
+.aurora-demo-page .site-header { border-bottom: 1px solid #ffffffc9; }
+.aurora-demo-page .brand-mark { border: 1px solid #d6e4fa; background: linear-gradient(145deg, #eaf2ff, #eefaff); }
+.aurora-demo-page .brand-copy strong { color: #071b46; }
+.aurora-demo-page .brand-copy small,
+.aurora-demo-page .header-caption { color: #526887; }
+.aurora-demo-page .synthetic-notice { border-color: #d6a75f; background: #fff8eb; color: #543b1e; box-shadow: 0 4px 12px #71480b0d; }
+.aurora-demo-page .notice-dot { background: #9b5a12; }
+.aurora-demo-page .brief-sheet { border-color: #cbdcf5; box-shadow: 0 12px 34px #244a8610; }
+.aurora-demo-page .brief-heading { background: linear-gradient(120deg, #f1f5ff 0%, #fff 64%, #f0faff 100%); }
+.aurora-demo-page .eyebrow { color: #0756ba; }
+.aurora-demo-page h1,
+.aurora-demo-page h2 { color: #071b46; }
+.aurora-demo-page .brief-intro,
+.aurora-demo-page .person-strip strong,
+.aurora-demo-page .overview-card p,
+.aurora-demo-page blockquote,
+.aurora-demo-page .empty-state,
+.aurora-demo-page .question-list li,
+.aurora-demo-page .scope-note p { color: #344f75; }
+.aurora-demo-page .sample-stamp { border-color: #d6a75f; background: #fff8eb; color: #65451e; }
+.aurora-demo-page .person-strip { border-color: #cbdcf5; background: #f7f9ff; }
+.aurora-demo-page .field-label { color: #526887; }
+.aurora-demo-page .source-tag { border-color: #bdd0f3; background: #edf3ff; color: #164f9b; }
+.aurora-demo-page .overview-card { border-color: #d3def2; background: #fbfcff; }
+.aurora-demo-page .overview-card-primary { border-color: #b9cceb; background: #f1f6ff; }
+.aurora-demo-page .detail-grid { border-color: #d1def3; }
+.aurora-demo-page .detail-panel + .detail-panel { border-left-color: #d1def3; }
+.aurora-demo-page blockquote { border-left-color: #4b93ed; background: #f1f6ff; }
+.aurora-demo-page .empty-state { border-color: #b9cceb; background: #f8faff; }
+.aurora-demo-page .question-list li { border-color: #d3def2; background: #fcfdff; }
+.aurora-demo-page .question-list li::before { background: #e7efff; color: #0756ba; }
+.aurora-demo-page .scope-note { border-color: #cbdcf5; background: #f4f7ff; }
+.aurora-demo-page .print-hint,
+.aurora-demo-page .site-footer { color: #526887; }
+.aurora-demo-page :is(a, button, summary, [tabindex]):focus-visible { outline-color: #0865df; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-demo-page :is(a, button, summary) { transition-duration: .01ms !important; }
 }

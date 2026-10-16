@@ -8,23 +8,41 @@
   --aurora-page-line: #cbdcf5;
   --aurora-page-glass: #ffffffd4;
   --aurora-page-shadow: 0 18px 50px #6086cf14;
-}
-
-body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
-  .appointment-guide, .medication-guide, .aurora-demo-page) {
-  color: var(--aurora-page-ink);
-  background-color: #f5f8ff;
-  background-image:
+  --aurora-page-atmosphere:
     radial-gradient(ellipse at 50% 0%, #ffffffec, transparent 44%),
     radial-gradient(ellipse 36% 28% at -4% 8%, #b6bcf3a8, transparent 93%),
     radial-gradient(ellipse 34% 27% at 102% 12%, #9bdcf2ab, transparent 94%),
     radial-gradient(ellipse 34% 28% at -5% 40%, #eec9eda8, transparent 94%),
     radial-gradient(ellipse 38% 34% at 105% 43%, #aeaaf0a0, transparent 94%),
     radial-gradient(ellipse 42% 30% at 22% 80%, #c5eafa9a, transparent 94%);
+}
+
+body:is(.doctorai-public-page, .doctorai-system-page) {
+  --dai-ink: #071b46;
+  --dai-navy: #102b51;
+  --dai-blue: #0865df;
+  --dai-blue-dark: #0759b6;
+  --dai-line: #cbdcf5;
+  --dai-muted: #405a79;
+}
+
+body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+  .appointment-guide, .medication-guide, .aurora-demo-page) {
+  color: var(--aurora-page-ink);
+  background-color: #f5f8ff;
+  background-image: var(--aurora-page-atmosphere);
   background-size: 100% 1180px;
   background-repeat: no-repeat;
   font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* The staff gate has a more specific legacy body background. */
+.doctorai-system-page.staff-page {
+  background-color: #f5f8ff;
+  background-image: var(--aurora-page-atmosphere);
+  background-size: 100% 1180px;
+  background-repeat: no-repeat;
 }
 
 body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
@@ -42,11 +60,20 @@ body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
 }
 
 .doctorai-public-page .doctorai-site-header {
-  border-bottom-color: #ffffffd6;
-  background: #ffffffc7;
-  box-shadow: 0 5px 24px #6086cf0c;
+  border-bottom-color: #ffffffc9;
+  background: linear-gradient(110deg, #ffffffdc, #f4faffd9 52%, #ffffffdd);
+  box-shadow: 0 6px 25px #5377b51a;
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
+}
+.doctorai-public-page .doctorai-site-header-inner { min-height: 76px; }
+.doctorai-public-page .doctorai-site-menu > a:not(.doctorai-site-primary) {
+  color: var(--aurora-page-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.doctorai-public-page .doctorai-site-menu > a:not(.doctorai-site-primary):hover {
+  color: var(--aurora-page-blue-dark);
 }
 
 /* Reuse the same supplied logo pieces as the Aurora homepage header. The
@@ -88,9 +115,16 @@ body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
 .doctorai-public-page .doctorai-site-menu > .doctorai-site-primary,
 .doctorai-public-page :is(.install, .primary-cta, .plan-primary) {
   border-color: transparent;
+  border-radius: 999px;
   background: #0664ed;
   color: #fff;
   box-shadow: 0 8px 26px #0877f529;
+}
+.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary {
+  min-height: 46px;
+  padding-inline: 20px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .doctorai-public-page .doctorai-site-menu > .doctorai-site-primary:hover,
@@ -102,8 +136,39 @@ body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
 .doctorai-public-page :is(.panel, main.shell),
 .doctorai-system-page :is(.panel, .card) {
   border-color: var(--aurora-page-line);
+  border-radius: 24px;
   background-color: var(--aurora-page-glass);
   box-shadow: var(--aurora-page-shadow);
+}
+
+.doctorai-public-page .doctorai-site-footer {
+  border-top-color: #d5e4f5;
+  background: linear-gradient(110deg, #ffffffdf, #f4faffdc 56%, #fffdfaeb);
+  box-shadow: 0 -12px 34px #6086cf0b;
+}
+.doctorai-public-page .doctorai-site-footer :is(b, p) { color: var(--aurora-page-ink); }
+.doctorai-public-page .doctorai-site-footer nav a { color: var(--aurora-page-blue-dark); }
+.doctorai-public-page .doctorai-site-footer nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+@media (max-width: 820px) {
+  .doctorai-public-page .doctorai-site-header-inner { min-height: 68px; }
+  .doctorai-public-page .doctorai-site-menu {
+    border-bottom-color: #cbdcf5;
+    background: #f7fafff5;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  .doctorai-public-page .doctorai-site-menu-button {
+    border-color: #cbdcf5;
+    border-radius: 13px;
+    background: #ffffffd9;
+    color: var(--aurora-page-ink);
+  }
+  .doctorai-public-page .doctorai-site-menu > a:not(.doctorai-site-primary) {
+    border-color: #d8e4f5;
+    background: #ffffffdb;
+  }
+  .doctorai-public-page .doctorai-site-menu > .doctorai-site-primary { border-radius: 13px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

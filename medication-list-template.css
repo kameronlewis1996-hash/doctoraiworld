@@ -98,3 +98,692 @@
     transition-duration: .01ms !important;
   }
 }
+/* Medication organizer surfaces keep the blank template legible on screen and on paper. */
+@media screen {
+  body.medication-guide {
+    color: #071b46;
+    font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body.medication-guide .guide-header,
+  body.medication-guide .guide-main,
+  body.medication-guide .guide-footer {
+    width: min(1180px, calc(100% - 40px));
+  }
+
+  body.medication-guide .guide-header {
+    min-height: 82px;
+    gap: 22px;
+    border-bottom-color: #d7e4f3;
+  }
+
+  body.medication-guide .guide-brand img {
+    width: 150px;
+    max-height: 68px;
+    object-fit: contain;
+  }
+
+  body.medication-guide .guide-header nav { gap: 7px; }
+
+  body.medication-guide .guide-header nav a,
+  body.medication-guide .guide-footer nav a {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 11px;
+    border-radius: 11px;
+    color: #334e70;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color .18s ease, color .18s ease;
+  }
+
+  body.medication-guide .guide-header nav a:not(.guide-nav-cta):hover,
+  body.medication-guide .guide-footer nav a:hover {
+    background: #eaf3ff;
+    color: #0757b8;
+  }
+
+  body.medication-guide .guide-header nav .guide-nav-cta {
+    min-height: 46px;
+    padding-inline: 16px;
+    border-radius: 13px;
+    background: linear-gradient(120deg, #0865df, #0c75ca);
+    box-shadow: 0 8px 18px #0865df2b;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  body.medication-guide .guide-main {
+    padding-top: clamp(26px, 4vw, 46px);
+  }
+
+  body.medication-guide .guide-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: clamp(28px, 5vw, 54px);
+    border-color: #d3e1f3;
+    border-radius: 26px;
+    background:
+      radial-gradient(ellipse at 94% 0%, #dce8ffba, transparent 39%),
+      radial-gradient(ellipse at 72% 100%, #ddf8ffbd, transparent 44%),
+      linear-gradient(128deg, #fffffffa, #f4f9fffa 67%, #faf7fffa);
+    box-shadow: 0 18px 46px #466aa31a;
+  }
+
+  body.medication-guide .guide-hero-mark {
+    display: grid;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 21px;
+    place-items: center;
+    border: 1px solid #c8dcf6;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #eaf5ff, #f1f2ff);
+    color: #0865df;
+    box-shadow: inset 0 1px #fff, 0 7px 18px #4e78ad18;
+  }
+
+  body.medication-guide .guide-hero-mark svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  body.medication-guide .guide-eyebrow {
+    margin-bottom: 10px;
+    color: #0757b8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .13em;
+  }
+
+  body.medication-guide .guide-hero h1 {
+    max-width: 17ch;
+    color: #071b46;
+    font-size: clamp(38px, 5.1vw, 58px);
+    line-height: 1.05;
+    letter-spacing: -.05em;
+  }
+
+  body.medication-guide .guide-intro {
+    max-width: 760px;
+    margin: 16px 0 22px;
+    color: #405977;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  body.medication-guide .guide-actions {
+    display: grid;
+    max-width: 680px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 22px 0 18px;
+  }
+
+  body.medication-guide .guide-actions .guide-button {
+    min-height: 50px;
+    width: 100%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 12px;
+    line-height: 1.3;
+    box-shadow: 0 8px 18px #0865df22;
+    transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  body.medication-guide .guide-actions .guide-button:hover {
+    background: #0757b8;
+    box-shadow: 0 10px 24px #0865df30;
+    filter: none;
+    transform: translateY(-1px);
+  }
+
+  body.medication-guide .guide-actions .guide-button-secondary {
+    border: 1px solid #cbdcf2;
+    background: #ffffffd9;
+    color: #0757b8;
+    box-shadow: none;
+  }
+
+  body.medication-guide .guide-actions .guide-button-secondary:hover {
+    border-color: #8eb8ed;
+    background: #f4f9ff;
+    color: #064a9c;
+    box-shadow: 0 6px 16px #365c9412;
+  }
+
+  body.medication-guide .guide-actions .guide-button > span[data-doctorai-icon] {
+    display: inline-grid;
+    width: 19px;
+    height: 19px;
+    flex: 0 0 19px;
+    place-items: center;
+  }
+
+  body.medication-guide .guide-actions .guide-button > span[data-doctorai-icon] svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  body.medication-guide .guide-actions > a[href^="/health-hub"] {
+    grid-column: 1 / -1;
+    justify-self: start;
+    width: auto;
+    min-width: min(100%, 260px);
+  }
+
+  body.medication-guide .guide-utility-note {
+    max-width: 780px;
+    margin: 10px 0 0;
+    padding: 11px 14px;
+    border: 1px solid #d8e4f2;
+    border-radius: 12px;
+    background: #ffffffc9;
+    color: #4b637f;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  body.medication-guide .guide-utility-note a {
+    color: #0757b8;
+    font-weight: 700;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  body.medication-guide .guide-section,
+  body.medication-guide .guide-cta {
+    margin-top: 24px;
+    padding: clamp(22px, 3.7vw, 34px);
+    border-color: #d4e2f3;
+    border-radius: 21px;
+    background: #ffffffed;
+    box-shadow: 0 12px 30px #365c9410;
+  }
+
+  body.medication-guide .guide-name-lookup {
+    background:
+      radial-gradient(ellipse at 98% 0%, #e0eaff7a, transparent 38%),
+      linear-gradient(125deg, #effaff, #fff 61%, #faf8ff);
+  }
+
+  body.medication-guide .guide-section-heading {
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+
+  body.medication-guide .guide-section-heading h2,
+  body.medication-guide .guide-copy h2,
+  body.medication-guide .guide-cta h2 {
+    color: #102f57;
+    font-size: clamp(23px, 3vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -.04em;
+  }
+
+  body.medication-guide :is(.guide-section-heading h2, .guide-copy h2, .guide-cta h2) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  body.medication-guide .guide-heading-icon {
+    display: inline-grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border: 1px solid #cbdcf5;
+    border-radius: 13px;
+    background: #eaf3ff;
+    color: #0865df;
+  }
+
+  body.medication-guide .guide-heading-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  body.medication-guide .guide-section-heading > p,
+  body.medication-guide .guide-copy p,
+  body.medication-guide .guide-copy li,
+  body.medication-guide .guide-cta p {
+    color: #405977;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  body.medication-guide .guide-section-heading > p {
+    max-width: 460px;
+  }
+
+  body.medication-guide .guide-copy h3 {
+    margin: 23px 0 7px;
+    color: #102f57;
+    font-size: 18px;
+    letter-spacing: -.02em;
+  }
+
+  body.medication-guide .guide-copy a,
+  body.medication-guide .medicine-name-source a,
+  body.medication-guide .guide-note a {
+    color: #0757b8;
+    font-weight: 700;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  body.medication-guide .guide-name-lookup form {
+    max-width: 720px;
+  }
+
+  body.medication-guide .guide-name-lookup form > label {
+    margin-bottom: 8px;
+    color: #334e70;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  body.medication-guide .medicine-name-search-row {
+    align-items: stretch;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  body.medication-guide .medicine-name-search-row input {
+    min-width: 0;
+    min-height: 52px;
+    padding: 11px 14px;
+    border-color: #b8cde4;
+    border-radius: 13px;
+    color: #102f57;
+    font-size: 14px;
+    transition: border-color .18s ease, box-shadow .18s ease;
+  }
+
+  body.medication-guide .medicine-name-search-row input::placeholder {
+    color: #5c718b;
+    opacity: 1;
+  }
+
+  body.medication-guide .medicine-name-search-row input:hover {
+    border-color: #8eb8ed;
+  }
+
+  body.medication-guide .medicine-name-search-row .guide-button {
+    min-height: 52px;
+    flex: 0 0 auto;
+    padding-inline: 20px;
+    border-radius: 13px;
+    background: linear-gradient(120deg, #0865df, #0c75ca);
+    font-size: 13px;
+  }
+
+  body.medication-guide .medicine-name-search-status {
+    position: relative;
+    min-height: 48px;
+    max-width: 780px;
+    margin: 16px 0 10px;
+    padding: 12px 15px 12px 47px;
+    border: 1px solid #d3e1f3;
+    border-radius: 13px;
+    background: #f5f9ff;
+    color: #405977;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  body.medication-guide .medicine-name-search-status::before {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 1px solid #c7dcf7;
+    border-radius: 8px;
+    background: #e8f2ff;
+    color: #0757b8;
+    content: "i";
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  body.medication-guide .medicine-name-search-results {
+    gap: 9px;
+    max-width: 780px;
+    margin: 12px 0 16px;
+  }
+
+  body.medication-guide .medicine-name-search-results li {
+    align-items: center;
+    flex-direction: row;
+    padding: 12px 14px;
+    border-color: #d4e2f3;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 5px 14px #365c940c;
+  }
+
+  body.medication-guide .medicine-name-search-results li > span:first-child {
+    color: #102f57;
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  body.medication-guide .medicine-name-search-results li > button {
+    min-height: 42px;
+    padding: 0 13px;
+    border: 1px solid #cbdcf5;
+    border-radius: 11px;
+    background: #f4f8ff;
+    color: #0757b8;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease;
+  }
+
+  body.medication-guide .medicine-name-search-results li > button:hover {
+    border-color: #8eb8ed;
+    background: #eaf3ff;
+  }
+
+  body.medication-guide .guide-table-scroll {
+    border-color: #d2e0f1;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 7px 20px #365c940c;
+  }
+
+  body.medication-guide table {
+    min-width: 720px;
+    color: #102f57;
+  }
+
+  body.medication-guide thead th {
+    padding: 14px 13px;
+    border-color: #d2e0f1;
+    background: linear-gradient(120deg, #eaf5ff, #f2f2ff);
+    color: #123d70;
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  body.medication-guide tbody td {
+    padding: 13px;
+    border-color: #dce6f2;
+    color: #334e70;
+  }
+
+  body.medication-guide tbody tr:nth-child(even) td { background: #f9fbff; }
+
+  body.medication-guide .blank-line {
+    min-height: 40px;
+    border-bottom-color: #b9cce1;
+  }
+
+  body.medication-guide .guide-note {
+    margin-top: 17px;
+    padding: 12px 14px;
+    border-left: 3px solid #4388df;
+    border-radius: 0 12px 12px 0;
+    background: #eff6ff;
+    color: #405977;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  body.medication-guide .guide-print-hub-link {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #d5e2f1;
+    border-radius: 14px;
+    background: #f8fbff;
+    color: #405977;
+    font-size: 13px;
+  }
+
+  body.medication-guide .guide-print-hub-link img {
+    width: 74px;
+    height: 74px;
+    flex: 0 0 74px;
+  }
+
+  body.medication-guide .guide-print-hub-link a { color: #0757b8; }
+
+  body.medication-guide .guide-cta {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    background: linear-gradient(120deg, #eaf8ff, #f0f1ff);
+  }
+
+  body.medication-guide .guide-cta > div { max-width: 710px; }
+
+  body.medication-guide .guide-cta .guide-button {
+    min-height: 52px;
+    border-radius: 14px;
+    background: #0865df;
+    box-shadow: 0 9px 22px #0865df26;
+    font-size: 13px;
+  }
+
+  body.medication-guide .guide-measurement {
+    background: #ffffffeb;
+  }
+
+  body.medication-guide .guide-measurement-status {
+    color: #405977;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  body.medication-guide .guide-measurement .guide-button:disabled {
+    border: 1px solid #cbd7e6;
+    background: #edf1f6;
+    color: #435b73;
+    box-shadow: none;
+    cursor: not-allowed;
+    filter: none;
+    opacity: 1;
+  }
+
+  body.medication-guide .guide-footer {
+    margin-top: 25px;
+    padding-top: 23px;
+    border-color: #d1deee;
+    color: #405977;
+  }
+}
+
+@media (max-width: 700px) {
+  body.medication-guide .guide-header,
+  body.medication-guide .guide-main,
+  body.medication-guide .guide-footer {
+    width: calc(100% - 24px);
+  }
+
+  body.medication-guide .guide-header {
+    min-height: 72px;
+    gap: 6px;
+  }
+
+  body.medication-guide .guide-brand img {
+    width: 98px;
+    max-height: 56px;
+  }
+
+  body.medication-guide .guide-header nav { gap: 2px; }
+
+  body.medication-guide .guide-header nav a,
+  body.medication-guide .guide-footer nav a {
+    min-height: 39px;
+    padding-inline: 5px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  body.medication-guide .guide-header nav .guide-nav-cta {
+    min-height: 41px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+
+  body.medication-guide .guide-main { padding-top: 22px; }
+
+  body.medication-guide .guide-hero {
+    padding: 23px 20px;
+    border-radius: 21px;
+  }
+
+  body.medication-guide .guide-hero-mark {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    border-radius: 15px;
+  }
+
+  body.medication-guide .guide-hero-mark svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  body.medication-guide .guide-hero h1 {
+    max-width: 15ch;
+    font-size: clamp(35px, 9.3vw, 44px);
+  }
+
+  body.medication-guide .guide-intro { font-size: 15px; }
+
+  body.medication-guide .guide-actions {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  body.medication-guide .guide-actions > a[href^="/health-hub"] {
+    width: 100%;
+  }
+
+  body.medication-guide :is(.guide-section, .guide-cta) {
+    margin-top: 16px;
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  body.medication-guide .guide-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  body.medication-guide .guide-heading-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 12px;
+  }
+
+  body.medication-guide .medicine-name-search-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.medication-guide .medicine-name-search-row .guide-button {
+    width: 100%;
+  }
+
+  body.medication-guide .medicine-name-search-results li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.medication-guide .medicine-name-search-results li > button { width: 100%; }
+
+  body.medication-guide .guide-table-scroll {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body.medication-guide table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body.medication-guide .guide-table-scroll tbody tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    overflow: hidden;
+    border-color: #d3e1f2;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 7px 19px #365c9410;
+  }
+
+  body.medication-guide .guide-table-scroll tbody td {
+    min-width: 0;
+    padding: 12px;
+    border-right: 1px solid #e0e8f2;
+    border-bottom: 1px solid #e0e8f2;
+    background: transparent;
+  }
+
+  body.medication-guide .guide-table-scroll tbody td:last-child {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  body.medication-guide .print-label {
+    margin-bottom: 7px;
+    color: #405977;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  body.medication-guide .blank-line { min-height: 34px; }
+
+  body.medication-guide .guide-cta {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  body.medication-guide .guide-cta .guide-button { width: 100%; }
+
+  body.medication-guide .guide-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.medication-guide .guide-footer nav { gap: 2px; }
+}
+
+@media print {
+  .guide-hero-mark,
+  .guide-heading-icon,
+  .guide-actions .doctorai-icon-slot { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.medication-guide .guide-header nav a,
+  body.medication-guide .guide-footer nav a,
+  body.medication-guide .guide-actions .guide-button,
+  body.medication-guide .medicine-name-search-row input,
+  body.medication-guide .medicine-name-search-results li > button {
+    transition: none !important;
+  }
+}

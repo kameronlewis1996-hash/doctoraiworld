@@ -263,3 +263,514 @@ h2 { margin-bottom: 8px; font-size: clamp(22px, 3.5vw, 30px); line-height: 1.2; 
     transition-duration: .01ms !important;
   }
 }
+/* A task-focused printable guide with clear blue wayfinding and generous entry fields. */
+@media screen {
+  body.appointment-guide {
+    color: #071b46;
+    font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body.appointment-guide .page-header,
+  body.appointment-guide .page-main,
+  body.appointment-guide .page-footer {
+    width: min(1180px, calc(100% - 40px));
+  }
+
+  body.appointment-guide .page-header {
+    min-height: 82px;
+    gap: 22px;
+    border-bottom: 1px solid #d7e4f3;
+  }
+
+  body.appointment-guide .brand img {
+    width: 150px;
+    max-height: 68px;
+    object-fit: contain;
+  }
+
+  body.appointment-guide .page-header nav {
+    gap: 9px;
+  }
+
+  body.appointment-guide .page-header nav a,
+  body.appointment-guide .page-footer nav a {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 11px;
+    color: #334e70;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color .18s ease, color .18s ease;
+  }
+
+  body.appointment-guide .page-header nav a:not(.nav-cta),
+  body.appointment-guide .page-footer nav a {
+    padding: 0 11px;
+  }
+
+  body.appointment-guide .page-header nav a:not(.nav-cta):hover,
+  body.appointment-guide .page-footer nav a:hover {
+    background: #eaf3ff;
+    color: #0757b8;
+  }
+
+  body.appointment-guide .page-header nav .nav-cta {
+    min-height: 46px;
+    padding: 0 16px;
+    border-radius: 13px;
+    background: linear-gradient(120deg, #0865df, #0c75ca);
+    box-shadow: 0 8px 18px #0865df2b;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  body.appointment-guide .page-main {
+    padding-top: clamp(26px, 4vw, 46px);
+  }
+
+  body.appointment-guide .page-main article {
+    max-width: 860px;
+  }
+
+  body.appointment-guide .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: clamp(28px, 5vw, 54px);
+    border-color: #d3e1f3;
+    border-radius: 26px;
+    background:
+      radial-gradient(ellipse at 95% 0%, #dce8ffb8, transparent 38%),
+      radial-gradient(ellipse at 74% 100%, #ddf8ffbd, transparent 43%),
+      linear-gradient(128deg, #fffffffa, #f4f9fffa 66%, #faf7fffa);
+    box-shadow: 0 18px 46px #466aa31a;
+  }
+
+  body.appointment-guide .resource-mark {
+    display: grid;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 21px;
+    place-items: center;
+    border: 1px solid #c8dcf6;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #eaf5ff, #f1f2ff);
+    color: #0865df;
+    box-shadow: inset 0 1px #fff, 0 7px 18px #4e78ad18;
+  }
+
+  body.appointment-guide .resource-mark svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  body.appointment-guide .eyebrow {
+    margin-bottom: 10px;
+    color: #0757b8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .13em;
+  }
+
+  body.appointment-guide .hero h1 {
+    max-width: 18ch;
+    margin-bottom: 16px;
+    color: #071b46;
+    font-size: clamp(38px, 5.1vw, 58px);
+    line-height: 1.05;
+    letter-spacing: -.05em;
+  }
+
+  body.appointment-guide .intro {
+    max-width: 670px;
+    margin-bottom: 24px;
+    color: #405977;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  body.appointment-guide .hero-actions {
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  body.appointment-guide .button {
+    min-height: 50px;
+    padding: 10px 16px;
+    border-radius: 14px;
+    background: linear-gradient(120deg, #0865df, #0c75ca);
+    box-shadow: 0 8px 18px #0865df26;
+    font-size: 13px;
+    font-weight: 750;
+    transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  body.appointment-guide .button:hover {
+    background: #0757b8;
+    box-shadow: 0 10px 24px #0865df32;
+    transform: translateY(-1px);
+  }
+
+  body.appointment-guide .button > span[data-doctorai-icon] {
+    display: inline-grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+  }
+
+  body.appointment-guide .button > span[data-doctorai-icon] svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  body.appointment-guide .button-secondary {
+    border: 1px solid #cbdcf2;
+    background: #ffffffd9;
+    color: #0757b8;
+    box-shadow: none;
+  }
+
+  body.appointment-guide .button-secondary:hover {
+    border-color: #8eb8ed;
+    background: #f4f9ff;
+    color: #064a9c;
+    box-shadow: 0 6px 16px #365c9412;
+  }
+
+  body.appointment-guide .privacy-note {
+    max-width: 740px;
+    margin-top: 18px;
+    padding: 13px 16px;
+    border-left: 3px solid #478be0;
+    border-radius: 0 13px 13px 0;
+    background: #eff6ff;
+    color: #405977;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  body.appointment-guide :is(.details-section, .checklist-section, .visit-note, .source-note, .measurement-section, .hub-cta) {
+    margin-top: 23px;
+    padding: clamp(21px, 3.8vw, 32px);
+    border-color: #d4e2f3;
+    border-radius: 21px;
+    background: #ffffffed;
+    box-shadow: 0 12px 30px #365c9410;
+  }
+
+  body.appointment-guide .section-heading {
+    margin-bottom: 20px;
+  }
+
+  body.appointment-guide .section-heading h2,
+  body.appointment-guide .visit-note h2,
+  body.appointment-guide .source-note h2,
+  body.appointment-guide .measurement-section h2,
+  body.appointment-guide .hub-cta h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #102f57;
+    font-size: clamp(22px, 3vw, 30px);
+    letter-spacing: -.035em;
+  }
+
+  body.appointment-guide .section-icon {
+    display: inline-grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    place-items: center;
+    border: 1px solid #cbdcf5;
+    border-radius: 13px;
+    background: #eaf3ff;
+    color: #0865df;
+  }
+
+  body.appointment-guide .section-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  body.appointment-guide .detail-fields {
+    gap: 16px;
+  }
+
+  body.appointment-guide .detail-fields label {
+    gap: 8px;
+    color: #334e70;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  body.appointment-guide .detail-fields input {
+    min-height: 50px;
+    padding: 10px 13px;
+    border-color: #b8cde4;
+    border-radius: 12px;
+    background: #fff;
+    color: #102f57;
+    font-size: 15px;
+    transition: border-color .18s ease, box-shadow .18s ease;
+  }
+
+  body.appointment-guide .detail-fields input:hover {
+    border-color: #8eb8ed;
+  }
+
+  body.appointment-guide .checklist {
+    gap: 11px;
+  }
+
+  body.appointment-guide .checklist-item {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 13px;
+    padding: 17px 18px;
+    border-color: #d4e2f3;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px #365c940a;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  body.appointment-guide .checklist-item:hover,
+  body.appointment-guide .checklist-item:focus-within {
+    border-color: #91b9ea;
+    box-shadow: 0 8px 20px #365c9416;
+  }
+
+  body.appointment-guide .checklist-item:has(input:checked) {
+    border-color: #7daae5;
+    background: linear-gradient(120deg, #f0f8ff, #f7faff);
+    box-shadow: inset 3px 0 #0865df, 0 5px 15px #365c9410;
+  }
+
+  body.appointment-guide .checklist-item input {
+    width: 20px;
+    height: 20px;
+    margin-top: 7px;
+    accent-color: #0865df;
+  }
+
+  body.appointment-guide .checklist-item label {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 0 0 8px;
+    color: #102f57;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  body.appointment-guide .item-icon {
+    display: inline-grid;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    place-items: center;
+    border: 1px solid #d1e1f6;
+    border-radius: 12px;
+    background: #eef5ff;
+    color: #0865df;
+  }
+
+  body.appointment-guide .item-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  body.appointment-guide .checklist-item p,
+  body.appointment-guide .visit-note p,
+  body.appointment-guide .source-note p,
+  body.appointment-guide .hub-cta p,
+  body.appointment-guide .measurement-section > p {
+    color: #405977;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  body.appointment-guide .checklist-item p {
+    margin: 0;
+    padding-left: 47px;
+  }
+
+  body.appointment-guide .checklist-item p a,
+  body.appointment-guide .source-note a,
+  body.appointment-guide .measurement-section a {
+    color: #0757b8;
+    font-weight: 700;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  body.appointment-guide .visit-note {
+    border-left: 4px solid #4388df;
+    background: linear-gradient(110deg, #eff8ff, #f7f7ff);
+  }
+
+  body.appointment-guide .source-note,
+  body.appointment-guide .measurement-section {
+    background: #ffffffeb;
+  }
+
+  body.appointment-guide .checked-date {
+    color: #4b637f;
+    font-size: 12px;
+  }
+
+  body.appointment-guide .hub-cta {
+    align-items: center;
+    padding: clamp(22px, 4vw, 36px);
+    background: linear-gradient(120deg, #eaf8ff, #f0f1ff);
+  }
+
+  body.appointment-guide .hub-cta > div { max-width: 590px; }
+
+  body.appointment-guide .hub-cta .button {
+    min-width: 240px;
+  }
+
+  body.appointment-guide .page-footer {
+    margin-top: 25px;
+    padding-top: 23px;
+    border-color: #d1deee;
+    color: #405977;
+  }
+}
+
+@media (max-width: 700px) {
+  body.appointment-guide .page-header,
+  body.appointment-guide .page-main,
+  body.appointment-guide .page-footer {
+    width: calc(100% - 24px);
+  }
+
+  body.appointment-guide .page-header {
+    min-height: 72px;
+    gap: 7px;
+  }
+
+  body.appointment-guide .brand img {
+    width: 104px;
+    max-height: 56px;
+  }
+
+  body.appointment-guide .page-header nav { gap: 3px; }
+
+  body.appointment-guide .page-header nav a,
+  body.appointment-guide .page-footer nav a {
+    min-height: 40px;
+    padding-inline: 6px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  body.appointment-guide .page-header nav .nav-cta {
+    min-height: 42px;
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+
+  body.appointment-guide .page-main { padding-top: 22px; }
+
+  body.appointment-guide .hero {
+    padding: 23px 20px;
+    border-radius: 21px;
+  }
+
+  body.appointment-guide .resource-mark {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    border-radius: 15px;
+  }
+
+  body.appointment-guide .resource-mark svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  body.appointment-guide .hero h1 {
+    max-width: 15ch;
+    font-size: clamp(35px, 9.3vw, 43px);
+  }
+
+  body.appointment-guide .intro { font-size: 15px; }
+
+  body.appointment-guide .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.appointment-guide .hero-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  body.appointment-guide :is(.details-section, .checklist-section, .visit-note, .source-note, .measurement-section, .hub-cta) {
+    margin-top: 16px;
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  body.appointment-guide .section-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 12px;
+  }
+
+  body.appointment-guide .detail-fields { grid-template-columns: 1fr; }
+
+  body.appointment-guide .checklist-item {
+    gap: 9px;
+    padding: 14px 12px;
+  }
+
+  body.appointment-guide .checklist-item label {
+    align-items: flex-start;
+    gap: 9px;
+    font-size: 14px;
+  }
+
+  body.appointment-guide .item-icon {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    border-radius: 11px;
+  }
+
+  body.appointment-guide .checklist-item p { padding-left: 41px; }
+
+  body.appointment-guide .hub-cta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.appointment-guide .hub-cta .button { width: 100%; }
+
+  body.appointment-guide .page-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.appointment-guide .page-footer nav { gap: 3px; }
+}
+
+@media print {
+  .resource-mark,
+  .section-icon,
+  .item-icon { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.appointment-guide .button,
+  body.appointment-guide .checklist-item,
+  body.appointment-guide .detail-fields input,
+  body.appointment-guide .page-header nav a,
+  body.appointment-guide .page-footer nav a {
+    transition: none !important;
+  }
+}

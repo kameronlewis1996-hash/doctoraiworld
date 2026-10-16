@@ -132,3 +132,24 @@
 @media (forced-colors: active) {
   .about-story-copy { border: 1px solid CanvasText; box-shadow: none; }
 }
+
+/* Keep the story focused and the first invitation closer to the page header. */
+.about-main { padding-block: clamp(28px, 4vw, 50px) 52px; }
+.about-hero { padding: clamp(30px, 5vw, 58px); }
+.about-story { margin-block: clamp(42px, 6vw, 72px); }
+.about-audience { padding: clamp(28px, 4vw, 48px); }
+.about-bridge { margin-block: clamp(42px, 6vw, 72px); }
+.about-next { padding-block: clamp(30px, 5vw, 50px); }
+
+@media (max-width: 700px) {
+  .about-main { padding-block: 28px 40px; }
+  .about-hero { padding: 30px 24px; }
+  .about-story { margin-block: 42px; }
+  .about-audience { padding: 28px 24px; }
+  .about-bridge { margin-block: 42px; }
+}
+
+@media (max-width: 359px) {
+  .about-hero { padding-inline: 20px; }
+  .about-audience { padding-inline: 20px; }
+}
