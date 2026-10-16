@@ -123,6 +123,8 @@ function fixture(initial = {}) {
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
     state, Date: FixtureDate, FormData: FixtureFormData,
+    accountSessionVerification: 'verified', authUser: null, accountSyncState: 'not-signed-in', medicationAccountDataReady: false, cloudSyncEnabled: true,
+    splitDetails: value => String(value || '').split(',').map(item => item.trim()).filter(Boolean),
     els: {
       appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {},
       medicationHistory: { innerHTML: '' }, timelineList: { innerHTML: '' },

@@ -196,7 +196,7 @@ for (const fixture of [
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
@@ -270,7 +270,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
+    return {nodes, renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -386,7 +386,7 @@ async function verifyAccountStateIsolation() {
   const context = vm.createContext({
     localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => { if (rejectLocalWrites) throw new Error('synthetic storage quota failure'); local.set(key, String(value)); } },
     window: { crypto: require('node:crypto').webcrypto, clearTimeout() {} },
-    TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
+    renderCompactToday() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
     cloudSyncRevision: 0, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
     medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
     $: selector => storageNodes[selector] || null,

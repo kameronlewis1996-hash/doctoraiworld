@@ -542,6 +542,7 @@
     return 'Choose storage settings';
   }
   function renderStorageStatus() {
+    renderCompactToday(true);
     const device = $('#hub-device-storage-state');
     const deviceNote = $('#hub-device-storage-note');
     if (device) device.textContent = localStorageRemovalFailed ? 'Old browser data may remain' : localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
@@ -1015,26 +1016,56 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   const upcomingAppointments = () => appointmentGroups().upcoming;
 
-  function renderCompactToday() {
+  function renderCompactToday(statusOnly = false) {
+    const loading = accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
+    const unavailable = accountSessionVerification === 'failed' || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
+    const view = $('#view-today');
+    const availability = loading ? 'loading' : unavailable ? 'unavailable' : 'ready';
+    if (statusOnly && view?.dataset.recordsAvailability === availability) return;
+    if (view) view.dataset.recordsAvailability = availability;
+    const status = $('#today-record-status');
+    if (status) {
+      status.hidden = !loading && !unavailable;
+      $('#today-record-status-copy').textContent = loading ? 'Loading your saved records…' : accountSessionVerification === 'failed' ? 'Sign-in could not be confirmed. Only records available in this session are shown.' : 'Account sync is unavailable. Only records available in this browser are shown.';
+      $('[data-today-retry]', status).hidden = loading || Boolean(authUser && !cloudSyncEnabled);
+    }
+    $$('#view-today [data-today-record-action]').forEach(button => { button.disabled = loading; });
+    const emptyRecord = (kind, text) => `<p class="today-record-empty">${loading ? 'Loading ' + kind + '…' : unavailable ? 'No ' + kind + ' available in this view.' : text}</p>`;
     const medicines = $('#today-compact-medicine-list');
     if (medicines) {
-      medicines.innerHTML = currentMedicationRecords().length
-        ? `<ul>${currentMedicationRecords().slice(0, 3).map(item => `<li><b>${escapeHTML(item.name || 'Medicine')}</b><span>${escapeHTML([item.dose, item.time].filter(Boolean).join(' · ') || 'Schedule not recorded')}</span></li>`).join('')}</ul>${currentMedicationRecords().length > 3 ? `<p>And ${currentMedicationRecords().length - 3} more in your saved list.</p>` : ''}`
-        : '<p>No medicines saved yet. Add only details you have checked against your label.</p>';
+      const active = currentMedicationRecords();
+      medicines.innerHTML = !loading && active.length
+        ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(item.dose ? 'Saved dose: ' + item.dose : 'Dose not recorded')}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button></li>`).join('')}</ul>`
+        : emptyRecord('medicines', 'No current medicines saved. Add a medicine using the details on its label.');
     }
+    const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure', source: 'legacy' }));
+    const currentConditions = conditions.filter(item => item.status !== 'historical');
+    const conditionList = $('#today-condition-list');
+    if (conditionList) conditionList.innerHTML = !loading && currentConditions.length
+      ? `<ul>${currentConditions.slice(0, 4).map(item => `<li><b>${escapeHTML(item.label)}</b><span>${item.source === 'legacy' ? 'Earlier entry · status not recorded' : item.status === 'current' ? 'Recorded as current' : 'Status unsure'}</span></li>`).join('')}</ul>${currentConditions.length > 4 ? `<p>${currentConditions.length - 4} more in your health details.</p>` : ''}`
+      : emptyRecord('conditions', conditions.length ? 'Only historical conditions are saved. View them in Manage conditions & history.' : 'No conditions saved yet.');
+    const allergies = window.DoctorAITerminology?.allergyEntries(state.profile) || splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy' }));
+    const allergyList = $('#today-allergy-list');
+    if (allergyList) allergyList.innerHTML = !loading && allergies.length
+      ? `<ul>${allergies.slice(0, 4).map(item => `<li><b>${escapeHTML(item.substance)}</b><span>${item.reaction ? escapeHTML(item.reaction) + ' · ' : ''}${escapeHTML(({ confirmed: 'Recorded allergy', suspected: 'Possible reaction', unsure: 'Unsure', legacy: 'Earlier entry · review certainty' })[item.certainty] || 'Certainty not recorded')}</span></li>`).join('')}</ul>${allergies.length > 4 ? `<p>${allergies.length - 4} more in your health details.</p>` : ''}`
+      : emptyRecord('allergies or reactions', 'No allergies or reactions recorded. This does not mean none.');
     const next = $('#today-compact-appointment-copy');
     if (next) {
       const appointment = upcomingAppointments()[0];
-      next.innerHTML = appointment
+      next.innerHTML = !loading && appointment
         ? `<p><b>${escapeHTML(appointment.title || 'Appointment')}</b><br>${escapeHTML(formatShortDate(appointment.date))}${appointment.time ? ' · ' + escapeHTML(formatTime(appointment.time)) : ''}<br><span>${escapeHTML(appointment.provider || 'Provider not recorded')}</span></p>`
-        : '<p>No upcoming appointment saved. Add one when you are ready.</p>';
+        : emptyRecord('appointments', 'No upcoming appointment saved.');
     }
     const recent = $('#today-compact-recent-note');
     if (recent) {
       const note = state.timeline.filter(item => item.source === 'symptom-diary' || item.source === 'user-question')
         .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
-      recent.textContent = note ? `Latest diary note: ${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : 'No diary notes saved yet.';
+      recent.textContent = loading ? 'Loading diary notes…' : note ? `${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : unavailable ? 'No diary notes available in this view.' : 'No diary notes saved yet.';
     }
+    const measurementLink = $('#today-measurements-link'), documentLink = $('#today-documents-link');
+    if (measurementLink) measurementLink.textContent = loading || unavailable ? 'Measurements' : `Measurements (${state.measurements.length})`;
+    if (documentLink) documentLink.textContent = loading || unavailable ? 'Documents' : `Documents (${state.documents.length})`;
+
     const questions = $('#diary-question-list');
     if (questions) {
       const entries = state.timeline.filter(item => item.source === 'user-question' && item.type === 'question');
@@ -3611,6 +3642,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    if (event.target.closest('[data-today-retry]')) {
+      if (accountSessionVerification === 'failed') await loadAccountSession();
+      else if (authUser && cloudSyncEnabled) await loadCloudState();
+      return;
+    }
     const suggestedQuestion = event.target.closest('[data-question-suggestion]');
     if (suggestedQuestion) {
       event.preventDefault();
@@ -3857,7 +3893,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (modalType === 'provider') openProviderModal();
       if (modalType === 'symptom') openSymptomModal();
       if (modalType === 'measurement') openMeasurementModal();
-      if (modalType === 'health') openHealthModal();
+      if (modalType === 'health') {
+        openHealthModal();
+        const field = modalTarget.dataset.healthFocus === 'condition' ? '#term-condition-search' : modalTarget.dataset.healthFocus === 'allergy' ? '#term-substance-search' : '';
+        if (field) $(field, els.modalBody)?.focus();
+      }
       if (modalType === 'timeline') openTimelineModal();
       return;
     }

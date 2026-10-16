@@ -1,0 +1,78 @@
+/* Today presents the person's records before entry actions. */
+body[data-hub-layout="reference"] #hub-shell #view-today > .reference-intro {
+  min-height: 0; padding: 22px 24px; margin-bottom: 16px; border-radius: 20px;
+}
+body[data-hub-layout="reference"] #hub-shell #view-today .reference-intro h1 {
+  margin: 5px 0 8px; font-size: clamp(30px, 3.3vw, 44px); line-height: 1.12;
+}
+body[data-hub-layout="reference"] #hub-shell #view-today .reference-intro .page-subtitle { font-size: 16px; margin: 0; }
+body[data-hub-layout="reference"] #hub-shell #view-today .reference-greeting { font-size: 14px; margin: 0; }
+body[data-hub-layout="reference"] #hub-shell #view-today > .hub-alert-shortcut[data-alert-level="neutral"] { padding: 11px 15px; border-width: 1px; }
+#view-today > .hub-alert-shortcut[data-alert-level="neutral"] [data-alert-note] { display: none; }
+#view-today:is([data-records-availability="loading"], [data-records-availability="unavailable"]) > .hub-alert-shortcut[data-alert-level="neutral"] { display: none; }
+#view-today .today-records-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 16px; }
+#view-today .today-compact-medicines { grid-column: 1 / -1; }
+#view-today .today-compact-diary { grid-column: auto; }
+#view-today .today-compact-panel {
+  padding: 22px; border: 1px solid #c8dbee; border-radius: 18px;
+  background: linear-gradient(130deg, #ffffffed, #f4f9ffed); box-shadow: 0 8px 25px #274e7610;
+}
+#view-today .today-compact-medicines { border-top: 3px solid #0870db; }
+#view-today .today-panel-heading { align-items: center; margin-bottom: 12px; gap: 14px; }
+#view-today .today-panel-heading > div { min-width: 0; }
+#view-today .today-panel-heading h2 { color: #102b4a; font-size: clamp(20px, 2.1vw, 26px); line-height: 1.25; letter-spacing: -.025em; overflow-wrap: normal; }
+#view-today .today-panel-kicker { margin-bottom: 5px; color: #48617c; font-size: 11px; }
+#view-today .today-add-button {
+  display: inline-flex; justify-content: center; align-items: center; flex: 0 0 auto; gap: 5px;
+  min-height: 44px; padding: 9px 13px; border: 1px solid #aac9eb; border-radius: 11px;
+  color: #0757b3; background: #edf5ff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+#view-today .today-add-button svg { width: 20px; height: 20px; }
+#view-today .today-add-button:hover { background: #dfedff; border-color: #0757b3; }
+#view-today .today-add-button:disabled { opacity: .6; cursor: wait; }
+#view-today .today-compact-list { min-height: 0; }
+#view-today .today-compact-list ul, #view-today .today-record-list ul { margin: 0; padding: 0; list-style: none; }
+#view-today .today-compact-medicines li { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid #d9e6f3; }
+#view-today .today-compact-medicines li:last-child { border-bottom: 0; }
+#view-today .today-medicine-copy { flex: 1; min-width: 0; }
+#view-today .today-medicine-copy b { display: block; color: #102b4a; font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; }
+#view-today .today-medicine-copy span { display: block; margin-top: 3px; color: #47617d; font-size: 14px; line-height: 1.55; text-align: left; overflow-wrap: anywhere; }
+#view-today .today-record-count { margin: 0 0 3px; color: #47617d; font-size: 13px; }
+#view-today .today-compact-medicines li > button { flex: 0 0 auto; }
+#view-today .text-button, #view-today .today-manage-button { min-height: 44px; padding: 10px 6px; font-size: 14px; line-height: 1.4; white-space: normal; }
+#view-today .today-panel-actions { gap: 6px 18px; margin-top: 13px; padding-top: 12px; border-top: 1px solid #d9e6f3; }
+#view-today .today-manage-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding-inline: 14px; border: 1px solid #0759b6; border-radius: 10px; background: #0759b6; color: white; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+#view-today .today-panel-actions svg { width: 20px; height: 20px; flex: 0 0 20px; }
+#view-today .today-pro-label { display: inline-block; width: auto; height: auto; padding: 2px 5px; border: 1px solid #afc9e8; border-radius: 5px; background: #edf5ff; color: #0757b3; font-size: 11px; line-height: 1.2; }
+#view-today .today-record-list li { padding: 9px 0; border-bottom: 1px solid #d9e6f3; }
+#view-today .today-record-list li:last-child { border-bottom: 0; }
+#view-today .today-record-list b, #view-today .today-record-list span { display: block; overflow-wrap: anywhere; }
+#view-today .today-record-list b { color: #102b4a; font-size: 16px; line-height: 1.5; }
+#view-today .today-record-list span { color: #47617d; font-size: 13px; line-height: 1.6; }
+#view-today .today-record-list > p, #view-today .today-record-empty { color: #47617d; font-size: 15px; line-height: 1.6; margin: 8px 0 12px; }
+#view-today #today-compact-recent-note { display: block; overflow: visible; padding: 0; background: transparent; line-height: 1.6; overflow-wrap: anywhere; -webkit-line-clamp: unset; }
+#view-today .today-question-disclosure { margin-top: 8px; border-top: 1px solid #d9e6f3; }
+#view-today .today-question-disclosure summary { min-height: 44px; padding: 12px 0; color: #0757b3; font-size: 14px; font-weight: 600; cursor: pointer; }
+#view-today .today-question-disclosure form { margin-top: 8px; }
+#view-today .today-record-status { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 12px 16px; margin: 0 0 16px; border: 1px solid #b4c9df; border-radius: 12px; background: #f5f9ff; color: #354d69; }
+#view-today .today-record-status[hidden] { display: none; }
+#view-today .today-record-status p { flex: 1 1 240px; margin: 0; font-size: 14px; line-height: 1.5; }
+#view-today .today-more-records { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 14px; }
+#view-today :is(button, summary, textarea):focus-visible { outline: 3px solid #0757b3; outline-offset: 3px; }
+@media (max-width: 680px) {
+  body[data-hub-layout="reference"] #hub-shell #view-today > .reference-intro { padding: 18px; }
+  #view-today .today-records-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  #view-today .today-compact-panel { padding: 18px; }
+  #view-today .today-compact-medicines .today-panel-heading h2 { font-size: 23px; }
+  #view-today .today-panel-actions { align-items: stretch; }
+  #view-today .today-compact-medicines .today-panel-actions > button { flex: 1 1 100%; justify-content: center; }
+}
+@media (max-width: 359px) {
+  #view-today .today-compact-panel { padding: 15px; }
+  #view-today .today-panel-heading { gap: 10px; }
+  #view-today .today-panel-heading h2, #view-today .today-compact-medicines .today-panel-heading h2 { font-size: 20px; }
+  #view-today .today-add-button { padding-inline: 9px; }
+}
+@media (forced-colors: active) {
+  #view-today :is(.today-compact-panel, .today-record-status, .today-add-button, .today-manage-button) { border: 1px solid CanvasText; }
+}

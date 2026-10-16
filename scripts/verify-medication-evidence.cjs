@@ -10,7 +10,7 @@ const engine = require('../server-src/medication/safety-engine.cjs');
 const { decision, isCcByRecord } = require('./medication-provenance-policy.cjs');
 const { defaultMedicationSafetyProvider } = require('../server-src/medication/safety-provider.cjs');
 
-assert.equal(seed.ruleset.version, '2026.10.16-r150');
+assert.equal(seed.ruleset.version, '2026.10.15-r149');
 assert.equal(seed.ruleset.provenanceFiltered, true);
 assert.match(seed.ruleset.scope, /Very limited/i);
 assert.match(seed.ruleset.scope, /no alert does not mean safe/i);
@@ -111,12 +111,12 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=97/);
+  assert.match(hubHtml, /health-hub\.js\?v=99/);
   assert.match(hubHtml, /health-hub\.css\?v=87/);
   assert.match(hubHtml, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /doctorai-shell-v165/);
+  assert.match(serviceWorker, /doctorai-shell-v166/);
   assert.match(serviceWorker, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /health-hub\.js\?v=97/);
+  assert.match(serviceWorker, /health-hub\.js\?v=99/);
 
   console.log('Medication rights, retained-data provenance, Pharmac attribution, three corrected ingredient mappings, incomplete-product fail-closed handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -35,7 +35,8 @@
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
-    "verify:today-diary": "node scripts/verify-today-diary.cjs"
+    "verify:today-diary": "node scripts/verify-today-diary.cjs",
+    "verify:today-records": "node scripts/verify-today-records-browser.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
