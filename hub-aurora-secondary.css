@@ -422,6 +422,13 @@ body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-
   box-shadow: 0 9px 26px #496eaa0b;
 }
 body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-visit-prep, #view-profile) .panel-card:focus-within { border-color: #a9c5e5; box-shadow: 0 12px 30px #496eaa12; }
+/* Preserve the dark emergency-information card and its white text. */
+body[data-hub-layout="reference"] #hub-shell #view-health .health-info-grid > .emergency-card.panel-card {
+  border-color: #1d5e80;
+  background: linear-gradient(110deg, #103452, #0c4968);
+  color: #fff;
+  box-shadow: inset 4px 0 #29c4df, 0 9px 26px #496eaa0b;
+}
 body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-medications, #view-documents, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-alerts, #view-profile) :is(.empty-inline, .empty-state) {
   border: 1px dashed #cad9eb;
   border-radius: 14px;

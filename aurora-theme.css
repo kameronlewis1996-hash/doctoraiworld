@@ -396,6 +396,7 @@ body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-na
   .doctorai-homepage .home-brand-wordmark { width: 81px; }
   .doctorai-homepage .home-brand-wordmark img { width: 112px; height: 75px; margin: -51px 0 0 -15px; }
   .doctorai-homepage .home-nav .home-button { padding-inline: 9px; }
+  .home-aurora-dock a:nth-child(3) { grid-column: 1 / -1; justify-content: center; border-top: 1px solid #b5ccef; }
 }
 body[data-hub-layout="reference"] #view-timeline .timeline-history-label {
   display: block;
