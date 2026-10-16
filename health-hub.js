@@ -777,7 +777,7 @@
       const supplyStatus = supply === null ? 'Supply not set' : supply === 0 ? 'Verify amount' : supply <= 14 ? 'Low supply' : 'Active';
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
         <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
-        <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
+        <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-compare-medication-photo="${escapeHTML(medication.id)}" aria-label="Compare photo for ${medicationName}">Compare photo</button><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
       </div>${safety}</article>`;
     }).join('') : '<div class="empty-state">No current medicines recorded. Add a medicine or review a scanned label to start your list.</div>';
     els.medicationLibrary.querySelectorAll('.library-item-wrap').forEach((item, index) => {
@@ -1035,7 +1035,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (medicines) {
       const active = currentMedicationRecords();
       medicines.innerHTML = !loading && active.length
-        ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(item.dose ? 'Saved dose: ' + item.dose : 'Dose not recorded')}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button></li>`).join('')}</ul>`
+        ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(item.dose ? 'Saved dose: ' + item.dose : 'Dose not recorded')}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><div class="today-medicine-actions"><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button><button type="button" class="text-button" data-compare-medication-photo="${escapeHTML(item.id)}" aria-label="Compare photo for ${escapeHTML(item.name || 'medicine')}">Compare photo</button></div></li>`).join('')}</ul>`
         : emptyRecord('medicines', 'No current medicines saved. Add a medicine using the details on its label.');
     }
     const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure', source: 'legacy' }));
@@ -1730,7 +1730,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function openPrivacy() {
     if (!els.privacyModal.open) els.privacyModal.showModal();
   }
-  function closeModal() { if (els.modal.open) els.modal.close(); }
+  function closeModal() { globalThis.DoctorAIMedicinePhotoReview?.clear(); if (els.modal.open) els.modal.close(); }
   function closePrivacy() { if (els.privacyModal.open) els.privacyModal.close(); }
   function setGoogleSigninStatus(message, tone = '') {
     if (!els.googleSigninStatus) return;
@@ -1754,6 +1754,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.alt = signedIn ? 'Account initials' : '';
   }
   function renderAccountSession(user, loginId = '', localScope = '', allowAnonymousLegacy = true) {
+    globalThis.DoctorAIMedicinePhotoReview?.clear();
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
@@ -1834,6 +1835,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     } catch { return ''; }
   }
   async function loadAccountSession() {
+    globalThis.DoctorAIMedicinePhotoReview?.clear();
     const revision = ++accountSessionRevision;
     accountSessionVerification = 'pending'; renderStorageStatus();
     try {
@@ -1871,6 +1873,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     } catch { if (revision === accountSessionRevision) { entitlementExpiresAt = null; subscriptionTier = 'free'; renderEntitlementStatus(); } } finally { if (revision === accountSessionRevision) { entitlementReady = true; refreshMedicationCheckContext().catch(() => {}); } }
   }
   async function signOut() {
+    globalThis.DoctorAIMedicinePhotoReview?.clear();
     const revision = ++accountSessionRevision;
     try {
       const response = await fetch('/api/auth/google', { method: 'DELETE' });
@@ -2363,6 +2366,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function setModal(title, eyebrow, body) {
+    globalThis.DoctorAIMedicinePhotoReview?.clear();
     els.modal.classList.toggle('today-plan-modal', eyebrow === 'Your private daily check-in' || eyebrow === 'Private daily overview');
     els.modalTitle.textContent = title;
     els.modalEyebrow.textContent = eyebrow;
@@ -2507,6 +2511,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         medicationGrid.after(legacyNote);
       }
     }
+    // Photo comparison never supplies an identity or changes ingredient confirmation.
+    globalThis.DoctorAIMedicinePhotoReview?.mount(medicationForm);
   }
 
   let localMedicineNamesPromise;
@@ -3957,11 +3963,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       else showToast('This appointment is no longer in your list.');
       return;
     }
-    const editMedication = event.target.closest('[data-edit-medication]');
+    const editMedication = event.target.closest('[data-edit-medication], [data-compare-medication-photo]');
     if (editMedication) {
       event.preventDefault();
-      const medication = state.medications.find(item => String(item.id) === editMedication.dataset.editMedication);
-      if (medication) openMedicationModal({ ...medication, __editId: String(medication.id) });
+      const medication = state.medications.find(item => String(item.id) === (editMedication.dataset.editMedication || editMedication.dataset.compareMedicationPhoto));
+      if (medication) {
+        openMedicationModal({ ...medication, __editId: String(medication.id) });
+        if (editMedication.hasAttribute('data-compare-medication-photo')) {
+          const comparison = els.modalBody.querySelector('.medicine-photo-review');
+          if (comparison) { comparison.open = true; comparison.querySelector('summary')?.focus(); comparison.scrollIntoView({ block: 'start' }); }
+        }
+      }
       return;
     }
     const deleteMedication = event.target.closest('[data-delete-medication]');
@@ -4287,6 +4299,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
   els.modal.addEventListener('close', () => {
+    globalThis.DoctorAIMedicinePhotoReview?.clear();
     if (els.modal.open) return;
     const returnToVisitPrep = preparationReturnFocus;
     const hadPreparation = Boolean(careSummaryDraft || appointmentRequestDraft);
