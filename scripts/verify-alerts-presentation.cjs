@@ -225,11 +225,12 @@ check('actual engine empty output is framed as limited and does not imply safety
   const actualEngine = createHealthAlertsEngine(medicationEngine);
   const { render, nodes } = harness({ evaluate: input => actualEngine.evaluate(input) });
   render();
-  assert.equal(nodes['#alerts-count'].textContent, '0 notices to review');
+  assert.equal(nodes['#alerts-count'].textContent, 'No current notices');
   assert.match(nodes['#alerts-list'].innerHTML, /No matching notices in the limited checks/);
   assert.match(nodes['#alerts-list'].innerHTML, /This result does not confirm safety/);
   assert.match(nodes['#alerts-controls'].innerHTML, /No alert does not mean safe/);
-  assert.match(nodes['#alerts-status'].textContent, /Coverage remains limited/);
+  assert.match(nodes['#alerts-status'].textContent, /No current medicines are recorded/);
+  assert.match(nodes['#alerts-status'].textContent, /independent health notice/);
 });
 
 check('actual engine record values are escaped by the real renderer', () => {

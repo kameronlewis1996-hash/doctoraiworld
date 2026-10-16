@@ -13,8 +13,9 @@
     const alerts = result.alerts;
     const count = alerts.length;
     const notices = `${count} ${count === 1 ? 'notice' : 'notices'}`;
+    const symptomOnly = alerts.length > 0 && alerts.every(alert => Array.isArray(alert?.triggers) && alert.triggers.length && !alert.triggers.some(trigger => trigger.kind === 'medication')) && alerts.some(alert => alert.triggers.some(trigger => trigger.kind === 'symptom'));
     if (alerts.some(alert => ['urgent', 'critical'].includes(alert?.severity))) {
-      return { level: 'red', symbol: '!', title: 'Urgent medical help', note: `${notices}. Open now for the next step.` };
+      return { level: 'red', symbol: '!', title: 'Urgent medical help', note: `${notices}${symptomOnly ? ' from saved symptom entries' : ''}. Open now for the next step.` };
     }
     if (alerts.some(alert => alert?.severity === 'high')) {
       return { level: 'red', symbol: '!', title: 'Contact a professional', note: `${notices}. Ask a pharmacist or clinician to review.` };
@@ -57,12 +58,14 @@
       Array.isArray(medicines?.unknown) && Array.isArray(conditions?.unmatched) && Array.isArray(symptoms?.unmatched) &&
       validCounters && allergies.recorded === allergies.affirmative + allergies.excludedOrUncertain;
     if (!validCoverage) return { level: 'neutral', symbol: '?', title: 'Checks are limited', note: 'A complete current result is not available. Open Alerts for details.' };
+    const activeMedicines = Number.isSafeInteger(medicines.active) ? medicines.active : Math.max(0, medicines.requested - (medicines.excludedInactiveOrOutOfDate || 0));
+    if (activeMedicines === 0) return { level: 'neutral', symbol: '?', title: 'No current medicines', note: 'Add a current medicine to use medicine checks. Independent health notices still appear in Alerts.' };
     const recorded = medicines.requested > 0 || symptoms.recorded > 0 || results.recorded > 0 ||
       allergies.recorded > 0 || conditions.recorded > 0 || Number(coverage.healthDetails?.bloodTypeRecords) > 0;
     if (!recorded) return { level: 'neutral', symbol: '?', title: 'Add details to check', note: 'No saved details have been assessed yet.' };
     const outsideChecks = coverage.missing.length > 0 || medicines.unknown.length > 0 ||
       medicines.requested !== medicines.resolved || medicines.resolved !== medicines.checked || medicines.omittedByLimit > 0 ||
-      medicines.requested > 0 || medicationMedication.unassessedPairs > 0 ||
+      activeMedicines > 0 || medicationMedication.unassessedPairs > 0 ||
       allergies.excludedOrUncertain > 0 || allergies.omittedByLimit > 0 ||
       conditions.unmatched.length > 0 || conditions.omittedByLimit > 0 ||
       symptoms.undated > 0 || symptoms.unmatched.length > 0 || symptoms.omittedByLimit > 0 ||
@@ -80,6 +83,7 @@
     if (doc.body) doc.body.dataset.healthAlertLevel = status.level;
     doc.querySelectorAll('[data-alert-summary]').forEach(button => {
       button.dataset.alertLevel = status.level;
+      if ('alertThemeBanner' in button.dataset) button.hidden = status.level !== 'orange' && status.level !== 'red';
       button.querySelector('[data-alert-symbol]').textContent = status.symbol;
       button.querySelector('[data-alert-title]').textContent = status.title;
       button.querySelector('[data-alert-note]').textContent = status.note;

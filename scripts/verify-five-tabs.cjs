@@ -12,11 +12,11 @@ const categoryCss = read('hub-category-themes.css');
 const auroraCss = read('aurora-theme.css');
 const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
-const main = ['today', 'health', 'visit-prep', 'profile'];
-const secondary = ['scan', 'add', 'diary', 'alerts'];
+const main = ['today', 'health', 'diary'];
+const secondary = ['visit-prep', 'profile', 'add', 'alerts'];
 const views = [...main, ...secondary];
 const matches = expression => [...html.matchAll(expression)].map(match => match[1]);
-assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Four main destinations and four retained secondary views are required.');
+assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Three main destinations and four supporting views are required.');
 const ids = matches(/\bid="([^"]+)"/g);
 assert.equal(new Set(ids).size, ids.length, 'Retained controls must have unique DOM IDs.');
 const extractElement = (marker, tag) => {
@@ -49,14 +49,14 @@ assert.ok(primary, 'Desktop primary navigation exists.');
 assert.deepEqual([...primary.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Desktop tabs use the requested order.');
 const mobile = html.match(/<nav class="mobile-bottom-nav"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(mobile, 'Mobile primary navigation exists.');
-assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same four main destinations.');
+assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same three main destinations.');
 const category = html.match(/<nav class="category-bar"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(category, 'Compact main navigation exists.');
-assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Compact navigation preserves the four main destinations and their order.');
+assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), [...main, 'alerts', 'profile'], 'The full menu retains every task plus separate Alerts and Profile.');
 for (const nested of ['ask','medications','documents','symptoms','appointments','results','timeline']) {
   assert.ok(html.includes(`data-hub-panel="${nested}"`), `Useful ${nested} feature remains accessible inside its destination.`);
 }
-for (const [view, features] of Object.entries({ health:['details','ask'], add:['quick-add','medications','documents'], diary:['symptoms','appointments','results','timeline'] })) {
+for (const [view, features] of Object.entries({ health:['details','medications','ask','documents','results','timeline'], add:['quick-add'], diary:['symptoms','appointments'] })) {
   for (const feature of features) assert.ok(sections[view].includes('data-hub-panel="' + feature + '"'), feature + ' belongs inside ' + view + '.');
 }
 assert.ok(!/data-view-panel="briefing"|data-hub-panel="(?:today|briefing|profile)"|data-hub-panel-target="(?:today|briefing|profile)"/.test(html), 'Today and Profile are main destinations, without duplicate nested overview or settings pages.');
@@ -71,27 +71,24 @@ assert.ok(settings.includes('<details class="panel-card memory-card memory-discl
 assert.ok(settings.includes('id="health-memory-toggle"') && settings.includes('id="memory-approved-list"'), 'Profile retains the consent control and approved context.');
 assert.ok(settings.includes('data-open-profile') && settings.includes('data-show-privacy'), 'Profile retains account settings and privacy controls.');
 assert.ok(!details.includes('id="health-memory-details"'), 'Memory settings must not duplicate the main My Health details.');
-assert.match(js, /health:\s*\['details',\s*'ask'\]/, 'My Health keeps details and Ask; Profile remains standalone.');
+assert.match(js, /health:\s*\['details',\s*'medications',\s*'documents',\s*'results',\s*'timeline',\s*'ask'\]/, 'My Health groups health records, history and Ask.');
 const routeStart = js.indexOf('const viewNames =');
 const routeEnd = js.indexOf('const storagePrefix =', routeStart);
 assert.ok(routeStart >= 0 && routeEnd > routeStart, 'Actual route definitions can be exercised without starting the app.');
 const resolveRoute = vm.runInNewContext(js.slice(routeStart, routeEnd) + '\nresolveHubRoute;', {}, { timeout: 1000 });
 const routeFixtures = {
   today: ['today',''], health: ['health','details'], 'visit-prep': ['visit-prep',''], profile: ['profile',''],
-  scan: ['scan',''], add: ['add','quick-add'], diary: ['diary','symptoms'], alerts: ['alerts',''],
-  ask: ['health','ask'], medications: ['add','medications'], documents: ['add','documents'],
-  symptoms: ['diary','symptoms'], appointments: ['diary','appointments'], results: ['diary','results'], timeline: ['diary','timeline'],
-  memory: ['profile',''], summary: ['visit-prep',''], visit: ['visit-prep','']
+  scan: ['health','medications'], add: ['add','quick-add'], diary: ['diary','symptoms'], alerts: ['alerts',''],
+  ask: ['health','ask'], medications: ['health','medications'], documents: ['health','documents'],
+  symptoms: ['diary','symptoms'], appointments: ['diary','appointments'], results: ['health','results'], timeline: ['health','timeline'],
+  memory: ['profile',''], summary: ['visit-prep',''], visit: ['visit-prep',''], medicines: ['health','medications'], prescriptions: ['health','medications'], privacy: ['profile','']
 };
 for (const [name, [view, panel]] of Object.entries(routeFixtures)) {
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(name))), { view, panel }, `The actual ${name} route preserves its intended destination.`);
 }
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('unknown-route'))), { view:'today', panel:'' }, 'An unknown route returns to Today.');
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('profile','details'))), { view:'profile', panel:'' }, 'Profile cannot reopen the retired nested details route.');
-for (const view of secondary) {
-  const returnPath = sections[view].match(/<nav\b[^>]*class="hub-path"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
-  assert.ok(returnPath && /<button\b[^>]*data-view="health"/.test(returnPath), `The ${view} view has an actual return-to-My-health button.`);
-}
+assert.ok(html.includes('id="hub-breadcrumb"') && html.includes('id="hub-parent-link"'), 'All sections share one visible location and parent path.');
 const showStart = js.indexOf('function showView(');
 const showEnd = js.indexOf('function renderTodayMedications(', showStart);
 assert.ok(showStart >= 0 && showEnd > showStart, 'Actual navigation presentation and canonical links can be exercised.');
@@ -102,17 +99,18 @@ const routeViews = Object.fromEntries(views.map(view => [view, {
 }]));
 const routeLocation = { hash:'' };
 const routeHistory = { state:null, pushState(state, title, hash) { this.state=state; routeLocation.hash=hash; }, replaceState(state, title, hash) { this.state=state; routeLocation.hash=hash; } };
+const breadcrumbNodes = Object.fromEntries(['hub-breadcrumb','hub-parent-link','hub-parent-divider','hub-current-location'].map(id=>[id,{hidden:false,dataset:{},textContent:''}]));
 const navigationContext = {
-  currentView:'today', currentHubPanel:'', document:{ body:{dataset:{}}, title:'', querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
+  currentView:'today', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
   els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
-  sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
+  requestAnimationFrame:fn=>fn(), sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
   window:{scrollTo() {},dispatchEvent() {}}, CustomEvent:class { constructor(type, options) { this.type=type; this.detail=options.detail; } }
 };
 vm.createContext(navigationContext);
 vm.runInContext(js.slice(routeStart, routeEnd) + '\n' + js.slice(showStart, showEnd) + '\nthis.routeNavigate=showView;', navigationContext, { timeout:1000 });
 const canonicalFixtures = [
   ['today','#today'], ['health','#health'], ['visit-prep','#visit-prep'], ['profile','#profile'],
-  ['scan','#scan'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
+  ['scan','#medications'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
   ['ask','#ask'], ['medications','#medications'], ['documents','#documents'], ['symptoms','#symptoms'],
   ['appointments','#appointments'], ['results','#results'], ['timeline','#timeline']
 ];
@@ -175,9 +173,9 @@ for (const [level, ink] of [['green', '#166534'], ['orange', '#934407'], ['red',
   assert.ok(categoryCss.includes(`data-alert-level="${level}"] { --alert-ink: ${ink}`), `${level} clinical alert colour remains semantic.`);
 }
 navigationContext.routeNavigate('timeline', false, false);
-assert.equal(routeViews.diary.path.textContent, 'My health / Diary / History', 'The return path identifies the selected nested Diary section.');
+assert.equal(breadcrumbNodes['hub-parent-link'].textContent, 'My Health', 'History has a predictable My Health parent.');
 navigationContext.routeNavigate('medications', true, false);
-assert.equal(routeViews.add.path.textContent, 'My health / Medicines', 'The medicine path uses the actual selected nested section.');
+assert.equal(breadcrumbNodes['hub-current-location'].textContent, 'Medication & Prescriptions', 'Medicines has a direct main section path.');
 navigationContext.routeNavigate('ask', true, false);
 assert.equal(navigationContext.document.title, 'Ask DoctorAI · DoctorAI Personal Health Hub', 'Ask has a matching document title.');
 const storageStart = js.indexOf('function renderStorageStatus(');
@@ -198,7 +196,7 @@ for (const fixture of [
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
@@ -239,10 +237,10 @@ assert.match(sections.today, /<button\b[^>]*data-open-medication-scanner[^>]*>[\
 assert.ok(sections.today.includes('data-view="medications"') && sections.today.includes('data-view="visit-prep"'), 'Today connects its medicine card and appointment preparation to the retained tools.');
 assert.ok(sections['visit-prep'].includes('data-open-summary'), 'Visit prep opens the existing brief builder.');
 for (const target of ['data-care-summary-form','care-summary-reviewed','data-print-care-summary','data-copy-care-summary']) assert.ok(js.includes(target), `The reviewed brief flow retains ${target}.`);
-assert.ok(sections.scan.includes('data-open-medication-scanner') && sections.scan.includes('data-modal="medication"'), 'Scan is an actual page with capture and manual-entry actions.');
+assert.ok(sections.health.includes('id="view-scan"') && sections.health.includes('data-open-medication-scanner'), 'Scan remains a tool inside My Health medications.');
 assert.ok(sections.add.includes('class="add-details-grid"') && sections.add.includes('data-modal="health"'), 'Add is an actual page with working health-entry targets.');
 assert.ok(sections.diary.includes('id="symptom-list"') && sections.diary.includes('id="upcoming-appointments-list"'), 'My Diary retains meaningful record lists, not just a destination selector.');
-assert.ok(!/data-view-panel="(?:ask|symptoms|medications|appointments|results|timeline|documents)"/.test(html), 'Nested tools do not become extra main destinations.');
+assert.ok(!/data-view-panel="(?:ask|symptoms|appointments|results|timeline|documents)"/.test(html), 'Supporting record tools remain grouped under their main destination.');
 assert.ok(!/href="\/research"/.test(primary + mobile), 'Research is not a main tab.');
 for (const id of ['alerts-list','alerts-status','alerts-count']) assert.ok(html.includes(`id="${id}"`), `${id} exists.`);
 assert.ok(html.includes('/health-alerts.js?v='), 'The local alert engine is loaded.');
@@ -272,7 +270,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
+    return {nodes, renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -388,7 +386,7 @@ async function verifyAccountStateIsolation() {
   const context = vm.createContext({
     localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => { if (rejectLocalWrites) throw new Error('synthetic storage quota failure'); local.set(key, String(value)); } },
     window: { crypto: require('node:crypto').webcrypto, clearTimeout() {} },
-    TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
+    renderCompactToday() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
     cloudSyncRevision: 0, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
     medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
     $: selector => storageNodes[selector] || null,
@@ -499,5 +497,5 @@ async function verifySignOutResponseHandling() {
   }
 }
 verifyAccountResponseBoundaries().then(verifyAccountStateIsolation).then(verifySignOutResponseHandling).then(() => {
-  console.log('Four main destinations and four secondary views verified: 20 resolver fixtures, 15 actual canonical-link fixtures, return paths, 10 real privacy-status scenarios, account/session response race guards, synthetic A → sign-out → B/no-cloud isolation and same-account recovery, failed/successful DELETE sign-out handling, 5 actual credential/GET-failure fixtures and 9 actual Google session GET-contract fixtures; Today medicine actions, reviewed visit brief, unique IDs, consent/auth and clinical Alerts boundaries preserved.');
+  console.log('Shared task navigation verified: three main destinations, medicines and scanning inside My Health, legacy and canonical routes, privacy status, account isolation, sign-in/sign-out failure handling, consent, visit preparation and clinical alert boundaries.');
 }).catch(error => {console.error(error); process.exitCode=1;});

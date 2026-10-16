@@ -28,10 +28,15 @@
     "verify:alerts": "node scripts/verify-health-alerts.cjs",
     "verify:alerts-presentation": "node scripts/verify-alerts-presentation.cjs",
     "verify:five-tabs": "node scripts/verify-five-tabs.cjs",
+    "verify:navigation": "node scripts/verify-five-tabs.cjs",
+    "verify:navigation-browser": "node scripts/verify-navigation-browser.cjs",
+    "verify:zero-medications": "node scripts/verify-zero-medication-alerts.cjs",
+    "verify:zero-medications-browser": "node scripts/verify-zero-medication-browser.cjs",
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
-    "verify:today-diary": "node scripts/verify-today-diary.cjs"
+    "verify:today-diary": "node scripts/verify-today-diary.cjs",
+    "verify:today-records": "node scripts/verify-today-records-browser.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

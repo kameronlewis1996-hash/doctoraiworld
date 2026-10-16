@@ -1,0 +1,113 @@
+[
+  {
+    "route": "/",
+    "width": 320,
+    "status": 200,
+    "errors": [],
+    "screenshot": "home-320.png",
+    "overflow": false,
+    "dock": [
+      {
+        "text": "Today",
+        "clientWidth": 88,
+        "scrollWidth": 88,
+        "gridColumn": "auto"
+      },
+      {
+        "text": "My Health",
+        "clientWidth": 88,
+        "scrollWidth": 88,
+        "gridColumn": "auto"
+      },
+      {
+        "text": "Diary & Appointments",
+        "clientWidth": 264,
+        "scrollWidth": 264,
+        "gridColumn": "1 / -1"
+      }
+    ]
+  },
+  {
+    "route": "/research",
+    "width": 320,
+    "status": 200,
+    "errors": [],
+    "screenshot": "research-320.png",
+    "overflow": false,
+    "tabs": [
+      {
+        "text": "Highlights",
+        "clientWidth": 92,
+        "scrollWidth": 92,
+        "rect": {
+          "x": 19,
+          "y": 594.671875,
+          "width": 92,
+          "height": 44.09375,
+          "top": 594.671875,
+          "right": 111,
+          "bottom": 638.765625,
+          "left": 19
+        }
+      },
+      {
+        "text": "Explore",
+        "clientWidth": 92,
+        "scrollWidth": 92,
+        "rect": {
+          "x": 114,
+          "y": 594.671875,
+          "width": 92,
+          "height": 44.09375,
+          "top": 594.671875,
+          "right": 206,
+          "bottom": 638.765625,
+          "left": 114
+        }
+      },
+      {
+        "text": "Discuss",
+        "clientWidth": 92,
+        "scrollWidth": 92,
+        "rect": {
+          "x": 209,
+          "y": 594.671875,
+          "width": 92,
+          "height": 44.09375,
+          "top": 594.671875,
+          "right": 301,
+          "bottom": 638.765625,
+          "left": 209
+        }
+      }
+    ],
+    "exploreSelected": "true",
+    "explorePanelVisible": true
+  },
+  {
+    "route": "/health-hub#health",
+    "width": 390,
+    "status": 200,
+    "errors": [],
+    "screenshot": "health-390.png",
+    "overflow": false,
+    "emergency": {
+      "background": "linear-gradient(110deg, rgb(16, 52, 82), rgb(12, 73, 104))",
+      "color": "rgb(255, 255, 255)",
+      "visible": true
+    }
+  },
+  {
+    "route": "/health-hub#health",
+    "width": 1440,
+    "status": 200,
+    "errors": [],
+    "screenshot": "health-1440.png",
+    "overflow": false,
+    "emergency": {
+      "background": "linear-gradient(110deg, rgb(16, 52, 82), rgb(12, 73, 104))",
+      "color": "rgb(255, 255, 255)",
+      "visible": true
+    }
+  }
+]
