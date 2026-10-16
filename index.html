@@ -33,7 +33,7 @@
   </script>
   <link rel="icon" href="/doctorai-app-icon.png?v=10"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/accessibility.css?v=14"><link rel="stylesheet" href="/welcome.css?v=10"><link rel="stylesheet" href="/resource-share.css?v=2"><link rel="stylesheet" href="/aurora-theme.css?v=8"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=5"></script><script defer src="/resource-share.js?v=1"></script>
+  <link rel="stylesheet" href="/accessibility.css?v=14"><link rel="stylesheet" href="/welcome.css?v=10"><link rel="stylesheet" href="/resource-share.css?v=2"><link rel="stylesheet" href="/aurora-theme.css?v=8"><link rel="stylesheet" href="/hub-navigation.css?v=1"><script defer src="/feature-icons.js?v=9"></script><script defer src="/welcome.js?v=5"></script><script defer src="/resource-share.js?v=1"></script>
 </head>
 <body class="doctorai-homepage">
   <a class="home-skip" href="#main">Skip to main content</a>
@@ -70,12 +70,7 @@
           </div>
         </div>
       </div>
-      <nav class="home-aurora-dock" aria-label="Open your Health Hub">
-        <a data-home-theme="today" href="/health-hub#today"><span class="home-dock-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today<span class="home-dock-check" data-doctorai-icon="check" data-icon-size="flex" aria-hidden="true"></span></a>
-        <a data-home-theme="health" href="/health-hub#health"><span class="home-dock-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health</a>
-        <a data-home-theme="visit" href="/health-hub#visit-prep"><span class="home-dock-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>Visit Prep</a>
-        <a data-home-theme="profile" href="/health-hub#profile"><span class="home-dock-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>Profile</a>
-      </nav>
+      <nav class="home-aurora-dock" aria-label="Your Health Hub"><a data-home-theme="today" href="/health-hub#today"><span class="home-dock-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>Today</a><a data-home-theme="health" href="/health-hub#health"><span class="home-dock-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>My Health</a><a data-home-theme="health" href="/health-hub#medications"><span class="home-dock-icon" data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span>Medicines</a><a data-home-theme="health" href="/health-hub#scan"><span class="home-dock-icon" data-doctorai-icon="hubMedicationScan" data-icon-size="flex" aria-hidden="true"></span>Scan medication</a><a data-home-theme="visit" href="/health-hub#diary"><span class="home-dock-icon" data-doctorai-icon="diary" data-icon-size="flex" aria-hidden="true"></span>Diary &amp; Appointments</a></nav>
       <p class="home-aurora-note">Start small. Everything you choose to keep, within reach.</p>
       <div class="home-aurora-meta"><p class="home-hero-limit">Health organisation and education. Not medical care.</p><button class="home-motion-control" type="button" data-home-motion hidden>Pause animation</button></div>
     </section>
@@ -126,26 +121,9 @@
         <div><p class="home-eyebrow">Inside your Health Hub</p><h2 id="features-title">One place to<br><em>come back to.</em></h2></div>
         <p>From the everyday details to your next appointment. Find what you need and pick up where you left off.</p>
       </div>
-      <div class="home-destination-grid">
-        <a class="home-destination" data-home-theme="today" href="/health-hub#today">
-          <span class="home-destination-icon" data-doctorai-icon="hubHome" data-icon-size="flex" aria-hidden="true"></span>
-          <div><p class="home-destination-label">Your daily starting point</p><h3 id="destination-today">Today<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>See the medicines, appointments and tasks you've recorded for your day.</p></div>
-        </a>
-        <a class="home-destination" data-home-theme="health" href="/health-hub#health">
-          <span class="home-destination-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span>
-          <div><p class="home-destination-label">The details, together</p><h3 id="destination-health">My Health<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your saved medicines, symptoms, appointments and documents.</p></div>
-        </a>
-        <a class="home-destination" data-home-theme="visit" href="/health-hub#visit-prep">
-          <span class="home-destination-icon" data-doctorai-icon="hubVisitPrep" data-icon-size="flex" aria-hidden="true"></span>
-          <div><p class="home-destination-label">Your next conversation</p><h3 id="destination-visit">Visit Prep<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Choose the details and questions to bring to your appointment.</p></div>
-        </a>
-        <a class="home-destination" data-home-theme="profile" href="/health-hub#profile">
-          <span class="home-destination-icon" data-doctorai-icon="person" data-icon-size="flex" aria-hidden="true"></span>
-          <div><p class="home-destination-label">A hub that feels like yours</p><h3 id="destination-profile">Profile<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your account, storage choices and optional Health Memory controls.</p></div>
-        </a>
-      </div>
+      <div class="home-destination-grid"><a class="home-destination" data-home-theme="health" href="/health-hub#health"><span class="home-destination-icon" data-doctorai-icon="health" data-icon-size="flex" aria-hidden="true"></span><div><h3 id="destination-health">My Health<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Conditions, allergies, documents and health history.</p></div></a><a class="home-destination" data-home-theme="health" href="/health-hub#medications"><span class="home-destination-icon" data-doctorai-icon="capsule" data-icon-size="flex" aria-hidden="true"></span><div><h3 id="destination-medications">Medication &amp; Prescriptions<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your medicine list, prescriptions, schedules and refill reminders.</p></div></a><a class="home-destination" data-home-theme="health" href="/health-hub#scan"><span class="home-destination-icon" data-doctorai-icon="hubMedicationScan" data-icon-size="flex" aria-hidden="true"></span><div><h3 id="destination-scan">Scan medication<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Capture a label or prescription, then review the details. Pro feature.</p></div></a><a class="home-destination" data-home-theme="health" href="/health-hub#diary"><span class="home-destination-icon" data-doctorai-icon="diary" data-icon-size="flex" aria-hidden="true"></span><div><h3 id="destination-diary">Diary &amp; Appointments<span data-doctorai-icon="arrow" data-icon-size="flex" aria-hidden="true"></span></h3><p>Your observations, questions, appointments and visit preparation.</p></div></a></div>
       <nav class="home-shortcuts" aria-label="Popular Health Hub tools">
-        <span>Go straight to</span><a href="/health-hub#medications">Medicines</a><a href="/health-hub#symptoms">Symptom diary</a><a href="/health-hub#appointments">Appointments</a>
+        <span>Also in your hub</span><a href="/health-hub#today">Today overview</a><a href="/health-hub#alerts">Alerts</a><a href="/health-hub#profile">Profile &amp; settings</a><span class="sr-only">More tools:</span><a href="/health-hub#medications">Medicines</a><a href="/health-hub#symptoms">Symptom diary</a><a href="/health-hub#appointments">Appointments</a>
       </nav>
     </section>
 

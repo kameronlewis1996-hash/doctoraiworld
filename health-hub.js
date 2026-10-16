@@ -3,10 +3,10 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const viewNames = ['today', 'health', 'visit-prep', 'profile', 'scan', 'add', 'diary', 'alerts'];
-  const viewLabels = { today: 'Today', 'visit-prep': 'Visit prep', profile: 'Profile', health: 'My Health', scan: 'Scan Medication', add: 'Add Health Detail', diary: 'My Diary', alerts: 'Alerts' };
-  const hubPanels = { today: [], 'visit-prep': [], profile: [], health: ['details', 'ask'], scan: [], add: ['quick-add', 'medications', 'documents'], diary: ['symptoms', 'appointments', 'results', 'timeline'], alerts: [] };
-  const legacyHubRoutes = { visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['diary', 'results'], timeline: ['diary', 'timeline'], documents: ['add', 'documents'], medications: ['add', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['health', 'details'] };
+  const viewNames = ['today', 'health', 'medications', 'scan', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
+  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit prep', profile: 'Profile & settings', add: 'Add Health Detail', alerts: 'Alerts' };
+  const hubPanels = { today: [], health: ['details', 'documents', 'results', 'timeline', 'ask'], medications: [], scan: [], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
+  const legacyHubRoutes = { visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['medications', ''], prescriptions: ['medications', ''], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
   function resolveHubRoute(name, requestedPanel = '') {
     const legacy = legacyHubRoutes[name];
     const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'today';
@@ -321,6 +321,7 @@
 
   let currentView = 'today';
   let currentHubPanel = 'details';
+  let renderedHubLocation = '';
   let timelineFilter = 'all';
   let symptomMode = 'entries';
   let documentFilter = 'all';
@@ -665,39 +666,54 @@
     const button = document.querySelector('[data-mobile-menu]');
     document.body.classList.toggle('mobile-category-open', open);
     button?.setAttribute('aria-expanded', String(open));
-    button?.setAttribute('aria-label', open ? 'Close health hub navigation' : 'Open health hub navigation');
-    if (open) { closeProfile(); requestAnimationFrame(() => document.querySelector('#category-bar [data-view]')?.focus({ preventScroll: true })); }
+    button?.setAttribute('aria-label', open ? 'Close Health Hub menu' : 'Open Health Hub menu');
+    const label = button?.querySelector('[data-mobile-menu-label]');
+    if (label) label.textContent = open ? 'Close' : 'Menu';
+    if (open) { closeProfile(); requestAnimationFrame(() => (document.querySelector('#category-bar [aria-current="page"]') || document.querySelector('#category-bar [data-view]'))?.focus({ preventScroll: true })); }
     else if (restoreFocus) button?.focus({ preventScroll: true });
   }
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
     const next = route.view; currentView = next; currentHubPanel = route.panel;
-    if (route.panel === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
+    if (next === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
     document.body.dataset.hubTheme = next; document.body.dataset.activeFeature = route.panel || next; document.body.dataset.hubPanel = route.panel;
     els.views.forEach(view => {
       const active = view.dataset.viewPanel === next; view.hidden = !active; view.classList.toggle('active', active);
       view.querySelectorAll('[data-hub-panel]').forEach(panel => { const selected = panel.dataset.hubPanel === route.panel; panel.hidden = !selected; panel.classList.toggle('active', selected); });
     });
-    document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view]').forEach(item => {
-      const navView = ['scan', 'add', 'diary', 'alerts'].includes(next) ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+    document.querySelectorAll('.primary-nav [data-view], .hub-utility-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view], .mobile-notifications-button[data-view]').forEach(item => {
+      const navView = next === 'visit-prep' ? 'diary' : next === 'add' ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
-    const featureLabels = { medications: 'Medicines', documents: 'Documents', symptoms: 'Symptoms', appointments: 'Appointments', results: 'Measurements & results', timeline: 'History' };
-    const secondaryLabels = { scan: 'Scan a label', add: 'Add Health Detail', diary: 'My diary', alerts: 'Alerts' };
+    document.querySelectorAll('.hub-panel-nav [data-view="visit-prep"]').forEach(item => { const active = next === 'visit-prep'; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current'); });
+    const featureLabels = { documents: 'Documents', symptoms: 'Symptom diary', appointments: 'Appointments', results: 'Measurements & results', timeline: 'Health history', ask: 'Ask DoctorAI' };
     const section = document.querySelector('[data-view-panel="' + next + '"]');
-    const label = next === 'diary' ? 'My diary' : featureLabels[route.panel] || secondaryLabels[next] || viewLabels[next];
+    const label = featureLabels[route.panel] || viewLabels[next];
     const heading = section?.querySelector(':scope > .page-heading h1');
     if (heading && next !== 'today') heading.textContent = label;
-    const path = section?.querySelector('.hub-path-copy');
-    if (path) path.textContent = 'My health / ' + (next === 'diary' ? 'Diary / ' + (featureLabels[route.panel] || 'Symptoms') : label);
+    const descriptions = { documents: 'Keep prescriptions, letters, reports and health photos together.', results: 'Record measurements and results for your care conversations.', timeline: 'Review the health details and changes you have recorded.', ask: 'Prepare questions for a conversation with your care team.', symptoms: 'Record what you noticed, when it happened and how it changed.', appointments: 'Keep appointment details, questions and follow-up notes together.', details: 'Conditions, allergies, documents, measurements and health history.' };
+    const subtitle = section?.querySelector(':scope > .page-heading .page-subtitle');
+    if (subtitle && descriptions[route.panel]) subtitle.textContent = descriptions[route.panel];
+    const healthActions = section?.querySelector('.health-page-actions');
+    if (healthActions) healthActions.hidden = route.panel !== 'details';
+    const breadcrumb = document.getElementById('hub-breadcrumb');
+    const parentLink = document.getElementById('hub-parent-link');
+    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' || next === 'visit-prep' ? 'diary' : '';
+    if (breadcrumb) breadcrumb.hidden = next === 'today';
+    if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
+    const parentDivider = document.getElementById('hub-parent-divider');
+    if (parentDivider) parentDivider.hidden = !parentView;
+    const currentLocation = document.getElementById('hub-current-location');
+    if (currentLocation) currentLocation.textContent = label;
     document.title = (route.panel === 'ask' ? 'Ask DoctorAI' : label) + ' · DoctorAI Personal Health Hub';
-    const hashName = (featureLabels[route.panel] || route.panel === 'ask') ? route.panel : next;
+    const hashName = featureLabels[route.panel] ? route.panel : next;
     const routeState = { view: next, panel: route.panel }, canonicalHash = '#' + hashName;
     if (updateHash && (location.hash !== canonicalHash || history.state?.panel !== route.panel)) history.pushState(routeState, '', canonicalHash);
     else if (!updateHash || location.hash !== canonicalHash) history.replaceState(routeState, '', canonicalHash);
+    renderedHubLocation = location.href;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     if (moveFocus) { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
     window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
@@ -1218,7 +1234,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderProfileShortcuts() {
     if (!els.profileShortcutGrid) return;
     const items = profileShortcuts.map(profileShortcutDefinition).filter(Boolean);
-    const cards = items.map(item => `<div class="profile-shortcut-item"><button type="button" class="profile-shortcut-card" data-profile-shortcut="${escapeHTML(item.id)}" aria-label="Open ${escapeHTML(item.label)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span class="profile-shortcut-copy"><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span class="profile-shortcut-arrow" aria-hidden="true">${iconMarkup('arrow')}</span></button>${profileShortcutEditing ? `<button type="button" class="profile-shortcut-remove" data-profile-shortcut-remove="${escapeHTML(item.id)}" aria-label="Remove ${escapeHTML(item.label)} shortcut"><span aria-hidden="true">${iconMarkup('close')}</span></button>` : ''}</div>`).join('');
+    const cards = items.map(item => `<div class="profile-shortcut-item"><button type="button" class="profile-shortcut-card" data-profile-shortcut="${escapeHTML(item.id)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span class="profile-shortcut-copy"><b>${escapeHTML(item.label)}</b> <small>${escapeHTML(item.description)}</small></span><span class="profile-shortcut-arrow" aria-hidden="true">${iconMarkup('arrow')}</span></button>${profileShortcutEditing ? `<button type="button" class="profile-shortcut-remove" data-profile-shortcut-remove="${escapeHTML(item.id)}" aria-label="Remove ${escapeHTML(item.label)} shortcut"><span aria-hidden="true">${iconMarkup('close')}</span></button>` : ''}</div>`).join('');
     const addCard = profileShortcutEditing ? '<button type="button" class="profile-shortcut-add" data-profile-add-shortcut><span data-doctorai-icon="add" aria-hidden="true"></span><b>Add shortcut</b><small>Choose another DoctorAI tool</small></button>' : '';
     els.profileShortcutGrid.innerHTML = cards || '<div class="profile-shortcuts-empty">No shortcuts pinned yet. Choose Add shortcut to build your personal list.</div>';
     if (profileShortcutEditing) els.profileShortcutGrid.insertAdjacentHTML('beforeend', addCard);
@@ -1226,7 +1242,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.profileShortcutEdit) {
       els.profileShortcutEdit.textContent = profileShortcutEditing ? 'Done' : 'Edit shortcuts';
       els.profileShortcutEdit.setAttribute('aria-pressed', String(profileShortcutEditing));
-      els.profileShortcutEdit.setAttribute('aria-label', profileShortcutEditing ? 'Finish editing personal shortcuts' : 'Edit personal shortcuts');
+      els.profileShortcutEdit.removeAttribute('aria-label');
     }
     if (els.profileShortcutEditNote) els.profileShortcutEditNote.hidden = !profileShortcutEditing;
   }
@@ -2334,7 +2350,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('All available shortcuts are already pinned.');
       return;
     }
-    const options = available.map(item => `<button type="button" class="profile-shortcut-choice" data-profile-shortcut-choice="${escapeHTML(item.id)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span><b>${escapeHTML(item.label)}</b><small>${escapeHTML(item.description)}</small></span><span aria-hidden="true">${iconMarkup('add')}</span></button>`).join('');
+    const options = available.map(item => `<button type="button" class="profile-shortcut-choice" data-profile-shortcut-choice="${escapeHTML(item.id)}"><span class="profile-shortcut-icon tone-${escapeHTML(item.tone)}" aria-hidden="true">${profileShortcutIconMarkup(item.iconName)}</span><span><b>${escapeHTML(item.label)}</b> <small>${escapeHTML(item.description)}</small></span><span aria-hidden="true">${iconMarkup('add')}</span></button>`).join('');
     setModal('Add a shortcut', 'Personal shortcuts', `<div class="profile-shortcut-picker" role="list">${options}</div><p class="profile-shortcut-picker-note">When device storage is enabled, shortcut choices are saved as a local preference. They never include health information.</p>`);
   }
 
@@ -3648,7 +3664,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const nestedTarget = event.target.closest('[data-hub-panel-target]');
-    if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, false, nestedTarget.dataset.hubPanelTarget); return; }
+    if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, true, nestedTarget.dataset.hubPanelTarget); return; }
     const viewTarget = event.target.closest('[data-view]');
     if (viewTarget) {
       event.preventDefault();
@@ -4237,14 +4253,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   els.privacyModal.addEventListener('click', event => { if (event.target === els.privacyModal) closePrivacy(); });
   els.googleSigninModal?.addEventListener('click', event => { if (event.target === els.googleSigninModal) closeGoogleSignIn(); });
   function restoreHubLocation() {
-    closeMedicationScanner(); const hash = location.hash.slice(1);
+    // A browser history move can fire both popstate and hashchange. Restore it
+    // once so the second event cannot close a freshly opened bookmark dialog.
+    if (renderedHubLocation === location.href) return;
+    closeMedicationScanner(); closeModal(); closePrivacy(); closeGoogleSignIn(); closeProfile(); setMobileMenuOpen(false);
+    const hash = location.hash.slice(1);
     if (hash === 'terms') { location.assign('/terms'); return; }
-    if (hash === 'privacy') { showView('health', false); openPrivacy(); return; }
+    if (hash === 'privacy') { showView('profile', false); openPrivacy(); return; }
     if (hash === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); return; }
     showView(hash || 'today', false, true, history.state?.view === hash ? history.state.panel : '');
   }
   window.addEventListener('hashchange', restoreHubLocation);
   window.addEventListener('popstate', restoreHubLocation);
+  document.addEventListener('focusin', event => {
+    if (document.body.classList.contains('mobile-category-open') && !event.target.closest('#category-bar, [data-mobile-menu]')) setMobileMenuOpen(false);
+  });
+  window.matchMedia('(min-width: 801px)').addEventListener('change', event => { if (event.matches) setMobileMenuOpen(false); });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) refreshAppointmentDateViews();
     if (document.hidden && els.medicationScannerModal?.open) {
@@ -4262,7 +4286,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   renderAll();
   try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
-  else if (initialView === 'privacy') { showView('health', false); openPrivacy(); }
+  else if (initialView === 'privacy') { showView('profile', false); openPrivacy(); }
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
