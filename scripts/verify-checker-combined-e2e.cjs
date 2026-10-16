@@ -76,12 +76,12 @@ check('saved-triple-to-engine-to-combined-to-renderer', () => {
   assert.ok(original, 'The frozen retained rule fires in the medicine engine');
   const h = harness({ medications: triple });
   const result = h.render();
+  assert.match(h.nodes['#alerts-list'].innerHTML, /Potential multi-medicine interaction/, 'The saved triple must reach the rendered Alerts view');
   const alert = result.alerts.find(item => item.ruleId === multiId);
   assert.ok(alert, 'Combined wrapper must forward retained multi-medicine alert');
   assert.equal(alert.message, original.message);
   assert.equal(alert.severity, original.severity);
   assert.deepEqual(alert.triggers.map(item => item.id), ['ras', 'diuretic', 'nsaid']);
-  assert.match(h.nodes['#alerts-list'].innerHTML, /Potential multi-medicine interaction/);
 });
 
 check('unrelated-and-duplicate-candidates-have-exact-triggers', () => {
