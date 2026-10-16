@@ -182,6 +182,21 @@ body.doctorai-public-page .forum-compose { background: #fff; }
   }
 }
 
+@media (max-width: 359px) {
+  body.doctorai-public-page .research-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 58px;
+    padding: 5px 3px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  body.doctorai-public-page .research-tab span { margin-right: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
