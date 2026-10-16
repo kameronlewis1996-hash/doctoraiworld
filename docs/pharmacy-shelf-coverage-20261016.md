@@ -2,6 +2,8 @@
 
 This is a bounded **eight-listing sample**, not a pharmacy inventory, approval list, stock check or estimate of market coverage. Product names on linked NZ retailer pages establish that a product is offered; they are not clinical evidence. Availability, pack size and formulation can change. No retailer text, product images or medicine records were imported into the runtime catalogue.
 
+The separate [Pharmac pack source coverage report](pharmacy-source-coverage-20261016.md) measures 3,590 source pack-to-formulation rows across the licensed community and hospital XML files. It does not treat those listings as retail shelf coverage.
+
 The only product terminology used by this change remains the October 2026 [Pharmac Pharmaceutical Schedule XML](https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml), whose [archive notice](https://schedule.pharmac.govt.nz/pub/schedule/archive/README.html) expressly licenses the files under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) with attribution. The existing catalogue records source and non-endorsement. A Schedule match does not establish Medsafe approval, retail supply or interaction coverage. Retail listings have no verified commercial data-reuse permission here, so they are linked as observations only.
 
 | NZ retailer listing checked | Local identity result with synthetic input | Limit |
