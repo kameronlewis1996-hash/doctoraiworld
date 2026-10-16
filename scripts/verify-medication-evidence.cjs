@@ -114,9 +114,31 @@ assert.match(hubSource, /not clinically validated/);
   assert.match(hubHtml, /health-hub\.js\?v=101/);
   assert.match(hubHtml, /health-hub\.css\?v=87/);
   assert.match(hubHtml, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /doctorai-shell-v169/);
-  assert.match(serviceWorker, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /health-hub\.js\?v=101/);
+  assert.match(hubHtml, /health-alert-status\.js\?v=6/);
+  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v170';/);
+  for (const asset of [
+    'health-hub.js?v=101',
+    'health-hub.css?v=87',
+    'medicine-photo-review.css?v=1',
+    'medicine-photo-review.js?v=1',
+    'health-alerts.js?v=7',
+    'health-alert-status.js?v=6',
+    'aurora-theme.css?v=10',
+    'hub-category-themes.css?v=5',
+    'hub-navigation.css?v=5'
+  ]) {
+    assert.ok(hubHtml.includes(`"${asset}"`) || hubHtml.includes(`"/${asset}"`), `${asset} must be loaded by the Health Hub`);
+    assert.ok(serviceWorker.includes(`'/${asset}'`), `${asset} must be cached by the service worker`);
+  }
+  for (const staleAsset of [
+    'health-alerts.js?v=6',
+    'health-alert-status.js?v=4',
+    'aurora-theme.css?v=9',
+    'hub-category-themes.css?v=3',
+    'hub-navigation.css?v=4'
+  ]) {
+    assert.ok(!serviceWorker.includes(`'/${staleAsset}'`), `${staleAsset} must not remain in the app-shell cache`);
+  }
 
   console.log('Medication rights, retained-data provenance, Pharmac attribution, three corrected ingredient mappings, incomplete-product fail-closed handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
