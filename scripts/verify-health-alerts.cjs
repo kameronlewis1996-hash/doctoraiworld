@@ -53,6 +53,26 @@ check('medication-medication-catalogue-brand', () => {
   assert.match(result.coverage.limitation, /not cleared/);
   assert.equal(result.coverage.medications.resolved, 2);
 });
+check('pharmacy-formulation-ambiguity', () => {
+  const result = evaluate({ medications: [
+    { id: 'voltaren', name: 'Voltaren', dose: '20' },
+    { id: 'ibuprofen', name: 'Ibuprofen Tab', dose: 'Ibuprofen 200 mg' }
+  ] });
+  assert.ok(has(result, 'unknown-medication'));
+  assert.ok(has(result, 'medication-medication-unassessed', 'medication-pair-unassessed'));
+  assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
+  assert.equal(result.coverage.medicationMedication.unassessed[0].reason, 'Medicine identity incomplete');
+  assert.ok(!has(result, 'medication-medication'));
+});
+check('pharmacy-combination-duplicate-with-unassessed-pair', () => {
+  const result = evaluate({ medications: [
+    { id: 'gaviscon', name: 'Gaviscon Extra Strength' },
+    { id: 'acidex', name: 'Acidex' }
+  ] });
+  assert.ok(has(result, 'duplicate-ingredient'));
+  assert.ok(has(result, 'medication-medication-unassessed', 'medication-pair-unassessed'));
+  assert.equal(result.coverage.complete, false);
+});
 check('duplicate-ingredient', () => assert.ok(has(evaluate({ medications: [label('d1', 'paracetamol'), label('d2', 'acetaminophen')] }), 'duplicate-ingredient')));
 check('allergy-medication', () => assert.ok(has(evaluate({ medications: [label('pen', 'amoxicillin')], profile: { allergies: 'Penicillin (rash)' } }), 'allergy-medication', 'penicillin-class')));
 check('condition-coverage-remains-unassessed', () => {

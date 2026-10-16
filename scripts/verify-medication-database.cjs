@@ -6,7 +6,7 @@ const exclusions = require('../docs/medication-provenance-exclusions.json');
 const { review, resolveMedication } = require('../server-src/medication/safety-engine.cjs');
 const { decision, isCcByRecord } = require('./medication-provenance-policy.cjs');
 
-assert.equal(seed.datasetVersion, '2026.10.15-r149');
+assert.equal(seed.datasetVersion, '2026.10.16-r150');
 assert.equal(seed.ruleset.provenanceFiltered, true);
 assert.equal(seed.ruleset.interactionRuleCount, 2);
 assert.equal(seed.ruleset.combinationRuleCount, 1);
@@ -87,5 +87,50 @@ assert.equal(resolveMedication('Paracetamol + Codeine (Relieve)').ingredients.ma
 assert.equal(resolveMedication('Micreme H').ingredients.map(item => item.id).sort().join(','), 'pharmac-hydrocortisone,pharmac-miconazole');
 assert.equal(resolveMedication('Nurofen 200 mg').strength.status, 'unverified');
 assert.equal(resolveMedication({ name: 'Marevan', dose: '99 mg' }).strength.status, 'unverified');
+
+// The screenshot case is a formulation/terminology gap, not a safe pair.
+const reported = review({ medications: [
+  { name: 'Voltaren', dose: '20' },
+  { name: 'Ibuprofen Tab', dose: 'Ibuprofen 200 mg' }
+] });
+assert.equal(reported.status, 'unknown');
+assert.deepEqual(reported.resolved.map(item => item.status), ['unknown', 'resolved']);
+assert.equal(reported.resolved[0].matchState, 'ambiguous_or_incomplete');
+assert.deepEqual(reported.resolved[0].possibleInteractionRoutes, []);
+assert.equal(reported.resolved[1].strength.status, 'listed_match');
+assert.deepEqual(reported.resolved[1].possibleInteractionRoutes, ['oral']);
+assert.equal(reported.coverage.unassessedPairs, 1);
+assert.ok(!reported.alerts.some(alert => alert.type === 'interaction'));
+assert.equal(resolveMedication({ name: 'Ibuprofen Tab', dose: '99 mg' }).strength.status, 'unverified', 'A non-listed tablet strength must not be claimed as verified');
+
+assert.equal(resolveMedication('Voltaren Emulgel 1%').status, 'unknown', 'An unlicensed topical name must not inherit a systemic Voltaren match');
+assert.equal(resolveMedication('Voltaren Gel').status, 'unknown');
+assert.equal(resolveMedication('Voltaren 50 mg').status, 'unknown', 'Strength without form still cannot distinguish a multi-form brand');
+assert.deepEqual(resolveMedication('Voltaren Suppos 50 mg').possibleInteractionRoutes, ['systemic']);
+assert.equal(resolveMedication('Ibuprofen Gel').status, 'unknown');
+const confirmedVoltaren = resolveMedication({ name: 'Voltaren', activeIngredients: ['diclofenac'], activeIngredientsConfirmed: true });
+assert.equal(confirmedVoltaren.matchState, 'resolved_label_only');
+assert.deepEqual(confirmedVoltaren.possibleInteractionRoutes, [], 'Confirming an ingredient cannot guess the route of an ambiguous brand');
+assert.equal(confirmedVoltaren.interactionRoutesIncomplete, true);
+
+const oralPair = review({ medications: [
+  'Voltaren D - Diclofenac sodium - Tab 50 mg dispersible',
+  { name: 'Ibuprofen Tab', dose: '200 mg' }
+] });
+assert.deepEqual(oralPair.resolved.map(item => item.status), ['resolved', 'resolved']);
+assert.deepEqual(oralPair.resolved.map(item => item.possibleInteractionRoutes), [['oral'], ['oral']]);
+assert.equal(oralPair.status, 'unknown', 'An oral diclofenac + ibuprofen pair needs a retained, reviewed rule before an interaction alert can be active');
+assert.equal(oralPair.coverage.unassessedPairs, 1);
+
+const gaviscon = resolveMedication('Gaviscon Extra Strength Tab 500 mg');
+assert.deepEqual(gaviscon.ingredients.map(item => item.id).sort(), ['pharmac-calcium-carbonate', 'pharmac-sodium-alginate', 'pharmac-sodium-bicarbonate']);
+assert.deepEqual(gaviscon.possibleInteractionRoutes, ['oral']);
+assert.equal(gaviscon.strength.status, 'unverified', 'One amount cannot verify every ingredient strength in a combination product');
+const combinationDuplicate = review({ medications: ['Gaviscon Extra Strength', 'Acidex'] });
+assert.equal(combinationDuplicate.alerts.filter(alert => alert.type === 'duplicate-ingredient').length, 3);
+assert.equal(combinationDuplicate.coverage.unassessedPairs, 1);
+assert.equal(resolveMedication('Difflam Plus Lozenges').status, 'unknown', 'Do not import an unlicensed retailer combination');
+assert.equal(resolveMedication('Nurofen Cold & Flu').status, 'unknown', 'A combination variant must not inherit a simple brand alias');
+assert.equal(resolveMedication('Betadine - Povidone iodine - Oint 10%').status, 'resolved');
 
 console.log('Rights-filtered medication database verified: 5 retained prompts; excluded pairs and incomplete coverage remain unknown.');
