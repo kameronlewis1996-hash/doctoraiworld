@@ -1,0 +1,28 @@
+{
+  "result": "passed",
+  "checks": [
+    "1440px: denial, keyboard login/disclosure, no horizontal overflow, feedback save/version/status and logout",
+    "390px: denial, keyboard login/disclosure, no horizontal overflow, feedback save/version/status and logout",
+    "320px: denial, keyboard login/disclosure, no horizontal overflow, feedback save/version/status and logout"
+  ],
+  "axe": [
+    {
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "violations": []
+    },
+    {
+      "width": 320,
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "synthetic-reviewer-1440.png",
+    "synthetic-reviewer-390.png",
+    "synthetic-reviewer-320.png"
+  ]
+}

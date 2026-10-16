@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {validatePack}=require('../server-src/checker-review/portal.cjs');
+const input=process.argv[2],workspaceId=process.argv[3];
+if(!input||!workspaceId)throw new Error('Usage: node scripts/validate-checker-review-import.cjs <private-file-outside-repo> <workspace-id>');
+const file=fs.realpathSync(input),root=fs.realpathSync(path.join(__dirname,'..'));
+if(file===root||file.startsWith(root+path.sep))throw new Error('Keep private review-pack content outside the repository and public web root.');
+const bytes=fs.readFileSync(file);if(bytes.length>500000)throw new Error('Import too large.');
+const pack=JSON.parse(bytes);validatePack(pack,workspaceId);
+console.log(JSON.stringify({result:'validated-private-import-only',version:pack.version,checkerCommit:pack.checkerCommit,rulesetVersion:pack.rulesetVersion,clinicalStatus:pack.clinicalStatus,tests:pack.tests.length,allTestsNotRun:pack.tests.every(t=>t.observedStatus==='not-run'),sources:pack.sources.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),persistentWrite:false,accessEnabled:false},null,2));
