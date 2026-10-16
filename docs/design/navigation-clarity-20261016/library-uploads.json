@@ -1,0 +1,38 @@
+[
+  {
+    "file_name": "before-draft-health-1440.png",
+    "file_id": "file_00000000ee1c8230821faff073a69a98",
+    "library_file_id": "libfile_a66ab8d146c48191b255f3e1915afab8",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "after-health-1440.png",
+    "file_id": "file_00000000ace8820ea015fc50902402e7",
+    "library_file_id": "libfile_2b97a52eecd88191b1b613f4be025ba7",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "before-draft-medications-390.png",
+    "file_id": "file_000000009eac81f5ae0d6e66fbe784af",
+    "library_file_id": "libfile_800e1416d5308191ac8972207afe3695",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "after-medications-390.png",
+    "file_id": "file_000000004e2081fd99904b00e1444b07",
+    "library_file_id": "libfile_aaf3923b181c8191a3088582835fa7dc",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "after-menu-390.png",
+    "file_id": "file_0000000002c081fd9ac3df47987c5d3b",
+    "library_file_id": "libfile_45d82b2f84148191b33a917c7e0e5510",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "after-home-1440.png",
+    "file_id": "file_00000000ecd081f580bdd4a155f59f69",
+    "library_file_id": "libfile_72f00f2d45608191b1aa06a76e3d0e70",
+    "status": "succeeded"
+  }
+]

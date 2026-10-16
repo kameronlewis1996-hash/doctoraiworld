@@ -30,6 +30,8 @@
     "verify:alerts": "node scripts/verify-health-alerts.cjs",
     "verify:alerts-presentation": "node scripts/verify-alerts-presentation.cjs",
     "verify:five-tabs": "node scripts/verify-five-tabs.cjs",
+    "verify:navigation": "node scripts/verify-five-tabs.cjs",
+    "verify:navigation-browser": "node scripts/verify-navigation-browser.cjs",
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
