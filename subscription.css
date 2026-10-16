@@ -1,4 +1,4 @@
-:root { --navy: #173550; --navy-deep: #0f2942; --blue: #3b82c4; --blue-strong: #226cad; --cyan: #10a5c4; --paper: #f6faff; --muted: #6f8492; --muted-light: #91a3ae; --line: #dceaf1; --sky: #e8f6fc; --purple: #7659bd; --purple-soft: #f0ebfc; --orange: #d48b38; --orange-soft: #fff1de; --green: #3fa88f; --green-soft: #e8f7f1; --shadow: 0 20px 60px rgba(26, 79, 113, .09); }
+:root { --navy: #071b46; --navy-deep: #05153b; --blue: #0865df; --blue-strong: #0756ba; --cyan: #149bc1; --paper: #f5f8ff; --muted: #405a79; --muted-light: #607494; --line: #cbdcf5; --sky: #e8f2ff; --purple: #6968c9; --purple-soft: #eeefff; --orange: #a8601f; --orange-soft: #fff3e6; --green: #337d69; --green-soft: #edf8f3; --shadow: 0 16px 38px rgba(25, 57, 105, .08); }
 * { box-sizing: border-box; }
 html { overflow-x: hidden; scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--paper); color: var(--navy); font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -133,3 +133,69 @@ button.dialog-secondary { background: #fff; text-align: left; cursor: pointer; }
 .renewal-note { margin: 12px 0; color: #496579; font-size: 13px; line-height: 1.55; }
 .checkout-continue { width: 100%; justify-content: center; }
 .checkout-continue:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Aurora pricing finish. Keep the billing flow and its state in subscription.js;
+   these rules only give its controls and plan surfaces the shared site palette. */
+.subscription-page .pro-shell { background: transparent; }
+.subscription-page .eyebrow { color: #0756ba; }
+.subscription-page .hero-copy h1,
+.subscription-page .section-heading h2 { color: #071b46; }
+.subscription-page .hero-copy h1 em,
+.subscription-page .section-heading h2 em { color: #0865df; }
+.subscription-page .hero-lead,
+.subscription-page .section-heading > p:last-child { color: #405a79; }
+.subscription-page .care-pack-preview { border-color: #cfddf3; background: #ffffffeb; }
+.subscription-page .preview-glow { background: #dff6ff; }
+.subscription-page .feature-card,
+.subscription-page .plan-card,
+.subscription-page .comparison-table { border-color: #cbdcf5; }
+.subscription-page .feature-card { background: #ffffffdb; }
+.subscription-page .feature-card.featured { border-color: #bfd4f5; background: linear-gradient(145deg, #f2f6ff, #fff 72%); }
+.subscription-page .pro-plan { border-color: #9ab9ec; background: linear-gradient(150deg, #f4f7ff, #fff 72%); box-shadow: inset 0 3px 0 #87a9ed; }
+.subscription-page .best-value { background: #eaf2ff; color: #0756ba; }
+.subscription-page .plan-toggle { background: #e8f2ff; }
+.subscription-page .plan-toggle button.active { color: #0756ba; }
+.subscription-page .comparison-head { background: #f2f6ff; }
+.subscription-page .comparison-head b:last-child { color: #0756ba; }
+.subscription-page .pro-safety { border-color: #cbdcf5; background: #f3f7ff; }
+.subscription-page .pro-footer { border-top-color: #cbdcf5; color: #526887; }
+.subscription-page .selected-plan { border-color: #cbdcf5; background: #f3f7ff; }
+.subscription-page .checkout-code-box { border-color: #cbdcf5; background: #f8faff; }
+.subscription-page .checkout-code-box input { border-color: #b9cdeb; }
+.subscription-page .pro-access-panel { border-color: #cbdcf5; background: linear-gradient(135deg, #f4f7ff, #effaff); box-shadow: 0 10px 28px rgba(25, 57, 105, .07); }
+.subscription-page .pro-access-panel input { min-height: 46px; border-color: #b9cdeb; color: #071b46; font: inherit; font-size: 16px; }
+.subscription-page .pro-access-panel button { min-height: 46px; background: #0865df; }
+.subscription-page .pro-access-panel button:hover { background: #0756ba; }
+.subscription-page .pro-access-panel small { color: #405a79; font-size: 12px; }
+.subscription-page #pricing-status:not(:empty) { border-color: #e1b7b1; background: #fff5f3; color: #7c342c; }
+.subscription-page .setup-note { border: 1px solid #cbdcf5; background: #f4f7ff; color: #405a79 !important; }
+.subscription-page .setup-note[data-tone="error"] { border-color: #e1b7b1; background: #fff5f3; color: #7c342c !important; }
+.subscription-page .setup-note[data-tone="success"] { border-color: #b6dccf; background: #eef8f3; color: #285f4d !important; }
+.subscription-page :is(.primary-cta, .plan-primary, .plan-secondary, .dialog-secondary, .plan-toggle button, .checkout-code-row button, .dialog-close, .pro-access-panel button) { min-height: 44px; }
+.subscription-page :is(.plan-secondary, .dialog-secondary) { border-color: #b9cdeb; color: #0756ba; }
+.subscription-page :is(.plan-secondary, .dialog-secondary):hover { border-color: #8eafe2; background: #f1f6ff; }
+.subscription-page .dialog-close { width: 44px; min-width: 44px; border-color: #cbdcf5; color: #405a79; }
+.subscription-page .checkout-dialog { max-height: min(88vh, 760px); overflow-y: auto; border-color: #cbdcf5; }
+.subscription-page .checkout-code-row input { min-height: 44px; }
+.subscription-page .checkout-confirm { border-color: #cbdcf5; background: #f6f8ff; color: #405a79; }
+.subscription-page .checkout-confirm a { color: #0756ba; }
+.subscription-page :is(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #0865df; outline-offset: 3px; }
+
+@media (max-width: 620px) {
+  .subscription-page .hero-copy h1 { font-size: clamp(36px, 9.2vw, 46px); }
+  .subscription-page .feature-card,
+  .subscription-page .plan-card { border-radius: 15px; }
+  .subscription-page .checkout-dialog { max-height: 88vh; }
+  .subscription-page .checkout-code-row { align-items: stretch; flex-direction: column; }
+  .subscription-page .checkout-code-row button { width: 100%; }
+  .subscription-page .plan-toggle { width: min(100%, 320px); }
+  .subscription-page .plan-toggle button { flex: 1; padding-inline: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subscription-page :is(a, button) { scroll-behavior: auto; transition-duration: .01ms !important; }
+}

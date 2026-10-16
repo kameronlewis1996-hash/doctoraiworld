@@ -9,7 +9,9 @@ const htmlFiles = fs.readdirSync(root).filter(file => file.endsWith('.html')).so
 const blocks = { script: new Map(), style: new Map() };
 
 for (const file of htmlFiles) {
-  const html = fs.readFileSync(path.join(root, file), 'utf8');
+  // Git stores these pages with LF line endings. Hash the bytes deployed from
+  // the repository even when a Windows checkout expands lines to CRLF.
+  const html = fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
   for (const match of html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)) {
     const typeAttribute = match[1].match(/\btype\s*=\s*(["'])(.*?)\1/i);
     const scriptType = typeAttribute?.[2].trim().toLowerCase();

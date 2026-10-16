@@ -1,0 +1,600 @@
+/* Secondary Health Hub routes use the selected Aurora frame while keeping
+   saved health data and clinical severity colours easy to read. */
+body[data-hub-layout="reference"] #hub-shell {
+  --hub-secondary-ink: #102b4a;
+  --hub-secondary-copy: #4d6580;
+  --hub-secondary-line: var(--aurora-edge, #d6e4fa);
+  --hub-secondary-wash: #f3f7ff;
+  --hub-secondary-blue: #0759b6;
+}
+
+body[data-hub-layout="reference"] #hub-shell .hub-path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+  color: var(--hub-secondary-copy);
+  font-size: 13px;
+  line-height: 1.45;
+}
+body[data-hub-layout="reference"] #hub-shell .hub-path > button {
+  min-height: 38px;
+  padding: 6px 11px;
+  border: 1px solid #cbdcf0;
+  border-radius: 999px;
+  background: #ffffffc9;
+  color: var(--hub-secondary-blue);
+  font: inherit;
+  font-weight: 700;
+}
+body[data-hub-layout="reference"] #hub-shell .hub-path > button:hover { background: #fff; border-color: #9dbce2; }
+body[data-hub-layout="reference"] #hub-shell .hub-path-copy { font-weight: 500; }
+
+/* Section navigation reads as a compact control strip on secondary pages. */
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav {
+  width: fit-content;
+  max-width: 100%;
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 5px;
+  overflow-x: auto;
+  border: 1px solid #d7e4f4;
+  border-radius: 15px;
+  background: #edf3fcad;
+  scrollbar-width: thin;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--hub-secondary-copy);
+  font-weight: 600;
+  white-space: nowrap;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target]:is(.active, [aria-current="page"]) {
+  border-color: #cadcf2;
+  background: #fff;
+  color: var(--hub-secondary-blue);
+  box-shadow: 0 2px 7px #4a6a9214;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] > span:first-child { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button {
+  min-height: 40px;
+  padding: 7px 13px;
+  border: 1px solid #d2e0f0;
+  border-radius: 999px;
+  background: #ffffffc9;
+  color: var(--hub-secondary-blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+}
+body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button:hover { background: #fff; border-color: #9dbce2; }
+
+/* Choice tiles keep all six Add Health Detail actions in one blue, calm system. */
+body[data-hub-layout="reference"] #hub-shell #view-add .add-details-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice {
+  --choice-bg: #f8fbff;
+  --choice-border: #d2e1f2;
+  --choice-accent: #0759b6;
+  --choice-icon-bg: #e8f2ff;
+  --choice-ink: #0759b6;
+  min-height: 94px;
+  align-items: center;
+  padding: 16px 17px;
+  border-color: var(--choice-border);
+  border-radius: 16px;
+  background: linear-gradient(115deg, #ffffff, var(--choice-bg));
+  box-shadow: inset 3px 0 var(--choice-accent), 0 7px 20px #496eaa09;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice:hover {
+  border-color: #93b5df;
+  background: linear-gradient(115deg, #fff, #edf4ff);
+  box-shadow: inset 3px 0 var(--hub-secondary-blue), 0 10px 24px #496eaa12;
+}
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice > span:first-child {
+  border: 1px solid #cbdcf2;
+  background: #eaf2ff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice :is(b, small) { color: var(--hub-secondary-ink); }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice small { color: var(--hub-secondary-copy); }
+
+/* White glass panels make long lists feel related without recolouring notices. */
+body[data-hub-layout="reference"] #hub-shell :is(#view-medications, #view-documents, #view-symptoms, #view-appointments, #view-results, #view-timeline) .panel-card {
+  border-color: var(--hub-secondary-line);
+  background: linear-gradient(135deg, #ffffffed, #fbfdff);
+  box-shadow: 0 8px 24px #496eaa0a;
+}
+body[data-hub-layout="reference"] #hub-shell #view-medications :is(.library-card, .refill-card, .history-card) { border-radius: 18px; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .refill-icon {
+  border: 1px solid #cbdcf2;
+  background: #eaf2ff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap { border-color: #e2eaf5; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .medicine-icon {
+  border: 1px solid #d0def0;
+  background: #eef4ff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-learning-panel {
+  border-color: #d4e2f1;
+  border-left-color: var(--hub-secondary-blue);
+  border-radius: 18px;
+  background: linear-gradient(130deg, #edf5ff, #ffffff 72%);
+}
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-question-suggestions button {
+  border-color: #c8d9ed;
+  background: #fff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-question-suggestions button:hover { background: #eef5ff; border-color: #9bb9df; }
+
+/* Diary sections gain the same clear frame. Urgent symptom guidance retains
+   its existing semantic warning colours and copy. */
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .diary-question-panel {
+  border-top-color: var(--hub-secondary-blue);
+  border-radius: 17px;
+  background: linear-gradient(135deg, #ffffff, #f4f8ff);
+}
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .diary-detail-disclosure {
+  border-color: #d1def0;
+  border-radius: 14px;
+  background: #f4f7ff;
+}
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .diary-detail-disclosure > summary:hover { background: #ebf1fc; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-log-card,
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-guide { border-radius: 17px; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-guide-mark { border: 1px solid #ccdcf1; background: #edf4ff; color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-guide li::before { background: #eaf2ff; color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-appointments .upcoming-card,
+body[data-hub-layout="reference"] #hub-shell #view-appointments .past-appointments,
+body[data-hub-layout="reference"] #hub-shell #view-results .measurements-card,
+body[data-hub-layout="reference"] #hub-shell #view-results .result-list-card,
+body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-card { border-radius: 18px; }
+
+/* File controls and document cards use the same quiet blue edge. */
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-drop {
+  border-color: #c3d7ef;
+  background: linear-gradient(105deg, #edf5ff, #ffffff);
+}
+body[data-hub-layout="reference"] #hub-shell #view-documents .drop-icon {
+  border: 1px solid #cbdcf2;
+  background: #e6f0ff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-card {
+  border-color: #d5e2f1;
+  background: #ffffffed;
+  box-shadow: 0 6px 18px #496eaa08;
+}
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-card:hover { border-color: #9bb9df; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .documents-permission { border-color: #d8e4f2; background: #f7faff; }
+
+/* Visit prep and profile stay personal, with clear distinctions between
+   account, device storage and optional Health Memory. */
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card {
+  border-color: var(--hub-secondary-line);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #ffffffed, #edf4ff);
+  box-shadow: 0 14px 35px #496eaa10;
+}
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card > span {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid #c9d9ef;
+  border-radius: 17px;
+  background: #eaf2ff;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions { gap: 10px; }
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions > button { min-height: 46px; border-radius: 12px; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .hub-storage-status article {
+  border-color: #d3e1f1;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #ffffff, #f2f6ff);
+  box-shadow: 0 8px 22px #496eaa08;
+}
+body[data-hub-layout="reference"] #hub-shell #view-profile .hub-storage-status article:last-child { background: linear-gradient(135deg, #ffffff, #eef7ff); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero {
+  align-items: center;
+  min-height: 0;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--hub-secondary-line);
+  border-radius: 18px;
+  background: linear-gradient(125deg, #ffffffed, #edf4ff);
+  box-shadow: 0 8px 24px #496eaa09;
+}
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero > .secondary-button { min-height: 44px; border-radius: 12px; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-card {
+  border-color: #d3e1f1;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff, #f3f7ff);
+  box-shadow: 0 8px 24px #496eaa09;
+}
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-large-icon { border: 1px solid #c9d9ef; background: #eaf2ff; color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-summary { min-height: 70px; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .memory-disclosure-content { border-top-color: #dbe5f2; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcuts-card {
+  border-color: var(--hub-secondary-line);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffffed, #f8faff);
+}
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-card,
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-add {
+  border-color: #d3e1f1;
+  background: #fff;
+  box-shadow: 0 6px 18px #496eaa08;
+}
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-card:hover,
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-add:hover { border-color: #9bb9df; background: #f5f8ff; box-shadow: 0 9px 22px #496eaa12; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-simple-links { padding-top: 8px; border-top: 1px solid #d7e3f1; }
+
+/* Account drawer and dialogs share the soft Aurora frame. */
+body[data-hub-layout="reference"] #profile-drawer .drawer-backdrop { background: #132f5480; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-panel {
+  width: min(420px, calc(100% - 20px));
+  padding: 28px 25px 24px;
+  border-left: 1px solid #d2def0;
+  background: linear-gradient(145deg, #fff, #f5f8ff 76%);
+  box-shadow: -18px 0 50px #193b602b;
+}
+body[data-hub-layout="reference"] #profile-drawer .drawer-header,
+body[data-hub-layout="reference"] #profile-drawer .drawer-section { border-color: #dbe5f2; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-label { color: #627892; font-size: 11px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-row { min-height: 54px; border-radius: 12px; padding: 9px 8px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-row:hover { background: #edf4ff; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-row-icon { border: 1px solid #cfdef0; background: #eaf2ff; color: var(--hub-secondary-blue); }
+
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal) {
+  border-color: #d1def0;
+  border-radius: 22px;
+  box-shadow: 0 28px 80px #16385b2b;
+}
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal) .modal-header {
+  padding: 22px 24px 17px;
+  border-bottom-color: #dae5f3;
+  background: linear-gradient(115deg, #f1f6ff, #ffffff);
+}
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal) .modal-header .eyebrow { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal) .modal-header h2 { color: var(--hub-secondary-ink); }
+body[data-hub-layout="reference"] .modal-form { gap: 16px; padding: 20px 24px 24px; }
+body[data-hub-layout="reference"] .modal-form-grid { gap: 14px; }
+body[data-hub-layout="reference"] .modal-field { gap: 7px; }
+body[data-hub-layout="reference"] .modal-field > span { color: #425b77; font-size: 13px; line-height: 1.4; }
+body[data-hub-layout="reference"] .modal-field > span small { color: #647a91; font-size: 12px; font-weight: 500; }
+body[data-hub-layout="reference"] .modal-field :is(input, textarea, select) {
+  min-height: 46px;
+  padding: 10px 12px;
+  border-color: #c8d7e9;
+  border-radius: 11px;
+  color: var(--hub-secondary-ink);
+  font: inherit;
+  font-size: 15px;
+}
+body[data-hub-layout="reference"] .modal-field textarea { min-height: 88px; }
+body[data-hub-layout="reference"] .modal-field :is(input, textarea, select):focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; border-color: var(--hub-secondary-blue); box-shadow: none; }
+body[data-hub-layout="reference"] .modal-help { margin: 0; color: var(--hub-secondary-copy); font-size: 13px; line-height: 1.55; }
+body[data-hub-layout="reference"] .modal-actions { flex-wrap: wrap; gap: 10px; }
+body[data-hub-layout="reference"] .modal-actions > button { min-height: 44px; border-radius: 11px; }
+body[data-hub-layout="reference"] .symptom-more-details { border-color: #d2def0; border-radius: 12px; background: #f6f8ff; }
+body[data-hub-layout="reference"] .symptom-more-details > summary { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] .privacy-copy { padding: 22px 24px 24px; }
+body[data-hub-layout="reference"] .privacy-highlight { border: 1px solid #d1def0; background: #eef4ff; color: var(--hub-secondary-copy); font-size: 14px; }
+body[data-hub-layout="reference"] .privacy-highlight > span { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] .privacy-copy h3 { color: var(--hub-secondary-ink); font-size: 16px; }
+body[data-hub-layout="reference"] .privacy-copy p:not(.privacy-highlight p) { color: var(--hub-secondary-copy); font-size: 14px; }
+body[data-hub-layout="reference"] .privacy-actions { flex-wrap: wrap; gap: 9px; }
+body[data-hub-layout="reference"] .privacy-actions > :is(button, a) { min-height: 44px; }
+body[data-hub-layout="reference"] .google-signin-copy { padding: 24px; }
+body[data-hub-layout="reference"] .google-signin-fallback { min-height: 50px; border-color: #cbdcf0; border-radius: 12px; box-shadow: 0 5px 14px #496eaa0b; font-size: 14px; }
+body[data-hub-layout="reference"] .signin-status { padding: 12px 13px; border: 1px solid #d1def0; border-radius: 12px; background: #eef4ff; font-size: 13px; }
+body[data-hub-layout="reference"] .signin-status[data-tone="setup"] { border-color: #e8c99c; background: #fff7ed; }
+body[data-hub-layout="reference"] .signin-disclaimer { color: var(--hub-secondary-copy); font-size: 12px; }
+
+body[data-hub-layout="reference"] #storage-consent:not([hidden]) {
+  border-color: #cddcf0;
+  background: linear-gradient(115deg, #f2f6ff, #ffffff);
+  box-shadow: 0 8px 24px #496eaa12;
+}
+body[data-hub-layout="reference"] #storage-consent p { color: var(--hub-secondary-copy); }
+body[data-hub-layout="reference"] #storage-consent a { color: var(--hub-secondary-blue); }
+
+@media (max-width: 1050px) {
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 800px) {
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-details-grid { gap: 10px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero { align-items: flex-start; flex-direction: column; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero > .secondary-button { width: 100%; }
+  body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card { border-radius: 18px; }
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal) .modal-header { padding: 18px 17px 14px; }
+  body[data-hub-layout="reference"] .modal-form { padding: 16px 17px 20px; }
+  body[data-hub-layout="reference"] .privacy-copy,
+  body[data-hub-layout="reference"] .google-signin-copy { padding: 18px 17px 20px; }
+}
+@media (max-width: 620px) {
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-details-grid { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice { min-height: 76px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav { width: 100%; flex-wrap: nowrap; }
+  body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav { gap: 7px; }
+  body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button { min-height: 40px; padding-inline: 11px; font-size: 12px; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .hub-storage-status { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #profile-drawer .drawer-panel { width: min(420px, calc(100% - 14px)); padding: 22px 17px 20px; }
+  body[data-hub-layout="reference"] .modal-form-grid { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] .modal-field.full { grid-column: auto; }
+  body[data-hub-layout="reference"] .modal-actions > button { flex: 1 1 100%; }
+  body[data-hub-layout="reference"] .privacy-actions > :is(button, a) { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice { transition: none; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell :is(.hub-path > button, .hub-panel-nav, .hub-panel-nav > [data-hub-panel-target], .health-tools-nav > button, .add-detail-choice, .panel-card, .profile-page-hero, .memory-card),
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, #profile-drawer .drawer-panel) { border-color: CanvasText; background: Canvas; color: CanvasText; box-shadow: none; }
+  body[data-hub-layout="reference"] #hub-shell .hub-panel-nav > [data-hub-panel-target]:is(.active, [aria-current="page"]) { border-color: Highlight; background: Canvas; color: Highlight; }
+}
+
+/* Complete the Aurora frame across every saved-detail and nested route. */
+/* The older category sheet flattened the body and shell to a solid gray. Reapply
+   the selected Aurora variables here so status-driven orange/red themes remain
+   intact and the wash stays behind long pages while scrolling. */
+html body[data-hub-layout="reference"][data-hub-theme] {
+  background-color: var(--aurora-base, #f5f8ff);
+  background-image:
+    radial-gradient(ellipse at 49% 33%, #ffffffc7, transparent 41%),
+    radial-gradient(ellipse 12% 13% at 20% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 13% 13% at 80% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 19% 15% at -1% 0%, var(--aurora-lilac, #b9b8f9ad), transparent 92%),
+    radial-gradient(ellipse 19% 16% at -2% 31%, var(--aurora-side, #8dacfac4), transparent 88%),
+    radial-gradient(ellipse 22% 18% at 27% 23%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 23% 19% at 103% 31%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 18% 18% at -3% 49%, var(--aurora-blush, #f4c9f1ae), transparent 88%),
+    radial-gradient(ellipse 22% 20% at 102% 49%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
+    radial-gradient(ellipse 20% 18% at 16% 77%, var(--aurora-lilac, #b9b8f9ad), transparent 90%),
+    radial-gradient(ellipse 24% 19% at 83% 79%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 35% 27% at 0% 36%, var(--aurora-side, #8dacfac4), transparent 90%),
+    radial-gradient(ellipse 34% 30% at 100% 46%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
+    radial-gradient(ellipse at 6% 28%, var(--aurora-cyan, #95dffbc4), transparent 44%),
+    radial-gradient(ellipse at 96% 32%, var(--aurora-cyan, #95dffbc4), transparent 45%),
+    radial-gradient(ellipse at 7% 53%, var(--aurora-blush, #f4c9f1ae), transparent 40%),
+    radial-gradient(ellipse at 88% 55%, var(--aurora-lilac, #b9b8f9ad), transparent 44%),
+    radial-gradient(ellipse at 48% 84%, var(--aurora-cyan, #95dffbc4), transparent 47%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+body[data-hub-layout="reference"] #hub-shell { background: transparent; }
+
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading {
+  position: relative;
+  isolation: isolate;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  margin: 0 0 20px;
+  padding: clamp(17px, 2.2vw, 24px) clamp(18px, 2.6vw, 28px);
+  overflow: hidden;
+  border: 1px solid var(--hub-secondary-line);
+  border-left: 3px solid var(--hub-secondary-blue);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 93% 3%, #d5f2ff65, transparent 42%),
+    radial-gradient(ellipse at 100% 100%, #ddd8ff38, transparent 45%),
+    linear-gradient(118deg, #ffffffed 12%, #f8fbff 58%, #eef5ff 100%);
+  box-shadow: 0 12px 32px #496eaa10;
+  backdrop-filter: blur(14px);
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading::before,
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading::after { content: none; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading > :first-child { min-width: 0; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading :is(h1, h2) {
+  color: var(--hub-secondary-ink);
+  letter-spacing: -.045em;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading .eyebrow { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading .page-subtitle { color: var(--hub-secondary-copy); }
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading :is(h1, h2)[tabindex="-1"]:focus { outline: none; }
+
+/* Shared card surfaces cover the nested detail panels and their empty states. */
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-visit-prep, #view-profile) .panel-card {
+  border-color: #d4e1f0;
+  border-radius: 18px;
+  background: linear-gradient(137deg, #ffffffed 10%, #ffffff 55%, #f5f8ff 100%);
+  box-shadow: 0 9px 26px #496eaa0b;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-visit-prep, #view-profile) .panel-card:focus-within { border-color: #a9c5e5; box-shadow: 0 12px 30px #496eaa12; }
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-medications, #view-documents, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-alerts, #view-profile) :is(.empty-inline, .empty-state) {
+  border: 1px dashed #cad9eb;
+  border-radius: 14px;
+  background: #f7faff;
+  color: #526982;
+  font-size: 14px;
+  line-height: 1.55;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-medications, #view-documents, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-profile) .empty-inline { margin: 8px 0; padding: 13px 15px; }
+
+/* Nested section controls keep a clear current state and remain easy to scan. */
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav {
+  border-color: #d1def0;
+  background: #edf3fcce;
+  box-shadow: 0 7px 20px #496eaa08;
+  backdrop-filter: blur(12px);
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target]:is(:hover, :focus-visible) {
+  border-color: #bed3ed;
+  background: #ffffffd9;
+  color: var(--hub-secondary-blue);
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target]:is(.active, [aria-current="page"]) {
+  border-color: #bcd3ef;
+  background: #fff;
+  color: var(--hub-secondary-blue);
+  box-shadow: inset 0 1px #fff, 0 3px 9px #496eaa12;
+}
+body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] > span:first-child { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button { background: linear-gradient(120deg, #fff, #f5f9ff); box-shadow: 0 3px 10px #496eaa08; }
+body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button:focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; }
+body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice:focus-visible { outline: 3px solid #0759b64d; outline-offset: 3px; border-color: #75a1d3; }
+
+/* Medicines keep their clinical statuses while ordinary list rows use blue cues. */
+body[data-hub-layout="reference"] #hub-shell #view-medications :is(.library-card, .refill-card, .history-card, .medication-learning-panel) { border-radius: 19px; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap { border-top-color: #e0e9f4; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .library-item { border-radius: 12px; transition: background-color .16s ease; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap:hover .library-item { background: #f6f9ff; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .history-item { border-color: #e0e9f4; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-learning-panel form[data-diary-question-form] { margin-top: 16px; padding-top: 14px; border-top: 1px solid #dce6f2; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-learning-panel form[data-diary-question-form] textarea { min-height: 88px; border-color: #c8d7e9; border-radius: 12px; background: #fff; color: var(--hub-secondary-ink); font: inherit; font-size: 15px; line-height: 1.5; }
+body[data-hub-layout="reference"] #hub-shell #view-medications .medication-learning-panel form[data-diary-question-form] textarea:focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; border-color: var(--hub-secondary-blue); }
+
+/* Diary notes use blue controls; urgent guidance and severity meters keep their own tones. */
+body[data-hub-layout="reference"] #hub-shell #view-symptoms :is(.symptom-log-card, .symptom-guide, .symptom-pattern-card, .diary-question-panel) { border-radius: 19px; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-mode-tabs { gap: 5px; padding: 5px; border: 1px solid #d5e2f1; border-radius: 13px; background: #edf3fc; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-mode-tabs button { min-height: 42px; border-radius: 10px; color: #4c6480; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-mode-tabs button.active { background: var(--hub-secondary-blue); color: #fff; box-shadow: 0 4px 12px #0759b626; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms :is(.symptom-trigger-mark, .symptom-trigger-icon, .symptom-trigger-empty-icon, .symptom-guide-mark) { border: 1px solid #ccdcf1; background: #eaf2ff; color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-trigger-item { border-color: #d5e2f1; border-radius: 14px; background: #ffffffed; box-shadow: 0 6px 18px #496eaa08; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-context { border: 1px solid #dce6f2; background: #f3f7ff; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .symptom-safety-banner { border-radius: 16px; box-shadow: 0 5px 16px #a35b2810; }
+body[data-hub-layout="reference"] #hub-shell #view-symptoms .diary-question-panel { border-top-color: var(--hub-secondary-blue); background: linear-gradient(135deg, #ffffff, #f4f8ff); }
+
+/* Document controls and records sit on the same quiet glass surface. */
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-drop { border-style: dashed; border-radius: 18px; box-shadow: 0 7px 20px #496eaa08; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-toolbar { align-items: center; gap: 12px; margin: 16px 0 12px; padding: 9px 11px; border: 1px solid #d7e3f1; border-radius: 15px; background: #f7faffd9; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { gap: 5px; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { min-height: 40px; padding-inline: 12px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #516a84; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button:is(.active, :hover, :focus-visible) { border-color: #c5d9ef; background: #fff; color: var(--hub-secondary-blue); box-shadow: 0 2px 7px #496eaa10; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .documents-grid { gap: 13px; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .document-card { border-radius: 17px; }
+body[data-hub-layout="reference"] #hub-shell #view-documents .documents-permission { border-radius: 15px; box-shadow: 0 5px 16px #496eaa08; }
+
+/* Appointment, results and history rows gain a calmer, consistent rhythm. */
+body[data-hub-layout="reference"] #hub-shell #view-appointments :is(.upcoming-card, .past-appointments) { border-radius: 19px; }
+body[data-hub-layout="reference"] #hub-shell #view-appointments .appointment-large,
+body[data-hub-layout="reference"] #hub-shell #view-appointments .past-item,
+body[data-hub-layout="reference"] #hub-shell #view-results .result-item,
+body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-entry {
+  border-color: #dbe6f2;
+  border-radius: 14px;
+  background: #ffffffed;
+  box-shadow: 0 5px 16px #496eaa08;
+}
+body[data-hub-layout="reference"] #hub-shell #view-appointments .appointment-large { padding: 15px; }
+body[data-hub-layout="reference"] #hub-shell #view-appointments .past-item { padding: 14px; }
+body[data-hub-layout="reference"] #hub-shell #view-appointments :is(.large-date, .appointment-date) { border: 1px solid #ccdcf1; border-radius: 13px; background: #eaf2ff; color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-appointments .appointment-type .purple-dot { background: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-results :is(.result-list-card, .measurements-card) { border-radius: 19px; }
+body[data-hub-layout="reference"] #hub-shell #view-results .result-item { padding: 12px; }
+body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs { gap: 5px; padding: 5px; border: 1px solid #d5e2f1; border-radius: 13px; background: #edf3fc; }
+body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs > button { min-height: 42px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #516a84; }
+body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs > button:is(.active, :hover, :focus-visible) { border-color: #c3d8ef; background: #fff; color: var(--hub-secondary-blue); box-shadow: 0 2px 7px #496eaa10; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-toolbar { gap: 12px; padding: 9px 11px; border: 1px solid #d7e3f1; border-radius: 15px; background: #f7faffd9; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs { gap: 5px; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button { min-height: 42px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #516a84; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button:is(.active, :hover, :focus-visible) { border-color: #c3d8ef; background: #fff; color: var(--hub-secondary-blue); box-shadow: 0 2px 7px #496eaa10; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-entry { padding: 14px; }
+body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-dot { border: 1px solid #c9d9ef; background: #eaf2ff; color: var(--hub-secondary-blue); }
+
+/* Visit prep and Profile stay airy and readable across storage and memory states. */
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card {
+  position: relative;
+  isolation: isolate;
+  max-width: 760px;
+  margin: 20px auto;
+  border-color: #d2e1f2;
+  background: radial-gradient(ellipse at 50% 0%, #dff4ff7a, transparent 58%), linear-gradient(135deg, #fff, #f1f6ff);
+  box-shadow: 0 14px 34px #496eaa10;
+}
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card::after { content: ""; position: absolute; z-index: -1; right: -70px; bottom: -105px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, #d8d5ff55, transparent 70%); pointer-events: none; }
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions > button { border-color: #c9d9ed; background: #ffffffd9; color: var(--hub-secondary-blue); box-shadow: 0 4px 12px #496eaa08; }
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions > button:hover { border-color: #9bb9df; background: #f1f6ff; }
+body[data-hub-layout="reference"] #hub-shell #view-visit-prep .appointment-request-boundary { max-width: 760px; margin: 14px auto 0; padding: 12px 14px; border: 1px solid #d5e2f1; border-radius: 13px; background: #f3f7ff; color: #526982; font-size: 13px; line-height: 1.55; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero { color: var(--hub-secondary-ink); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero :is(h2, p, .eyebrow) { color: var(--hub-secondary-ink); }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-page-hero .eyebrow { color: var(--hub-secondary-blue); }
+body[data-hub-layout="reference"] #hub-shell #view-profile :is(.memory-card, .profile-shortcuts-card) { border-color: #d3e1f1; border-radius: 19px; }
+body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-card { border-radius: 15px; }
+
+/* Drawers and forms share the same blue glass frame. */
+body[data-hub-layout="reference"] #profile-drawer .drawer-panel { width: min(440px, calc(100% - 20px)); border-radius: 24px 0 0 24px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-header { padding-bottom: 16px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-row:focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) {
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid #cfddf0;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #fff 0%, #f7faff 100%);
+  box-shadow: 0 28px 80px #16385b30;
+}
+body[data-hub-layout="reference"] .quick-modal { width: min(680px, calc(100% - 28px)); }
+body[data-hub-layout="reference"] .privacy-modal { width: min(760px, calc(100% - 28px)); }
+body[data-hub-layout="reference"] .google-signin-modal { width: min(520px, calc(100% - 28px)); }
+body[data-hub-layout="reference"] .medication-scanner-modal { width: min(720px, calc(100% - 28px)); }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal)::backdrop { background: #142f5580; backdrop-filter: blur(4px); }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { position: sticky; top: 0; z-index: 2; background: linear-gradient(115deg, #eff5ff, #ffffff); }
+body[data-hub-layout="reference"] :is(.modal-field, .modal-choice, .modal-form-grid) { min-width: 0; }
+body[data-hub-layout="reference"] .modal-field :is(input, textarea, select) { width: 100%; min-width: 0; background: #fff; }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) :is(button, a):focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; }
+
+@media (max-width: 800px) {
+  html body[data-hub-layout="reference"][data-hub-theme] { background-attachment: scroll; background-size: 100% 1500px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading { align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding: 17px 16px; border-radius: 17px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading > :is(.primary-button, .secondary-button, .page-heading-actions, .health-page-actions) { width: 100%; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav { width: 100%; flex-wrap: nowrap; overscroll-behavior-inline: contain; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] { min-height: 44px; }
+  body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav { flex-wrap: nowrap; width: 100%; padding-bottom: 4px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+  body[data-hub-layout="reference"] #hub-shell #view-health .health-tools-nav > button { flex: 0 0 auto; min-height: 42px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-medications .medication-view-grid, #view-appointments .appointments-layout, #view-results .results-grid) { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #hub-shell #view-timeline .timeline-toolbar { align-items: flex-start; flex-direction: column; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-toolbar { align-items: flex-start; flex-direction: column; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-drop { align-items: flex-start; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .documents-permission { align-items: flex-start; flex-wrap: wrap; }
+  body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-brief-card { margin: 16px 0; padding: 26px 18px; }
+  body[data-hub-layout="reference"] #profile-drawer .drawer-panel { width: min(440px, calc(100% - 14px)); border-radius: 20px 0 0 20px; }
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) { max-height: calc(100dvh - 20px); border-radius: 19px; }
+  body[data-hub-layout="reference"] .quick-modal,
+  body[data-hub-layout="reference"] .privacy-modal,
+  body[data-hub-layout="reference"] .google-signin-modal,
+  body[data-hub-layout="reference"] .medication-scanner-modal { width: calc(100% - 20px); }
+}
+@media (max-width: 620px) {
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav { margin-bottom: 14px; padding: 4px; }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] { padding-inline: 10px; font-size: 12px; }
+  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button { flex: 0 0 auto; }
+  body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs > button { flex: 1 1 0; padding-inline: 7px; font-size: 12px; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { flex: 0 0 auto; }
+  body[data-hub-layout="reference"] #hub-shell #view-appointments :is(.appointment-large, .past-item) { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions > button { width: 100%; }
+  body[data-hub-layout="reference"] #hub-shell #view-profile .hub-storage-status { grid-template-columns: minmax(0, 1fr); }
+  body[data-hub-layout="reference"] #hub-shell :is(#view-medications, #view-documents, #view-symptoms, #view-appointments, #view-results, #view-timeline) .empty-inline { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item,
+  body[data-hub-layout="reference"] #hub-shell #view-add .add-detail-choice { transition: none; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading,
+  body[data-hub-layout="reference"] #hub-shell :is(.document-drop, .document-card, .result-item, .appointment-large, .past-item, .timeline-entry, .symptom-trigger-item) { border-color: CanvasText; background: Canvas; color: CanvasText; box-shadow: none; }
+}
