@@ -1,4 +1,12 @@
-# Aurora theme review - 16 October 2026
+# Aurora sitewide review - 16 October 2026
+
+Final result: passed for the 13 production HTML routes at desktop 1440 × 960 and phone 390 × 844 in the isolated `codex/aurora-sitewide-20261016` checkout, based on main `242df8e9f86fcf4eda72c0989f246271b6c486d6`. The selected homepage remains the visual reference; the rest of the site now shares its soft cyan/lilac atmosphere, blue actions, navy typography and clear card surfaces. The Health Hub keeps the established green, orange and red clinical status cues.
+
+Browser review found no horizontal overflow, clipped main heading, missing expected stylesheet or broken above-the-fold image across `/`, `/about`, `/appointment-checklist`, `/download`, `/health-hub`, `/medication-list-template`, `/mobile-auth`, `/privacy`, `/professional-brief-demo`, `/research`, `/staff`, `/subscription` and `/terms`. Representative desktop and phone screenshots were inspected in the local browser; the browser surface did not permit exporting screenshot files. The 390px mobile Health Hub Today and Add Health Detail views retained their navigation, storage notice and scrollable controls. No real health details were entered. The fictional sample's warning and restricted staff gate remained visible.
+
+Static verification passed for 96 required files and all 13 routes. About routing, five-tab navigation, alert presentation, pricing modes, medication-evidence assertions and syntax checks for 81 JavaScript files passed. `git diff --check` passed. Checkout, Google sign-in, saved data, live API results and actual clinical alert triggers were not exercised in this visual pass; those behaviors are unchanged in source. This review does not authorize a production release.
+
+## Earlier Aurora review
 
 The current selected-theme review and browser evidence are [documented here](docs/design/aurora-alert-theme-20261016/design-qa.md), based on main `09c0353dfcb29754f62fb7e9116b87f5ef31a3e1`. Current scoped final result: passed. The earlier review is retained below as historical evidence.
 

@@ -5,6 +5,7 @@
 @media (max-width: 600px) {
   .research-brand img { width: 100px; height: 54px; }
 }
+
 /* Pro is functional, not a separate gold visual theme. Keep every status and
    research label within the canonical blue/cyan DoctorAI system. */
 .pro-pill.pro { background: #e5f7fb; color: #0e679e; }
@@ -99,4 +100,97 @@ body.doctorai-public-page .forum-compose { background: #fff; }
   body.doctorai-public-page .research-tabs { width: 100%; justify-content: flex-start; gap: 0 12px; margin-top: 16px; }
   body.doctorai-public-page .research-tab { min-height: 48px; padding-inline: 1px; font-size: 11px; }
   body.doctorai-public-page .research-panel { padding-top: 18px; }
+}
+
+/* Page-specific Aurora surfaces. The shared page sheet supplies the global glow and shell. */
+@media screen {
+  body.doctorai-public-page .research-hero { max-width: 820px; }
+
+  body.doctorai-public-page .research-trust,
+  body.doctorai-public-page .highlight-note {
+    border-color: #dce7f4;
+    background: linear-gradient(115deg, #effcff, #f8f6ff);
+  }
+
+  body.doctorai-public-page .research-tabs {
+    align-items: center;
+    padding-inline: 12px;
+    border: 1px solid #dce7f4;
+    border-radius: 14px 14px 0 0;
+    background: rgba(255, 255, 255, .88);
+    box-shadow: 0 5px 16px rgba(21, 52, 82, .045);
+    backdrop-filter: blur(12px);
+  }
+
+  body.doctorai-public-page .research-tab.active {
+    border-bottom-color: #0060df;
+    color: #0757b8;
+  }
+
+  body.doctorai-public-page .research-tab.active span { color: #0060df; }
+
+  body.doctorai-public-page .highlight-card,
+  body.doctorai-public-page .paper-card {
+    border-color: #dce7f4;
+    border-radius: 16px;
+    box-shadow: 0 8px 22px rgba(21, 52, 82, .045);
+  }
+
+  body.doctorai-public-page .highlight-card:nth-child(1) {
+    background: linear-gradient(145deg, #fff, #f0fbff);
+  }
+
+  body.doctorai-public-page .highlight-card:nth-child(2) {
+    background: linear-gradient(145deg, #fff, #f7f4ff);
+  }
+
+  body.doctorai-public-page .highlight-card:nth-child(3) {
+    background: linear-gradient(145deg, #fff, #f2f8ff);
+  }
+
+  body.doctorai-public-page .research-controls,
+  body.doctorai-public-page .research-community {
+    border-color: #dce7f4;
+    border-radius: 17px;
+    box-shadow: 0 8px 24px rgba(21, 52, 82, .045);
+  }
+
+  body.doctorai-public-page .research-community {
+    background: linear-gradient(135deg, #fff, #f1fbff 58%, #f8f5ff);
+  }
+
+  body.doctorai-public-page .discussion-card,
+  body.doctorai-public-page .forum-compose {
+    border-color: #e0e9f4;
+    background: rgba(255, 255, 255, .9);
+  }
+
+  body.doctorai-public-page .topic-grid button {
+    border-color: #dce7f4;
+    box-shadow: 0 3px 10px rgba(21, 52, 82, .025);
+  }
+
+  body.doctorai-public-page .topic-grid button:hover {
+    border-color: #b6d4f2;
+    background: linear-gradient(130deg, #fff, #f3fbff);
+    box-shadow: 0 7px 16px rgba(21, 83, 139, .07);
+  }
+
+  body.doctorai-public-page .research-method {
+    border-color: #dce7f4;
+    background: linear-gradient(115deg, #f0fcff, #f8f5ff);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  body.doctorai-public-page *,
+  body.doctorai-public-page *::before,
+  body.doctorai-public-page *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }

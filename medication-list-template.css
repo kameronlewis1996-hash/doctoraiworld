@@ -45,3 +45,56 @@
   .medication-guide .guide-button-secondary { border-width: 1px; }
   .medication-guide .medicine-name-search-row input { border-color: var(--guide-line); }
 }
+
+/* Page-specific Aurora surfaces. The shared page sheet supplies the global glow and shell. */
+@media screen {
+  .medication-guide .guide-hero {
+    background: linear-gradient(132deg, #effcff 0%, #fff 54%, #f8f5ff 100%);
+  }
+
+  .medication-guide :is(.guide-section, .guide-cta) {
+    box-shadow: 0 8px 24px rgba(23, 53, 80, .045);
+  }
+
+  .medication-guide .guide-section {
+    background: linear-gradient(145deg, rgba(255, 255, 255, .99), rgba(249, 252, 255, .97));
+  }
+
+  .medication-guide .guide-name-lookup {
+    background: linear-gradient(135deg, #f0fcff 0%, #fff 64%, #faf8ff 100%);
+  }
+
+  .medication-guide .guide-cta {
+    background: linear-gradient(120deg, #e9faff 0%, #f4f3ff 100%);
+  }
+
+  .medication-guide .guide-table-scroll {
+    border-color: #dce8f4;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 3px 12px rgba(23, 53, 80, .035);
+  }
+
+  .medication-guide thead th {
+    background: linear-gradient(120deg, #eaf9fd, #f1efff);
+  }
+
+  .medication-guide .blank-line { border-color: #bdd2e5; }
+
+  .medication-guide .medicine-name-search-results li {
+    border-color: #dce8f4;
+    box-shadow: 0 3px 10px rgba(23, 53, 80, .035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .medication-guide *,
+  .medication-guide *::before,
+  .medication-guide *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

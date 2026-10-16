@@ -1,0 +1,288 @@
+/* Page-specific refinements layered on top of aurora-pages.css. */
+:root {
+  --public-aurora-ink: #061639;
+  --public-aurora-copy: #3e5676;
+  --public-aurora-blue: #075ed9;
+  --public-aurora-cyan: #0787b8;
+  --public-aurora-line: #cbdcf3;
+}
+
+.doctorai-public-page .doctorai-site-header {
+  border-bottom-color: #d8e6f6;
+  background: #ffffffed;
+  box-shadow: 0 5px 22px #183f7409;
+}
+.doctorai-public-page .doctorai-site-menu > a[aria-current="page"] {
+  border-color: #c8dbf6;
+  background: linear-gradient(120deg, #edf4ff, #effaff);
+  color: #0759b6;
+}
+.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary {
+  background: linear-gradient(110deg, var(--public-aurora-blue), var(--public-aurora-cyan));
+  box-shadow: 0 8px 20px #075ed922;
+}
+.doctorai-public-page .doctorai-site-footer {
+  border-top-color: #d8e6f6;
+  background: #ffffffd9;
+}
+.doctorai-public-page .doctorai-site-footer-brand b { color: var(--public-aurora-ink); }
+.doctorai-public-page .doctorai-site-footer nav a { color: #0759b6; }
+
+/* Privacy and terms: turn the long-form copy into a calm, scannable reading surface. */
+.doctorai-public-page main > .panel {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 58px);
+  border-color: #cbdcf3;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 100% 0%, #e7f8ff80, transparent 27rem),
+    linear-gradient(150deg, #ffffff, #fbfdff 75%);
+  box-shadow: 0 22px 55px #244b800e;
+}
+.doctorai-public-page main > .panel::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #075ed9, #1eb7df 58%, #8277ff);
+  content: "";
+}
+.doctorai-public-page main > .panel > .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  margin: 0 0 12px;
+  padding: 5px 11px;
+  border: 1px solid #d3e4f7;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #eff5ff, #effbff);
+  color: #0759b6;
+  font-size: 11px;
+  letter-spacing: .13em;
+}
+.doctorai-public-page main > .panel h1 {
+  color: var(--public-aurora-ink);
+  font-size: clamp(38px, 6vw, 64px);
+  font-weight: 700;
+  letter-spacing: -.055em;
+  line-height: 1.02;
+}
+.doctorai-public-page main > .panel .updated {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  margin-top: 5px;
+  padding: 4px 10px;
+  border: 1px solid #dbe7f5;
+  border-radius: 999px;
+  background: #f7faff;
+  color: #536b89;
+  font-size: 12px;
+  font-weight: 600;
+}
+.doctorai-public-page main > .panel .lead {
+  max-width: 72ch;
+  margin-top: 25px;
+  padding: 18px 20px;
+  border-left: 3px solid #1684d9;
+  border-radius: 0 15px 15px 0;
+  background: linear-gradient(100deg, #eef7ff, #f7fcff);
+  color: #3d5879;
+  font-size: 17px;
+  line-height: 1.7;
+}
+.doctorai-public-page main > .panel .grid {
+  gap: 14px;
+  margin-top: 34px;
+}
+.doctorai-public-page main > .panel .grid section {
+  min-width: 0;
+  padding: 20px 20px 19px;
+  border: 1px solid #dbe6f3;
+  border-left: 3px solid #4d8bea;
+  border-radius: 16px;
+  background: #ffffffd9;
+  box-shadow: 0 8px 22px #31588708;
+}
+.doctorai-public-page main > .panel .grid section:nth-child(4n + 2) { border-left-color: #7869db; }
+.doctorai-public-page main > .panel .grid section:nth-child(4n + 3) { border-left-color: #1599b9; }
+.doctorai-public-page main > .panel .grid section:nth-child(4n + 4) { border-left-color: #5382cf; }
+.doctorai-public-page main > .panel .grid h2 {
+  margin: 0 0 9px;
+  color: #0b2b54;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.35;
+}
+.doctorai-public-page main > .panel .grid p,
+.doctorai-public-page main > .panel .grid li {
+  color: #49627e;
+  font-size: 14px;
+  line-height: 1.72;
+}
+.doctorai-public-page main > .panel .grid p { margin: 0 0 12px; }
+.doctorai-public-page main > .panel .grid p:last-child { margin-bottom: 0; }
+.doctorai-public-page main > .panel .grid ul { padding-left: 21px; }
+.doctorai-public-page main > .panel .grid a,
+.doctorai-public-page main > .panel .notice a { color: #0759b6; font-weight: 700; text-decoration-thickness: 1px; }
+.doctorai-public-page main > .panel .notice {
+  margin-top: 20px;
+  border: 1px solid #cde0f2;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #eaf4ff, #effbff);
+  color: #294b70;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.doctorai-public-page main > .footer { color: #536b89; }
+.doctorai-public-page main > .footer a { color: #0759b6; font-weight: 700; }
+
+/* Download page: give the install and sharing actions a clear, generous focus. */
+.doctorai-public-page main.shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(700px, calc(100% - 32px));
+  margin-block: clamp(28px, 7vw, 76px);
+  padding: clamp(30px, 6vw, 58px);
+  border-color: #c6d9f2;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 93% 8%, #d9f8ffad, transparent 21rem),
+    radial-gradient(circle at 8% 92%, #e3eaffb8, transparent 23rem),
+    linear-gradient(145deg, #ffffff, #f6faff 72%, #f3fcff);
+  box-shadow: 0 24px 62px #254d8815;
+}
+.doctorai-public-page main.shell .logo {
+  width: min(210px, 63vw);
+  height: 116px;
+  filter: drop-shadow(0 8px 16px #124b7c10);
+}
+.doctorai-public-page main.shell > .eyebrow {
+  display: table;
+  margin: 15px auto 13px;
+  padding: 7px 12px;
+  border: 1px solid #d1e2f6;
+  border-radius: 999px;
+  background: linear-gradient(110deg, #edf4ff, #e9faff);
+  color: #0759b6;
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+.doctorai-public-page main.shell h1 {
+  max-width: 13ch;
+  margin-inline: auto;
+  color: var(--public-aurora-ink);
+  font-size: clamp(36px, 6vw, 58px);
+  font-weight: 700;
+  letter-spacing: -.06em;
+  line-height: 1.02;
+}
+.doctorai-public-page main.shell > p:not(.eyebrow) {
+  max-width: 48ch;
+  margin: 16px auto 0;
+  color: var(--public-aurora-copy);
+  font-size: 16px;
+  line-height: 1.7;
+}
+.doctorai-public-page main.shell .app-actions { gap: 10px; margin-top: 22px; }
+.doctorai-public-page main.shell .install,
+.doctorai-public-page main.shell .hub-link {
+  width: min(100%, 390px);
+  min-height: 54px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.doctorai-public-page main.shell .install {
+  background: linear-gradient(110deg, #075ed9, #0787b8);
+  box-shadow: 0 10px 24px #075ed92b;
+}
+.doctorai-public-page main.shell .install:hover { background: linear-gradient(110deg, #0759b6, #086b9c); transform: translateY(-1px); }
+.doctorai-public-page main.shell .hub-link {
+  border: 1px solid #b8cfee;
+  background: #ffffffd9;
+  color: #0759b6;
+  box-shadow: 0 6px 17px #3158870c;
+}
+.doctorai-public-page main.shell .hub-link:hover { border-color: #7ea9df; background: #f7fbff; }
+.doctorai-public-page main.shell .resource-share-button {
+  min-height: 46px;
+  color: #315e9a;
+}
+.doctorai-public-page main.shell .resource-share-status { max-width: 42ch; color: #586f8b; }
+.doctorai-public-page main.shell .resource-share-link {
+  max-width: min(100%, 390px);
+  border-color: #b9cdea;
+  border-radius: 10px;
+  background: #f9fcff;
+}
+.doctorai-public-page main.shell .stores { gap: 10px; margin: 25px auto 18px; }
+.doctorai-public-page main.shell .badge {
+  min-height: 66px;
+  border-color: #d6e4f4;
+  border-radius: 15px;
+  background: #ffffffc9;
+  color: #17375f;
+}
+.doctorai-public-page main.shell .badge-logo { width: 30px; height: 30px; color: #416fbc; }
+.doctorai-public-page main.shell .badge small { color: #596f9f; letter-spacing: .09em; }
+.doctorai-public-page main.shell .note {
+  max-width: 58ch;
+  margin: 0 auto;
+  color: #566f8c;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.doctorai-public-page main.shell .back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  margin-top: 18px;
+  padding: 8px 13px;
+  border-radius: 10px;
+  color: #0759b6;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.doctorai-public-page main.shell .back:hover { background: #eaf3ff; text-decoration: underline; text-underline-offset: 4px; }
+
+@media (max-width: 680px) {
+  .doctorai-public-page main > .panel { padding: 28px 20px; border-radius: 22px; }
+  .doctorai-public-page main > .panel .grid { grid-template-columns: 1fr; gap: 11px; margin-top: 25px; }
+  .doctorai-public-page main > .panel .grid section { padding: 17px 17px 16px; }
+  .doctorai-public-page main > .panel .lead { padding: 16px; font-size: 15px; }
+  .doctorai-public-page main.shell { width: calc(100% - 24px); padding: 30px 22px; border-radius: 24px; }
+  .doctorai-public-page main.shell .stores { grid-template-columns: 1fr; width: min(100%, 390px); }
+}
+
+@media (max-width: 360px) {
+  .doctorai-public-page main > .panel { padding-inline: 17px; }
+  .doctorai-public-page main.shell { padding-inline: 18px; }
+  .doctorai-public-page main.shell h1 { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doctorai-public-page main.shell .install,
+  .doctorai-public-page main.shell .hub-link { transition: none; }
+  .doctorai-public-page main.shell .install:hover { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .doctorai-public-page main > .panel,
+  .doctorai-public-page main > .panel .grid section,
+  .doctorai-public-page main > .panel .notice,
+  .doctorai-public-page main.shell,
+  .doctorai-public-page main.shell .badge,
+  .doctorai-public-page main.shell .hub-link { border: 1px solid CanvasText; box-shadow: none; }
+  .doctorai-public-page main > .panel::before { display: none; }
+  .doctorai-public-page main > .panel :is(h1, h2, p, li, .updated, .eyebrow),
+  .doctorai-public-page main.shell :is(h1, p, .eyebrow, .badge, .back) { color: CanvasText; }
+}

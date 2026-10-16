@@ -61,3 +61,74 @@
 @media (forced-colors: active) {
   .about-hero, .about-audience, .about-next, .about-founder-mark { border: 1px solid CanvasText; }
 }
+
+/* Aurora public-page treatment, aligned with the homepage and Health Hub. */
+.doctorai-about {
+  --story-ink: #061639;
+  --story-copy: #3e5676;
+  --story-blue: #0664ed;
+  --story-mint: #315bb5;
+  --story-mint-surface: #eaf3ff;
+  --story-line: #cbdcf3;
+}
+.doctorai-about .home-brand { gap: 2px; }
+.doctorai-about .home-brand-symbol { width: 60px; height: 68px; overflow: hidden; }
+.doctorai-about .home-brand-symbol img { width: 108px; height: 108px; max-width: none; margin: -21px 0 0 -23px; }
+.doctorai-about .home-brand-wordmark { width: 164px; height: 46px; overflow: hidden; }
+.doctorai-about .home-brand-wordmark img { width: 220px; height: 147px; max-width: none; margin: -101px 0 0 -28px; }
+.about-main { padding-block: clamp(36px, 6vw, 78px) 64px; }
+.about-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: #c3d9f5;
+  background:
+    radial-gradient(circle at 92% 14%, #d9f8ffb8, transparent 23rem),
+    radial-gradient(circle at 8% 100%, #dfe8ffb8, transparent 24rem),
+    linear-gradient(138deg, #ffffff 4%, #f4f9ff 70%, #f0fbff 100%);
+  box-shadow: 0 22px 58px #355c9912;
+}
+.about-founder-mark { border-color: #c8daf2; background: #ffffffd9; box-shadow: 0 6px 20px #244b800d; }
+.about-founder-initials { background: linear-gradient(145deg, #e7f1ff, #e5f9ff); color: #0759b6; }
+.about-story-copy {
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid var(--story-line);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #ffffff, #f8fbff);
+  box-shadow: 0 12px 32px #355c990a;
+}
+.about-audience {
+  border-color: #c6d9f1;
+  background: linear-gradient(125deg, #edf4ff, #f6fbff 74%, #effaff);
+  box-shadow: 0 14px 38px #355c990a;
+}
+.about-story-mark { background: #0b78db; box-shadow: 0 0 0 7px #e8f3ff; }
+.about-bridge-symbol { background: linear-gradient(145deg, #e3f6ff, #eaefff); color: #0759b6; }
+.about-next {
+  border-color: #bfd7f5;
+  background:
+    radial-gradient(circle at 50% 0%, #e5f6ff, transparent 28rem),
+    linear-gradient(150deg, #fff, #f4f8ff);
+  box-shadow: 0 14px 38px #355c990b;
+}
+.about-next .home-button { background: linear-gradient(110deg, #075ed9, #0787b8); box-shadow: 0 10px 24px #075ed926; }
+.about-next .home-button:hover { background: linear-gradient(110deg, #0759b6, #086b9c); }
+.doctorai-about .home-footer { border-top-color: var(--story-line); }
+
+@media (max-width: 700px) {
+  .doctorai-about .home-brand { gap: 0; }
+  .doctorai-about .home-brand-symbol { width: 39px; height: 48px; }
+  .doctorai-about .home-brand-symbol img { width: 74px; height: 74px; margin: -13px 0 0 -17px; }
+  .doctorai-about .home-brand-wordmark { width: 97px; height: 28px; }
+  .doctorai-about .home-brand-wordmark img { width: 130px; height: 87px; margin: -59px 0 0 -16px; }
+  .about-story-copy { padding: 24px; }
+}
+
+@media (max-width: 359px) {
+  .doctorai-about .home-brand-wordmark { width: 81px; }
+  .doctorai-about .home-brand-wordmark img { width: 112px; height: 75px; margin: -51px 0 0 -15px; }
+}
+
+@media (forced-colors: active) {
+  .about-story-copy { border: 1px solid CanvasText; box-shadow: none; }
+}

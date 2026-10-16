@@ -1,0 +1,123 @@
+/* Shared extension of the selected Aurora homepage to public and system pages.
+   Alert severity remains owned by the Health Hub's semantic status styles. */
+:root {
+  --aurora-page-ink: #071b46;
+  --aurora-page-copy: #405a79;
+  --aurora-page-blue: #0865df;
+  --aurora-page-blue-dark: #0756ba;
+  --aurora-page-line: #cbdcf5;
+  --aurora-page-glass: #ffffffd4;
+  --aurora-page-shadow: 0 18px 50px #6086cf14;
+}
+
+body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+  .appointment-guide, .medication-guide, .aurora-demo-page) {
+  color: var(--aurora-page-ink);
+  background-color: #f5f8ff;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, #ffffffec, transparent 44%),
+    radial-gradient(ellipse 36% 28% at -4% 8%, #b6bcf3a8, transparent 93%),
+    radial-gradient(ellipse 34% 27% at 102% 12%, #9bdcf2ab, transparent 94%),
+    radial-gradient(ellipse 34% 28% at -5% 40%, #eec9eda8, transparent 94%),
+    radial-gradient(ellipse 38% 34% at 105% 43%, #aeaaf0a0, transparent 94%),
+    radial-gradient(ellipse 42% 30% at 22% 80%, #c5eafa9a, transparent 94%);
+  background-size: 100% 1180px;
+  background-repeat: no-repeat;
+  font-family: 'DM Sans', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+  .appointment-guide, .medication-guide, .aurora-demo-page)
+  :is(h1, h2, h3) {
+  color: var(--aurora-page-ink);
+  text-wrap: balance;
+}
+
+body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+  .appointment-guide, .medication-guide, .aurora-demo-page)
+  :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--aurora-page-blue);
+  outline-offset: 3px;
+}
+
+.doctorai-public-page .doctorai-site-header {
+  border-bottom-color: #ffffffd6;
+  background: #ffffffc7;
+  box-shadow: 0 5px 24px #6086cf0c;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+/* Reuse the same supplied logo pieces as the Aurora homepage header. The
+   existing image retains the link's accessible name; the head is decorative. */
+.doctorai-public-page .doctorai-site-brand {
+  position: relative;
+  width: 180px;
+  height: 54px;
+  flex: 0 0 180px;
+  overflow: hidden;
+}
+.doctorai-public-page .doctorai-site-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 48px;
+  background: url('/doctorai-head-logo-transparent.png?v=10') center / 88px 88px no-repeat;
+}
+.doctorai-public-page .doctorai-site-brand img {
+  position: absolute;
+  top: -72px;
+  left: 26px;
+  width: 176px;
+  height: 118px;
+  max-width: none;
+  object-fit: fill;
+  clip-path: inset(81px 0 0);
+}
+
+/* The pricing layout has its own full-page paint layer. Let the shared
+   atmosphere show through without altering prices or checkout controls. */
+.subscription-page .pro-shell { background: transparent; }
+
+.doctorai-public-page .doctorai-site-menu > a:is(:hover, [aria-current='page']) {
+  color: var(--aurora-page-blue-dark);
+  background: #e8f2ff;
+}
+
+.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary,
+.doctorai-public-page :is(.install, .primary-cta, .plan-primary) {
+  border-color: transparent;
+  background: #0664ed;
+  color: #fff;
+  box-shadow: 0 8px 26px #0877f529;
+}
+
+.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary:hover,
+.doctorai-public-page :is(.install, .primary-cta, .plan-primary):hover {
+  background: var(--aurora-page-blue-dark);
+  color: #fff;
+}
+
+.doctorai-public-page :is(.panel, main.shell),
+.doctorai-system-page :is(.panel, .card) {
+  border-color: var(--aurora-page-line);
+  background-color: var(--aurora-page-glass);
+  box-shadow: var(--aurora-page-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page)
+    :is(a, button, input, select, textarea, summary) {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media print {
+  body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page) {
+    background: #fff;
+  }
+}
