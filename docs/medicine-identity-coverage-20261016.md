@@ -25,4 +25,4 @@ Call `createIdentityCatalogue(medicines, optionalPacks).resolve({region: "NZ", p
 
 No clinical interaction, dose, contraindication, substitution, approval or stock conclusion follows from any identity result. Rule set r149 and the 1,269 excluded source-derived rules are unchanged. Further coverage needs a rights-cleared product source with a defined market denominator, pack/region reconciliation, ingredient and per-component strength review, and route verification.
 
-Rebuild with `node scripts/measure-medicine-identity.cjs --write`; verify the committed ledger with `node scripts/measure-medicine-identity.cjs --check`.
+The bundled Pharmac catalogue is pinned to its version, source digests, licence metadata, and 3,419-row denominator by `node scripts/verify-pharmac-catalogue-integrity.cjs`. A changed snapshot fails closed and requires an explicitly reviewed pin update; incomplete ingredient and route facts are not inferred. Rebuild with `node scripts/measure-medicine-identity.cjs --write`; verify the committed ledger with `node scripts/measure-medicine-identity.cjs --check`.

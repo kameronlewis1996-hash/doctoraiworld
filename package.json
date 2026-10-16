@@ -42,7 +42,8 @@
     "verify:checker-conformance": "node scripts/verify-checker-combined-e2e.cjs --require-visible-attribution",
     "verify:checker-browser": "node scripts/verify-checker-combined-browser.cjs",
     "verify:checker-source-ui": "node scripts/verify-checker-source-ui.cjs",
-    "verify:medicine-identity": "node scripts/verify-medicine-identity.cjs",
+    "verify:medicine-identity": "node scripts/verify-pharmac-catalogue-integrity.cjs && node scripts/verify-medicine-identity.cjs",
+    "verify:pharmac-catalogue-integrity": "node scripts/verify-pharmac-catalogue-integrity.cjs",
     "verify:checker-rights": "node docs/checker-rights-20261016/verify.cjs"
   },
   "dependencies": {
