@@ -1,0 +1,23 @@
+{
+  "suite": "checker-combined-browser",
+  "denominator": 4,
+  "passed": 4,
+  "cases": [
+    {
+      "name": "retained-triple",
+      "result": "passed"
+    },
+    {
+      "name": "stopped-third",
+      "result": "passed"
+    },
+    {
+      "name": "zero-with-stale-cache",
+      "result": "passed"
+    },
+    {
+      "name": "unknown-third",
+      "result": "passed"
+    }
+  ]
+}

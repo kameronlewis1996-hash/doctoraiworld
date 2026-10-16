@@ -1,0 +1,44 @@
+{
+  "baselineCommit": "7bec9131662b72d74e45efbf1aaaea0eda220dbe",
+  "ruleset": "2026.10.15-r149",
+  "status": "draft-software-conformance-only",
+  "clinicalValidation": "No clinician-adjudicated performance estimate or certification",
+  "identity": {
+    "sourceFormulations": 3419,
+    "ingredientIncomplete": 113,
+    "ingredientCompleteFlag": 3306,
+    "oneExplicitRouteToken": 428,
+    "noSingleExplicitRouteToken": 2991,
+    "multiIngredientRows": 342,
+    "completeMultiIngredientFlag": 318,
+    "pr79PackDryRun": { "distinctCodes": 3380, "singleFormulationMatches": 3189, "ambiguousCodes": 191, "sourceRowsActivated": false },
+    "runtimeIdentityIntegration": "Gated: new exact-source resolver is separate; no automatic bridge into clinical rules or photo references",
+    "wholeNzShelfOtcDenominator": null,
+    "wholeNzShelfOtcCoverage": "Not measurable from bundled source subset"
+  },
+  "rights": {
+    "candidateRules": 1274,
+    "retainedRules": 5,
+    "excludedRules": 1269,
+    "excludedByReason": { "unverifiedOrConditional": 1214, "missingReuseStatus": 41, "incompleteLicenceAttribution": 12, "additionalSourceUnclear": 2 },
+    "excludedPerSourceAttribution": "Unresolved: release exclusion artifact has rule IDs/reasons but lacks original per-rule source metadata",
+    "excludedRulesActivated": 0,
+    "nhsSpsSourceReferences": 8,
+    "nhsSpsPromptIds": 9,
+    "wrapperRightsCurrentness": "Separate unresolved gate; chest source metadata review due 2026-08-08"
+  },
+  "softwareEvidence": {
+    "multiRuleBefore": { "namedChecks": 1, "passed": 0, "failed": 1, "commit": "542acdd" },
+    "integratedConformance": { "namedChecks": 38, "passed": 38, "clinicalAdjudication": false },
+    "fullCombinedBrowser": { "scenarios": 4, "passed": 4 },
+    "visibleSourceUi": { "scenarios": 5, "axeStates": 5, "viewports": [320,390,1440] },
+    "photo": { "journeyGroups": 5, "axeStates": 6 },
+    "todayRegression": { "journeyGroups": 11, "axeStates": 7 },
+    "existingAlertFixtures": 76,
+    "existingPresentationChecks": 12,
+    "note": "These sets overlap. Do not sum them into a clinical test denominator or real-world sensitivity claim."
+  },
+  "photo": { "ownPreview": "In-memory only; no upload or persistence", "approvedReferenceImages": 0, "imageRights": "Blocked until approved exact-product mapping/currentness/reuse rights", "identityAuthenticitySafetyFromPhoto": false },
+  "privateReviewerPortal": { "separateDraftPr": 87, "deployed": false, "accessEnabled": false, "realCredentialsCreated": false, "securityGroups": 15, "browserViewports": 3, "axeStates": 3, "privateImportCases": 16, "clinicalImportState": "All unvalidated/not-run", "persistentAdapter": "Unwired", "activation": "Requires separate approval, secure setup, storage/limiter and retention implementation" },
+  "release": { "productionDeployAuthorised": false, "clinicalReleaseReady": false, "nextGate": "Independent pharmacist expected outcomes and adjudication; identity/route/rights gaps resolved; explicit release approval" }
+}

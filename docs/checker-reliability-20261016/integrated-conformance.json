@@ -1,0 +1,162 @@
+{
+  "suite": "checker-combined-e2e",
+  "baseline": "7bec9131662b72d74e45efbf1aaaea0eda220dbe",
+  "rules": "2026.10.15-r149",
+  "denominator": 38,
+  "passed": 38,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "saved-triple-to-engine-to-combined-to-renderer",
+      "status": "passed"
+    },
+    {
+      "name": "unrelated-and-duplicate-candidates-have-exact-triggers",
+      "status": "passed"
+    },
+    {
+      "name": "two-products-with-three-components-not-duplicated-or-counted-as-pair-rule",
+      "status": "passed"
+    },
+    {
+      "name": "saved-lifecycle-stopped-removes-combination",
+      "status": "passed"
+    },
+    {
+      "name": "saved-lifecycle-inactive-removes-combination",
+      "status": "passed"
+    },
+    {
+      "name": "saved-lifecycle-deleted-removes-combination",
+      "status": "passed"
+    },
+    {
+      "name": "saved-lifecycle-past-removes-combination",
+      "status": "passed"
+    },
+    {
+      "name": "saved-lifecycle-future-removes-combination",
+      "status": "passed"
+    },
+    {
+      "name": "current-date-boundaries-retain-combination",
+      "status": "passed"
+    },
+    {
+      "name": "saved-edit-removes-old-combination",
+      "status": "passed"
+    },
+    {
+      "name": "zero-medicines-ignore-stale-controller-result",
+      "status": "passed"
+    },
+    {
+      "name": "missing-data-and-unknown-identity-remain-open",
+      "status": "passed"
+    },
+    {
+      "name": "duplicate-ingredients-across-records-render",
+      "status": "passed"
+    },
+    {
+      "name": "duplicate-ingredients-within-confirmed-label-stay-unknown",
+      "status": "passed"
+    },
+    {
+      "name": "medicine-input-overflow-is-disclosed-and-does-not-resurrect-omitted-rule",
+      "status": "passed"
+    },
+    {
+      "name": "saved-symptom-negation-excluded",
+      "status": "passed"
+    },
+    {
+      "name": "saved-symptom-history-excluded",
+      "status": "passed"
+    },
+    {
+      "name": "saved-symptom-conditional-excluded",
+      "status": "passed"
+    },
+    {
+      "name": "saved-symptom-family-excluded",
+      "status": "passed"
+    },
+    {
+      "name": "saved-current-symptom-renders-with-zero-medicines",
+      "status": "passed"
+    },
+    {
+      "name": "saved-old-symptom-is-excluded",
+      "status": "passed"
+    },
+    {
+      "name": "account-boundaries-and-unverified-transition-clear-rendered-records",
+      "status": "passed"
+    },
+    {
+      "name": "retained-source-metadata-oral-anticoagulant-ssri",
+      "status": "passed"
+    },
+    {
+      "name": "retained-source-metadata-warfarin-sulfamethoxazole",
+      "status": "passed"
+    },
+    {
+      "name": "retained-source-metadata-ras-inhibitor-diuretic-nsaid-aki",
+      "status": "passed"
+    },
+    {
+      "name": "resolved-route-seam-systemic",
+      "status": "passed"
+    },
+    {
+      "name": "resolved-route-seam-topical",
+      "status": "passed"
+    },
+    {
+      "name": "resolved-route-seam-unknown",
+      "status": "passed"
+    },
+    {
+      "name": "resolved-route-seam-conflicting",
+      "status": "passed"
+    },
+    {
+      "name": "saved-route-field-topical-is-not-assessed",
+      "status": "passed"
+    },
+    {
+      "name": "saved-route-field-oral-is-not-assessed",
+      "status": "passed"
+    },
+    {
+      "name": "renderer-attribution-escaping-integration",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-https://jamanetwork.com/other",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-https://pmc.ncbi.nlm.nih.gov/articles/OTHER/",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-https://link.springer.com/other",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-https://link.springer.com/article/10.1186/s40780-026-00560-8?redirect=other",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-https://user:password@link.springer.com/article/10.1186/s40780-026-00560-8",
+      "status": "passed"
+    },
+    {
+      "name": "source-sanitization-seam-javascript:alert(1)",
+      "status": "passed"
+    }
+  ]
+}

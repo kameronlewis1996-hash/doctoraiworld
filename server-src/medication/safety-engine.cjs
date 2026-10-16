@@ -317,6 +317,7 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
     alerts.push({
       type: 'interaction',
       subtype: 'multi-medicine',
+      medicationIndexes: [...implicated.keys()],
       severity: rule.severity,
       title: 'Potential multi-medicine interaction',
       message: `${[...implicated.values()].map(medication => medication.name).join(' + ')}: ${rule.effect}`,
