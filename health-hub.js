@@ -4,7 +4,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const viewNames = ['today', 'health', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
-  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit prep', profile: 'Profile & settings', add: 'Add Health Detail', alerts: 'Alerts' };
+  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit Prep', profile: 'Profile & settings', add: 'Add Health Detail', alerts: 'Alerts' };
   const hubPanels = { today: [], health: ['details', 'medications', 'documents', 'results', 'timeline', 'ask'], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
   const legacyHubRoutes = { medications: ['health', 'medications'], scan: ['health', 'medications'], visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['health', 'medications'], prescriptions: ['health', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
   function resolveHubRoute(name, requestedPanel = '') {
@@ -630,7 +630,7 @@
     document.querySelectorAll('.primary-nav [data-view], .category-tab[data-view], .category-more-menu [data-view]').forEach(item => {
       const target = item.matches('.nav-item') ? item.querySelector('.nav-icon') : item.querySelector(':scope > span:first-child');
       if (!target) return;
-      target.dataset.doctoraiIcon = ({ today: 'hubHome', health: 'health', 'visit-prep': 'calendar', profile: 'person', scan: 'hubMedicationScan', add: 'hubAddDetails', diary: 'diary', alerts: 'alerts' })[item.dataset.view] || healthIconNames[item.dataset.view] || 'overview';
+      target.dataset.doctoraiIcon = ({ today: 'hubHome', health: 'health', 'visit-prep': 'hubVisitPrep', profile: 'person', scan: 'hubMedicationScan', add: 'hubAddDetails', diary: 'diary', alerts: 'alerts' })[item.dataset.view] || healthIconNames[item.dataset.view] || 'overview';
       target.classList.add('feature-icon', `tone-${profileShortcutDefinition(item.dataset.view)?.tone || 'blue'}`);
       target.setAttribute('aria-hidden', 'true');
     });
@@ -671,7 +671,10 @@
     button?.setAttribute('aria-label', open ? 'Close Health Hub menu' : 'Open Health Hub menu');
     const label = button?.querySelector('[data-mobile-menu-label]');
     if (label) label.textContent = open ? 'Close' : 'Menu';
-    if (open) { closeProfile(); requestAnimationFrame(() => (document.querySelector('#category-bar [aria-current="page"]') || document.querySelector('#category-bar [data-view]'))?.focus({ preventScroll: true })); }
+    if (open) { closeProfile(); requestAnimationFrame(() => {
+      if (!document.body.classList.contains('mobile-category-open') || (document.activeElement !== button && document.activeElement !== document.body)) return;
+      (document.querySelector('#category-bar [aria-current="page"]') || document.querySelector('#category-bar [data-view]'))?.focus({ preventScroll: true });
+    }); }
     else if (restoreFocus) button?.focus({ preventScroll: true });
   }
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
@@ -685,7 +688,7 @@
       view.querySelectorAll('[data-hub-panel]').forEach(panel => { const selected = panel.dataset.hubPanel === route.panel; panel.hidden = !selected; panel.classList.toggle('active', selected); });
     });
     document.querySelectorAll('.primary-nav [data-view], .hub-utility-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view], .mobile-notifications-button[data-view]').forEach(item => {
-      const navView = next === 'visit-prep' ? 'diary' : next === 'add' ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+      const navView = next === 'add' ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
@@ -704,7 +707,7 @@
     if (healthActions) healthActions.hidden = route.panel !== 'details';
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
-    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' || next === 'visit-prep' ? 'diary' : '';
+    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' ? 'diary' : '';
     if (breadcrumb) breadcrumb.hidden = next === 'today';
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');

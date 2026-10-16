@@ -41,7 +41,7 @@ body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading .
 body[data-hub-layout="reference"] #hub-shell #view-medications .medication-toolbar button { min-height: 52px; flex: 1; }
 body[data-hub-layout="reference"] #hub-shell #view-medications .library-card > .hub-alert-shortcut { margin: 18px 0; }
 .medication-scan-help { margin-top: 20px; }
-.home-aurora-dock { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.home-aurora-dock { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .home-aurora-dock a { padding-inline: 10px; gap: 10px; font-size: 15px; }
 .home-aurora-dock .home-dock-icon { flex-basis: 44px; width: 44px; height: 44px; padding: 9px; }
 @media (max-width: 800px) {
@@ -62,7 +62,7 @@ body[data-hub-layout="reference"] #hub-shell #view-medications .library-card > .
   body[data-hub-layout="reference"] #hub-shell #category-bar .category-tab[aria-current="page"] { border-color: #0759b6; background: #e8f2ff; box-shadow: inset 3px 0 #0759b6; color: #0759b6; font-weight: 700; }
   body[data-hub-layout="reference"] #hub-shell #category-bar .category-tab > span:first-child { display: grid; place-items: center; flex: 0 0 26px; width: 26px; height: 26px; }
   body[data-hub-layout="reference"] #hub-shell #category-bar .category-tab svg { width: 22px; height: 22px; }
-  body[data-hub-layout="reference"] .mobile-bottom-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-inline: 5px; }
+  body[data-hub-layout="reference"] .mobile-bottom-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-inline: 5px; }
   body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > .mobile-bottom-nav-item[data-view] { min-width: 0; height: 62px; }
   body[data-hub-layout="reference"] .mobile-bottom-nav .mobile-bottom-nav-item > b { font-size: 11px; }
   body[data-hub-layout="reference"] #hub-shell .hub-breadcrumb { gap: 4px 8px; margin-bottom: 10px; font-size: 12px; }
@@ -79,8 +79,8 @@ body[data-hub-layout="reference"] #hub-shell #view-medications .library-card > .
   body[data-hub-layout="reference"][data-active-feature="medications"] #hub-shell #view-health > .page-heading .eyebrow { display: none; }
   body[data-hub-layout="reference"] #hub-shell #view-medications.view > .page-heading { padding: 20px 18px; }
   body[data-hub-layout="reference"] #hub-shell #view-medications.view > .page-heading .page-heading-actions { width: 100%; display: grid; grid-template-columns: 1fr; }
-  .home-aurora-dock { grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 24px; padding: 12px; }
-  .home-aurora-dock a { flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 82px; font-size: 12px; padding: 6px; text-align: center; overflow-wrap: anywhere; }
+  .home-aurora-dock { grid-template-columns: repeat(4, minmax(0, 1fr)); border-radius: 24px; padding: 12px 6px; }
+  .home-aurora-dock a { flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 82px; font-size: 11px; padding: 6px 2px; text-align: center; overflow-wrap: anywhere; }
   .home-aurora-dock a + a { border-left: 0; }
   .home-aurora-dock a:first-child { grid-column: auto; justify-content: center; }
   .home-aurora-dock .home-dock-icon { flex-basis: 34px; width: 34px; height: 34px; padding: 7px; }

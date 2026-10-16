@@ -1,5 +1,5 @@
-/* The selected aurora theme keeps cyan/lilac in the atmosphere, while
-   decorative icons stay blue and clinical warning colours stay semantic. */
+/* The selected aurora theme keeps cyan/lilac in the atmosphere. Destination
+   colours identify routes; clinical warning colours remain separate. */
 html :is(.doctorai-homepage, body[data-hub-layout="reference"]) {
   --aurora-base: #f5f8ff;
   --aurora-cyan: #95dffbc4;
@@ -54,17 +54,17 @@ html body[data-health-alert-level="red"] {
   --aurora-accent: #a12032;
 }
 
-/* Route icons and headings share one restrained blue treatment. Labels and
-   distinct shapes identify each destination without relying on colour. */
+/* Route icons and headings use the same palette in the public dock and Hub.
+   Labels and distinct shapes identify destinations without relying on colour. */
 .doctorai-homepage {
   --home-today-surface: #e8f2ff;
   --home-today-accent: #0759b6;
-  --home-health-surface: #e8f2ff;
-  --home-health-accent: #0759b6;
-  --home-visit-surface: #e8f2ff;
-  --home-visit-accent: #0759b6;
-  --home-profile-surface: #e8f2ff;
-  --home-profile-accent: #0759b6;
+  --home-health-surface: #e4f7f0;
+  --home-health-accent: #087665;
+  --home-visit-surface: #fff1d9;
+  --home-visit-accent: #805418;
+  --home-profile-surface: #f0edff;
+  --home-profile-accent: #5b4fa8;
 }
 body[data-hub-layout="reference"][data-active-feature="medications"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
 body[data-hub-layout="reference"][data-active-feature="symptoms"] { --destination-bg: #e8f2ff; --destination-accent: #0759b6; }
@@ -141,7 +141,7 @@ body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destinat
 .home-aurora-dock a { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 62px; padding: 0 15px; color: #061639; font-size: 17px; font-weight: 700; line-height: 1.35; text-decoration: none; }
 .home-aurora-dock a + a { border-left: 1px solid #b5ccef; }
 .home-aurora-dock a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.home-aurora-dock .home-dock-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 52px; width: 52px; height: 52px; padding: 10px; border: 1px solid #bed9f1; border-radius: 50%; background: var(--home-topic-surface); color: var(--home-topic-accent); box-shadow: inset 0 1px #fff; }
+.home-aurora-dock .home-dock-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 52px; width: 52px; height: 52px; padding: 10px; border: 1px solid color-mix(in srgb, var(--home-topic-accent) 25%, white); border-radius: 50%; background: var(--home-topic-surface); color: var(--home-topic-accent); box-shadow: inset 0 1px #fff; }
 .home-aurora-dock svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .home-dock-check { display: inline-flex; width: 18px; height: 18px; color: #0069ed; }
 .home-aurora-dock a:first-child::after { content: ''; position: absolute; bottom: -7px; height: 3px; left: 18%; right: 18%; border-radius: 4px; background: #0878f5; }
@@ -152,7 +152,7 @@ body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destinat
 .doctorai-homepage .home-topics { margin-top: 20px; }
 
 /* Health Hub: keep text on readable surfaces; tint the surroundings, not data.
-   Orange also covers unassessed/limited checks, not just a known risk. */
+   Only a current notice changes the atmosphere to orange or red. */
 body[data-hub-layout="reference"] #hub-shell { background: transparent; }
 body[data-hub-layout="reference"] #hub-shell .sidebar {
   background: var(--aurora-glass);
@@ -163,7 +163,7 @@ body[data-hub-layout="reference"] #hub-shell #view-today.view { background: #fff
 body[data-hub-layout="reference"] #hub-shell .view-stack { padding-top: 12px; }
 body[data-hub-layout="reference"][data-health-alert-level] #hub-shell .hub-main { border-top: 4px solid var(--aurora-accent); }
 body[data-hub-layout="reference"] #hub-shell .hub-topbar { background: var(--aurora-glass); }
-body[data-hub-layout="reference"] .mobile-bottom-nav { background: #fffffff2; }
+body[data-hub-layout="reference"] .mobile-bottom-nav { background: #fff; }
 body[data-hub-layout="reference"] :is(.hub-alert-shortcut, .health-alert-card) { background-clip: padding-box; }
 body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="moderate"], [data-severity="low"]) {
   border-color: #efc18e;
@@ -178,8 +178,8 @@ body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([da
 }
 body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) .hub-alert-icon { background: #ffe9ec; color: #a12032; }
 
-/* The calm aurora remains the default. A current local result changes the
-   workspace atmosphere, while category icons keep their familiar blue. */
+/* The calm aurora remains the default. A current notice changes the
+   workspace atmosphere, while route icons keep their distinct colours. */
 body[data-hub-layout="reference"][data-health-alert-level="orange"] {
   --aurora-signal-ink: #753907;
   --aurora-signal-edge: #bc6a21;
@@ -396,7 +396,7 @@ body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .hub-alert-na
   .doctorai-homepage .home-brand-wordmark { width: 81px; }
   .doctorai-homepage .home-brand-wordmark img { width: 112px; height: 75px; margin: -51px 0 0 -15px; }
   .doctorai-homepage .home-nav .home-button { padding-inline: 9px; }
-  .home-aurora-dock a:nth-child(3) { grid-column: 1 / -1; justify-content: center; border-top: 1px solid #b5ccef; }
+  .home-aurora-dock a:nth-child(3) { grid-column: auto; justify-content: center; border-top: 0; }
 }
 body[data-hub-layout="reference"] #view-timeline .timeline-history-label {
   display: block;
