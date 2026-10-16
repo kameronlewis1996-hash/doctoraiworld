@@ -1,0 +1,149 @@
+[
+  {
+    "width": 1440,
+    "name": "empty",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "allergy-condition",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "stopped",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "pair",
+    "initialLevel": "red",
+    "currentMedicines": 2,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "unknown",
+    "initialLevel": "orange",
+    "currentMedicines": 1,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "independent",
+    "initialLevel": "red",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 1440,
+    "name": "stale",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "empty",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "allergy-condition",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "stopped",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "pair",
+    "initialLevel": "red",
+    "currentMedicines": 2,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "unknown",
+    "initialLevel": "orange",
+    "currentMedicines": 1,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "independent",
+    "initialLevel": "red",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 390,
+    "name": "stale",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "empty",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "allergy-condition",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "stopped",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "pair",
+    "initialLevel": "red",
+    "currentMedicines": 2,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "unknown",
+    "initialLevel": "orange",
+    "currentMedicines": 1,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "independent",
+    "initialLevel": "red",
+    "currentMedicines": 0,
+    "result": "passed"
+  },
+  {
+    "width": 320,
+    "name": "stale",
+    "initialLevel": "neutral",
+    "currentMedicines": 0,
+    "result": "passed"
+  }
+]

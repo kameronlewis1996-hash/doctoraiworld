@@ -1,0 +1,20 @@
+[
+  {
+    "file_name": "nested-medications-320.png",
+    "file_id": "file_00000000a51081f4b47c9cbdaa8beca7",
+    "library_file_id": "libfile_8eb2c4fc0e388191b4c13cec3b5ad731",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "nested-medications-390.png",
+    "file_id": "file_00000000af5c824385c8ac4de0cccca3",
+    "library_file_id": "libfile_66cc5673fce08191a0d8d921268023c8",
+    "status": "succeeded"
+  },
+  {
+    "file_name": "nested-medications-1440.png",
+    "file_id": "file_00000000f59c81fdb5c570604acc7eab",
+    "library_file_id": "libfile_c9ff450c46288191b757456aafa33e80",
+    "status": "succeeded"
+  }
+]

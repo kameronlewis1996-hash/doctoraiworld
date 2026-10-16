@@ -69,6 +69,10 @@
           }
         } else if (saved) this.remove();
       }
+      if (!context.payload.medications.length) {
+        this.view.status = 'not_checked'; this.view.result = null; this.view.checkedAt = null; this.view.error = '';
+        this.persist(); this.emit(); return this.snapshot();
+      }
       if (!context.allowed || !context.rulesVersion) {
         if (context.allowed && !context.rulesVersion) { this.view.status = 'unavailable'; this.view.error = 'The current rules version could not be verified. No check was sent.'; }
         this.emit(); return this.snapshot();
