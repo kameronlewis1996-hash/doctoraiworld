@@ -1,5 +1,7 @@
 # Health Hub navigation clarity — 16 October 2026
 
+Historical initial build at `282444c`. The user's corrected hierarchy and zero-medicine alert refinements supersede this layout: see the [current correction review](corrected/review.md).
+
 This draft builds on PR [#79](https://github.com/kameronlewis1996-hash/doctoraiworld/pull/79), head `fbfc20b8b923ec4b496a50d63b63cdaeb9cc5e0c`, which includes the PR [#78](https://github.com/kameronlewis1996-hash/doctoraiworld/pull/78) Aurora alert theme. Main was inspected at `a130fc99a9866e6e779178675a09ab192642d619`. No production merge or deployment is part of this change.
 
 ## Navigation map

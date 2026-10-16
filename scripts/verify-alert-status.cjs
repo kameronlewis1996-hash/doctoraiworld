@@ -134,7 +134,7 @@ function assertPresentation(dom, result, expectedLevel, expectedTitle) {
 }
 check('aurora severity state updates with real current results and resets after failure', () => {
   const dom = presentationDOM();
-  assertPresentation(dom, evaluate({}), 'neutral', 'Add details to check');
+  assertPresentation(dom, evaluate({}), 'neutral', 'No current medicines');
   assertPresentation(dom, known, 'orange', 'Some details need review');
   assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
   assertPresentation(dom, null, 'neutral', 'Checks unavailable');
@@ -143,6 +143,6 @@ check('urgent results retain stronger instructions within the red theme and clea
   const dom = presentationDOM();
   assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
   assertPresentation(dom, evaluate({ timeline: [{ id: 'urgent', type: 'symptom', source: 'symptom-diary', title: 'Severe difficulty breathing', date: '2026-10-10' }] }), 'red', 'Urgent medical help');
-  assertPresentation(dom, evaluate({}), 'neutral', 'Add details to check');
+  assertPresentation(dom, evaluate({}), 'neutral', 'No current medicines');
 });
 console.log(`Alert status verified: ${checks} checks passed.`);

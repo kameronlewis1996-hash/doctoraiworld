@@ -214,6 +214,9 @@ function verifyAppointmentDayRefresh() {
   f.context.Date = class extends Date {
     constructor(...values) { super(...(values.length ? values : [clock])); }
   };
+  f.context.renderMedicationLibrary = () => {};
+  f.context.clearMedicationSafetyResults = () => {};
+  f.context.renderHealthAlerts = () => {};
   f.context.renderTodayOverview = () => calls.overview++;
   f.context.renderTodayAppointment = () => calls.preview++;
   f.context.renderAppointments = () => calls.appointments++;
