@@ -1,0 +1,23 @@
+[
+  {
+    "width": 320,
+    "file": "nested-medications-320.png",
+    "actionsBeforeCurrentList": true,
+    "level": "neutral",
+    "axeViolations": []
+  },
+  {
+    "width": 390,
+    "file": "nested-medications-390.png",
+    "actionsBeforeCurrentList": true,
+    "level": "neutral",
+    "axeViolations": []
+  },
+  {
+    "width": 1440,
+    "file": "nested-medications-1440.png",
+    "actionsBeforeCurrentList": true,
+    "level": "neutral",
+    "axeViolations": []
+  }
+]

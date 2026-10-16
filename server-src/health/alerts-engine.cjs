@@ -1,4 +1,5 @@
 'use strict';
+const { currentMedicines } = require('../../medication-records.js');
 
 // Pure, local review prompts. The medicine rules are supplied by the existing
 // medication engine; this module does not fetch, store, or log a health record.
@@ -116,8 +117,9 @@ function createHealthAlertsEngine(medicineEngine) {
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const todayDate = validDate(today);
     const allMedicines = list(state.medications).map(item => typeof item === 'string' ? { name: item } : { ...record(item), activeIngredientsConfirmed: record(item).activeIngredientsConfirmed === true || record(item).activeIngredientsManuallyConfirmed === true });
-    const excludedMedicines = allMedicines.filter(item => inactive(item) || (validDate(item.endDate) && item.endDate < today) || (validDate(item.startDate) && item.startDate > today));
-    const medicines = allMedicines.filter(item => !excludedMedicines.includes(item)).slice(0, MAX_MEDICINES);
+    const activeMedicines = currentMedicines(allMedicines, now);
+    const excludedMedicines = allMedicines.filter(item => !activeMedicines.includes(item));
+    const medicines = activeMedicines.slice(0, MAX_MEDICINES);
     const medicineTriggers = medicines.map(medicineTrigger);
     const allergyItems = [...detailItems(profile.allergies, 'allergy'), ...detailItems(state.allergies, 'allergy')];
     const conditionItems = [...detailItems(profile.conditions, 'condition'), ...detailItems(state.conditions, 'condition')];
@@ -325,7 +327,7 @@ function createHealthAlertsEngine(medicineEngine) {
       alerts: deduplicated,
       coverage: {
         complete: false, localOnly: true, networkRequests: 0, missing,
-        medications: { status: 'limited', requested: allMedicines.length, checked: medicines.length, excludedInactiveOrOutOfDate: excludedMedicines.length, omittedByLimit: Math.max(0, allMedicines.length - excludedMedicines.length - medicines.length), resolved: resolved.length - unknownMedicines.length, unknown: unknownMedicines },
+        medications: { status: 'limited', requested: allMedicines.length, active: activeMedicines.length, checked: medicines.length, excludedInactiveOrOutOfDate: excludedMedicines.length, omittedByLimit: Math.max(0, activeMedicines.length - medicines.length), resolved: resolved.length - unknownMedicines.length, unknown: unknownMedicines },
         medicationMedication: { status: 'limited', coverageLevel: 'very-limited', ruleCount: medicationReview.coverage.interactionRuleCount, multiMedicineRuleCount: medicationReview.coverage.combinationRuleCount, requestedPairs: pairCoverage.requestedPairs, assessedPairs: pairCoverage.assessedPairs, unassessedPairs: pairCoverage.unassessedPairs, unassessed: pairCoverage.unassessed, omittedUnassessedPairs: Math.max(0, pairCoverage.unassessedPairs - pairCoverage.unassessed.length), doseRouteTimingAssessed: false, limitation: 'Only positively licensed retained pairwise rules are reported. Other medicine pairs are unassessed; absence of an alert is not a safety finding.' },
         symptomMedication: { status: 'limited', ruleCount: 3, limitation: 'Warfarin bleeding/injury, ibuprofen bleeding and NSAID/asthma breathing context prompts only; no adverse-effect or causation assessment.' },
         conditionSymptoms: { status: 'limited', ruleCount: 1, limitation: 'Only asthma with a recent affirmative breathing entry is checked; no diagnosis or urgency clearance.' },

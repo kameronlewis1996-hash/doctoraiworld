@@ -1,0 +1,657 @@
+{
+  "result": "passed",
+  "routes": [
+    {
+      "width": 1440,
+      "route": "today",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "health",
+      "view": "health",
+      "panel": "details",
+      "overflow": false,
+      "heading": "My Health",
+      "panels": [
+        "details"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "medications",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "scan",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "diary",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "profile",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "visit-prep",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "add",
+      "view": "add",
+      "panel": "quick-add",
+      "overflow": false,
+      "heading": "Add Health Detail",
+      "panels": [
+        "quick-add"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "alerts",
+      "view": "alerts",
+      "panel": "",
+      "overflow": false,
+      "heading": "Alerts",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "documents",
+      "view": "health",
+      "panel": "documents",
+      "overflow": false,
+      "heading": "Documents",
+      "panels": [
+        "documents"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "results",
+      "view": "health",
+      "panel": "results",
+      "overflow": false,
+      "heading": "Measurements & results",
+      "panels": [
+        "results"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "timeline",
+      "view": "health",
+      "panel": "timeline",
+      "overflow": false,
+      "heading": "Health history",
+      "panels": [
+        "timeline"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "ask",
+      "view": "health",
+      "panel": "ask",
+      "overflow": false,
+      "heading": "Ask DoctorAI",
+      "panels": [
+        "ask"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "symptoms",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "appointments",
+      "view": "diary",
+      "panel": "appointments",
+      "overflow": false,
+      "heading": "Appointments",
+      "panels": [
+        "appointments"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "visit",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "memory",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 1440,
+      "route": "medicines",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "prescriptions",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "unknown",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "today",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "health",
+      "view": "health",
+      "panel": "details",
+      "overflow": false,
+      "heading": "My Health",
+      "panels": [
+        "details"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "medications",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "scan",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "diary",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "profile",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "visit-prep",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "add",
+      "view": "add",
+      "panel": "quick-add",
+      "overflow": false,
+      "heading": "Add Health Detail",
+      "panels": [
+        "quick-add"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "alerts",
+      "view": "alerts",
+      "panel": "",
+      "overflow": false,
+      "heading": "Alerts",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "documents",
+      "view": "health",
+      "panel": "documents",
+      "overflow": false,
+      "heading": "Documents",
+      "panels": [
+        "documents"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "results",
+      "view": "health",
+      "panel": "results",
+      "overflow": false,
+      "heading": "Measurements & results",
+      "panels": [
+        "results"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "timeline",
+      "view": "health",
+      "panel": "timeline",
+      "overflow": false,
+      "heading": "Health history",
+      "panels": [
+        "timeline"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "ask",
+      "view": "health",
+      "panel": "ask",
+      "overflow": false,
+      "heading": "Ask DoctorAI",
+      "panels": [
+        "ask"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "symptoms",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "appointments",
+      "view": "diary",
+      "panel": "appointments",
+      "overflow": false,
+      "heading": "Appointments",
+      "panels": [
+        "appointments"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "visit",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "memory",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 390,
+      "route": "medicines",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "prescriptions",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 390,
+      "route": "unknown",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "today",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "health",
+      "view": "health",
+      "panel": "details",
+      "overflow": false,
+      "heading": "My Health",
+      "panels": [
+        "details"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "medications",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "scan",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "diary",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "profile",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "visit-prep",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "add",
+      "view": "add",
+      "panel": "quick-add",
+      "overflow": false,
+      "heading": "Add Health Detail",
+      "panels": [
+        "quick-add"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "alerts",
+      "view": "alerts",
+      "panel": "",
+      "overflow": false,
+      "heading": "Alerts",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "documents",
+      "view": "health",
+      "panel": "documents",
+      "overflow": false,
+      "heading": "Documents",
+      "panels": [
+        "documents"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "results",
+      "view": "health",
+      "panel": "results",
+      "overflow": false,
+      "heading": "Measurements & results",
+      "panels": [
+        "results"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "timeline",
+      "view": "health",
+      "panel": "timeline",
+      "overflow": false,
+      "heading": "Health history",
+      "panels": [
+        "timeline"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "ask",
+      "view": "health",
+      "panel": "ask",
+      "overflow": false,
+      "heading": "Ask DoctorAI",
+      "panels": [
+        "ask"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "symptoms",
+      "view": "diary",
+      "panel": "symptoms",
+      "overflow": false,
+      "heading": "Symptom diary",
+      "panels": [
+        "symptoms"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "appointments",
+      "view": "diary",
+      "panel": "appointments",
+      "overflow": false,
+      "heading": "Appointments",
+      "panels": [
+        "appointments"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "visit",
+      "view": "visit-prep",
+      "panel": "",
+      "overflow": false,
+      "heading": "Visit prep",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "memory",
+      "view": "profile",
+      "panel": "",
+      "overflow": false,
+      "heading": "Profile & settings",
+      "panels": []
+    },
+    {
+      "width": 320,
+      "route": "medicines",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "prescriptions",
+      "view": "health",
+      "panel": "medications",
+      "overflow": false,
+      "heading": "Medication & Prescriptions",
+      "panels": [
+        "medications"
+      ]
+    },
+    {
+      "width": 320,
+      "route": "unknown",
+      "view": "today",
+      "panel": "",
+      "overflow": false,
+      "heading": "Your health, today.",
+      "panels": []
+    }
+  ],
+  "screenshots": [
+    "after-today-1440.png",
+    "after-health-1440.png",
+    "after-medications-1440.png",
+    "after-scan-1440.png",
+    "after-documents-1440.png",
+    "after-appointments-1440.png",
+    "after-home-1440.png",
+    "after-today-390.png",
+    "after-health-390.png",
+    "after-medications-390.png",
+    "after-scan-390.png",
+    "after-documents-390.png",
+    "after-appointments-390.png",
+    "after-menu-390.png",
+    "after-red-alerts-390.png",
+    "after-home-390.png"
+  ],
+  "errors": [],
+  "checks": [
+    "1440: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+    "1440: privacy and summary bookmark dialogs open and close",
+    "1440: red alert banner remains reachable by keyboard",
+    "390: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+    "390: privacy and summary bookmark dialogs open and close",
+    "390: menu open, Escape/focus return, select My Health/medicines/Profile and automatic close",
+    "390: menu Tab exit, repeated toggles and desktop resize",
+    "390: red alert banner remains reachable by keyboard",
+    "320: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+    "320: privacy and summary bookmark dialogs open and close",
+    "320: menu open, Escape/focus return, select My Health/medicines/Profile and automatic close",
+    "320: menu Tab exit, repeated toggles and desktop resize",
+    "320: red alert banner remains reachable by keyboard"
+  ]
+}

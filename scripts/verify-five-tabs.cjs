@@ -12,11 +12,11 @@ const categoryCss = read('hub-category-themes.css');
 const auroraCss = read('aurora-theme.css');
 const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
-const main = ['today', 'health', 'medications', 'scan', 'diary'];
+const main = ['today', 'health', 'diary'];
 const secondary = ['visit-prep', 'profile', 'add', 'alerts'];
 const views = [...main, ...secondary];
 const matches = expression => [...html.matchAll(expression)].map(match => match[1]);
-assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Five task destinations and four supporting views are required.');
+assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Three main destinations and four supporting views are required.');
 const ids = matches(/\bid="([^"]+)"/g);
 assert.equal(new Set(ids).size, ids.length, 'Retained controls must have unique DOM IDs.');
 const extractElement = (marker, tag) => {
@@ -49,14 +49,14 @@ assert.ok(primary, 'Desktop primary navigation exists.');
 assert.deepEqual([...primary.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Desktop tabs use the requested order.');
 const mobile = html.match(/<nav class="mobile-bottom-nav"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(mobile, 'Mobile primary navigation exists.');
-assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same five main destinations.');
+assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same three main destinations.');
 const category = html.match(/<nav class="category-bar"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(category, 'Compact main navigation exists.');
 assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), [...main, 'alerts', 'profile'], 'The full menu retains every task plus separate Alerts and Profile.');
-for (const nested of ['ask','documents','symptoms','appointments','results','timeline']) {
+for (const nested of ['ask','medications','documents','symptoms','appointments','results','timeline']) {
   assert.ok(html.includes(`data-hub-panel="${nested}"`), `Useful ${nested} feature remains accessible inside its destination.`);
 }
-for (const [view, features] of Object.entries({ health:['details','ask','documents','results','timeline'], add:['quick-add'], diary:['symptoms','appointments'] })) {
+for (const [view, features] of Object.entries({ health:['details','medications','ask','documents','results','timeline'], add:['quick-add'], diary:['symptoms','appointments'] })) {
   for (const feature of features) assert.ok(sections[view].includes('data-hub-panel="' + feature + '"'), feature + ' belongs inside ' + view + '.');
 }
 assert.ok(!/data-view-panel="briefing"|data-hub-panel="(?:today|briefing|profile)"|data-hub-panel-target="(?:today|briefing|profile)"/.test(html), 'Today and Profile are main destinations, without duplicate nested overview or settings pages.');
@@ -71,17 +71,17 @@ assert.ok(settings.includes('<details class="panel-card memory-card memory-discl
 assert.ok(settings.includes('id="health-memory-toggle"') && settings.includes('id="memory-approved-list"'), 'Profile retains the consent control and approved context.');
 assert.ok(settings.includes('data-open-profile') && settings.includes('data-show-privacy'), 'Profile retains account settings and privacy controls.');
 assert.ok(!details.includes('id="health-memory-details"'), 'Memory settings must not duplicate the main My Health details.');
-assert.match(js, /health:\s*\['details',\s*'documents',\s*'results',\s*'timeline',\s*'ask'\]/, 'My Health groups health records, history and Ask.');
+assert.match(js, /health:\s*\['details',\s*'medications',\s*'documents',\s*'results',\s*'timeline',\s*'ask'\]/, 'My Health groups health records, history and Ask.');
 const routeStart = js.indexOf('const viewNames =');
 const routeEnd = js.indexOf('const storagePrefix =', routeStart);
 assert.ok(routeStart >= 0 && routeEnd > routeStart, 'Actual route definitions can be exercised without starting the app.');
 const resolveRoute = vm.runInNewContext(js.slice(routeStart, routeEnd) + '\nresolveHubRoute;', {}, { timeout: 1000 });
 const routeFixtures = {
   today: ['today',''], health: ['health','details'], 'visit-prep': ['visit-prep',''], profile: ['profile',''],
-  scan: ['scan',''], add: ['add','quick-add'], diary: ['diary','symptoms'], alerts: ['alerts',''],
-  ask: ['health','ask'], medications: ['medications',''], documents: ['health','documents'],
+  scan: ['health','medications'], add: ['add','quick-add'], diary: ['diary','symptoms'], alerts: ['alerts',''],
+  ask: ['health','ask'], medications: ['health','medications'], documents: ['health','documents'],
   symptoms: ['diary','symptoms'], appointments: ['diary','appointments'], results: ['health','results'], timeline: ['health','timeline'],
-  memory: ['profile',''], summary: ['visit-prep',''], visit: ['visit-prep',''], medicines: ['medications',''], prescriptions: ['medications',''], privacy: ['profile','']
+  memory: ['profile',''], summary: ['visit-prep',''], visit: ['visit-prep',''], medicines: ['health','medications'], prescriptions: ['health','medications'], privacy: ['profile','']
 };
 for (const [name, [view, panel]] of Object.entries(routeFixtures)) {
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(name))), { view, panel }, `The actual ${name} route preserves its intended destination.`);
@@ -103,14 +103,14 @@ const breadcrumbNodes = Object.fromEntries(['hub-breadcrumb','hub-parent-link','
 const navigationContext = {
   currentView:'today', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
   els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
-  sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
+  requestAnimationFrame:fn=>fn(), sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
   window:{scrollTo() {},dispatchEvent() {}}, CustomEvent:class { constructor(type, options) { this.type=type; this.detail=options.detail; } }
 };
 vm.createContext(navigationContext);
 vm.runInContext(js.slice(routeStart, routeEnd) + '\n' + js.slice(showStart, showEnd) + '\nthis.routeNavigate=showView;', navigationContext, { timeout:1000 });
 const canonicalFixtures = [
   ['today','#today'], ['health','#health'], ['visit-prep','#visit-prep'], ['profile','#profile'],
-  ['scan','#scan'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
+  ['scan','#medications'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
   ['ask','#ask'], ['medications','#medications'], ['documents','#documents'], ['symptoms','#symptoms'],
   ['appointments','#appointments'], ['results','#results'], ['timeline','#timeline']
 ];
@@ -237,7 +237,7 @@ assert.match(sections.today, /<button\b[^>]*data-open-medication-scanner[^>]*>[\
 assert.ok(sections.today.includes('data-view="medications"') && sections.today.includes('data-view="visit-prep"'), 'Today connects its medicine card and appointment preparation to the retained tools.');
 assert.ok(sections['visit-prep'].includes('data-open-summary'), 'Visit prep opens the existing brief builder.');
 for (const target of ['data-care-summary-form','care-summary-reviewed','data-print-care-summary','data-copy-care-summary']) assert.ok(js.includes(target), `The reviewed brief flow retains ${target}.`);
-assert.ok(sections.scan.includes('data-open-medication-scanner') && sections.scan.includes('data-modal="medication"'), 'Scan is an actual page with capture and manual-entry actions.');
+assert.ok(sections.health.includes('id="view-scan"') && sections.health.includes('data-open-medication-scanner'), 'Scan remains a tool inside My Health medications.');
 assert.ok(sections.add.includes('class="add-details-grid"') && sections.add.includes('data-modal="health"'), 'Add is an actual page with working health-entry targets.');
 assert.ok(sections.diary.includes('id="symptom-list"') && sections.diary.includes('id="upcoming-appointments-list"'), 'My Diary retains meaningful record lists, not just a destination selector.');
 assert.ok(!/data-view-panel="(?:ask|symptoms|appointments|results|timeline|documents)"/.test(html), 'Supporting record tools remain grouped under their main destination.');
@@ -497,5 +497,5 @@ async function verifySignOutResponseHandling() {
   }
 }
 verifyAccountResponseBoundaries().then(verifyAccountStateIsolation).then(verifySignOutResponseHandling).then(() => {
-  console.log('Shared task navigation verified: five main destinations, grouped records, legacy and canonical routes, privacy status, account isolation, sign-in/sign-out failure handling, consent, visit preparation and clinical alert boundaries.');
+  console.log('Shared task navigation verified: three main destinations, medicines and scanning inside My Health, legacy and canonical routes, privacy status, account isolation, sign-in/sign-out failure handling, consent, visit preparation and clinical alert boundaries.');
 }).catch(error => {console.error(error); process.exitCode=1;});

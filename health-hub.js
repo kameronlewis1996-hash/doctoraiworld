@@ -3,10 +3,10 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const viewNames = ['today', 'health', 'medications', 'scan', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
+  const viewNames = ['today', 'health', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
   const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit prep', profile: 'Profile & settings', add: 'Add Health Detail', alerts: 'Alerts' };
-  const hubPanels = { today: [], health: ['details', 'documents', 'results', 'timeline', 'ask'], medications: [], scan: [], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
-  const legacyHubRoutes = { visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['medications', ''], prescriptions: ['medications', ''], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
+  const hubPanels = { today: [], health: ['details', 'medications', 'documents', 'results', 'timeline', 'ask'], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
+  const legacyHubRoutes = { medications: ['health', 'medications'], scan: ['health', 'medications'], visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['health', 'medications'], prescriptions: ['health', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
   function resolveHubRoute(name, requestedPanel = '') {
     const legacy = legacyHubRoutes[name];
     const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'today';
@@ -140,6 +140,7 @@
     memoryEnabled: read('memory-enabled', false),
     memoryDetails: read('memory-details', [])
   };
+  function currentMedicationRecords() { return window.DoctorAIMedicationRecords.currentMedicines(state.medications); }
   function createMeasurementId() {
     const used = new Set(state.measurements.filter(record => record && record.id !== null && record.id !== undefined).map(record => String(record.id)));
     let id = '';
@@ -675,7 +676,7 @@
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
     const next = route.view; currentView = next; currentHubPanel = route.panel;
-    if (next === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
+    if (route.panel === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
     document.body.dataset.hubTheme = next; document.body.dataset.activeFeature = route.panel || next; document.body.dataset.hubPanel = route.panel;
     els.views.forEach(view => {
@@ -689,12 +690,13 @@
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('.hub-panel-nav [data-view="visit-prep"]').forEach(item => { const active = next === 'visit-prep'; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current'); });
-    const featureLabels = { documents: 'Documents', symptoms: 'Symptom diary', appointments: 'Appointments', results: 'Measurements & results', timeline: 'Health history', ask: 'Ask DoctorAI' };
+    const featureLabels = { medications: 'Medication & Prescriptions', documents: 'Documents', symptoms: 'Symptom diary', appointments: 'Appointments', results: 'Measurements & results', timeline: 'Health history', ask: 'Ask DoctorAI' };
     const section = document.querySelector('[data-view-panel="' + next + '"]');
     const label = featureLabels[route.panel] || viewLabels[next];
     const heading = section?.querySelector(':scope > .page-heading h1');
     if (heading && next !== 'today') heading.textContent = label;
-    const descriptions = { documents: 'Keep prescriptions, letters, reports and health photos together.', results: 'Record measurements and results for your care conversations.', timeline: 'Review the health details and changes you have recorded.', ask: 'Prepare questions for a conversation with your care team.', symptoms: 'Record what you noticed, when it happened and how it changed.', appointments: 'Keep appointment details, questions and follow-up notes together.', details: 'Conditions, allergies, documents, measurements and health history.' };
+    const descriptions = { medications: 'Your current medicines, prescriptions and schedules.', documents: 'Keep prescriptions, letters, reports and health photos together.', results: 'Record measurements and results for your care conversations.', timeline: 'Review the health details and changes you have recorded.', ask: 'Prepare questions for a conversation with your care team.', symptoms: 'Record what you noticed, when it happened and how it changed.', appointments: 'Keep appointment details, questions and follow-up notes together.', details: 'Conditions, allergies, documents, measurements and health history.' };
+    document.querySelectorAll('[data-hub-section-select]').forEach(select => { select.value = next === 'health' ? route.panel : 'details'; });
     const subtitle = section?.querySelector(':scope > .page-heading .page-subtitle');
     if (subtitle && descriptions[route.panel]) subtitle.textContent = descriptions[route.panel];
     const healthActions = section?.querySelector('.health-page-actions');
@@ -716,12 +718,13 @@
     renderedHubLocation = location.href;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     if (moveFocus) { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
+    if (name === 'scan') requestAnimationFrame(() => document.querySelector('#view-medications [data-open-medication-scanner]')?.focus({ preventScroll: true }));
     window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
     window.dispatchEvent(new CustomEvent('doctorai:panel-shown', { detail: { view: next, panel: route.panel } }));
   }
   function renderTodayMedications() {
     if (!els.medicationToday) return;
-    const medications = state.medications.slice(0, 2);
+    const medications = currentMedicationRecords().slice(0, 2);
     if (!medications.length) {
       els.medicationToday.innerHTML = '<div class="empty-state">No medications due today. Add a prescription reminder when you are ready.</div>';
       return;
@@ -748,7 +751,7 @@
   }
 
   function medicationWithoutRefillWithLowSupply() {
-    return state.medications.find(medication => {
+    return currentMedicationRecords().find(medication => {
       const amount = savedSupplyAmount(medication);
       const hasRefillDate = medication.refill && medication.refill !== 'Not set';
       return !hasRefillDate && amount !== null && amount <= 14;
@@ -757,8 +760,15 @@
 
   function renderMedicationLibrary() {
     if (!els.medicationLibrary) return;
-    if (els.medicationsCount) els.medicationsCount.textContent = `${state.medications.length} active`;
-    els.medicationLibrary.innerHTML = state.medications.length ? state.medications.map(medication => {
+    const medications = currentMedicationRecords();
+    if (els.medicationsCount) els.medicationsCount.textContent = `${medications.length} current`;
+    const inactive = state.medications.filter(item => !medications.includes(item));
+    const inactiveRecords = $('#inactive-medication-records');
+    if (inactiveRecords) inactiveRecords.hidden = !inactive.length;
+    const inactiveCount = $('#inactive-medications-count'); if (inactiveCount) inactiveCount.textContent = `(${inactive.length})`;
+    const inactiveList = $('#inactive-medication-list');
+    if (inactiveList) inactiveList.innerHTML = inactive.map(item => `<article class="inactive-medication-row"><span><b>${escapeHTML(item.name || 'Unnamed medicine')}</b><small>${escapeHTML([item.status, item.startDate ? 'Start: ' + item.startDate : '', item.endDate ? 'End: ' + item.endDate : ''].filter(Boolean).join(' · '))}</small></span><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">Edit</button><button type="button" class="text-button" data-delete-medication="${escapeHTML(item.id)}">Delete</button></article>`).join('');
+    els.medicationLibrary.innerHTML = currentMedicationRecords().length ? currentMedicationRecords().map(medication => {
       const safety = medicationSafetyMarkup(medication);
       const medicationName = escapeHTML(medication.name || 'medication');
       const supply = savedSupplyAmount(medication);
@@ -768,9 +778,9 @@
         <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
         <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
       </div>${safety}</article>`;
-    }).join('') : '<div class="empty-state">No medications added yet. Your prescription reminders will appear here.</div>';
+    }).join('') : '<div class="empty-state">No current medicines recorded. Add a medicine or review a scanned label to start your list.</div>';
     els.medicationLibrary.querySelectorAll('.library-item-wrap').forEach((item, index) => {
-      const medication = state.medications[index];
+      const medication = currentMedicationRecords()[index];
       const ingredients = Array.isArray(medication?.activeIngredients) ? medication.activeIngredients.filter(Boolean) : [];
       const copy = item.querySelector('.library-copy');
       if (!copy) return;
@@ -801,8 +811,8 @@
       panel.innerHTML = '<div class="clash-heading"><div><p class="card-kicker">DoctorAI Pro</p><h2>Limited local medication check</h2></div><span>Pro</span></div>' +
         '<p class="clash-description">This check compares saved medicine names and recorded allergies or conditions with a small set of DoctorAI’s own local rules. It does not assess every medicine, interaction, allergy, condition, dose, timing, or your personal situation. No alert does not mean a medicine or combination is safe.</p>' +
         '<details class="medication-local-coverage"><summary>See what the local data covers</summary><div>' +
-          '<p>The dataset contains 3,419 medicine product and formulation records, 1,444 brand names, 1,224 chemical names and 1,136 ingredient terms. Of its products, 3,288 are fully mapped and 131 have incomplete ingredient mappings.</p>' +
-          '<p>The rules include 13 curated medicine-pair checks and 2 allergy classes. There are no condition-specific rules. Coverage is limited and is not the full New Zealand medicine catalogue. This does not report Medsafe approval, availability or funding.</p>' +
+          '<p>Medicine names use a licensed Pharmac snapshot. Some product formulations have incomplete ingredient mappings; see the source and coverage details with each result.</p>' +
+          '<p>Only a small set of retained medicine-pair and allergy prompts is available. Coverage is limited and does not represent a complete New Zealand medicine catalogue or a full condition assessment. A name match does not establish Medsafe approval, availability or suitability.</p>' +
           '<p>Source data: Pharmac New Zealand schedules, shared under CC BY 4.0. <a href="https://schedule.pharmac.govt.nz/pub/" target="_blank" rel="noopener noreferrer">View Pharmac source files</a>.</p>' +
         '</div></details>' +
         '<div class="clash-status" role="status" aria-live="polite"></div>' +
@@ -813,6 +823,7 @@
         '<div class="medication-db-result" data-local-medication-db-result role="status" aria-live="polite"></div>' +
         '<small class="clash-footnote">Review any result with a pharmacist or prescriber. Do not start, stop or change treatment based on this app.</small>';
     }
+    panel.hidden = !currentMedicationRecords().length;
     panel.classList.toggle('pro-locked', !hasProAccess());
     renderMedicationCheckState();
     refreshMedicationCheckContext().catch(() => {});
@@ -821,9 +832,9 @@
       status.innerHTML = proFeatureGate('Medication database checks are a DoctorAI Pro feature.', 'This local check uses limited rules. Unknown or uncovered entries remain unchecked.');
       return;
     }
-    const alerts = state.medications.flatMap(medication => medicationSafetyAlerts(medication));
+    const alerts = currentMedicationRecords().flatMap(medication => medicationSafetyAlerts(medication));
     const caution = alerts.filter(alert => alert.severity === 'caution');
-    status.innerHTML = !state.medications.length
+    status.innerHTML = !currentMedicationRecords().length
       ? '<div class="clash-box clash-box-note"><span data-doctorai-icon="info" aria-hidden="true"></span><div><b>No medicines saved yet</b><p>Add your medicines to see if any local name or label-text match needs review.</p></div></div>'
       : caution.length
         ? '<div class="clash-box clash-box-caution"><span data-doctorai-icon="alert" aria-hidden="true"></span><div><b>Possible text match to review</b><p>' + escapeHTML(caution[0].message) + ' This has not been checked against a medicine database.</p></div></div>'
@@ -833,13 +844,14 @@
 
   function medicationSafetyAlerts(medication) {
     const alerts = [];
+    if (!currentMedicationRecords().includes(medication)) return alerts;
     const medName = String(medication.name || '').trim().toLowerCase();
-    const duplicate = state.medications.some(other => other.id !== medication.id && medicationLooksDuplicated(other, medication));
+    const duplicate = currentMedicationRecords().some(other => other.id !== medication.id && medicationLooksDuplicated(other, medication));
     if (duplicate) alerts.push({ severity: 'caution', title: 'Possible name/strength duplicate (not verified)', message: medication.name + ' ' + (medication.dose || '') + ' resembles another saved entry. This text match cannot tell whether the medicines contain the same ingredient or whether both were intentionally prescribed. Ask a pharmacist or clinician to review it.', source: 'Your saved medication list' });
     const ingredientNames = medication.activeIngredientsManuallyConfirmed === true && Array.isArray(medication.activeIngredients)
       ? medication.activeIngredients.map(item => String(item || '').trim().toLowerCase()).filter(Boolean)
       : [];
-    const sharedIngredient = ingredientNames.find(ingredient => state.medications.some(other =>
+    const sharedIngredient = ingredientNames.find(ingredient => currentMedicationRecords().some(other =>
       other.id !== medication.id &&
       other.activeIngredientsManuallyConfirmed === true &&
       Array.isArray(other.activeIngredients) &&
@@ -1006,8 +1018,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderCompactToday() {
     const medicines = $('#today-compact-medicine-list');
     if (medicines) {
-      medicines.innerHTML = state.medications.length
-        ? `<ul>${state.medications.slice(0, 3).map(item => `<li><b>${escapeHTML(item.name || 'Medicine')}</b><span>${escapeHTML([item.dose, item.time].filter(Boolean).join(' · ') || 'Schedule not recorded')}</span></li>`).join('')}</ul>${state.medications.length > 3 ? `<p>And ${state.medications.length - 3} more in your saved list.</p>` : ''}`
+      medicines.innerHTML = currentMedicationRecords().length
+        ? `<ul>${currentMedicationRecords().slice(0, 3).map(item => `<li><b>${escapeHTML(item.name || 'Medicine')}</b><span>${escapeHTML([item.dose, item.time].filter(Boolean).join(' · ') || 'Schedule not recorded')}</span></li>`).join('')}</ul>${currentMedicationRecords().length > 3 ? `<p>And ${currentMedicationRecords().length - 3} more in your saved list.</p>` : ''}`
         : '<p>No medicines saved yet. Add only details you have checked against your label.</p>';
     }
     const next = $('#today-compact-appointment-copy');
@@ -1037,20 +1049,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const displayName = String(authUser?.name || state.profile.name || '').trim().split(/\s+/)[0];
     if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}${displayName ? `, ${displayName}` : ''}.`;
-    const tracked = state.medications.filter(item => item.status === 'taken').length;
-    if (els.medOverview) els.medOverview.textContent = state.medications.length ? `${tracked} of ${state.medications.length} taken` : 'No medicines logged';
+    const tracked = currentMedicationRecords().filter(item => item.status === 'taken').length;
+    if (els.medOverview) els.medOverview.textContent = currentMedicationRecords().length ? `${tracked} of ${currentMedicationRecords().length} taken` : 'No medicines logged';
     const medOverviewMeta = $('#med-overview-meta');
-    if (medOverviewMeta) medOverviewMeta.textContent = state.medications.length ? 'Based on your saved medication list' : 'Add medicines to track your routine';
+    if (medOverviewMeta) medOverviewMeta.textContent = currentMedicationRecords().length ? 'Based on your saved medication list' : 'Add medicines to track your routine';
     if (els.dailyInsight) {
-      const medicationText = state.medications.length ? `${state.medications.length} medication ${state.medications.length === 1 ? 'reminder' : 'reminders'}` : 'no medication reminders';
+      const medicationText = currentMedicationRecords().length ? `${currentMedicationRecords().length} medication ${currentMedicationRecords().length === 1 ? 'reminder' : 'reminders'}` : 'no medication reminders';
       const taskText = state.tasks.length ? `${state.tasks.length} ${state.tasks.length === 1 ? 'task' : 'tasks'}` : 'no tasks';
-      els.dailyInsight.textContent = state.medications.length || state.tasks.length ? `${medicationText} and ${taskText} to review today.` : 'Add one health item to make today more useful.';
+      els.dailyInsight.textContent = currentMedicationRecords().length || state.tasks.length ? `${medicationText} and ${taskText} to review today.` : 'Add one health item to make today more useful.';
     }
     const appointment = upcomingAppointments()[0];
     if (els.nextAppointmentValue) els.nextAppointmentValue.textContent = appointment ? formatShortDate(appointment.date) : 'No appointment';
     if (els.nextAppointmentMeta) els.nextAppointmentMeta.textContent = appointment ? `${appointment.provider || 'Provider to confirm'} · ${formatTime(appointment.time)}` : 'Add one when you’re ready';
     const unscheduledLowSupply = medicationWithoutRefillWithLowSupply();
-    const refill = state.medications.find(item => item.refill && item.refill !== 'Not set');
+    const refill = currentMedicationRecords().find(item => item.refill && item.refill !== 'Not set');
     const refillSupply = refill ? savedSupplyAmount(refill) : null;
     if (els.refillOverviewValue) els.refillOverviewValue.textContent = unscheduledLowSupply ? 'Refill date not set' : refill ? `Due ${refill.refill}` : 'No refill reminder';
     if (els.refillOverviewMeta) els.refillOverviewMeta.textContent = unscheduledLowSupply ? `${unscheduledLowSupply.name} · ${savedSupplyAmount(unscheduledLowSupply)} remaining recorded` : refill ? `${refill.name} · ${refillSupply === null ? 'supply not recorded' : `${refillSupply} remaining recorded`}` : 'Add a refill date if you want a reminder';
@@ -1086,7 +1098,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderHomePrescriptionAlert() {
     if (!els.homePrescriptionAlert) return;
-    const alerts = state.medications.flatMap(medication => medicationSafetyAlerts(medication));
+    const alerts = currentMedicationRecords().flatMap(medication => medicationSafetyAlerts(medication));
     const concern = alerts.find(alert => alert.severity === 'critical') || alerts.find(alert => alert.severity === 'caution');
     const check = medicationCheckController.snapshot();
     const issue = (check.status === 'complete' || (check.status === 'pending' && check.result)) ? window.DoctorAIMedicationCheck.issues(check.result)[0] : null;
@@ -1096,7 +1108,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         ? { className: 'status-note', icon: 'i', label: 'Checking medicines…', message: 'No current interaction result is available yet.', detail: 'Wait for the current limited check.' }
       : concern
       ? { className: concern.severity === 'critical' ? 'status-danger' : 'status-caution', icon: concern.severity === 'critical' ? '!' : '⚠', label: concern.title, message: concern.message, detail: `${concern.source} · Confirm with a pharmacist or clinician.`, concern, alerts }
-      : !state.medications.length
+      : !currentMedicationRecords().length
         ? { className: 'status-note', icon: 'i', label: 'No medicines saved yet', message: 'Add your medication list to review saved details.', detail: 'The optional local rules check covers only a small set of medicine risks; it cannot confirm medicines are safe together.' }
         : { className: 'status-note', icon: 'i', label: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Check incomplete' : 'Limited check: no interaction alert found') : check.status === 'unavailable' ? 'Check unavailable' : 'Interaction check not run', message: check.status === 'complete' ? (check.result.coverage?.unknown ? 'Some medicines could not be assessed. Review the coverage details.' : 'No covered interaction alert was found. This does not confirm safety.') : 'No current interaction assessment is available.', detail: 'The limited rules cannot confirm safety. Confirm your full list with a pharmacist or clinician.' };
     els.homePrescriptionAlert.className = `prescription-alert-status ${status.className}`;
@@ -1147,7 +1159,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderRefillCard() {
     if (!els.refillTitle || !els.refillCopy) return;
     const unscheduledLowSupply = medicationWithoutRefillWithLowSupply();
-    const refill = state.medications.find(item => item.refill && item.refill !== 'Not set');
+    const refill = currentMedicationRecords().find(item => item.refill && item.refill !== 'Not set');
     if (unscheduledLowSupply) {
       const amount = savedSupplyAmount(unscheduledLowSupply);
       const needsReview = amount === 0;
@@ -1227,7 +1239,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function refreshAppointmentDateViews() {
     const today = briefLocalDate(new Date());
     if (appointmentViewDay === today) return;
-    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments();
+    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments(); renderMedicationLibrary(); clearMedicationSafetyResults(); renderHealthAlerts();
     appointmentViewDay = today;
   }
 
@@ -1601,8 +1613,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     window.DoctorAIAlertStatus?.render(result);
     const alerts = result.alerts || [], coverage = result.coverage || {};
-    count.textContent = `${alerts.length} ${alerts.length === 1 ? 'notice' : 'notices'} to review`;
-    status.textContent = `Recalculated from your current saved details on this device. ${coverage.medications?.resolved || 0} of ${coverage.medications?.requested || 0} medicine entries matched the local catalogue. Coverage remains limited.`;
+    count.textContent = alerts.length ? `${alerts.length} ${alerts.length === 1 ? 'notice' : 'notices'} to review` : 'No current notices';
+    status.textContent = coverage.medications?.active === 0 ? 'No current medicines are recorded. Medicine checks have nothing to assess; any independent health notice below is based on the saved inputs shown with it.' : `Recalculated from current saved details. ${coverage.medications?.resolved || 0} of ${coverage.medications?.active ?? coverage.medications?.requested ?? 0} current medicine entries matched the local catalogue. Coverage remains limited.`;
     list.innerHTML = alerts.length ? alerts.map(alert => {
       const severity = ['urgent', 'high', 'moderate', 'low', 'info'].includes(alert.severity) ? alert.severity : 'info';
       const sources = (alert.sources || []).map(source => {
@@ -2070,7 +2082,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     };
     const now = new Date();
     const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-    const currentMedications = state.medications.filter(item => (!item.startDate || item.startDate <= localToday) && (!item.endDate || item.endDate >= localToday)).slice(0, 8);
+    const currentMedications = currentMedicationRecords().slice(0, 8);
     const recentSymptoms = state.timeline.filter(item => item.type === 'symptom').sort((left, right) => symptomDateValue(right).localeCompare(symptomDateValue(left))).slice(0, 4);
     const nextAppointment = upcomingAppointments().find(item => !item.date || item.date >= localToday);
     const openTasks = state.tasks.filter(item => !item.done).slice(0, 3);
@@ -3533,7 +3545,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function medicationCheckPayload() {
     return {
-      medications: state.medications.map(item => {
+      medications: currentMedicationRecords().map(item => {
         const confirmed = item?.activeIngredientsManuallyConfirmed === true && Array.isArray(item.activeIngredients) && item.activeIngredients.length > 0;
         return { name: String(item?.name || '').trim(), dose: String(item?.dose || '').trim(), ...(confirmed ? { activeIngredients: item.activeIngredients.map(name => String(name).trim()).filter(Boolean), activeIngredientsConfirmed: true } : {}) };
       }),
@@ -4290,6 +4302,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
+    if (event.target.matches('[data-hub-section-select]')) { showView('health', true, true, event.target.value); return; }
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });
   loadAccountSession();

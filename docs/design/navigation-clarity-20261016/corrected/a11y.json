@@ -1,0 +1,2190 @@
+[
+  {
+    "width": 1440,
+    "route": "today",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"My Health\"][data-view=\"health\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#today-greeting"
+          ],
+          [
+            "#today-title"
+          ],
+          [
+            "#today-title > span"
+          ],
+          [
+            ".reference-intro > div > .page-subtitle"
+          ],
+          [
+            ".today-compact-boundary"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "health",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            "#health-visit-title"
+          ],
+          [
+            ".care-visit-card > div > p"
+          ],
+          [
+            ".health-snapshot > .card-heading > div > h2"
+          ],
+          [
+            ".health-card-edit"
+          ],
+          [
+            ".profile-fact:nth-child(1) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(1) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(2) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(2) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(3) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(3) > b[title=\"Not added\"]"
+          ],
+          [
+            ".health-note > p"
+          ],
+          [
+            ".section-title-row > h2"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > h3"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > small"
+          ],
+          [
+            ".emergency-card > .info-card-heading > button[data-modal=\"health\"][type=\"button\"]"
+          ],
+          [
+            ".emergency-facts > span:nth-child(1) > small"
+          ],
+          [
+            "#emergency-blood-type"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > small"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > b"
+          ],
+          [
+            "span:nth-child(3) > small"
+          ],
+          [
+            "span:nth-child(3) > b"
+          ],
+          [
+            ".health-reminders-disclosure > summary"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "medications",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "scan",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "appointments",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"My Health\"][data-view=\"health\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-diary > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#diary-title"
+          ],
+          [
+            "#view-diary > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "button[data-hub-panel-target=\"symptoms\"]"
+          ],
+          [
+            "nav[aria-label=\"Diary and appointment sections\"] > button[data-view=\"visit-prep\"][type=\"button\"]"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > h2"
+          ],
+          [
+            "#appointments-count"
+          ],
+          [
+            ".past-appointments > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".past-appointments > .card-heading > div > h2"
+          ],
+          [
+            ".past-appointments > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "documents",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > b"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > p"
+          ],
+          [
+            "button[data-document-filter=\"prescription\"]"
+          ],
+          [
+            "button[data-document-filter=\"result\"]"
+          ],
+          [
+            "button[data-document-filter=\"letter\"]"
+          ],
+          [
+            ".document-toolbar > span"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > b"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > p"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > a[href$=\"subscription#plans\"]"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "profile",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"My Health\"][data-view=\"health\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-profile > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#profile-title"
+          ],
+          [
+            "#view-profile > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "article:nth-child(1) > small"
+          ],
+          [
+            "#hub-device-storage-state"
+          ],
+          [
+            "#hub-device-storage-note"
+          ],
+          [
+            "article:nth-child(2) > small"
+          ],
+          [
+            "#hub-account-sync-state"
+          ],
+          [
+            "#hub-account-sync-note"
+          ],
+          [
+            ".profile-page-identity > div > .eyebrow"
+          ],
+          [
+            "#profile-page-name"
+          ],
+          [
+            "#profile-page-email"
+          ],
+          [
+            ".memory-disclosure-title > b"
+          ],
+          [
+            ".memory-disclosure-title > small"
+          ],
+          [
+            "#memory-details-status"
+          ],
+          [
+            ".profile-shortcuts-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            "#profile-shortcuts-title"
+          ],
+          [
+            "button[data-profile-edit-shortcuts=\"\"]"
+          ],
+          [
+            ".profile-shortcuts-intro"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "alerts",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"My Health\"][data-view=\"health\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".alerts-intro > div > .eyebrow"
+          ],
+          [
+            "#alerts-title"
+          ],
+          [
+            ".alerts-intro > div > .page-subtitle"
+          ],
+          [
+            "#alerts-count"
+          ],
+          [
+            "#alerts-status"
+          ],
+          [
+            ".hub-alert-about > summary"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "visit-prep",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            ".nav-item[aria-label=\"Today\"][data-view=\"today\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"My Health\"][data-view=\"health\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Alerts\"][data-view=\"alerts\"] > span:nth-child(2)"
+          ],
+          [
+            ".nav-item[aria-label=\"Profile & settings\"][data-view=\"profile\"] > span:nth-child(2)"
+          ],
+          [
+            ".account-link > span:nth-child(2) > b"
+          ],
+          [
+            ".account-link > span:nth-child(2) > small"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#visit-prep-title"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .page-subtitle"
+          ],
+          [
+            ".reference-brief-card > h2"
+          ],
+          [
+            ".reference-brief-card > p"
+          ],
+          [
+            ".primary-button[data-open-summary=\"\"][type=\"button\"]"
+          ],
+          [
+            ".reference-brief-card > small"
+          ],
+          [
+            "footer > span:nth-child(1)"
+          ],
+          [
+            "footer > span:nth-child(2)"
+          ],
+          [
+            "footer > button[data-show-privacy=\"\"][type=\"button\"]"
+          ],
+          [
+            "a[href$=\"about\"]"
+          ],
+          [
+            "footer > a[href$=\"privacy\"]"
+          ],
+          [
+            "footer > a[href$=\"terms\"]"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "today",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#today-greeting"
+          ],
+          [
+            "#today-title"
+          ],
+          [
+            "#today-title > span"
+          ],
+          [
+            ".reference-intro > div > .page-subtitle"
+          ],
+          [
+            ".today-compact-boundary"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "health",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            "#health-visit-title"
+          ],
+          [
+            ".care-visit-card > div > p"
+          ],
+          [
+            ".health-snapshot > .card-heading > div > h2"
+          ],
+          [
+            ".health-card-edit"
+          ],
+          [
+            ".profile-fact:nth-child(1) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(1) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(2) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(2) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(3) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(3) > b[title=\"Not added\"]"
+          ],
+          [
+            ".health-note > p"
+          ],
+          [
+            ".section-title-row > h2"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > h3"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > small"
+          ],
+          [
+            ".emergency-card > .info-card-heading > button[data-modal=\"health\"][type=\"button\"]"
+          ],
+          [
+            ".emergency-facts > span:nth-child(1) > small"
+          ],
+          [
+            "#emergency-blood-type"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > small"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > b"
+          ],
+          [
+            "span:nth-child(3) > small"
+          ],
+          [
+            "span:nth-child(3) > b"
+          ],
+          [
+            ".health-reminders-disclosure > summary"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "medications",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "scan",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "appointments",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-diary > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#diary-title"
+          ],
+          [
+            "#view-diary > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "button[data-hub-panel-target=\"symptoms\"]"
+          ],
+          [
+            "nav[aria-label=\"Diary and appointment sections\"] > button[data-view=\"visit-prep\"][type=\"button\"]"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > h2"
+          ],
+          [
+            "#appointments-count"
+          ],
+          [
+            ".past-appointments > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".past-appointments > .card-heading > div > h2"
+          ],
+          [
+            ".past-appointments > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"My Health\"][data-view=\"health\"] > b"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "documents",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > b"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > p"
+          ],
+          [
+            "button[data-document-filter=\"prescription\"]"
+          ],
+          [
+            "button[data-document-filter=\"result\"]"
+          ],
+          [
+            "button[data-document-filter=\"letter\"]"
+          ],
+          [
+            ".document-toolbar > span"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > b"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > p"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > a[href$=\"subscription#plans\"]"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "profile",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-profile > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#profile-title"
+          ],
+          [
+            "#view-profile > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "article:nth-child(1) > small"
+          ],
+          [
+            "#hub-device-storage-state"
+          ],
+          [
+            "#hub-device-storage-note"
+          ],
+          [
+            "article:nth-child(2) > small"
+          ],
+          [
+            "#hub-account-sync-state"
+          ],
+          [
+            "#hub-account-sync-note"
+          ],
+          [
+            ".profile-page-identity > div > .eyebrow"
+          ],
+          [
+            "#profile-page-name"
+          ],
+          [
+            "#profile-page-email"
+          ],
+          [
+            ".memory-disclosure-title > b"
+          ],
+          [
+            ".memory-disclosure-title > small"
+          ],
+          [
+            "#memory-details-status"
+          ],
+          [
+            ".profile-shortcuts-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            "#profile-shortcuts-title"
+          ],
+          [
+            "button[data-profile-edit-shortcuts=\"\"]"
+          ],
+          [
+            ".profile-shortcuts-intro"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"My Health\"][data-view=\"health\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "alerts",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".alerts-intro > div > .eyebrow"
+          ],
+          [
+            "#alerts-title"
+          ],
+          [
+            ".alerts-intro > div > .page-subtitle"
+          ],
+          [
+            "#alerts-count"
+          ],
+          [
+            "#alerts-status"
+          ],
+          [
+            ".hub-alert-about > summary"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "visit-prep",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#visit-prep-title"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .page-subtitle"
+          ],
+          [
+            ".reference-brief-card > h2"
+          ],
+          [
+            ".reference-brief-card > p"
+          ],
+          [
+            ".primary-button[data-open-summary=\"\"][type=\"button\"]"
+          ],
+          [
+            ".reference-brief-card > small"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "route": "menu",
+    "violations": []
+  },
+  {
+    "width": 320,
+    "route": "today",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#today-greeting"
+          ],
+          [
+            "#today-title"
+          ],
+          [
+            "#today-title > span"
+          ],
+          [
+            ".reference-intro > div > .page-subtitle"
+          ],
+          [
+            ".today-compact-boundary"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"My Health\"][data-view=\"health\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "health",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            "#health-visit-title"
+          ],
+          [
+            ".care-visit-card > div > p"
+          ],
+          [
+            ".health-snapshot > .card-heading > div > h2"
+          ],
+          [
+            ".health-card-edit"
+          ],
+          [
+            ".profile-fact:nth-child(1) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(1) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(2) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(2) > b[title=\"Not added\"]"
+          ],
+          [
+            ".profile-fact:nth-child(3) > .profile-fact-label > small"
+          ],
+          [
+            ".profile-fact:nth-child(3) > b[title=\"Not added\"]"
+          ],
+          [
+            ".health-note > p"
+          ],
+          [
+            ".section-title-row > h2"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > h3"
+          ],
+          [
+            ".emergency-card > .info-card-heading > div > small"
+          ],
+          [
+            ".emergency-card > .info-card-heading > button[data-modal=\"health\"][type=\"button\"]"
+          ],
+          [
+            ".emergency-facts > span:nth-child(1) > small"
+          ],
+          [
+            "#emergency-blood-type"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > small"
+          ],
+          [
+            ".emergency-facts > span:nth-child(2) > b"
+          ],
+          [
+            "span:nth-child(3) > small"
+          ],
+          [
+            "span:nth-child(3) > b"
+          ],
+          [
+            ".health-reminders-disclosure > summary"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "medications",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "scan",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".library-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".library-card > .card-heading > div > h2"
+          ],
+          [
+            "#medications-count"
+          ],
+          [
+            ".library-disclaimer > p"
+          ],
+          [
+            ".refill-card > .card-kicker"
+          ],
+          [
+            "#refill-title"
+          ],
+          [
+            "#refill-copy"
+          ],
+          [
+            ".history-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".history-card > .card-heading > div > h2"
+          ],
+          [
+            ".history-card > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            ".medication-learning-panel > .today-panel-kicker"
+          ],
+          [
+            "#medication-learning-title"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(3)"
+          ],
+          [
+            ".medication-learning-panel > p:nth-child(4)"
+          ],
+          [
+            "p:nth-child(4) > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
+          ],
+          [
+            "label[for=\"medicine-question\"]"
+          ],
+          [
+            "#view-scan > summary"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "appointments",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-diary > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#diary-title"
+          ],
+          [
+            "#view-diary > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "button[data-hub-panel-target=\"symptoms\"]"
+          ],
+          [
+            "nav[aria-label=\"Diary and appointment sections\"] > button[data-view=\"visit-prep\"][type=\"button\"]"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".upcoming-card > .card-heading > div > h2"
+          ],
+          [
+            "#appointments-count"
+          ],
+          [
+            ".past-appointments > .card-heading > div > .card-kicker"
+          ],
+          [
+            ".past-appointments > .card-heading > div > h2"
+          ],
+          [
+            ".past-appointments > .card-heading > a[href$=\"#timeline\"][data-view=\"timeline\"]"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "documents",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".health-heading-copy > .eyebrow"
+          ],
+          [
+            "#health-title"
+          ],
+          [
+            ".health-heading-copy > .page-subtitle"
+          ],
+          [
+            ".hub-section-picker"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > b"
+          ],
+          [
+            ".document-drop > div:nth-child(2) > p"
+          ],
+          [
+            "button[data-document-filter=\"prescription\"]"
+          ],
+          [
+            "button[data-document-filter=\"result\"]"
+          ],
+          [
+            "button[data-document-filter=\"letter\"]"
+          ],
+          [
+            ".document-toolbar > span"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > b"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > .pro-gate-copy > p"
+          ],
+          [
+            "#documents-grid > .pro-gate[role=\"note\"] > a[href$=\"subscription#plans\"]"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "profile",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-profile > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#profile-title"
+          ],
+          [
+            "#view-profile > .page-heading > div > .page-subtitle"
+          ],
+          [
+            "article:nth-child(1) > small"
+          ],
+          [
+            "#hub-device-storage-state"
+          ],
+          [
+            "#hub-device-storage-note"
+          ],
+          [
+            "article:nth-child(2) > small"
+          ],
+          [
+            "#hub-account-sync-state"
+          ],
+          [
+            "#hub-account-sync-note"
+          ],
+          [
+            ".profile-page-identity > div > .eyebrow"
+          ],
+          [
+            "#profile-page-name"
+          ],
+          [
+            "#profile-page-email"
+          ],
+          [
+            ".memory-disclosure-title > b"
+          ],
+          [
+            ".memory-disclosure-title > small"
+          ],
+          [
+            "#memory-details-status"
+          ],
+          [
+            ".profile-shortcuts-card > .card-heading > div > .card-kicker"
+          ],
+          [
+            "#profile-shortcuts-title"
+          ],
+          [
+            "button[data-profile-edit-shortcuts=\"\"]"
+          ],
+          [
+            ".profile-shortcuts-intro"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"My Health\"][data-view=\"health\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[data-view=\"diary\"][aria-label=\"Diary & Appointments\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "alerts",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            ".alerts-intro > div > .eyebrow"
+          ],
+          [
+            "#alerts-title"
+          ],
+          [
+            ".alerts-intro > div > .page-subtitle"
+          ],
+          [
+            "#alerts-count"
+          ],
+          [
+            "#alerts-status"
+          ],
+          [
+            ".hub-alert-about > summary"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "visit-prep",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "span[data-mobile-menu-label=\"\"]"
+          ],
+          [
+            ".mobile-notifications-button > span"
+          ],
+          [
+            "#hub-breadcrumb > button[data-view=\"today\"][type=\"button\"]"
+          ],
+          [
+            "#hub-parent-link"
+          ],
+          [
+            "#hub-current-location"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .eyebrow"
+          ],
+          [
+            "#visit-prep-title"
+          ],
+          [
+            "#view-visit-prep > .page-heading > div > .page-subtitle"
+          ],
+          [
+            ".reference-brief-card > h2"
+          ],
+          [
+            ".reference-brief-card > p"
+          ],
+          [
+            ".primary-button[data-open-summary=\"\"][type=\"button\"]"
+          ],
+          [
+            ".reference-brief-card > small"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"Today\"][data-view=\"today\"] > b"
+          ],
+          [
+            ".mobile-bottom-nav-item[aria-label=\"My Health\"][data-view=\"health\"] > b"
+          ],
+          [
+            "#toast"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "route": "menu",
+    "violations": []
+  }
+]
