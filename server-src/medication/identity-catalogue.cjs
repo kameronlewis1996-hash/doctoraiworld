@@ -62,10 +62,11 @@ function createIdentityCatalogue(catalogue, packs = null) {
     if (!exact(query.region)) return { status: 'incomplete', reasons: ['region-required'] };
     if (exact(query.region) !== 'nz') return { status: 'unknown', reasons: ['region-not-in-source'] };
     if (!keys.length) return { status: 'incomplete', reasons: ['exact-identifier-or-product-fields-required'] };
-    // Brand/chemical alone is a search term, never proof of a product. The
-    // source formulation statement preserves the form and strength together.
-    if (!keys.some(key => ['productId', 'nzmtId', 'pharmacode', 'formulation'].includes(key))) {
-      return { status: 'incomplete', reasons: ['formulation-or-source-identifier-required'] };
+    // An unbranded/generic name or a form alone must never identify a source
+    // row. The full branded tuple is the only text-based identity path.
+    const hasIdentifier = keys.some(key => ['productId', 'nzmtId', 'pharmacode'].includes(key));
+    if (!hasIdentifier && !['brand', 'chemical', 'formulation'].every(key => keys.includes(key))) {
+      return { status: 'incomplete', reasons: ['source-identifier-or-full-branded-tuple-required'] };
     }
     let candidates = null;
     for (const key of keys) {

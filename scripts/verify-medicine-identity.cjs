@@ -8,9 +8,10 @@ const resolve = query => identity.resolve({ region: 'NZ', ...query });
 
 assert.equal(resolve({ brand: 'Voltaren' }).status, 'incomplete');
 assert.equal(resolve({ chemical: 'Ibuprofen' }).status, 'incomplete');
-assert.equal(resolve({ brand: 'Acidex', formulation: 'Oral liq 500 mg with sodium bicarbonate 267 mg and calcium carbonate 160 mg per 10 ml' }).status, 'ambiguous');
-assert.equal(resolve({ brand: 'Nurofen Cold & Flu', formulation: 'Tab 200 mg' }).status, 'unknown');
-assert.equal(resolve({ brand: 'Voltaren Emulgel', formulation: 'Gel 1%' }).status, 'unknown');
+assert.equal(resolve({ formulation: 'Tab 200 mg' }).status, 'incomplete');
+assert.equal(resolve({ brand: 'Acidex', formulation: 'Oral liq 500 mg with sodium bicarbonate 267 mg and calcium carbonate 160 mg per 10 ml' }).status, 'incomplete');
+assert.equal(resolve({ brand: 'Nurofen Cold & Flu', chemical: 'Ibuprofen with pseudoephedrine', formulation: 'Tab 200 mg with pseudoephedrine 30 mg' }).status, 'unknown');
+assert.equal(resolve({ brand: 'Voltaren Emulgel', chemical: 'Diclofenac sodium', formulation: 'Gel 1%' }).status, 'unknown');
 assert.equal(identity.resolve({ brand: 'Voltaren', formulation: 'Suppos 100 mg' }).status, 'incomplete');
 assert.equal(identity.resolve({ region: 'AU', brand: 'Voltaren', formulation: 'Suppos 100 mg' }).status, 'unknown');
 const voltaren = resolve({ brand: 'Voltaren', chemical: 'Diclofenac sodium', formulation: 'Suppos 100 mg' });
@@ -45,7 +46,7 @@ const packs = { datasetVersion: 'fictional-test', sources: synthetic.sources, li
 const fictional = createIdentityCatalogue(synthetic, packs);
 assert.equal(fictional.resolve({ region: 'NZ', pharmacode: '111' }).status, 'ambiguous');
 assert.equal(fictional.resolve({ region: 'NZ', pharmacode: '111', nzmtId: '901' }).productId, 'b');
-assert.equal(fictional.resolve({ region: 'NZ', brand: 'Fictional Dual', formulation: 'Eye drops 1%' }).route.value, 'eye');
-assert.equal(fictional.resolve({ region: 'NZ', brand: 'Fictional Dual', formulation: 'Eye drops 1%' }).ingredientStatus, 'incomplete-in-catalogue');
+assert.equal(fictional.resolve({ region: 'NZ', brand: 'Fictional Dual', chemical: 'Fictional salt', formulation: 'Eye drops 1%' }).route.value, 'eye');
+assert.equal(fictional.resolve({ region: 'NZ', brand: 'Fictional Dual', chemical: 'Fictional salt', formulation: 'Eye drops 1%' }).ingredientStatus, 'incomplete-in-catalogue');
 assert.throws(() => createIdentityCatalogue(synthetic, { datasetVersion: 'different', packs: [] }));
 console.log('Medicine identity catalogue: exact matching, ambiguity, conflicts, route and ingredient gaps verified.');
