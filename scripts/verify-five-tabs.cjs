@@ -479,12 +479,15 @@ async function verifySignOutResponseHandling() {
       accountSessionRevision: 5, authUser: { email: 'fictional@example.test' }, medicationLoginId: 'fictional-login-id',
       localHealthAccountScope: 'fictional-scope', fetch: fixture.fetch,
       renderAccountSession: (...args) => events.push(['render', ...args]),
+      clearCompanionDemoSession: () => { events.push(['companion-clear']); return true; },
+      sessionStorage: { setItem() {} },
       closeProfile: () => events.push(['close-profile']), showToast: message => events.push(['toast', message])
     });
     vm.runInContext(`${js.slice(start, end)}\nthis.runSignOut = signOut;`, context, { timeout: 1000 });
     await context.runSignOut();
     const sessionRender = events.find(event => event[0] === 'render');
     if (fixture.signedOut) {
+      assert.ok(events.some(event => event[0] === 'companion-clear'), 'Successful sign-out clears the local companion preview.');
       assert.equal(sessionRender?.[1], null, 'Successful server revocation clears the local account.');
       assert.ok(events.some(event => event[0] === 'close-profile'), 'Successful revocation closes the account panel.');
       assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /Signed out\./);

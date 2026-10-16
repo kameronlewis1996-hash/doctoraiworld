@@ -34,7 +34,7 @@ const foreignKey = 'another-app-medications';
 function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConsent = false, confirmed = true, cloudFailure = false } = {}) {
   const memory = new Map([[prefix + 'device-storage-consent', consent], [preferenceKey, '["ask"]'], [foreignKey, 'private-to-another-app']]);
   for (const key of healthKeys) memory.set(key, JSON.stringify({ fictional: key }));
-  const calls = { confirmations: [], statuses: [], toasts: [], fetches: [], close: 0, drafts: 0, chats: 0, consents: [], saves: 0, renders: 0 };
+  const calls = { confirmations: [], statuses: [], toasts: [], fetches: [], close: 0, drafts: 0, chats: 0, companionClears: 0, consents: [], saves: 0, renders: 0 };
   const localStorage = {
     get length() { return memory.size; },
     key(index) { return [...memory.keys()][index] ?? null; },
@@ -64,6 +64,7 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
     refreshMedicationCheckContext: async () => {}, renderHomePrescriptionAlert() {},
     medicationCheckController: { async setConsent(value) { calls.consents.push(value); } },
     discardPreparationDrafts() { calls.drafts++; }, clearChat() { calls.chats++; },
+    clearCompanionDemoSession() { calls.companionClears++; return true; },
     renderAll() { calls.renders++; }, closePrivacy() { calls.close++; },
     async fetch(url, options = {}) {
       calls.fetches.push([url, options.method || 'GET']);
@@ -133,6 +134,7 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   for (const key of healthKeys.filter(key => !key.endsWith('-allergies'))) assert.equal(deletion.memory.has(key), false, 'Delete clears browser health records even when device writes are disabled.');
   assert.equal(deletion.calls.close, 1);
   assert.equal(deletion.calls.drafts, 1, 'Temporary visit preparation is cleared as well.');
+  assert.equal(deletion.calls.companionClears, 1, 'Deleting health data also clears the local companion preview.');
   assert.equal(deletion.calls.fetches.length, 0, 'Anonymous deletion makes no account request.');
 
   const account = fixture({ signedIn: true });

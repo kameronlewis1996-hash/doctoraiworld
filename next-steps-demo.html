@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f8ff">
+  <title>My Next Steps preview | DoctorAI World</title>
+  <meta name="description" content="A local DoctorAI prototype for drafting next steps and questions after a health appointment. No information is sent or shared.">
+  <link rel="icon" href="/doctorai-app-icon.png?v=10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/accessibility.css?v=14">
+  <link rel="stylesheet" href="/aurora-pages.css?v=2">
+  <link rel="stylesheet" href="/next-steps-demo.css?v=1">
+  <script defer src="/next-steps-core.js?v=1"></script>
+  <script defer src="/next-steps-demo.js?v=1"></script>
+</head>
+<body class="aurora-demo-page companion-page">
+  <a class="doctorai-skip-link" href="#main">Skip to main content</a>
+  <header class="companion-header">
+    <div class="companion-header-inner">
+      <a class="companion-brand" href="/" aria-label="DoctorAI World home"><span class="companion-brand-symbol" aria-hidden="true"><img src="/doctorai-head-logo-transparent.png?v=10" alt="" width="1024" height="1024"></span><span class="companion-brand-wordmark" aria-hidden="true"><img src="/doctorai-public-logo-transparent.png?v=10" alt="" width="1535" height="1024"></span></a>
+      <nav aria-label="Page navigation"><a href="/health-hub#appointments">Back to Diary &amp; Appointments</a></nav>
+    </div>
+  </header>
+
+  <main id="main" class="companion-wrap" tabindex="-1">
+    <nav class="companion-breadcrumb" aria-label="Your location"><a href="/health-hub#appointments">Diary &amp; Appointments</a><span aria-hidden="true">/</span><span aria-current="page">My Next Steps preview</span></nav>
+    <section class="companion-hero" aria-labelledby="companion-title">
+      <div class="companion-hero-copy">
+        <p class="companion-kicker"><span class="kicker-dot" aria-hidden="true"></span> Local-only preview</p>
+        <h1 id="companion-title">A clearer way to keep <em>moving forward.</em></h1>
+        <p>Capture what you want to do after a visit, find what is still waiting, and bring your own questions to the next conversation.</p>
+        <div class="companion-hero-actions"><a class="companion-button companion-button-primary" href="#step-form">Add a next step <span aria-hidden="true">↗</span></a><button class="companion-button companion-button-quiet" type="button" data-load-example>Try a fictional example</button></div>
+      </div>
+      <div class="companion-orbit" aria-hidden="true"><span class="orbit-ring orbit-ring-one"></span><span class="orbit-ring orbit-ring-two"></span><span class="orbit-mark">✓</span><span class="orbit-caption">One step<br>at a time</span></div>
+    </section>
+    <p class="companion-boundary" id="demo-boundary"><strong>Local demo:</strong> Notes stay in this browser tab after a reload. Clear them here before sharing a device; closing the tab usually removes them. A Health Hub account change also clears open previews where the browser supports it. These notes are separate from your account. No AI, clinic, contact, or server receives them.</p>
+    <noscript><p class="companion-boundary">Turn on JavaScript to use this local preview. No notes can be saved here without it.</p></noscript>
+
+    <div class="companion-shell">
+      <div class="companion-shell-top"><div><p class="companion-kicker">Your companion space</p><h2>Choose what you need today.</h2></div><button class="companion-clear" type="button" data-clear-demo>Clear this demo</button></div>
+      <nav class="companion-tabs" aria-label="Companion tools"><a href="#plan" data-companion-tab="plan" aria-current="page"><span aria-hidden="true">01</span> My Next Steps</a><a href="#say" data-companion-tab="say"><span aria-hidden="true">02</span> Help me say it</a><a href="#family" data-companion-tab="family"><span aria-hidden="true">03</span> Family Care preview</a></nav>
+      <p id="demo-status" class="companion-live" role="status" aria-live="polite"></p>
+
+      <section class="companion-panel" id="panel-plan" data-companion-panel="plan" aria-labelledby="plan-title">
+        <div class="companion-intro"><div><p class="companion-kicker">After your appointment</p><h2 id="plan-title">My Next Steps</h2><p>Write each action in your own words. Drafts need your review before they join your plan.</p></div><button class="companion-button companion-button-outline" type="button" data-preview-brief>Preview visit brief</button></div>
+        <div class="companion-plan-grid">
+          <section class="companion-card step-capture" aria-labelledby="capture-title">
+            <div class="card-title-row"><span class="card-icon" aria-hidden="true">＋</span><div><p class="companion-kicker">Start with one thing</p><h3 id="capture-title">Add a next step</h3></div></div>
+            <form id="step-form" novalidate>
+              <input type="hidden" id="step-edit-id">
+              <label for="step-title">What do you want to do? <span aria-hidden="true">*</span></label>
+              <input id="step-title" name="title" type="text" maxlength="160" required placeholder="For example, ask when a result will be ready" autocomplete="off">
+              <label for="step-source">Your source note <span class="optional">Optional</span></label>
+              <textarea id="step-source" name="source" maxlength="600" rows="3" placeholder="What you remember from the visit, in your own words"></textarea>
+              <label for="step-date">Date to check back <span class="optional">Optional, set by you</span></label>
+              <input id="step-date" name="dueDate" type="date">
+              <p class="field-help">Dates only appear here when you choose one. There are no background reminders.</p>
+              <p class="form-error" id="step-error" role="alert" hidden></p>
+              <div class="form-actions"><button class="companion-button companion-button-primary" type="submit" id="step-submit">Save draft for review</button><button class="companion-button companion-button-quiet" type="button" data-cancel-step-edit hidden>Cancel edit</button></div>
+            </form>
+          </section>
+          <section class="companion-card plan-glance" aria-labelledby="glance-title"><p class="companion-kicker">At a glance</p><h3 id="glance-title">Your plan, clearly.</h3><div class="glance-stats"><div><strong id="draft-count">0</strong><span>To review</span></div><div><strong id="waiting-count">0</strong><span>Still waiting</span></div><div><strong id="done-count">0</strong><span>Completed</span></div></div><p class="glance-note">A confirmed step means <em>you</em> reviewed the wording. It does not mean a clinician validated it or a clinic has accepted a request.</p></section>
+        </div>
+        <div class="step-groups"><section aria-labelledby="review-title"><div class="group-heading"><h3 id="review-title">Needs your review</h3><span id="review-count" aria-label="Number of steps to review">0</span></div><div id="draft-steps" class="step-list"></div></section><section aria-labelledby="waiting-title"><div class="group-heading"><h3 id="waiting-title">Still waiting</h3><span id="waiting-list-count" aria-label="Number of waiting steps">0</span></div><div id="waiting-steps" class="step-list"></div></section><section aria-labelledby="plan-list-title"><div class="group-heading"><h3 id="plan-list-title">Your plan</h3><span id="plan-count" aria-label="Number of steps in your plan">0</span></div><div id="plan-steps" class="step-list"></div></section></div>
+      </section>
+
+      <section class="companion-panel" id="panel-say" data-companion-panel="say" aria-labelledby="say-title" hidden>
+        <div class="companion-intro"><div><p class="companion-kicker">Your words, your choice</p><h2 id="say-title">Help me say it</h2><p>Use a simple template to put your own concern into words. You review and edit every line.</p></div></div>
+        <div class="companion-two-col"><section class="companion-card" aria-labelledby="say-form-title"><div class="card-title-row"><span class="card-icon card-icon-lilac" aria-hidden="true">“</span><div><p class="companion-kicker">Build a draft</p><h3 id="say-form-title">What would you like to say?</h3></div></div><form id="say-form" novalidate><label for="say-concern">Your concern <span aria-hidden="true">*</span></label><textarea id="say-concern" maxlength="700" rows="4" required placeholder="Write only what you want to share"></textarea><div class="field-pair"><div><label for="say-audience">For</label><select id="say-audience"><option value="health professional">A health professional</option><option value="pharmacist">A pharmacist</option><option value="clinic team">A clinic team</option></select></div><div><label for="say-tone">Tone</label><select id="say-tone"><option value="plain">Plain</option><option value="gentle">Gentle</option><option value="direct">Direct</option></select></div></div><label for="say-context">Context to include <span class="optional">Optional</span></label><textarea id="say-context" maxlength="350" rows="2" placeholder="A detail you choose to add"></textarea><label for="say-question">Question to include <span class="optional">Optional</span></label><textarea id="say-question" maxlength="350" rows="2" placeholder="What you want to ask"></textarea><p class="form-error" id="say-error" role="alert" hidden></p><button class="companion-button companion-button-primary" type="submit">Make an editable draft</button></form></section><section class="companion-card message-card" aria-labelledby="say-preview-title"><p class="companion-kicker">Review before using</p><h3 id="say-preview-title">Your editable draft</h3><label class="visually-hidden" for="say-output">Editable message draft</label><textarea id="say-output" rows="12" maxlength="1500" placeholder="Your draft will appear here. Nothing is sent."></textarea><div class="message-actions"><button class="companion-button companion-button-outline" type="button" data-save-question>Save to visit brief</button><button class="companion-button companion-button-quiet" type="button" data-copy-message>Copy draft</button></div><p class="field-help">This is a guided writing template, not an AI assessment. It adds no symptoms, diagnosis or urgency. Copying is your choice; nothing is sent.</p></section></div><section class="companion-card saved-questions" aria-labelledby="questions-title"><div class="group-heading"><h3 id="questions-title">Saved for your visit brief</h3><span id="question-count">0</span></div><div id="question-list"></div></section>
+      </section>
+
+      <section class="companion-panel" id="panel-family" data-companion-panel="family" aria-labelledby="family-title" hidden>
+        <div class="companion-intro"><div><p class="companion-kicker">A look at a possible feature</p><h2 id="family-title">Family Care preview</h2><p>Explore what a carefully controlled invitation could look like, using fictional information only.</p></div></div>
+        <p class="family-boundary"><strong>Simulation only.</strong> No invitation is sent, no contact can sign in, and no access to your real Health Hub information is granted.</p>
+        <div class="companion-two-col"><section class="companion-card" aria-labelledby="family-controls-title"><div class="card-title-row"><span class="card-icon card-icon-mint" aria-hidden="true">♡</span><div><p class="companion-kicker">You stay in control</p><h3 id="family-controls-title">Design a sample invitation</h3></div></div><form id="family-form" novalidate><label for="family-recipient">Fictional contact</label><select id="family-recipient"><option value="alex">Alex Taylor · alex@example.test</option><option value="jordan">Jordan Patel · jordan@example.test</option></select><p class="field-help">For real sharing, the contact’s identity would need independent verification. This demo cannot verify anyone.</p><fieldset><legend>What could they view? <span class="optional">Read-only sample</span></legend><label class="scope-choice"><input type="checkbox" name="family-scope" value="summary"><span>Care summary</span></label><label class="scope-choice"><input type="checkbox" name="family-scope" value="medicines"><span>Medicine list</span></label><label class="scope-choice"><input type="checkbox" name="family-scope" value="appointments"><span>Appointments</span></label><label class="scope-choice"><input type="checkbox" name="family-scope" value="steps"><span>Next steps</span></label></fieldset><label for="family-expiry">Sample access would expire <span class="optional">Choose a date</span></label><input id="family-expiry" type="date" required><label class="scope-choice verify-choice"><input id="family-verify" type="checkbox"><span>I would check this person’s identity through a known channel before a real invitation.</span></label><p class="form-error" id="family-error" role="alert" hidden></p><div class="form-actions"><button class="companion-button companion-button-primary" type="submit">Review sample access</button><button class="companion-button companion-button-quiet" type="button" data-revoke-family hidden>Revoke preview</button></div></form></section><section class="companion-card family-preview" aria-labelledby="family-preview-title"><p class="companion-kicker">Only a preview</p><h3 id="family-preview-title">What this contact would see</h3><p id="family-state" class="family-state" role="status" aria-live="polite">No preview approved. No one has access.</p><div id="family-share-preview" class="family-share-preview"><p>Select sample categories to see the fictional preview.</p></div><div class="family-excluded"><strong>Always private:</strong> billing, account security, files outside the selected categories, and anything else you did not choose.</div><button class="companion-button companion-button-outline" type="button" data-approve-family disabled>Simulate approval</button><p class="field-help">Approval here is an illustration. It creates no login, token, permission or invitation.</p></section></div><section class="companion-card family-history" aria-labelledby="history-title"><div class="group-heading"><h3 id="history-title">Preview activity</h3><span>Local demo only</span></div><ul id="family-history-list"></ul><p>Real recipient access history is unavailable because this prototype never grants access.</p></section>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="brief-dialog" class="brief-dialog" aria-labelledby="brief-title"><div class="brief-toolbar"><div><p class="companion-kicker">For you to review</p><h2 id="brief-title">Visit brief preview</h2></div><button type="button" class="companion-button companion-button-quiet" data-close-brief>Close</button></div><div id="brief-print" class="brief-print"><h2>My visit brief</h2><p class="brief-disclaimer">Prepared by the person using this local demo. Review before sharing. It is not a clinical record or a confirmation from a care team.</p><section aria-labelledby="brief-steps-title"><h3 id="brief-steps-title">Next steps</h3><div id="brief-steps"></div></section><section aria-labelledby="brief-questions-title"><h3 id="brief-questions-title">My questions and wording</h3><div id="brief-questions"></div></section></div><div class="brief-actions"><button type="button" class="companion-button companion-button-primary" data-print-brief>Print or save as PDF</button><button type="button" class="companion-button companion-button-quiet" data-close-brief>Keep editing</button></div></dialog>
+  <footer class="companion-footer"><p>DoctorAI World · Health organisation and education. This prototype does not provide medical care.</p><nav aria-label="Footer"><a href="/health-hub#visit-prep">Visit prep</a><a href="/privacy">Privacy</a><a href="/about">Our story</a></nav></footer>
+</body>
+</html>

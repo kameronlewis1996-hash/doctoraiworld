@@ -1722,9 +1722,33 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.src = signedIn ? initialsAvatar(user) : profileSurface && window.DoctorAIIcons?.userAvatarSource ? window.DoctorAIIcons.userAvatarSource(24) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
+  let companionDemoChannel = null;
+  function clearCompanionDemoSession() {
+    let cleared = false;
+    try {
+      sessionStorage.removeItem('doctorai-companion-demo:v1');
+      cleared = sessionStorage.getItem('doctorai-companion-demo:v1') === null;
+    } catch {}
+    try {
+      if (!companionDemoChannel) companionDemoChannel = new BroadcastChannel('doctorai-companion-demo-v1');
+      companionDemoChannel.postMessage({ type: 'clear' });
+    } catch {}
+    return cleared;
+  }
+  function alignCompanionDemoOwner(user, localScope) {
+    if (accountSessionVerification !== 'verified') return;
+    const nextOwner = user?.email ? `account:${localScope || String(user.email).trim().toLowerCase()}` : 'anonymous';
+    try {
+      const previousOwner = sessionStorage.getItem('doctorai-companion-owner:v1');
+      const hadDemo = sessionStorage.getItem('doctorai-companion-demo:v1') !== null;
+      if ((previousOwner && previousOwner !== nextOwner) || (!previousOwner && hadDemo && nextOwner !== 'anonymous')) clearCompanionDemoSession();
+      sessionStorage.setItem('doctorai-companion-owner:v1', nextOwner);
+    } catch { clearCompanionDemoSession(); }
+  }
   function renderAccountSession(user, loginId = '', localScope = '', allowAnonymousLegacy = true) {
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
+    alignCompanionDemoOwner(user, localScope);
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
     if (previousEmail !== nextEmail) medicationAccountDataReady = false;
     const healthOwnerChanged = activateHealthDataOwner(user, localScope, allowAnonymousLegacy);
@@ -1851,9 +1875,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     if (revision !== accountSessionRevision) return;
+    const companionCleared = clearCompanionDemoSession();
+    try { sessionStorage.setItem('doctorai-companion-owner:v1', 'anonymous'); } catch {}
     renderAccountSession(null);
     closeProfile();
-    showToast('Signed out. Health information saved on this device was not deleted.');
+    showToast(companionCleared ? 'Signed out. Health information saved on this device was not deleted.' : 'Signed out. Clear this site’s browser data to remove any local companion preview notes.');
   }
   let googleSignInConfigured = false;
   let googleSignInConfigPromise = null;
@@ -3242,9 +3268,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
     }
     clearChat({ confirm: false, notify: false });
-    cloudSyncEnabled = deviceCleared && syncWasEnabled;
+    const companionCleared = clearCompanionDemoSession();
+    cloudSyncEnabled = deviceCleared && companionCleared && syncWasEnabled;
     renderAll();
-    if (!deviceCleared) {
+    if (!deviceCleared || !companionCleared) {
       setSyncStatus('Browser cleanup incomplete - account sync paused');
       showToast('Account deletion finished, but old browser data may remain. Clear this site\'s browser data before using this device again.');
       return;

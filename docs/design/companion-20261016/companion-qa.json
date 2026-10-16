@@ -1,0 +1,199 @@
+{
+  "base": "http://127.0.0.1:4196",
+  "cases": [
+    {
+      "label": "320 empty plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 320,
+        "view": 320
+      }
+    },
+    {
+      "label": "320 populated plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 320,
+        "view": 320
+      }
+    },
+    {
+      "label": "320 wording",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 320,
+        "view": 320
+      }
+    },
+    {
+      "label": "320 family preview",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 320,
+        "view": 320
+      }
+    },
+    {
+      "label": "320 hub companion entry",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 320,
+        "view": 320
+      }
+    },
+    {
+      "label": "320 nested navigation opens isolated preview",
+      "result": "passed"
+    },
+    {
+      "label": "390 empty plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 390,
+        "view": 390
+      }
+    },
+    {
+      "label": "390 populated plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 390,
+        "view": 390
+      }
+    },
+    {
+      "label": "390 wording",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 390,
+        "view": 390
+      }
+    },
+    {
+      "label": "390 family preview",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 390,
+        "view": 390
+      }
+    },
+    {
+      "label": "390 reset and reload",
+      "result": "passed"
+    },
+    {
+      "label": "390 hub companion entry",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 390,
+        "view": 390
+      }
+    },
+    {
+      "label": "390 nested navigation opens isolated preview",
+      "result": "passed"
+    },
+    {
+      "label": "1440 empty plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 1440,
+        "view": 1440
+      }
+    },
+    {
+      "label": "1440 populated plan",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 1440,
+        "view": 1440
+      }
+    },
+    {
+      "label": "1440 wording",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 1440,
+        "view": 1440
+      }
+    },
+    {
+      "label": "1440 family preview",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 1440,
+        "view": 1440
+      }
+    },
+    {
+      "label": "cross-tab account-change clear signal",
+      "result": "passed"
+    },
+    {
+      "label": "1440 hub companion entry",
+      "result": "passed",
+      "dimensions": {
+        "scroll": 1440,
+        "view": 1440
+      }
+    },
+    {
+      "label": "1440 nested navigation opens isolated preview",
+      "result": "passed"
+    },
+    {
+      "label": "separate browser context has no demo records",
+      "result": "passed"
+    },
+    {
+      "label": "keyboard skip link reaches main content",
+      "result": "passed"
+    }
+  ],
+  "screenshots": [
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\plan-320.png",
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\plan-390.png",
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\say-390.png",
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\hub-entry-390.png",
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\plan-1440.png",
+    "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\doctorai-companion-worktree\\docs\\design\\companion-20261016\\family-1440.png"
+  ],
+  "axe": [
+    {
+      "label": "320 empty plan",
+      "violations": []
+    },
+    {
+      "label": "320 wording",
+      "violations": []
+    },
+    {
+      "label": "320 family preview",
+      "violations": []
+    },
+    {
+      "label": "390 empty plan",
+      "violations": []
+    },
+    {
+      "label": "390 wording",
+      "violations": []
+    },
+    {
+      "label": "390 family preview",
+      "violations": []
+    },
+    {
+      "label": "1440 empty plan",
+      "violations": []
+    },
+    {
+      "label": "1440 wording",
+      "violations": []
+    },
+    {
+      "label": "1440 family preview",
+      "violations": []
+    }
+  ]
+}
