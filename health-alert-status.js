@@ -80,6 +80,7 @@
     if (doc.body) doc.body.dataset.healthAlertLevel = status.level;
     doc.querySelectorAll('[data-alert-summary]').forEach(button => {
       button.dataset.alertLevel = status.level;
+      if ('alertThemeBanner' in button.dataset) button.hidden = status.level !== 'orange' && status.level !== 'red';
       button.querySelector('[data-alert-symbol]').textContent = status.symbol;
       button.querySelector('[data-alert-title]').textContent = status.title;
       button.querySelector('[data-alert-note]').textContent = status.note;
