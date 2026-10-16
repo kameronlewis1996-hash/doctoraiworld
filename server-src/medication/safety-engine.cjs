@@ -10,6 +10,18 @@ const strengthSuffix = /^(?:\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|un
 const strengthToken = /(\d+(?:\.\d+)?)\s*(micrograms?|mcg|mg|grams?|g|ml|units?)\b/gi;
 const index = new Map();
 const labelIngredientIndex = new Map();
+const formNames = {
+  tab: 'tab', tabs: 'tab', tablet: 'tab', tablets: 'tab',
+  cap: 'cap', caps: 'cap', capsule: 'cap', capsules: 'cap',
+  suppos: 'suppos', suppository: 'suppos', suppositories: 'suppos',
+  gel: 'gel', gels: 'gel', cream: 'crm', creams: 'crm', crm: 'crm',
+  injection: 'inj', injections: 'inj', inj: 'inj'
+};
+const formExpression = /^(.+?)\s+(tab|tabs|tablet|tablets|cap|caps|capsule|capsules|suppos|suppository|suppositories|gel|gels|cream|creams|crm|injection|injections|inj)(?:\s+(.+))?$/;
+const formFamily = formulation => {
+  const first = norm(formulation).split(' ')[0];
+  return formNames[first] || first;
+};
 
 function addTerm(term, record) {
   const key = norm(term);
@@ -34,17 +46,34 @@ for (const ingredient of ingredients.values()) {
   }
 }
 
-function lookupCandidates(value) {
+function lookupCandidates(value, dose = '') {
   const query = norm(value);
   if (!query) return { query, candidates: null, strengthInName: '' };
   const exact = index.get(query);
-  if (exact) return { query, candidates: exact, strengthInName: '' };
+  if (exact) return { query, candidates: exact, strengthInName: '', matchedTerm: query };
+  // A short label such as "Ibuprofen Tab" may be matched only against the
+  // corresponding form in the licensed Pharmac catalogue. A dose narrows the
+  // match only when the complete numeric strength profile agrees exactly.
+  const formMatch = query.match(formExpression);
+  if (formMatch && (!formMatch[3] || strengthSuffix.test(formMatch[3]))) {
+    const family = formNames[formMatch[2]];
+    const formCandidates = (index.get(formMatch[1]) || []).filter(item => item.formulation && formFamily(item.formulation) === family);
+    if (formCandidates.length) {
+      const requested = strengthProfile(formMatch[3] || dose);
+      const exactStrength = requested.length ? formCandidates.filter(item => {
+        const listed = strengthProfile(item.formulation);
+        return listed.length === requested.length && listed.every((token, position) => token === requested[position]);
+      }) : [];
+      return { query, candidates: exactStrength.length ? exactStrength : formCandidates, strengthInName: formMatch[3] || '', formInName: family, matchedTerm: formMatch[1] };
+    }
+  }
   const words = query.split(' ');
   for (let cut = words.length - 1; cut > 0; cut -= 1) {
     const suffix = words.slice(cut).join(' ');
     if (strengthSuffix.test(suffix)) {
-      const candidates = index.get(words.slice(0, cut).join(' '));
-      if (candidates) return { query, candidates, strengthInName: suffix };
+      const matchedTerm = words.slice(0, cut).join(' ');
+      const candidates = index.get(matchedTerm);
+      if (candidates) return { query, candidates, strengthInName: suffix, matchedTerm };
     }
   }
   return { query, candidates: null, strengthInName: '' };
@@ -82,9 +111,9 @@ function strengthAssessment(candidates, nameStrength, dose) {
   return { status: 'unverified', reason: 'This numeric strength did not exactly match a listed catalogue formulation. The catalogue may be incomplete; no dose-level check was performed.' };
 }
 
-function resolveByName(name) {
+function resolveByName(name, dose = '') {
   const trimmedName = typeof name === 'string' ? name.trim() : '';
-  const { candidates, strengthInName } = lookupCandidates(trimmedName);
+  const { candidates, strengthInName, formInName, matchedTerm } = lookupCandidates(trimmedName, dose);
   if (!trimmedName) return { name: trimmedName, ingredients: [], status: 'unknown', matchState: 'missing_name', reason: 'Missing medicine name' };
   if (!candidates) return { name: trimmedName, ingredients: [], status: 'unknown', matchState: 'unmatched', reason: 'No exact terminology match' };
   const signatures = new Set(candidates.map(item => [...(Array.isArray(item.ingredients) ? item.ingredients : [])].sort().join('|')));
@@ -93,6 +122,11 @@ function resolveByName(name) {
   const possibleProductClasses = [...new Set(productClassSets.flatMap(classes => [...classes]))];
   const productClasses = possibleProductClasses.filter(productClass => productClassSets.every(classes => classes.has(productClass)));
   const interactionRoutesIncomplete = candidates.some(item => !item.interactionRoute);
+  const bareBrand = !formInName && candidates.some(item => norm(item.brand) === matchedTerm);
+  const brandForms = new Set(candidates.filter(item => norm(item.brand) === matchedTerm).map(item => formFamily(item.formulation)));
+  if (bareBrand && brandForms.size > 1) {
+    return { name: trimmedName, ingredients: [], status: 'unknown', matchState: 'ambiguous_or_incomplete', reason: 'This brand has different formulations. Check the package for the full product name, form and strength; no formulation or route was assumed.', candidates: candidates.slice(0, 5).map(item => item.name), possibleInteractionRoutes: [], interactionRoutesIncomplete: true, productClasses: [], possibleProductClasses: [] };
+  }
   if (signatures.size !== 1 || candidates.some(item => !item.ingredientsComplete || !Array.isArray(item.ingredients) || !item.ingredients.length || item.ingredients.some(id => !ingredients.has(id)))) {
     // Preserve only product classes shared by every exact-name candidate. These
     // support narrowly product-class-only alerts (for example, a mapped live
@@ -137,8 +171,8 @@ function resolveMedication(input, options = {}) {
   const medicine = input && typeof input === 'object' && !Array.isArray(input) ? input : { name: input, ...options };
   const name = typeof medicine.name === 'string' ? medicine.name.trim() : '';
   const dose = typeof medicine.dose === 'string' ? medicine.dose.trim() : '';
-  const nameResult = resolveByName(name);
-  const nameLookup = lookupCandidates(name);
+  const nameResult = resolveByName(name, dose);
+  const nameLookup = lookupCandidates(name, dose);
   const embeddedStrength = nameLookup.strengthInName || (!dose && strengthProfile(name).length ? name : '');
   const strength = strengthAssessment(nameLookup.candidates, embeddedStrength, dose);
   const confirmedIngredients = medicine.activeIngredientsConfirmed === true
@@ -162,6 +196,12 @@ function resolveMedication(input, options = {}) {
     matchState: byName ? 'resolved_name_and_confirmed_label' : 'resolved_label_only',
     basis: byName ? 'catalogue_and_confirmed_label' : 'confirmed_label_only',
     labelIngredientsConfirmed: true,
+    // A confirmed ingredient list does not confirm the product's route or
+    // class when the brand itself has no unambiguous formulation match.
+    possibleInteractionRoutes: byName ? nameResult.possibleInteractionRoutes : [],
+    interactionRoutesIncomplete: byName ? nameResult.interactionRoutesIncomplete : true,
+    productClasses: byName ? nameResult.productClasses : [],
+    possibleProductClasses: byName ? nameResult.possibleProductClasses : [],
     reason: byName ? nameResult.reason : 'The medicine name did not resolve, so only the explicitly confirmed label ingredients were matched.',
     strength
   };

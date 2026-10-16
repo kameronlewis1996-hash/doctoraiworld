@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "datasetVersion": "2026.10.15-r149",
+  "datasetVersion": "2026.10.16-r150",
   "scope": "Very limited local safety prompts with explicit record-level rights evidence only: CC BY 4.0 records with attribution, plus internally attributed DoctorAI allergy class prompts. Other source-derived rules remain excluded until their applicable reuse rights and attribution are documented. Every unmatched or partial medicine pair is unassessed; no alert does not mean safe.",
   "ingredients": [
     {
@@ -7208,7 +7208,7 @@
   "contraindicationRules": [],
   "importSources": [],
   "ruleset": {
-    "version": "2026.10.15-r149",
+    "version": "2026.10.16-r150",
     "recordSchemaVersion": 1,
     "metadataCheckedOn": "2026-10-15",
     "interactionRuleCount": 2,
@@ -7265,7 +7265,7 @@
       "evidenceSummary": "A 2026 nationwide Japanese self-controlled case series (92,880 people) examined acute kidney injury across renin–angiotensin system inhibitor, diuretic, and NSAID exposure. Its main risk signal was diuretic plus NSAID use, with risk varying by diuretic class. It does not estimate an individual New Zealand patient's risk or prove causation."
     }
   ],
-  "version": "2026.10.15-r149",
+  "version": "2026.10.16-r150",
   "provenanceReleaseFilter": {
     "policy": "retain only record-level CC BY 4.0 with license URL and attribution, or internal DoctorAI original prompts with explicit internal attribution; require explicit reusable rights and attribution for every additional source; exclude unverified, conditional, missing, and otherwise unclear rights",
     "appliedOn": "2026-10-15",

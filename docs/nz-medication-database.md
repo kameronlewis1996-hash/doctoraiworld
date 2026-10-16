@@ -1,6 +1,6 @@
 # NZ medication terminology and safety-rule coverage
 
-Ruleset **2026.10.15-r149** is a rights-filtered, very limited prototype dataset. It is not a complete interaction checker, has not been clinically validated, and does not have NZF production authorization.
+Ruleset **2026.10.16-r150** is a rights-filtered, very limited prototype dataset. R150 changes conservative product-name/form/strength matching but adds **no clinical rules or product records** to the R149 rights-filtered seed. It is not a complete interaction checker, has not been clinically validated, and does not have NZF production authorization. The R149 provenance filter and exclusion ledger remain the source-data audit, not a claim that a new source was imported.
 
 ## Included data
 
@@ -20,6 +20,8 @@ Ruleset **2026.10.15-r149** is a rights-filtered, very limited prototype dataset
 The filter retains a source-derived rule only when each attached source has an explicit CC BY 4.0 license, canonical license URL and record-level attribution. Internal DoctorAI rules are retained only when explicitly marked as internally authored and no external source is attached. A public URL or independent paraphrase does not establish reuse permission. Retained and excluded IDs with their rights basis are recorded in [the provenance ledger](medication-provenance-exclusions.json), and the [release audit](medication-provenance-release-audit.md) summarizes the decision policy.
 
 ## Coverage limits
+
+Short labels such as `Ibuprofen Tab` can now match a Pharmac-listed tablet formulation when the form and all supplied strength units match exactly. A shortened combination label can resolve its listed ingredients without claiming that one number verifies every component strength. Brands with more than one listed form, such as bare `Voltaren`, remain ambiguous; a unitless `20` cannot identify a tablet, suppository or gel. Confirming an ingredient from a label does not infer a missing route. See the [bounded NZ pharmacy-shelf sample](pharmacy-shelf-coverage-20261016.md) for product-level matches and gaps.
 
 Only listed and matched rules can produce an interaction alert. Any unmatched medicine pair is **unassessed**, even when both medicine names resolve. A missing alert is not evidence that a combination is safe. Strength, dose, route, timing, treatment intent, patient-specific risk, pregnancy and many other clinical factors are not evaluated. Review the complete medicine list and actual labels with a pharmacist or prescriber; do not change prescribed treatment based on this prototype.
 
