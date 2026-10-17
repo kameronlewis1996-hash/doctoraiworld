@@ -1,14 +1,14 @@
-/* Main-category identity matches the homepage's blue palette. Keep clinical severity colours separate.
+/* Main-category identity matches the homepage's four route palettes. Keep clinical severity colours separate.
    Loaded after the layout; uses existing route attributes without changing navigation. */
 body[data-hub-layout="reference"][data-hub-theme] {
   --hub-today-surface: #e8f2ff;
   --hub-today-accent: #0759b6;
-  --hub-health-surface: #e8f2ff;
-  --hub-health-accent: #0759b6;
-  --hub-visit-surface: #e8f2ff;
-  --hub-visit-accent: #0759b6;
-  --hub-profile-surface: #e8f2ff;
-  --hub-profile-accent: #0759b6;
+  --hub-health-surface: #e4f7f0;
+  --hub-health-accent: #087665;
+  --hub-visit-surface: #fff1d9;
+  --hub-visit-accent: #805418;
+  --hub-profile-surface: #f0edff;
+  --hub-profile-accent: #5b4fa8;
   --hub-category-ink: #0a2340;
   --hub-category-copy: #465f73;
 }
@@ -37,7 +37,7 @@ body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-ba
   --hub-category-accent: var(--hub-profile-accent);
 }
 
-/* Every tab uses the brand palette; the selected state is also marked by border and position. */
+/* Each tab shares its page palette; the selected state is also marked by border and position. */
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view],
 body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] {
   border: 1px solid transparent;
@@ -213,6 +213,7 @@ body[data-hub-layout="reference"] #hub-shell .hub-alert-shortcut:hover { box-sha
 .hub-alert-shortcut-arrow svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; fill: none; }
 .hub-alert-nav-symbol { display: grid; place-items: center; flex: 0 0 20px; width: 20px; height: 20px; margin-left: auto; border: 1.5px solid currentColor; border-radius: 50%; font-size: 14px; font-style: normal; font-weight: 800; line-height: 1; }
 .hub-alert-nav-symbol[hidden] { display: none; }
+.hub-alert-nav-symbol[data-alert-level="neutral"] { color: #425e75; background: #f1f5f9; }
 .hub-alert-nav-symbol[data-alert-level="green"] { color: #166534; background: #eefbf3; }
 .hub-alert-nav-symbol[data-alert-level="orange"] { color: #934407; background: #fff5e8; }
 .hub-alert-nav-symbol[data-alert-level="red"] { color: #b42318; background: #fff1f0; border-radius: 5px; }

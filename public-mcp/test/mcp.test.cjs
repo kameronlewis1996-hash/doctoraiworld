@@ -2,6 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const handler = require('../api/mcp.js');
+const { version } = require('../package.json');
 
 async function request(method, params = {}, headers = {}, options = {}) {
   const req = { method: options.httpMethod || 'POST', headers, body: options.body ?? { jsonrpc: '2.0', id: 1, method, params } };
@@ -16,7 +17,7 @@ test('initialize negotiates all supported HTTP protocols', async () => {
     const res = await request('initialize', { protocolVersion });
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.result.protocolVersion, protocolVersion);
-    assert.equal(res.body.result.serverInfo.version, '1.3.0');
+    assert.equal(res.body.result.serverInfo.version, version);
   }
 });
 test('HTTP GET advertises the absence of SSE; notification accepts 202', async () => {

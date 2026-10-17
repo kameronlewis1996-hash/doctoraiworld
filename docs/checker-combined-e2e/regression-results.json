@@ -1,0 +1,68 @@
+[
+  {
+    "file": "verify-health-alerts.cjs",
+    "status": 0,
+    "stdout": "Health alerts verified: 76 fictional fixture checks passed; no production data or APIs used.\n┌─────────┬──────────────────────────────────┬────────────────────────────────────────────────────────┬─────────┐\n│ (index) │ combination                      │ fixture                                                │ covered │\n├─────────┼──────────────────────────────────┼────────────────────────────────────────────────────────┼─────────┤\n│ 0       │ 'Medicine + medicine'            │ 'medication-medication-catalogue-brand'                │ true    │\n│ 1       │ 'Medicine + allergy'             │ 'allergy-medication'                                   │ true    │\n│ 2       │ 'Medicine + condition'           │ 'condition-medication'                                 │ true    │\n│ 3       │ 'Medicine + symptom'             │ 'symptom-medication'                                   │ true    │\n│ 4       │ 'Condition + symptom'            │ 'condition-symptom'                                    │ true    │\n│ 5       │ 'Medicine + condition + symptom' │ 'symptom-medication-condition'                         │ true    │\n│ 6       │ 'Saved detail contradiction'     │ 'detail-blood-type-conflict / detail-allergy-conflict' │ true    │\n└─────────┴──────────────────────────────────┴────────────────────────────────────────────────────────┴─────────┘\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-alerts-presentation.cjs",
+    "status": 0,
+    "stdout": "✓ real renderer reports the count, title, trigger, and next action\n✓ severity is allowlisted before it reaches markup or icon selection\n✓ alert text, source text, coverage values, unmatched entries, and attribution are escaped\n✓ only HTTPS source URLs become links\n✓ all recorded omission, exclusion, and undated counts appear in the coverage disclosure\n✓ catalogue attribution and effective date render in the coverage disclosure\n✓ actual engine structured licence and dated source evidence render\n✓ adversarial structured licence URLs are escaped and never linked\n✓ actual engine empty output is framed as limited and does not imply safety\n✓ actual engine record values are escaped by the real renderer\n✓ missing engine clears stale alert list and coverage controls\n✓ throwing engine clears stale alert list and coverage controls\nAlert presentation verified: 12 checks passed using the actual renderer and synthetic local fixtures.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-medication-safety.js",
+    "status": 0,
+    "stdout": "Limited local medication check verified with synthetic names, allergies and conditions; uncovered scope stays unknown.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-zero-medication-alerts.cjs",
+    "status": 0,
+    "stdout": "Zero-medicine lifecycle verified: neutral empty/allergy/condition/stopped states, no empty coverage warnings, independent alerts retained, first/pair/delete transitions, unresolved identities and stale-cache/account isolation.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-medication-check-controller.cjs",
+    "status": 0,
+    "stdout": "Medication check controller passed: generic/brand warnings, unknown coverage, explicit consent, activation, change-triggered checks, reload/staleness, Pro/account/profile isolation, revocation, errors, duplicate requests and stale-response races.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-medication-login.cjs",
+    "status": 0,
+    "stdout": "Medication login verification passed: one check per session, new login refresh, prior warning while updating, fresh time, failure/reload, consent/account/profile isolation, stale-response races, non-credential marker and duplicate auth callbacks.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-health-state-contract.cjs",
+    "status": 0,
+    "stdout": "Health-state contract verification passed (actual browser serializer, API and validator; synthetic providers, structured terminology, diary questions, legacy data, roundtrips, rejection and account/storage guards).\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-device-health-storage.cjs",
+    "status": 0,
+    "stdout": "Device health storage verification passed (synthetic session choice, cancellation, owner-scoped check removal, account deletion, cloud failure and blocked browser cleanup).\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-medication-pipeline.cjs",
+    "status": 0,
+    "stdout": "Synthetic scan→review→confirmed label→save gate→local rules pipeline passed. OCR confidence remains unknown; unverified strength and name/label mismatch states are preserved.\n",
+    "stderr": ""
+  },
+  {
+    "file": "verify-medication-evidence.cjs",
+    "status": 0,
+    "stdout": "Medication rights, retained-data provenance, Pharmac attribution, three corrected ingredient mappings, incomplete-product fail-closed handling, chat boundaries and cache versions verified.\n",
+    "stderr": ""
+  },
+  {
+    "file": "check-js.js",
+    "status": 0,
+    "stdout": "JavaScript syntax passed (88 files).\n",
+    "stderr": ""
+  }
+]

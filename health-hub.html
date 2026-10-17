@@ -24,20 +24,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=87">
+  <link rel="stylesheet" href="/health-hub.css?v=90">
   <link rel="stylesheet" href="/today-preview.css?v=3">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script defer src="/pwa.js?v=15"></script>
+  <script defer src="/pwa.js?v=16"></script>
   <script async src="https://va.vercel-scripts.com/v1/script.js"></script>
   <link rel="stylesheet" href="/care-design.css?v=10">
-  <link rel="stylesheet" href="/accessibility.css?v=14">
+  <link rel="stylesheet" href="/accessibility.css?v=15">
   <link rel="stylesheet" href="/doctorai-layout.css?v=2">
-  <link rel="stylesheet" href="/hub-category-themes.css?v=3">
-  <link rel="stylesheet" href="/aurora-theme.css?v=9"><link rel="stylesheet" href="/hub-navigation.css?v=4">
-  <link rel="stylesheet" href="/hub-aurora-secondary.css?v=3">
+  <link rel="stylesheet" href="/hub-category-themes.css?v=5">
+  <link rel="stylesheet" href="/aurora-theme.css?v=10"><link rel="stylesheet" href="/hub-navigation.css?v=5">
+  <link rel="stylesheet" href="/hub-aurora-secondary.css?v=4">
   <link rel="stylesheet" href="/today-records.css?v=1">
+  <link rel="stylesheet" href="/medicine-photo-review.css?v=1">
   <script defer src="/feature-icons.js?v=9"></script>
 </head>
 <body data-hub-layout="reference" data-hub-theme="today" data-subscription="free">
@@ -50,7 +51,7 @@
       </a>
 
       <p class="sidebar-label">Personal health hub</p>
-      <nav class="primary-nav" aria-label="Health Hub"><button type="button" class="nav-item" data-view="today" aria-label="Today"><span class="nav-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><span>Today</span></button><button type="button" class="nav-item" data-view="health" aria-label="My Health"><span class="nav-icon" data-doctorai-icon="health" aria-hidden="true"></span><span>My Health</span></button><button type="button" class="nav-item" data-view="diary" aria-label="Diary &amp; Appointments"><span class="nav-icon" data-doctorai-icon="diary" aria-hidden="true"></span><span>Diary &amp; Appointments</span></button></nav><nav class="hub-utility-nav" aria-label="Account and alerts"><button type="button" class="nav-item" data-view="alerts" aria-label="Alerts"><span class="nav-icon" data-doctorai-icon="alerts" aria-hidden="true"></span><span>Alerts</span></button><button type="button" class="nav-item" data-view="profile" aria-label="Profile &amp; settings"><span class="nav-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Profile &amp; settings</span></button></nav>
+      <nav class="primary-nav" aria-label="Health Hub"><button type="button" class="nav-item" data-view="today" aria-label="Today"><span class="nav-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><span>Today</span></button><button type="button" class="nav-item" data-view="health" aria-label="My Health"><span class="nav-icon" data-doctorai-icon="health" aria-hidden="true"></span><span>My Health</span></button><button type="button" class="nav-item" data-view="visit-prep" aria-label="Visit Prep"><span class="nav-icon" data-doctorai-icon="hubVisitPrep" aria-hidden="true"></span><span>Visit Prep</span></button><button type="button" class="nav-item" data-view="profile" aria-label="Profile"><span class="nav-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Profile</span></button></nav><nav class="hub-utility-nav" aria-label="More in the Health Hub"><button type="button" class="nav-item" data-view="diary" aria-label="Diary &amp; Appointments"><span class="nav-icon" data-doctorai-icon="diary" aria-hidden="true"></span><span>Diary &amp; Appointments</span></button><button type="button" class="nav-item" data-view="alerts" aria-label="Alerts"><span class="nav-icon" data-doctorai-icon="alerts" aria-hidden="true"></span><span>Alerts</span></button></nav>
 
       <div class="sidebar-bottom">
         <a class="upgrade-card" href="/subscription" aria-label="Explore DoctorAI Pro"><span class="upgrade-icon" data-doctorai-icon="spark" aria-hidden="true"></span><span><b>DoctorAI Pro</b><small>Your health story, always ready</small></span><span class="upgrade-arrow" data-doctorai-icon="arrow" aria-hidden="true"></span></a>
@@ -76,7 +77,7 @@
         </div>
       </header>
 
-      <nav class="category-bar" id="category-bar" aria-label="Health Hub menu"><p class="hub-menu-title">Your Health Hub</p><div class="category-bar-scroll"><button type="button" class="category-tab" data-view="today" aria-label="Today"><span class="main-tab-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><span>Today</span></button><button type="button" class="category-tab" data-view="health" aria-label="My Health"><span class="main-tab-icon" data-doctorai-icon="health" aria-hidden="true"></span><span>My Health</span></button><button type="button" class="category-tab" data-view="diary" aria-label="Diary &amp; Appointments"><span class="main-tab-icon" data-doctorai-icon="diary" aria-hidden="true"></span><span>Diary &amp; Appointments</span></button></div><div class="hub-menu-utilities"><button type="button" class="category-tab" data-view="alerts" aria-label="Alerts"><span class="main-tab-icon" data-doctorai-icon="alerts" aria-hidden="true"></span><span>Alerts</span></button><button type="button" class="category-tab" data-view="profile" aria-label="Profile &amp; settings"><span class="main-tab-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Profile &amp; settings</span></button></div></nav>
+      <nav class="category-bar" id="category-bar" aria-label="Health Hub menu"><p class="hub-menu-title">Your Health Hub</p><div class="category-bar-scroll"><button type="button" class="category-tab" data-view="today" aria-label="Today"><span class="main-tab-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><span>Today</span></button><button type="button" class="category-tab" data-view="health" aria-label="My Health"><span class="main-tab-icon" data-doctorai-icon="health" aria-hidden="true"></span><span>My Health</span></button><button type="button" class="category-tab" data-view="visit-prep" aria-label="Visit Prep"><span class="main-tab-icon" data-doctorai-icon="hubVisitPrep" aria-hidden="true"></span><span>Visit Prep</span></button><button type="button" class="category-tab" data-view="profile" aria-label="Profile"><span class="main-tab-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Profile</span></button></div><div class="hub-menu-utilities"><button type="button" class="category-tab" data-view="diary" aria-label="Diary &amp; Appointments"><span class="main-tab-icon" data-doctorai-icon="diary" aria-hidden="true"></span><span>Diary &amp; Appointments</span></button><button type="button" class="category-tab" data-view="alerts" aria-label="Alerts"><span class="main-tab-icon" data-doctorai-icon="alerts" aria-hidden="true"></span><span>Alerts</span></button></div></nav>
 
       <div class="view-stack">
 <nav class="hub-breadcrumb" id="hub-breadcrumb" aria-label="Your location" hidden><button type="button" data-view="today">Today</button><span aria-hidden="true">/</span><button type="button" id="hub-parent-link" hidden></button><span id="hub-parent-divider" aria-hidden="true" hidden>/</span><strong id="hub-current-location" aria-current="page"></strong></nav>
@@ -238,10 +239,10 @@
     </main>
   </div>
 
-  <nav class="mobile-bottom-nav" aria-label="Health Hub"><button type="button" class="mobile-bottom-nav-item" data-view="today" aria-label="Today"><span class="main-tab-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><b>Today</b></button><button type="button" class="mobile-bottom-nav-item" data-view="health" aria-label="My Health"><span class="main-tab-icon" data-doctorai-icon="health" aria-hidden="true"></span><b>My Health</b></button><button type="button" class="mobile-bottom-nav-item" data-view="diary" aria-label="Diary &amp; Appointments"><span class="main-tab-icon" data-doctorai-icon="diary" aria-hidden="true"></span><b>Diary</b></button></nav>
+  <nav class="mobile-bottom-nav" aria-label="Health Hub"><button type="button" class="mobile-bottom-nav-item" data-view="today" aria-label="Today"><span class="main-tab-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><b>Today</b></button><button type="button" class="mobile-bottom-nav-item" data-view="health" aria-label="My Health"><span class="main-tab-icon" data-doctorai-icon="health" aria-hidden="true"></span><b>My Health</b></button><button type="button" class="mobile-bottom-nav-item" data-view="visit-prep" aria-label="Visit Prep"><span class="main-tab-icon" data-doctorai-icon="hubVisitPrep" aria-hidden="true"></span><b>Visit Prep</b></button><button type="button" class="mobile-bottom-nav-item" data-view="profile" aria-label="Profile"><span class="main-tab-icon" data-doctorai-icon="person" aria-hidden="true"></span><b>Profile</b></button></nav>
 
   <div class="profile-drawer" id="profile-drawer" hidden>
-    <button class="drawer-backdrop" type="button" data-close-profile aria-label="Close profile menu"></button>
+    <button class="drawer-backdrop" type="button" data-close-profile tabindex="-1" aria-hidden="true"></button>
     <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="profile-drawer-title">
       <div class="drawer-header"><div><p class="eyebrow">Your account</p><h2 id="profile-drawer-title">Profile &amp; settings</h2></div><button type="button" class="icon-button" data-close-profile aria-label="Close profile menu"><span data-doctorai-icon="close" aria-hidden="true"></span></button></div>
       <div class="drawer-profile"><span class="avatar avatar-large google-avatar"><img src="google-g-logo.svg" alt="" class="google-mark"></span><div><b>Not signed in</b><small>Sign in to personalise your private workspace</small></div><button type="button" class="quiet-button" data-google-signin>Sign in</button></div>
@@ -290,11 +291,13 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="medication-check-controller.js?v=4"></script>
   <script defer src="/medication-records.js?v=1"></script>
-  <script defer src="/health-alerts.js?v=6"></script>
-  <script defer src="/health-alert-status.js?v=4"></script>
+  <script defer src="/medicine-photo-review.js?v=1"></script>
+  <script defer src="/health-alerts.js?v=8"></script>
+  <script defer src="/health-alert-status.js?v=6"></script>
   <script defer src="/term-catalogues.js?v=1"></script>
   <script defer src="/term-profile-ui.js?v=1"></script>
   <script defer src="/today-diary-core.js?v=1"></script>
-  <script defer src="health-hub.js?v=99"></script>
+  <script defer src="medicine-catalog-search.js?v=4"></script>
+  <script defer src="health-hub.js?v=106"></script>
 </body>
 </html>

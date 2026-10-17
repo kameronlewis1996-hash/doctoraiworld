@@ -1,0 +1,34 @@
+.medicine-photo-review{margin:22px 0;border:1px solid #aac5e5;border-radius:16px;background:#f6faff;color:#173957;overflow:hidden}
+.medicine-photo-review summary{padding:18px;font-weight:750;cursor:pointer;min-height:48px;color:#084b91}
+.medicine-photo-review summary span{display:block;margin:6px 0 0 19px;font-size:.82rem;font-weight:500;color:#435d73}
+.medicine-photo-content{padding:0 18px 20px;font-size:.9rem;line-height:1.55}
+.medicine-photo-content p{margin:0 0 14px}
+.medicine-photo-content h3{font-size:1.03rem;line-height:1.4;margin:0 0 12px;color:#102f4d}
+.medicine-photo-privacy{padding:14px;border-left:3px solid #1466b5;background:#eaf3ff;border-radius:4px}
+.medicine-photo-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px;margin:20px 0}
+.medicine-photo-card{border:1px solid #b8cde2;border-radius:12px;background:#fff;padding:16px;min-width:0}
+.medicine-photo-file{display:block;font-weight:700;margin-bottom:8px}
+.medicine-photo-review input[type=file]{display:block;max-width:100%;font:inherit;font-size:.8rem;margin:8px 0}
+.medicine-photo-review input[type=file]::file-selector-button{min-height:44px;padding:9px 12px;background:#e9f3ff;color:#084b91;border:1px solid #86aed8;border-radius:8px;cursor:pointer}
+.medicine-photo-review #medicine-photo-limits,.medicine-photo-note,.medicine-photo-review [data-reference-attribution]{font-size:.8rem;color:#435d73}
+.medicine-photo-stage{min-height:180px;display:grid;place-items:center;background:#f0f5fa;border:1px dashed #96b4d0;border-radius:8px;margin:14px 0;padding:12px;text-align:center;color:#435d73}
+.medicine-photo-stage img{display:block;max-width:100%;max-height:340px;object-fit:contain;border-radius:4px}
+.medicine-photo-stage [hidden]{display:none!important}
+.medicine-photo-stage p{margin:0;max-width:28ch}
+.medicine-photo-actions{display:flex;flex-wrap:wrap;gap:8px}
+.medicine-photo-actions button,.medicine-photo-review [data-photo-reset]{min-height:44px;font-size:.83rem;padding:8px 10px}
+.medicine-photo-review button:disabled{opacity:.6;cursor:default}
+.medicine-reference-state{font-weight:700;color:#67430b;background:#fff3d9;border-radius:6px;padding:9px 10px}
+.medicine-photo-identity{padding:16px;background:#fff;border:1px solid #b8cde2;border-radius:12px}
+.medicine-photo-identity dl{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,1.5fr);gap:10px 16px;margin:0}
+.medicine-photo-identity dt{font-weight:650;color:#40596d}.medicine-photo-identity dd{margin:0;overflow-wrap:anywhere}
+.medicine-photo-verdict{padding:16px;border:1px solid #b8cde2;border-radius:12px;margin:18px 0;background:#fff;min-width:0}
+.medicine-photo-verdict legend{font-weight:750;padding:0 6px}
+.medicine-photo-verdict label{display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;padding:5px 0}
+.medicine-photo-verdict input{width:20px;height:20px;flex:none;accent-color:#075cae}
+.medicine-photo-verdict:disabled{color:#536a7c}
+.medicine-photo-status{padding:12px 14px;background:#eaf3ff;color:#173957;border-radius:8px;min-height:48px}
+.medicine-photo-review :focus-visible{outline:3px solid #075cae;outline-offset:3px}
+@media(max-width:420px){.medicine-photo-content{padding:0 12px 16px}.medicine-photo-card,.medicine-photo-identity,.medicine-photo-verdict{padding:12px}.medicine-photo-identity dl{grid-template-columns:1fr;gap:3px}.medicine-photo-identity dd{margin-bottom:10px}.medicine-photo-review summary{padding:16px 12px}}
+.today-medicine-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;flex-shrink:0;max-width:130px}
+.today-medicine-actions .text-button{font-size:.8rem;min-height:44px}

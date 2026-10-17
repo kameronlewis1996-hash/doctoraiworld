@@ -31,7 +31,7 @@
       medicationMedication.assessedPairs + medicationMedication.unassessedPairs === medicationMedication.requestedPairs &&
       Array.isArray(medicationMedication.unassessed) && medicationMedication.unassessed.length <= medicationMedication.unassessedPairs &&
       Number.isSafeInteger(medicationMedication.omittedUnassessedPairs) && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length;
-    if (validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
+    if (count && validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
       return { level: 'orange', symbol: '?', title: 'Medicine pair unassessed', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pairs have no retained rule or a complete identity. No alert does not mean safe. Ask a pharmacist or prescriber to review.` };
     }
     if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
@@ -71,7 +71,7 @@
       symptoms.undated > 0 || symptoms.unmatched.length > 0 || symptoms.omittedByLimit > 0 ||
       results.recorded > 0 ||
       Object.values(coverage).some(part => part && typeof part === 'object' && Number(part.omittedByLimit) > 0);
-    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Some details need review', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
+    if (outsideChecks) return { level: 'neutral', symbol: '?', title: 'Some details unassessed', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
     // Green describes only a recognised, fully supplied local medication check, never overall health.
     return { level: 'green', symbol: '✓', title: 'No flagged notices', note: limited };
   }
@@ -100,8 +100,10 @@
       }
       symbol.textContent = status.symbol;
       symbol.dataset.alertLevel = status.level;
-      symbol.hidden = status.level === 'neutral';
-      button.setAttribute('aria-label', symbol.hidden ? 'Today' : `Today. Alerts: ${status.title}. ${status.note}`);
+      // A saved but unassessed result needs a visible question mark; an empty
+      // list has no status badge to compete with actual notices.
+      symbol.hidden = status.level === 'neutral' && ['No current medicines', 'Add details to check'].includes(status.title);
+      button.setAttribute('aria-label', symbol.hidden ? 'Today' : `Today. ${status.level === 'neutral' ? 'Status' : 'Alerts'}: ${status.title}. ${status.note}`);
     });
   }
   return Object.freeze({ describe, render });

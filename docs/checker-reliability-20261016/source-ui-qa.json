@@ -1,0 +1,68 @@
+{
+  "result": "passed",
+  "cases": [
+    {
+      "width": 390,
+      "rule": "oral-anticoagulant-ssri",
+      "result": "passed",
+      "navigationMs": 708,
+      "transferBytes": 5034522
+    },
+    {
+      "width": 390,
+      "rule": "warfarin-sulfamethoxazole",
+      "result": "passed",
+      "navigationMs": 363,
+      "transferBytes": 5034522
+    },
+    {
+      "width": 320,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "result": "passed",
+      "navigationMs": 342,
+      "transferBytes": 5034522
+    },
+    {
+      "width": 390,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "result": "passed",
+      "navigationMs": 330,
+      "transferBytes": 5034522
+    },
+    {
+      "width": 1440,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "result": "passed",
+      "navigationMs": 425,
+      "transferBytes": 5034522
+    }
+  ],
+  "axe": [
+    {
+      "width": 390,
+      "rule": "oral-anticoagulant-ssri",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "rule": "warfarin-sulfamethoxazole",
+      "violations": []
+    },
+    {
+      "width": 320,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "rule": "ras-inhibitor-diuretic-nsaid-aki",
+      "violations": []
+    }
+  ],
+  "errors": []
+}

@@ -19,75 +19,110 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('medicine-name-query');
   const status = document.getElementById('medicine-name-search-status');
   const results = document.getElementById('medicine-name-search-results');
-  if (!form || !input || !status || !results) return;
+  const moreButton = document.getElementById('medicine-name-search-more');
+  if (!form || !input || !status || !results || !moreButton) return;
 
-  let namesPromise;
-  const normalise = value => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-
-  async function loadNames() {
-    if (!namesPromise) {
-      namesPromise = fetch('/data/medication/nz-medicine-names.json?v=20261001', {
-        credentials: 'omit',
-        cache: 'force-cache'
-      }).then(response => {
-        if (!response.ok) throw new Error('Medicine names could not be loaded.');
-        return response.json();
-      }).then(data => {
-        if (!Array.isArray(data.names)) throw new Error('Medicine names are unavailable.');
-        return data.names.filter(name => typeof name === 'string' && name.length <= 180);
-      }).catch(error => {
-        namesPromise = null;
-        throw error;
-      });
-    }
-    return namesPromise;
+  const medicineSearch = window.DoctorAIMedicineCatalogSearch;
+  if (!medicineSearch) {
+    status.textContent = 'The Pharmac medicine search is unavailable. You can still use the blank template.';
+    return;
   }
+
+  const pageSize = 20;
+  let visibleLimit = 20;
+  let nextPageRequested = false;
+  let searchSequence = 0;
+  moreButton.addEventListener('click', () => {
+    nextPageRequested = true;
+    visibleLimit += pageSize;
+    form.requestSubmit();
+  });
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    const thisSearch = ++searchSequence;
+    if (!nextPageRequested) visibleLimit = 20;
+    nextPageRequested = false;
     results.replaceChildren();
-    const query = normalise(input.value);
+    moreButton.hidden = true;
+    const query = medicineSearch.normalise(input.value);
     if (query.length < 2) {
-      status.textContent = 'Enter at least two characters from the name on your package.';
+      status.textContent = 'Enter at least two characters from a medicine name, ingredient, strength, or Pharmac code.';
       input.focus();
       return;
     }
 
-    status.textContent = 'Searching the public name list stored on this site…';
+    status.textContent = 'Searching the Pharmac product and ingredient list stored on this site…';
     try {
-      const names = await loadNames();
-      const matches = names.filter(name => normalise(name).includes(query));
-      matches.sort((a, b) => Number(!normalise(a).startsWith(query)) - Number(!normalise(b).startsWith(query)) || a.length - b.length || a.localeCompare(b));
-      const shown = matches.slice(0, 20);
-
-      shown.forEach(name => {
+      const catalogue = await medicineSearch.load();
+      if (thisSearch !== searchSequence) return;
+      const { matches, totalMatches } = medicineSearch.search(catalogue, query, Math.min(visibleLimit, catalogue.products.length));
+      matches.forEach(record => {
+        const product = record.product;
+        const ingredientSummary = medicineSearch.ingredientSummary(record);
         const item = document.createElement('li');
-        const text = document.createElement('span');
-        text.textContent = name;
+        item.className = 'medicine-catalogue-result';
+        const title = document.createElement('h3');
+        title.className = 'medicine-catalogue-result-title';
+        title.textContent = product.name;
+
+        const detail = document.createElement('p');
+        detail.className = 'medicine-catalogue-result-detail';
+        const fields = [];
+        if (product.brand && product.brand !== product.name) fields.push('Brand: ' + product.brand);
+        if (product.chemical) fields.push('Chemical name: ' + product.chemical);
+        if (product.formulation) fields.push('Form/strength: ' + product.formulation);
+        if (product.market) fields.push('Market: ' + product.market);
+        detail.textContent = fields.join(' · ');
+
+        const ingredients = document.createElement('p');
+        ingredients.className = 'medicine-catalogue-result-ingredients';
+        ingredients.textContent = ingredientSummary.complete
+          ? 'Catalogue ingredient mapping: ' + ingredientSummary.names.join(', ')
+          : ingredientSummary.hasPartialMapping
+            ? 'Partial catalogue ingredient mapping: ' + ingredientSummary.names.join(', ') + '. Other ingredients may be missing.'
+            : 'Active ingredients are incomplete in this catalogue record.';
+
+        const identifiers = document.createElement('p');
+        identifiers.className = 'medicine-catalogue-result-identifiers';
+        const identifierParts = [];
+        if (Array.isArray(product.schedules) && product.schedules.length) identifierParts.push('Schedule: ' + product.schedules.join(', '));
+        if (Array.isArray(product.pharmacodes) && product.pharmacodes.length) identifierParts.push('Pharmac code: ' + product.pharmacodes.join(', '));
+        if (Array.isArray(product.nzmtIds) && product.nzmtIds.length) identifierParts.push('NZMT: ' + product.nzmtIds.join(', '));
+        if (product.section29) identifierParts.push('Section 29 listing');
+        identifiers.textContent = identifierParts.join(' · ');
+
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'medicine-name-copy';
         copy.textContent = 'Copy name';
         copy.addEventListener('click', async () => {
           try {
-            await navigator.clipboard.writeText(name);
+            await navigator.clipboard.writeText(product.name);
             status.textContent = 'Copied the name. Check it against your package before adding it to your list.';
           } catch {
-            status.textContent = 'Select the matching name above and copy it to your list. Your search is not saved or sent.';
+            status.textContent = 'Select the matching product name above and copy it to your list. Your search is not saved or sent.';
           }
         });
-        item.append(text, copy);
+        item.append(title);
+        if (detail.textContent) item.append(detail);
+        item.append(ingredients);
+        if (identifiers.textContent) item.append(identifiers);
+        item.append(copy);
         results.append(item);
       });
 
-      if (matches.length === 0) {
-        status.textContent = 'No matching name was found in this Pharmac dataset. Try a different spelling or part of the name; a missing result does not prove a medicine is unlisted.';
-      } else if (matches.length > shown.length) {
-        status.textContent = `Showing the first ${shown.length} of ${matches.length} matches. Add more of the name to narrow the results.`;
+      if (totalMatches === 0) {
+        status.textContent = 'No matching product was found in this Pharmac dataset. Try a brand, ingredient, part of the name, formulation, strength, or Pharmac code. A missing result does not prove a medicine is unlisted.';
+      } else if (totalMatches > matches.length) {
+        moreButton.hidden = false;
+        moreButton.textContent = `Show the next ${Math.min(pageSize, totalMatches - matches.length)} matches`;
+        status.textContent = `Showing ${matches.length} of ${totalMatches} matching products. Select “${moreButton.textContent}” to browse the rest.`;
       } else {
-        status.textContent = `Found ${matches.length} matching ${matches.length === 1 ? 'name' : 'names'}. Check any result against the package label.`;
+        status.textContent = `Showing all ${totalMatches} matching ${totalMatches === 1 ? 'product' : 'products'}. Check the exact product and ingredients against the package label.`;
       }
     } catch (error) {
+      if (thisSearch !== searchSequence) return;
       status.textContent = error.message || 'The public name list could not be loaded. You can still use the blank template.';
     }
   });

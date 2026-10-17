@@ -118,7 +118,7 @@ function briefForm(html) {
 }
 function fixture(initial = {}) {
   const state = { medications: [], appointments: [], providers: [], timeline: [], measurements: [], documents: [], tasks: [], profile: {}, memoryEnabled: false, memoryDetails: [], ...clone(initial) };
-  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true, confirmations: [], reviewFocus: 0, printClassRemoved: 0, printRemoved: 0 };
+  const observed = { modals: [], toasts: [], saves: [], renders: 0, closes: 0, routes: [], forbiddenCalls: 0, confirm: true, confirmations: [], reviewFocus: 0, printClassRemoved: 0, printRemoved: 0, headingFocus: 0 };
   let activeBriefForm;
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
@@ -149,6 +149,7 @@ function fixture(initial = {}) {
     saveState: () => observed.saves.push(clone(state)), renderAll: () => observed.renders++,
     clearMedicationSafetyResults: () => {},
     closeModal: () => observed.closes++, showToast: text => observed.toasts.push(text),
+    focusCurrentViewHeading: () => observed.headingFocus++,
     showView: (...route) => observed.routes.push(route)
   });
   vm.runInContext(production, context, { timeout: 1000, filename: 'health-hub-selected-record-functions.js' });
@@ -864,6 +865,7 @@ function verifyPreparationCloseFocus() {
   vm.runInContext([
     'let careSummaryDraft = { html: "fictional reviewed brief" };',
     'let appointmentRequestDraft = null; let preparationReturnFocus = true;',
+    'let modalReturnFocus = null;',
     between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
     between("  els.modal.addEventListener('close',", "  els.medicationScannerModal?.addEventListener('click',")
   ].join('\n'), context, { timeout: 1000, filename: 'health-hub-preparation-close-focus.js' });
@@ -916,6 +918,7 @@ async function verifyMedicineHistoryDeletion() {
   f.observed.confirm = true;
   await click(f.context, 'data-delete-medication', saved.id);
   assert.ok(!f.state.medications.some(item => item.id === saved.id), 'Single-medicine deletion removes only that current medicine.');
+  assert.equal(f.observed.headingFocus, 1, 'Deleting the last visible medicine action falls back to the active content heading.');
   assert.ok(!f.state.timeline.includes(generated), 'Its linked automatic list-change event is removed.');
   assert.ok(f.state.timeline.includes(authored), 'A user-authored medicine note remains intact.');
   assert.ok(f.state.timeline.some(item => item.id === legacy.id), 'An old unlinked event is preserved because its provenance is unknown.');
@@ -938,6 +941,7 @@ async function verifyMedicineHistoryDeletion() {
   ] });
   await click(numeric.context, 'data-delete-medication', '42');
   assert.equal(numeric.state.medications.length, 0, 'An older numeric medicine ID can still be deleted through the string-valued browser control.');
+  assert.equal(numeric.observed.headingFocus, 1, 'Deleting an older numeric medicine ID also restores focus to the active heading.');
   assert.equal(numeric.state.timeline.length, 0, 'Its linked generated event is removed using the same normalized ID.');
 }
 

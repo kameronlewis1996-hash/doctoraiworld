@@ -5,6 +5,7 @@ const nz = require('../../data/medication/nz-pharmac-medicines.json');
 
 const norm = value => String(value || '').toLowerCase().replace(/[®™]/g, '').replace(/(?<!\d)\.|\.(?!\d)/g, ' ').replace(/[^a-z0-9.]+/g, ' ').trim();
 const ingredients = new Map([...nz.ingredients, ...db.ingredients].map(item => [item.id, item]));
+const pharmacProductsById = new Map(nz.products.map(product => [product.id, product]));
 const ingredientTerms = ingredient => [ingredient.name, ...(ingredient.aliases || [])].map(norm).filter(Boolean);
 const strengthSuffix = /^(?:\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))(?:\s+\d+(?:\.\d+)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?))*$/;
 const strengthToken = /(\d+(?:\.\d+)?)\s*(micrograms?|mcg|mg|grams?|g|ml|units?)\b/gi;
@@ -133,12 +134,41 @@ function resolveConfirmedIngredients(values) {
   return { ok: true, ingredients: unique };
 }
 
+function resolveBySelectedProduct(product, name) {
+  const productClasses = product.safetyClasses || [];
+  const possibleInteractionRoutes = product.interactionRoute ? [product.interactionRoute] : [];
+  const sourceIngredients = Array.isArray(product.ingredients) ? product.ingredients.map(id => ingredients.get(id)).filter(Boolean) : [];
+  const catalogueIngredientsComplete = product.ingredientsComplete === true &&
+    Array.isArray(product.ingredients) && product.ingredients.length > 0 && sourceIngredients.length === product.ingredients.length;
+  const common = { name, catalogueProductId: product.id, identityOnly: true,
+    possibleInteractionRoutes, interactionRoutesIncomplete: !product.interactionRoute,
+    productClasses: [], possibleProductClasses: [], catalogueRuleProductClasses: productClasses,
+    catalogueIngredients: sourceIngredients, catalogueIngredientsComplete,
+    source: { publisher: 'Pharmac Pharmaceutical Schedule', effectiveDate: nz.sources[0].effectiveDate } };
+  // An exact source row establishes provenance for display, not that the user
+  // has this product in hand. Only explicitly confirmed label text may enter
+  // ingredient-based rules from this path.
+  return { ...common, ingredients: [], status: 'unknown',
+    matchState: catalogueIngredientsComplete ? 'catalogue_product_unconfirmed' : 'selected_product_incomplete',
+    reason: catalogueIngredientsComplete
+      ? 'The selected Pharmac row lists ingredients, but you have not confirmed them against the original label. No ingredient-based check was run.'
+      : 'This selected Pharmac row has an incomplete ingredient mapping. No ingredient-based check was run.' };
+}
+
 function resolveMedication(input, options = {}) {
   const medicine = input && typeof input === 'object' && !Array.isArray(input) ? input : { name: input, ...options };
   const name = typeof medicine.name === 'string' ? medicine.name.trim() : '';
   const dose = typeof medicine.dose === 'string' ? medicine.dose.trim() : '';
-  const nameResult = resolveByName(name);
-  const nameLookup = lookupCandidates(name);
+  const selectedId = medicine.catalogueProductId;
+  const selectedProduct = selectedId === undefined ? null : pharmacProductsById.get(selectedId);
+  if (selectedId !== undefined && (!selectedProduct || selectedProduct.name !== name)) {
+    return { name, ingredients: [], status: 'unknown',
+      matchState: selectedProduct ? 'catalogue_selection_mismatch' : 'catalogue_selection_unknown',
+      reason: 'The selected Pharmac product ID does not match this exact medicine name. Select the product again before checking.',
+      strength: { status: 'unverified', reason: 'Product identity was not verified.' } };
+  }
+  const nameResult = selectedProduct ? resolveBySelectedProduct(selectedProduct, name) : resolveByName(name);
+  const nameLookup = selectedProduct ? { candidates: [selectedProduct], strengthInName: '' } : lookupCandidates(name);
   const embeddedStrength = nameLookup.strengthInName || (!dose && strengthProfile(name).length ? name : '');
   const strength = strengthAssessment(nameLookup.candidates, embeddedStrength, dose);
   const confirmedIngredients = medicine.activeIngredientsConfirmed === true
@@ -146,23 +176,34 @@ function resolveMedication(input, options = {}) {
     : null;
 
   if (!confirmedIngredients) return { ...nameResult, strength };
-  if (!confirmedIngredients.ok) return { name, ingredients: [], status: 'unknown', matchState: 'confirmed_ingredient_unmatched', reason: confirmedIngredients.reason, basis: 'label_confirmation_unmatched', strength };
+  if (!confirmedIngredients.ok) return { name, catalogueProductId: selectedProduct?.id, ingredients: [], status: 'unknown', matchState: 'confirmed_ingredient_unmatched', reason: confirmedIngredients.reason, basis: 'label_confirmation_unmatched', strength };
 
   const confirmedIds = confirmedIngredients.ingredients.map(item => item.id).sort();
-  const nameIds = nameResult.ingredients.map(item => item.id).sort();
-  if (nameResult.status === 'resolved' && (confirmedIds.length !== nameIds.length || confirmedIds.some((id, index) => id !== nameIds[index]))) {
-    return { name, ingredients: [], status: 'ingredient_mismatch', matchState: 'name_label_mismatch', reason: 'The medicine-name match and the user-confirmed label ingredients do not agree. No ingredient-based check was run for this item.', basis: 'name_label_disagreement', strength };
+  const nameIds = (selectedProduct ? nameResult.catalogueIngredients : nameResult.ingredients).map(item => item.id).sort();
+  const sourceDisagrees = selectedProduct
+    ? nameResult.catalogueIngredientsComplete
+      ? confirmedIds.length !== nameIds.length || confirmedIds.some((id, index) => id !== nameIds[index])
+      : nameIds.some(id => !confirmedIds.includes(id))
+    : nameResult.status === 'resolved' && (confirmedIds.length !== nameIds.length || confirmedIds.some((id, index) => id !== nameIds[index]));
+  if (sourceDisagrees) {
+    return { name, catalogueProductId: selectedProduct?.id, ingredients: [], status: 'ingredient_mismatch', matchState: 'name_label_mismatch', reason: 'The medicine-name match and the user-confirmed label ingredients do not agree. No ingredient-based check was run for this item.', basis: 'name_label_disagreement', strength };
   }
 
-  const byName = nameResult.status === 'resolved';
+  const byName = nameResult.status === 'resolved' || Boolean(selectedProduct && nameResult.catalogueIngredientsComplete);
   return {
     ...nameResult,
     ingredients: confirmedIngredients.ingredients,
     status: 'resolved',
-    matchState: byName ? 'resolved_name_and_confirmed_label' : 'resolved_label_only',
+    identityOnly: false,
+    matchState: byName ? (selectedProduct ? 'resolved_selected_product_and_confirmed_label' : 'resolved_name_and_confirmed_label') : 'resolved_label_only',
     basis: byName ? 'catalogue_and_confirmed_label' : 'confirmed_label_only',
     labelIngredientsConfirmed: true,
-    reason: byName ? nameResult.reason : 'The medicine name did not resolve, so only the explicitly confirmed label ingredients were matched.',
+    ...(selectedProduct ? { productClasses: selectedProduct.safetyClasses || [], possibleProductClasses: selectedProduct.safetyClasses || [] } : {}),
+    reason: selectedProduct
+      ? (nameResult.catalogueIngredientsComplete
+          ? 'The selected Pharmac row agrees with every ingredient you confirmed against the original label. Ingredient-based matching used your confirmed label list; dose and route were not verified.'
+          : 'The selected Pharmac row has an incomplete mapping. Ingredient-based matching used only the ingredients you confirmed against the original label; the catalogue cannot validate the full list.')
+      : byName ? nameResult.reason : 'The medicine name did not resolve, so only the explicitly confirmed label ingredients were matched.',
     strength
   };
 }
@@ -317,6 +358,7 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
     alerts.push({
       type: 'interaction',
       subtype: 'multi-medicine',
+      medicationIndexes: [...implicated.keys()],
       severity: rule.severity,
       title: 'Potential multi-medicine interaction',
       message: `${[...implicated.values()].map(medication => medication.name).join(' + ')}: ${rule.effect}`,
@@ -342,10 +384,10 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
   if (resolved.length && conditionText.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Condition coverage is limited', message: `Only ${conditionRuleCount} curated medicine-condition prompts are available. Other condition-related risks, including unmatched conditions, may not be checked. No alert does not mean the medicines are safe for these conditions.`, source: { publisher: 'DoctorAI medication database' } });
   const unknownItems = resolved.filter(item => item.status !== 'resolved');
   const unknown = unknownItems.map(item => item.name || '(missing medicine name)');
-  const unmatched = resolved.filter(item => item.matchState === 'unmatched' || item.matchState === 'missing_name' || item.matchState === 'confirmed_ingredient_unmatched').length;
-  const ambiguous = resolved.filter(item => item.matchState === 'ambiguous_or_incomplete').length;
-  const mismatched = resolved.filter(item => item.matchState === 'name_label_mismatch').length;
-  if (unknown.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Medicine data incomplete', message: `No complete ingredient mapping is available for: ${unknown.join(', ')}. DoctorAI cannot determine whether these medicines clash.`, source: { publisher: 'DoctorAI medication database' } });
+  const unmatched = resolved.filter(item => ['unmatched', 'missing_name', 'confirmed_ingredient_unmatched', 'catalogue_selection_unknown'].includes(item.matchState)).length;
+  const ambiguous = resolved.filter(item => ['ambiguous_or_incomplete', 'selected_product_incomplete', 'catalogue_product_unconfirmed'].includes(item.matchState)).length;
+  const mismatched = resolved.filter(item => ['name_label_mismatch', 'catalogue_selection_mismatch'].includes(item.matchState)).length;
+  if (unknown.length) alerts.push({ type: 'unknown', severity: 'unknown', title: 'Medicine assessment incomplete', message: `No confirmed ingredient-based assessment was available for: ${unknown.join(', ')}. DoctorAI cannot determine whether these medicines clash.`, source: { publisher: 'DoctorAI medication database' } });
   for (const item of resolved) if (item.status === 'resolved' && item.strength?.status === 'unverified') alerts.push({ type: 'strength-review', severity: 'unknown', title: 'Strength or dose not checked', message: `${item.name}: ${item.strength.reason}`, source: { publisher: 'DoctorAI local terminology', recordVersion: 1 } });
   const combinationRuleCount = (db.combinationRules || []).length;
   if (resolved.length) alerts.push({ type: 'coverage', severity: 'unknown', title: 'Interaction coverage is limited', message: `Medicine names are checked against NZ terminology, but only ${db.interactionRules.length} curated pairwise and ${combinationRuleCount} multi-medicine interaction rules are available. Other clashes, dose, timing, route, pregnancy, and condition risks may be missing. Matching every medicine does not make this a complete safety check.`, source: { publisher: 'DoctorAI medication database' } });

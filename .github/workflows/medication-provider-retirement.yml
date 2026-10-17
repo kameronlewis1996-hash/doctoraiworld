@@ -13,6 +13,7 @@ on:
       - 'health-hub.css'
       - 'health-hub.html'
       - 'health-hub.js'
+      - 'medicine-catalog-search.js'
       - 'medication-check-controller.js'
       - 'medication-list-template.html'
       - 'privacy.html'
@@ -50,6 +51,7 @@ jobs:
           node --check scripts/verify-medication-safety.js
           node --check scripts/verify-medication-database.cjs
           node --check scripts/verify-medication-pipeline.cjs
+          node --check scripts/verify-medication-catalogue-selection.cjs
           node --check scripts/verify-medication-evidence.cjs
           node --check scripts/measure-medication-pipeline.cjs
           node --check scripts/verify-medication-scan.js
@@ -67,6 +69,8 @@ jobs:
         run: |
           node scripts/verify-medication-safety.js
           node scripts/verify-medication-database.cjs
+          node scripts/verify-medication-catalog-search.cjs
+          node scripts/verify-medication-catalogue-selection.cjs
           node scripts/verify-medication-pipeline.cjs
           node scripts/verify-medication-evidence.cjs
           node scripts/verify-medication-check-controller.cjs

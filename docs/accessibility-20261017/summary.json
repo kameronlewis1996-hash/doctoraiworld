@@ -1,0 +1,658 @@
+{
+  "date": "2026-10-17",
+  "branch": "codex/overnight-a11y-20261017",
+  "baseline": "3658f71",
+  "patchBase": "36aae58f6d59dcaab684467e8900e6e02aab255a",
+  "evidenceRoot": "C:\\Users\\User\\Documents\\Codex\\2026-10-15\\task\\overnight-a11y-evidence",
+  "axeVersion": "4.10.3",
+  "axeSha256": "880970c081707360e64f34cea25ff91892f5bc95675b0776925b9709dd8a68bb",
+  "baselineAudit": {
+    "states": 87,
+    "violations": [
+      {
+        "label": "medicine-saved",
+        "width": 390,
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".library-item-actions > .delete-item[data-delete-medication=\"med-1792238844613\"][type=\"button\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.38 (foreground color: #cf6a61, background color: #f6f9ff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1",
+            "html": "<button class=\"delete-item\" type=\"button\" data-delete-medication=\"med-1792238844613\" aria-label=\"Delete Abacavir/Lamivudine Viatris — Abacavir sulphate with lamivudine — Tab 600 mg with lamivudine 300 mg from saved medications\">Delete</button>"
+          }
+        ]
+      }
+    ],
+    "horizontalOverflow": [],
+    "browserErrors": []
+  },
+  "afterAudit": {
+    "states": 105,
+    "violations": [],
+    "horizontalOverflow": [],
+    "browserErrors": []
+  },
+  "finalMobileAudit": {
+    "states": 70,
+    "violations": [],
+    "horizontalOverflow": [],
+    "browserErrors": []
+  },
+  "finalHomeAudit": {
+    "states": 2,
+    "violations": [],
+    "horizontalOverflow": [],
+    "browserErrors": []
+  },
+  "keyboard": {
+    "checks": 103,
+    "failures": [],
+    "browserErrors": [],
+    "checksDetail": [
+      {
+        "label": "1440: skip link is first keyboard stop",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: skip link focuses the active content heading",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: skip link preserves the active route",
+        "actual": "#medications",
+        "expected": "#medications"
+      },
+      {
+        "label": "1440: next Tab stays in active content after skip",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: dialog receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: dialog focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "1440: dialog Tab traversal never completely obscures a focused control",
+        "actual": [],
+        "expected": []
+      },
+      {
+        "label": "1440: missing required medicine name receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: add save retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: medicine actions have 44px targets",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: edit save restores focus after list rerender",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: delete retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: synthetic medicine removed",
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "label": "1440: hidden checkbox paints focus on visible switch",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "1440: switch focus ring width",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: switch has 44px touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: drawer starts focus inside named dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: drawer removes background from interaction/accessibility tree",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: drawer wraps Tab inside panel",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: drawer can open native privacy dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: Escape closes the nested dialog",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "1440: nested Escape keeps the parent drawer open",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: nested dialog returns focus to drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: Escape closes drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: closing drawer restores background",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "1440: closing drawer restores focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: drawer sign-in opens native dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: sign-in dismissal restores focus outside hidden drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: answer length focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "1440: answer length touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: answer length supports native arrow keys",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "1440: public navigation has a solid opaque focus ring",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: skip link is first keyboard stop",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: skip link focuses the active content heading",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: skip link preserves the active route",
+        "actual": "#medications",
+        "expected": "#medications"
+      },
+      {
+        "label": "390: next Tab stays in active content after skip",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: dialog receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: dialog focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "390: dialog Tab traversal never completely obscures a focused control",
+        "actual": [],
+        "expected": []
+      },
+      {
+        "label": "390: missing required medicine name receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: add save retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: medicine actions have 44px targets",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: mobile medicine copy has a readable column",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: edit save restores focus after list rerender",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: delete retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: synthetic medicine removed",
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "label": "390: hidden checkbox paints focus on visible switch",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "390: switch focus ring width",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: switch has 44px touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: drawer starts focus inside named dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: drawer removes background from interaction/accessibility tree",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: drawer wraps Tab inside panel",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: drawer can open native privacy dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: Escape closes the nested dialog",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "390: nested Escape keeps the parent drawer open",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: nested dialog returns focus to drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: Escape closes drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: closing drawer restores background",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "390: closing drawer restores focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: drawer sign-in opens native dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: sign-in dismissal restores focus outside hidden drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: answer length focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "390: answer length touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: answer length supports native arrow keys",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "390: public navigation has a solid opaque focus ring",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: skip link is first keyboard stop",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: skip link focuses the active content heading",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: skip link preserves the active route",
+        "actual": "#medications",
+        "expected": "#medications"
+      },
+      {
+        "label": "320: next Tab stays in active content after skip",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: dialog receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: dialog focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "320: dialog Tab traversal never completely obscures a focused control",
+        "actual": [],
+        "expected": []
+      },
+      {
+        "label": "320: missing required medicine name receives focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: add save retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: medicine actions have 44px targets",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: mobile medicine copy has a readable column",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: edit save restores focus after list rerender",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: delete retains a visible keyboard position",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: synthetic medicine removed",
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "label": "320: hidden checkbox paints focus on visible switch",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "320: switch focus ring width",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: switch has 44px touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: drawer starts focus inside named dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: drawer removes background from interaction/accessibility tree",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: drawer wraps Tab inside panel",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: drawer can open native privacy dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: Escape closes the nested dialog",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "320: nested Escape keeps the parent drawer open",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: nested dialog returns focus to drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: Escape closes drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: closing drawer restores background",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "320: closing drawer restores focus",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: drawer sign-in opens native dialog",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: sign-in dismissal restores focus outside hidden drawer",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: answer length focus ring is opaque",
+        "actual": "rgb(7, 89, 182)",
+        "expected": "rgb(7, 89, 182)"
+      },
+      {
+        "label": "320: answer length touch target",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: answer length supports native arrow keys",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: public navigation has a solid opaque focus ring",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: homepage reflows with WCAG text-spacing overrides",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "320: text spacing keeps the Menu control in view",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "Reduced motion stops sustained decorative CSS animation",
+        "actual": false,
+        "expected": false
+      },
+      {
+        "label": "Forced colors retain the switch focus outline",
+        "actual": true,
+        "expected": true
+      },
+      {
+        "label": "No browser exceptions",
+        "actual": [],
+        "expected": []
+      }
+    ]
+  },
+  "navigation": {
+    "routes": 60,
+    "checks": [
+      "1440: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+      "1440: privacy and summary bookmark dialogs open and close",
+      "1440: red alert banner remains reachable by keyboard",
+      "390: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+      "390: privacy and summary bookmark dialogs open and close",
+      "390: menu open, Escape/focus return, select My Health/medicines/Profile and automatic close",
+      "390: menu Tab exit, repeated toggles and desktop resize",
+      "390: red alert banner remains reachable by keyboard",
+      "320: routes, section state, heading focus, repeated taps, Back/Forward, reload and interrupted dialog",
+      "320: privacy and summary bookmark dialogs open and close",
+      "320: menu open, Escape/focus return, select My Health/medicines/Profile and automatic close",
+      "320: menu Tab exit, repeated toggles and desktop resize",
+      "320: red alert banner remains reachable by keyboard"
+    ],
+    "errors": []
+  },
+  "knownOpenPriorityDefects": [],
+  "limits": [
+    "Local signed-out/synthetic fixture only",
+    "No screen-reader certification or hosted authenticated test",
+    "No Safari/Firefox, physical camera, native zoom or paid AI flow"
+  ],
+  "longestMedicineEvidence": [
+    {
+      "phase": "before",
+      "sourceRef": "3658f71",
+      "width": 320,
+      "height": 1000,
+      "productId": "pharmac-fc6b1646362ed829",
+      "productNameLength": 427,
+      "screenshot": "longest-medicine-before-320.png",
+      "copyWidth": 0,
+      "name": "Prepkit Orange — Macrogol 3350 with ascorbic acid, potassium chloride, sodium chloride and citric acid with magnesium carbonate hydrate and sodium picosulfate — Powder for oral soln 52.9 g with ascorbic acid 6 g, potassium chloride 740 mg, sodium chloride 2.6 g and sodium sulphate 5.6 g per sachet (1) and powder for oral soln citric acid 12 g with magnesium carbonate hydrate 7.4 g and sodium picosulfate 10 mg per sachet (2) Synthetic layout fixture only",
+      "overflow": false,
+      "cardTop": 99.96875,
+      "cardBottom": 8975.1875,
+      "bottomNavTop": 919
+    },
+    {
+      "phase": "before",
+      "sourceRef": "3658f71",
+      "width": 390,
+      "height": 1000,
+      "productId": "pharmac-fc6b1646362ed829",
+      "productNameLength": 427,
+      "screenshot": "longest-medicine-before-390.png",
+      "copyWidth": 61.640625,
+      "name": "Prepkit Orange — Macrogol 3350 with ascorbic acid, potassium chloride, sodium chloride and citric acid with magnesium carbonate hydrate and sodium picosulfate — Powder for oral soln 52.9 g with ascorbic acid 6 g, potassium chloride 740 mg, sodium chloride 2.6 g and sodium sulphate 5.6 g per sachet (1) and powder for oral soln citric acid 12 g with magnesium carbonate hydrate 7.4 g and sodium picosulfate 10 mg per sachet (2) Synthetic layout fixture only",
+      "overflow": false,
+      "cardTop": 99.578125,
+      "cardBottom": 1593.578125,
+      "bottomNavTop": 919
+    },
+    {
+      "phase": "after",
+      "sourceRef": "37bacb43992630fcd4f588bc8c7759c7ff9abf93",
+      "width": 320,
+      "height": 1000,
+      "productId": "pharmac-fc6b1646362ed829",
+      "productNameLength": 427,
+      "screenshot": "longest-medicine-after-320.png",
+      "copyWidth": 213,
+      "name": "Prepkit Orange — Macrogol 3350 with ascorbic acid, potassium chloride, sodium chloride and citric acid with magnesium carbonate hydrate and sodium picosulfate — Powder for oral soln 52.9 g with ascorbic acid 6 g, potassium chloride 740 mg, sodium chloride 2.6 g and sodium sulphate 5.6 g per sachet (1) and powder for oral soln citric acid 12 g with magnesium carbonate hydrate 7.4 g and sodium picosulfate 10 mg per sachet (2) Synthetic layout fixture only",
+      "overflow": false,
+      "cardTop": 99.96875,
+      "cardBottom": 693.0625,
+      "bottomNavTop": 919
+    },
+    {
+      "phase": "after",
+      "sourceRef": "37bacb43992630fcd4f588bc8c7759c7ff9abf93",
+      "width": 390,
+      "height": 1000,
+      "productId": "pharmac-fc6b1646362ed829",
+      "productNameLength": 427,
+      "screenshot": "longest-medicine-after-390.png",
+      "copyWidth": 283,
+      "name": "Prepkit Orange — Macrogol 3350 with ascorbic acid, potassium chloride, sodium chloride and citric acid with magnesium carbonate hydrate and sodium picosulfate — Powder for oral soln 52.9 g with ascorbic acid 6 g, potassium chloride 740 mg, sodium chloride 2.6 g and sodium sulphate 5.6 g per sachet (1) and powder for oral soln citric acid 12 g with magnesium carbonate hydrate 7.4 g and sodium picosulfate 10 mg per sachet (2) Synthetic layout fixture only",
+      "overflow": false,
+      "cardTop": 99.578125,
+      "cardBottom": 508.703125,
+      "bottomNavTop": 919
+    }
+  ]
+}

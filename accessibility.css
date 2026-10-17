@@ -470,6 +470,31 @@ body .doctorai-feature-mark .icon-solid { fill: currentColor; stroke: none; }
 body .badge-logo[data-doctorai-icon] { width: 28px; height: 28px; }
 body .badge-logo[data-doctorai-icon] svg { width: 28px; height: 28px; }
 body.staff-page .card em [data-doctorai-icon] { display: inline-flex; margin: 0 0 0 4px; color: inherit; vertical-align: middle; }
+
+/* Custom controls need a visible focus indicator on the painted element. */
+body .switch { width: 44px; height: 44px; }
+body .switch input { inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+body .switch > span { inset: 12px 6px 13px; pointer-events: none; }
+body .switch input:focus-visible + span,
+body #view-ask .response-length-picker input:focus-visible + span,
+body .today-plan-options input:focus-visible + span { outline: 3px solid #0759b6; outline-offset: 3px; }
+body #hub-shell #view-ask .response-length-picker label > span { min-height: 44px; }
+body #hub-shell .hub-footer :is(button, a) { min-height: 44px; display: inline-flex; align-items: center; }
+body #hub-shell .library-item-actions :is(button, a) { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+@media (max-width: 380px) {
+  body.doctorai-homepage .home-header { flex-wrap: wrap; row-gap: 8px; }
+}
+body[data-hub-layout="reference"] #hub-shell .delete-item { color: #9c3028; }
+/* Keep keyboard-focused form controls clear of the sticky dialog heading. */
+body dialog { scroll-padding-block: 110px 16px; }
+body dialog :is(input, select, textarea, summary, button, a) { scroll-margin-block: 110px 16px; }
+@media (forced-colors: active) {
+  body .switch > span { border: 1px solid ButtonText; }
+  body .switch input:checked + span { background: Highlight; }
+  body .switch input:focus-visible + span,
+  body #view-ask .response-length-picker input:focus-visible + span,
+  body .today-plan-options input:focus-visible + span { outline-color: Highlight; }
+}
 body.doctorai-public-page :is(.panel, .feature-card, .plan-card, .highlight-card, .research-controls, .paper-card, .research-community, .research-method) { border-width: 1px; border-color: var(--doctorai-line); box-shadow: 0 4px 14px rgba(16, 48, 74, .045); }
 body.doctorai-public-page .plan-card.featured { border-color: var(--doctorai-blue); }
 body[data-hub-theme] :is(.nav-icon, .category-tab > .doctorai-icon-slot, .category-more-menu .doctorai-icon-slot) { color: #0759b6; }

@@ -16,6 +16,9 @@
     "verify:static": "powershell -ExecutionPolicy Bypass -File scripts/verify-static-site.ps1",
     "prepare:vercel": "powershell -ExecutionPolicy Bypass -File scripts/prepare-vercel-prebuilt.ps1",
     "verify:medication-database": "node scripts/verify-medication-database.cjs",
+    "verify:medication-catalog-search": "node scripts/verify-medication-catalog-search.cjs",
+    "verify:medication-catalogue-selection": "node scripts/verify-medication-catalogue-selection.cjs",
+    "verify:medication-catalogue-browser": "node scripts/verify-medication-catalogue-browser.cjs",
     "verify:medication-safety": "node scripts/verify-medication-safety.js",
     "verify:medication-pipeline": "node scripts/verify-medication-pipeline.cjs",
     "verify:medication-evidence": "node scripts/verify-medication-evidence.cjs",
@@ -36,7 +39,15 @@
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
     "verify:today-diary": "node scripts/verify-today-diary.cjs",
-    "verify:today-records": "node scripts/verify-today-records-browser.cjs"
+    "verify:medicine-photo": "node scripts/verify-medicine-photo.cjs",
+    "verify:medicine-photo-browser": "node scripts/verify-medicine-photo-browser.cjs",
+    "verify:today-records": "node scripts/verify-today-records-browser.cjs",
+    "verify:checker-conformance": "node scripts/verify-checker-combined-e2e.cjs --require-visible-attribution",
+    "verify:checker-browser": "node scripts/verify-checker-combined-browser.cjs",
+    "verify:checker-source-ui": "node scripts/verify-checker-source-ui.cjs",
+    "verify:medicine-identity": "node scripts/verify-pharmac-catalogue-integrity.cjs && node scripts/verify-medicine-identity.cjs",
+    "verify:pharmac-catalogue-integrity": "node scripts/verify-pharmac-catalogue-integrity.cjs",
+    "verify:checker-rights": "node docs/checker-rights-20261016/verify.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

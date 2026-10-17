@@ -9,6 +9,7 @@ const vm = require('node:vm');
 const { execFileSync } = require('node:child_process');
 const medicationEngine = require('../server-src/medication/safety-engine.cjs');
 const { createHealthAlertsEngine } = require('../server-src/health/alerts-engine.cjs');
+const pharmacCatalogue = require('../data/medication/nz-pharmac-medicines.json');
 const engine = createHealthAlertsEngine(medicationEngine);
 const root = path.resolve(__dirname, '..');
 const now = '2026-10-11T12:00:00Z';
@@ -44,6 +45,26 @@ for (const [ruleId, left, right] of pairs) check(`shared-rule-${ruleId}`, () => 
   assert.ok(alert.sources.length);
   assert.match(alert.nextAction, /pharmacist or prescriber/);
   assert.equal(result.coverage.complete, false);
+});
+
+check('selected-catalogue-row-stays-display-only-until-label-confirmed', () => {
+  const ids = ['pharmac-0a29aaf4f9d374ff', 'pharmac-2265f4edb1773786'];
+  const sourceIngredients = new Map(pharmacCatalogue.ingredients.map(item => [item.id, item.name]));
+  const selected = ids.map((id, index) => {
+    const product = pharmacCatalogue.products.find(item => item.id === id);
+    assert.ok(product?.ingredientsComplete);
+    return { id: 'selected-' + index, name: product.name, dose: product.formulation,
+      catalogueMatch: { productId: product.id, productName: product.name },
+      activeIngredients: [], activeIngredientsManuallyConfirmed: false,
+      expectedIngredients: product.ingredients.map(ingredientId => sourceIngredients.get(ingredientId)) };
+  });
+  const unconfirmed = evaluate({ medications: selected });
+  assert.equal(unconfirmed.coverage.medications.resolved, 0);
+  assert.ok(!has(unconfirmed, 'medication-medication', 'warfarin-sulfamethoxazole'));
+  assert.ok(!unconfirmed.alerts.some(alert => alert.type === 'allergy-medication'));
+  const confirmed = evaluate({ medications: selected.map(item => ({ ...item,
+    activeIngredients: item.expectedIngredients, activeIngredientsManuallyConfirmed: true })) });
+  assert.ok(has(confirmed, 'medication-medication', 'warfarin-sulfamethoxazole'));
 });
 
 check('medication-medication-catalogue-brand', () => {
@@ -174,12 +195,13 @@ check('pure-input-no-mutation-stable-identities', () => {
   assert.equal(JSON.stringify(input), before);
   assert.deepEqual(left, right);
 });
-check('official-source-links-only', () => {
+check('official-and-exact-retained-source-links-only', () => {
   const results = [evaluate({ medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('b', 'Coughing up blood')] }), ...pairs.map(([, left, right]) => evaluate({ medications: [label('l', left), label('r', right)] }))];
   const allowed = new Set(['www.nhs.uk', 'sps.nhs.uk', 'www.medsafe.govt.nz', 'medsafe.govt.nz', 'www.accessdata.fda.gov', 'accessdata.fda.gov', 'schedule.pharmac.govt.nz']);
+  const retained = new Set(['https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2816687', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/', 'https://link.springer.com/article/10.1186/s40780-026-00560-8']);
   for (const alert of results.flatMap(result => result.alerts)) {
     assert.ok(alert.triggers.length && alert.nextAction && alert.message && alert.sources.length);
-    for (const source of alert.sources.filter(item => item.url)) { const url = new URL(source.url); assert.equal(url.protocol, 'https:'); assert.ok(allowed.has(url.hostname)); }
+    for (const source of alert.sources.filter(item => item.url)) { const url = new URL(source.url); assert.equal(url.protocol, 'https:'); assert.ok(allowed.has(url.hostname) || retained.has(url.href)); }
     assert.doesNotMatch(alert.nextAction, /(?:start|stop|increase|reduce|double) (?:taking |your )?(?:warfarin|ibuprofen|dose|medication)/i);
   }
 });
@@ -198,7 +220,11 @@ check('browser-bundle-parity-without-network-or-storage', () => {
   vm.runInContext(fs.readFileSync(path.join(root, 'health-alerts.js'), 'utf8'), context, { timeout: 10000 });
   const inputs = [
     { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], now },
-    { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('s', 'Wheezing')], now }
+    { medications: [label('war', 'warfarin'), label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' }, timeline: [symptom('s', 'Wheezing')], now },
+    { medications: ['pharmac-0a29aaf4f9d374ff', 'pharmac-2265f4edb1773786'].map((id, index) => {
+      const product = pharmacCatalogue.products.find(item => item.id === id);
+      return { id: 'selected-' + index, name: product.name, catalogueMatch: { productId: id, productName: product.name } };
+    }), now }
   ];
   for (const input of inputs) {
     const browser = context.DoctorAIHealthAlerts.evaluate(input);

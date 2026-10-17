@@ -98,6 +98,48 @@
     transition-duration: .01ms !important;
   }
 }
+
+body.medication-guide .medicine-name-search-results li.medicine-catalogue-result {
+  display: grid;
+  align-items: start;
+  justify-items: start;
+  gap: 7px;
+  padding: 14px 16px;
+}
+
+body.medication-guide .medicine-catalogue-result-title {
+  margin: 0;
+  color: #102f57;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+body.medication-guide .medicine-catalogue-result-detail,
+body.medication-guide .medicine-catalogue-result-ingredients,
+body.medication-guide .medicine-catalogue-result-identifiers {
+  margin: 0;
+  color: var(--guide-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+body.medication-guide .medicine-name-search-results li.medicine-catalogue-result > button {
+  justify-self: start;
+}
+
+body.medication-guide .medicine-name-search-more {
+  margin: 0 0 14px;
+}
+
+body.medication-guide .medicine-name-search-more[hidden] {
+  display: none;
+}
+
+@media (max-width: 500px) {
+  body.medication-guide .medicine-name-search-results li.medicine-catalogue-result > button {
+    width: auto;
+  }
+}
 /* Medication organizer surfaces keep the blank template legible on screen and on paper. */
 @media screen {
   body.medication-guide {
