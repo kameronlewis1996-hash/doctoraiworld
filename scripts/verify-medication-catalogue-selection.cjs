@@ -133,8 +133,39 @@ async function run() {
     assert.equal(conflictingLabel.ingredients.length, 0);
   });
 
-  assert.equal(passed, 6);
-  console.log(`${passed}/6 catalogue selection and checker identity regressions passed.`);
+  check('full checker review retains catalogue evidence basis without widening active rules', () => {
+    const selected = select(productIds.single);
+    const medication = { name: selected.productName, catalogueProductId: selected.productId, dose: '10 mg per ml' };
+    const direct = safety.resolveMedication(medication);
+    assert.equal(direct.basis, 'catalogue_product_id');
+    assert.equal(direct.identityOnly, true);
+    assert.notEqual(direct.labelIngredientsConfirmed, true);
+
+    const reviewed = safety.review({ medications: [medication] });
+    assert.equal(reviewed.resolved.length, 1);
+    assert.equal(reviewed.resolved[0].basis, 'catalogue_product_id');
+    assert.equal(reviewed.resolved[0].identityOnly, true);
+    assert.notEqual(reviewed.resolved[0].labelIngredientsConfirmed, true);
+    assert.equal(reviewed.coverage.confirmedLabels, 0, 'Selecting a catalogue row alone does not confirm the original label');
+    assert.deepEqual({
+      pairwise: reviewed.ruleset.interactionRuleCount,
+      combinations: reviewed.ruleset.combinationRuleCount,
+      conditions: reviewed.ruleset.conditionRuleCount,
+      allergies: reviewed.ruleset.allergyRuleCount
+    }, { pairwise: 2, combinations: 1, conditions: 0, allergies: 2 });
+    assert.equal(reviewed.coverage.interactionCoverage, 'limited');
+    assert.equal(reviewed.coverage.doseAssessment, 'not_performed');
+    assert.ok(reviewed.alerts.every(alert => alert.type === 'coverage'), 'An unrelated single medicine cannot create a clinical alert');
+
+    const partial = select(productIds.incomplete);
+    const partialReview = safety.review({ medications: [{ name: partial.productName, catalogueProductId: partial.productId }] });
+    assert.equal(partialReview.resolved[0].status, 'unknown');
+    assert.equal(partialReview.resolved[0].ingredients.length, 0);
+    assert.equal(partialReview.coverage.confirmedLabels, 0);
+  });
+
+  assert.equal(passed, 7);
+  console.log(`${passed}/7 catalogue selection and checker identity regressions passed.`);
 }
 
 run().catch(error => {
