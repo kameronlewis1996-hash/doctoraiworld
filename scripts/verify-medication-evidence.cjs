@@ -116,7 +116,7 @@ assert.match(hubSource, /not clinically validated/);
   assert.match(hubHtml, /health-alerts\.js\?v=8/);
   assert.match(hubHtml, /health-alert-status\.js\?v=6/);
   assert.match(hubHtml, /medicine-catalog-search\.js\?v=4/);
-  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v177';/);
+  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v178';/);
   for (const asset of [
     'health-hub.js?v=106',
     'health-hub.css?v=90',
