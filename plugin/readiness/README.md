@@ -60,10 +60,11 @@ For ChatGPT readiness, the next checks are:
 1. Have the MCP owner deploy the approved fixed-topic source to the existing
    endpoint. Run the local and read-only live verification commands above and
    inspect each tool with MCP Inspector, including rejected unsupported inputs.
-2. In the existing saved draft, confirm the verified publisher identity and
-   domain challenge, current privacy/support/terms pages, and that its
-   discovered tool metadata matches the approved endpoint. Resolve portal
-   findings before review.
+2. If the previously recorded submission draft still exists, confirm its
+   verified publisher identity and domain challenge, current
+   privacy/support/terms pages, and discovered tool metadata against the
+   approved endpoint. If it does not exist, recover or create a draft only
+   with publisher approval. Resolve portal findings before review.
 3. Test direct, indirect, follow-up, and unsupported prompts in ChatGPT on the
    installed draft. Record selected tools, arguments, responses, and refusal
    behavior. Local MCP tests cannot establish model tool selection or
