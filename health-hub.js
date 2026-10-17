@@ -1719,17 +1719,23 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   let profileReturnFocus = null;
+  let profileBackgroundInert = [];
   function openProfile() {
+    if (!els.drawer.hidden) return;
     setMobileMenuOpen(false);
     profileReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     els.drawer.hidden = false;
+    profileBackgroundInert = $$('.hub-shell, .mobile-bottom-nav, .skip-link').map(element => [element, element.inert]);
+    profileBackgroundInert.forEach(([element]) => { element.inert = true; });
     document.body.style.overflow = 'hidden';
     document.querySelectorAll('[data-open-profile]').forEach(item => item.setAttribute('aria-expanded', 'true'));
-    requestAnimationFrame(() => els.drawer.querySelector('[data-close-profile]')?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => els.drawer.querySelector('.drawer-panel [data-close-profile]')?.focus({ preventScroll: true }));
   }
   function closeProfile(restoreFocus = false) {
     if (els.drawer.hidden) return;
     els.drawer.hidden = true;
+    profileBackgroundInert.forEach(([element, inert]) => { element.inert = inert; });
+    profileBackgroundInert = [];
     document.body.style.overflow = '';
     document.querySelectorAll('[data-open-profile]').forEach(item => item.setAttribute('aria-expanded', 'false'));
     if (restoreFocus && profileReturnFocus?.isConnected) profileReturnFocus.focus({ preventScroll: true });
@@ -1740,6 +1746,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   function closeModal() { globalThis.DoctorAIMedicinePhotoReview?.clear(); if (els.modal.open) els.modal.close(); }
   function closePrivacy() { if (els.privacyModal.open) els.privacyModal.close(); }
+  function focusCurrentViewHeading() {
+    const heading = document.querySelector('.view.active > .page-heading h1') || $('#main-content');
+    if (!heading) return;
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+  }
   function setGoogleSigninStatus(message, tone = '') {
     if (!els.googleSigninStatus) return;
     els.googleSigninStatus.textContent = message;
@@ -1974,10 +1986,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
     } finally { googleCredentialInFlight = false; }
   }
+  let googleSigninReturnFocus = null;
   function openGoogleSignIn() {
+    const opener = els.drawer.hidden ? document.activeElement : profileReturnFocus;
     closeProfile();
     if (!els.googleSigninModal) return;
-    if (!els.googleSigninModal.open) els.googleSigninModal.showModal();
+    if (!els.googleSigninModal.open) {
+      googleSigninReturnFocus = opener instanceof HTMLElement && opener !== document.body ? opener : null;
+      els.googleSigninModal.showModal();
+    }
     configureGoogleSignIn();
   }
   function closeGoogleSignIn() { if (els.googleSigninModal?.open) els.googleSigninModal.close(); }
@@ -2373,7 +2390,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     try { window.print(); } catch { cleanup(); showToast('Printing is unavailable here. Please open DoctorAI in your browser.'); }
   }
 
+  let modalReturnFocus = null;
   function setModal(title, eyebrow, body) {
+    const wasOpen = els.modal.open;
+    if (!wasOpen) modalReturnFocus = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
     globalThis.DoctorAIMedicinePhotoReview?.clear();
     els.modal.classList.toggle('today-plan-modal', eyebrow === 'Your private daily check-in' || eyebrow === 'Private daily overview');
     els.modalTitle.textContent = title;
@@ -2391,7 +2411,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       icon.innerHTML = profileShortcutIconMarkup(name);
     });
     window.DoctorAIIcons.hydrate(els.modalBody);
-    if (!els.modal.open) els.modal.showModal();
+    if (!wasOpen) els.modal.showModal();
+    else {
+      // Replacing an open dialog's contents can remove the focused control.
+      els.modal.scrollTop = 0;
+      els.modalTitle.setAttribute('tabindex', '-1');
+      els.modalTitle.focus({ preventScroll: true });
+    }
   }
 
   function persistProfileShortcuts() {
@@ -3865,6 +3891,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    if (event.target.closest('.skip-link')) {
+      event.preventDefault();
+      // The hash belongs to Hub routing; a skip must preserve the active page.
+      focusCurrentViewHeading();
+      document.activeElement.scrollIntoView({ block: 'start', behavior: 'auto' });
+      return;
+    }
     if (event.target.closest('[data-today-retry]')) {
       if (accountSessionVerification === 'failed') await loadAccountSession();
       else if (authUser && cloudSyncEnabled) await loadCloudState();
@@ -4202,6 +4235,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         state.timeline = state.timeline.filter(item => !(item.type === 'medication' && item.source === 'medication-list-change' && String(item.medicationId ?? '') === String(medication.id)));
         clearMedicationSafetyResults();
         saveState(); renderAll(); showToast('Medicine removed from your current list. Your own history notes remain.');
+        const nextAction = document.querySelector('.view.active [data-edit-medication], .view.active [data-modal="medication"]');
+        if (nextAction) nextAction.focus({ preventScroll: true });
+        else focusCurrentViewHeading();
       }
       return;
     }
@@ -4486,16 +4522,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     showView('medications');
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Tab' && !els.drawer.hidden) {
-      const focusable = [...els.drawer.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(item => !item.hidden);
+    if (event.key === 'Tab' && !els.drawer.hidden && !document.querySelector('dialog[open]')) {
+      const panel = els.drawer.querySelector('.drawer-panel');
+      const focusable = [...panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(item => item.getClientRects().length && !item.closest('[hidden], [inert]'));
       if (focusable.length) {
         const first = focusable[0]; const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        if (!panel.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+        else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
       }
       return;
     }
     if (event.key !== 'Escape') return;
+    if (document.querySelector('dialog[open]')) return;
     if (!els.drawer.hidden) { closeProfile(true); return; }
     const moreMenu = document.querySelector('.category-more-menu');
     if (moreMenu && !moreMenu.hidden) {
@@ -4519,6 +4558,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     globalThis.DoctorAIMedicinePhotoReview?.clear();
     if (els.modal.open) return;
     const returnToVisitPrep = preparationReturnFocus;
+    const returnFocus = modalReturnFocus;
+    modalReturnFocus = null;
     const hadPreparation = Boolean(careSummaryDraft || appointmentRequestDraft);
     preparationReturnFocus = false;
     discardPreparationDrafts(false, hadPreparation);
@@ -4528,12 +4569,26 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       heading.setAttribute('tabindex', '-1');
       heading.focus({ preventScroll: true });
     });
+    else requestAnimationFrame(() => {
+      if (els.modal.open || document.querySelector('dialog[open]')) return;
+      if (returnFocus?.isConnected && returnFocus.getClientRects().length && !returnFocus.closest('[hidden], [inert]')) returnFocus.focus({ preventScroll: true });
+      else focusCurrentViewHeading();
+    });
   });
   els.medicationScannerModal?.addEventListener('click', event => { if (event.target === els.medicationScannerModal) closeMedicationScanner(); });
   els.medicationScannerModal?.addEventListener('cancel', () => stopMedicationScannerCamera());
   els.medicationScannerModal?.addEventListener('close', () => stopMedicationScannerCamera());
   els.privacyModal.addEventListener('click', event => { if (event.target === els.privacyModal) closePrivacy(); });
   els.googleSigninModal?.addEventListener('click', event => { if (event.target === els.googleSigninModal) closeGoogleSignIn(); });
+  els.googleSigninModal?.addEventListener('close', () => {
+    const opener = googleSigninReturnFocus;
+    googleSigninReturnFocus = null;
+    requestAnimationFrame(() => {
+      if (document.querySelector('dialog[open]')) return;
+      if (opener?.isConnected && opener.getClientRects().length && !opener.closest('[hidden], [inert]')) opener.focus({ preventScroll: true });
+      else focusCurrentViewHeading();
+    });
+  });
   function restoreHubLocation() {
     // A browser history move can fire both popstate and hashchange. Restore it
     // once so the second event cannot close a freshly opened bookmark dialog.
