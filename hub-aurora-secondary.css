@@ -543,7 +543,7 @@ body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-car
 /* Drawers and forms share the same blue glass frame. */
 body[data-hub-layout="reference"] #profile-drawer .drawer-panel { width: min(440px, calc(100% - 20px)); border-radius: 24px 0 0 24px; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-header { padding-bottom: 16px; }
-body[data-hub-layout="reference"] #profile-drawer .drawer-row:focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-row:focus-visible { outline: 3px solid #0759b6; outline-offset: 3px; }
 body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) {
   max-height: calc(100dvh - 32px);
   overflow: auto;
@@ -560,9 +560,14 @@ body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-sign
 body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { position: sticky; top: 0; z-index: 2; background: linear-gradient(115deg, #eff5ff, #ffffff); }
 body[data-hub-layout="reference"] :is(.modal-field, .modal-choice, .modal-form-grid) { min-width: 0; }
 body[data-hub-layout="reference"] .modal-field :is(input, textarea, select) { width: 100%; min-width: 0; background: #fff; }
-body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) :is(button, a):focus-visible { outline: 3px solid #0759b64d; outline-offset: 2px; }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) :is(button, a):focus-visible { outline: 3px solid #0759b6; outline-offset: 3px; }
 
 @media (max-width: 800px) {
+  /* Keep long exact product names readable; actions get their own row. */
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item { grid-template-columns: 36px minmax(0, 1fr); align-items: start; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-copy { min-width: 0; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-meta { grid-column: 2; min-width: 0; text-align: left; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-actions { flex-wrap: wrap; justify-content: flex-start; }
   html body[data-hub-layout="reference"][data-hub-theme] { background-attachment: scroll; background-size: 100% 1500px; }
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading { align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding: 17px 16px; border-radius: 17px; }
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading > :is(.primary-button, .secondary-button, .page-heading-actions, .health-page-actions) { width: 100%; }

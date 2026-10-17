@@ -148,6 +148,7 @@ function fixture(initial = {}) {
     setModal: (title, eyebrow, html) => { observed.modals.push({ title, eyebrow, html }); if (html.includes('data-care-summary-form')) activeBriefForm = briefForm(html); },
     saveState: () => observed.saves.push(clone(state)), renderAll: () => observed.renders++,
     clearMedicationSafetyResults: () => {},
+    focusCurrentViewHeading: () => {},
     closeModal: () => observed.closes++, showToast: text => observed.toasts.push(text),
     showView: (...route) => observed.routes.push(route)
   });
@@ -859,11 +860,11 @@ function verifyPreparationCloseFocus() {
     els: { modal: { open: false, addEventListener: (_type, listener) => { observed.onClose = listener; } }, modalBody: { innerHTML: 'fictional reviewed brief' } },
     document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#visit-prep-title' ? heading : null,
-    requestAnimationFrame: callback => callback(), closeModal() {}
+    requestAnimationFrame: callback => callback(), closeModal() {}, focusCurrentViewHeading() {}
   });
   vm.runInContext([
     'let careSummaryDraft = { html: "fictional reviewed brief" };',
-    'let appointmentRequestDraft = null; let preparationReturnFocus = true;',
+    'let appointmentRequestDraft = null; let preparationReturnFocus = true; let modalReturnFocus = null;',
     between('  function discardPreparationDrafts(', '  function focusPreparationTitle('),
     between("  els.modal.addEventListener('close',", "  els.medicationScannerModal?.addEventListener('click',")
   ].join('\n'), context, { timeout: 1000, filename: 'health-hub-preparation-close-focus.js' });
