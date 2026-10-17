@@ -131,6 +131,10 @@ body.medication-guide .medicine-name-search-more {
   margin: 0 0 14px;
 }
 
+body.medication-guide .medicine-name-search-more[hidden] {
+  display: none;
+}
+
 @media (max-width: 500px) {
   body.medication-guide .medicine-name-search-results li.medicine-catalogue-result > button {
     width: auto;
