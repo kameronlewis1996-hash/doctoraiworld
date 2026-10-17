@@ -115,12 +115,12 @@ assert.match(hubSource, /not clinically validated/);
   assert.match(hubHtml, /health-hub\.css\?v=89/);
   assert.match(hubHtml, /health-alerts\.js\?v=7/);
   assert.match(hubHtml, /health-alert-status\.js\?v=6/);
-  assert.match(hubHtml, /medicine-catalog-search\.js\?v=2/);
-  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v172';/);
+  assert.match(hubHtml, /medicine-catalog-search\.js\?v=3/);
+  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v173';/);
   for (const asset of [
     'health-hub.js?v=103',
     'health-hub.css?v=89',
-    'medicine-catalog-search.js?v=2',
+    'medicine-catalog-search.js?v=3',
     'medicine-photo-review.css?v=1',
     'medicine-photo-review.js?v=1',
     'health-alerts.js?v=7',

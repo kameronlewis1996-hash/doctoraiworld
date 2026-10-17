@@ -2,6 +2,7 @@
   'use strict';
 
   const DATA_URL = '/data/medication/nz-pharmac-medicines.json?v=20261001';
+  const strengthSearchToken = /^\d+(?:\.\d+)?(?:mcg|mg|g|ml|units?)$/;
   let cataloguePromise;
 
   function normalise(value) {
@@ -52,6 +53,7 @@
                 product,
                 ingredientRecords,
                 searchText,
+                searchTokens: new Set(searchText.split(' ').filter(Boolean)),
                 compactSearchText: searchText.replace(/\s/g, ''),
                 nameKey: normalise(product.name),
                 brandKey: normalise(product.brand),
@@ -82,9 +84,10 @@
     const tokens = query.split(' ').filter(Boolean);
     if (!catalogue || !Array.isArray(catalogue.products) || !tokens.length) return { matches: [], totalMatches: 0 };
     const compactTokens = tokens.map(token => token.replace(/\s/g, ''));
-    const matches = catalogue.products.filter(record =>
-      tokens.every((token, index) => record.searchText.includes(token) || record.compactSearchText.includes(compactTokens[index]))
-    );
+    const matches = catalogue.products.filter(record => tokens.every((token, index) => {
+      if (strengthSearchToken.test(token)) return record.searchTokens.has(token);
+      return record.searchText.includes(token) || record.compactSearchText.includes(compactTokens[index]);
+    }));
     matches.sort((a, b) => rank(a, query) - rank(b, query) || a.product.name.localeCompare(b.product.name));
     const count = Number.isInteger(limit) ? Math.max(1, Math.min(catalogue.products.length, limit)) : 20;
     return { matches: matches.slice(0, count), totalMatches: matches.length };
