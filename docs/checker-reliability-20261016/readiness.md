@@ -17,7 +17,7 @@ Production stays frozen at PR83 `7bec9131662b72d74e45efbf1aaaea0eda220dbe`, rule
 | Frozen Pharmac formulation subset | 3,419 rows; 113 ingredient-incomplete; 2,991 without one explicit route token | Verify actual product/strength/form/route and ingredient completeness; no whole-market coverage claim |
 | PR79 source-pack dry run | 3,189 single-formulation matches / 3,380 distinct codes; 191 ambiguous | Source rows remain in a separate draft; no current shelf/OTC denominator or retail inventory |
 | Rule rights | 5 retained / 1,274 candidates; all 1,269 exclusions remain blocked | Exclusion artifact lacks original per-rule source map; obtain controlled provenance and permission before any reuse |
-| Wrapper sources | 8 NHS/SPS references across 9 prompt IDs | Rights/currentness/NZ applicability separate from r149; overdue chest metadata review |
+| Wrapper sources | 8 NHS/SPS references across 9 prompt IDs | Rights/currentness/NZ applicability separate from r149; use the [PR #91 pharmacist and source-rights handoff](../checker-rights-20261016/pharmacist-handoff-20261017.md); chest metadata review is overdue |
 | Route handling | Explicit resolved-route seams are tested | Existing saved `route` fields are not assessed; unknown/mixed route behavior requires independent review. No exact topical NSAID source record was available for a full product-path negative |
 | Reference photos | 0 approved product images | Exact-product bridge, packaging currentness, documented image permission/attribution and local approved assets |
 | Clinical evidence | Proposed pack has 16 fictional cases, all unvalidated/not-run | Pharmacist must define expected outcomes independently and adjudicate observations; software fixtures do not estimate real-world sensitivity |
@@ -43,3 +43,4 @@ The supplied Pack 1.0 has been structured and validated **outside Git and public
 ## Practical next review
 
 Have the pharmacist define expected responses and acceptable limits for M01–M08/H01–H08 before running them. Prioritise multi-view parity, identity/combination completeness, route uncertainty, negation/history/currentness, missing/overflow inputs and account failure states. Record exact build/rule/source and feedback issue IDs. Resolve rights/currentness separately; qualify all unassessed states clearly. Do not activate excluded rules or enlarge claims from this fixture pass. Production rollout and reviewer access each require their own explicit approval after their remaining gates are satisfied.
+
