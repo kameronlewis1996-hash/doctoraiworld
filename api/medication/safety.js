@@ -46,7 +46,7 @@ function createMedicationSafetyHandler({ provider = defaultMedicationSafetyProvi
       if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
       const allowed = new Set(['name', 'dose', 'activeIngredients', 'activeIngredientsConfirmed']);
       if (Object.keys(item).some(key => !allowed.has(key))) return null;
-      if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 120) return null;
+      if (typeof item.name !== 'string' || !item.name.trim() || item.name.length > 500) return null;
       if (item.dose !== undefined && (typeof item.dose !== 'string' || item.dose.length > 80)) return null;
       if (item.activeIngredientsConfirmed !== undefined && typeof item.activeIngredientsConfirmed !== 'boolean') return null;
       if (item.activeIngredients !== undefined && (!Array.isArray(item.activeIngredients) || item.activeIngredients.length > 8)) return null;

@@ -47,8 +47,75 @@ async function screenshot(page, name, fullPage = true) {
   await page.screenshot({ path: file, fullPage });
   report.screenshots.push(file);
 }
+
+async function verifyRouteColorIdentity(browser, base, width) {
+  const context = await contextFor(browser, base, width, []);
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  const fixtures = [
+    { route: 'today', accent: '#0759b6', surface: '#e8f2ff', nav: 'today' },
+    { route: 'health', accent: '#0759b6', surface: '#e8f2ff', nav: 'health' },
+    { route: 'visit-prep', accent: '#0759b6', surface: '#e8f2ff', nav: 'visit-prep' },
+    { route: 'profile', accent: '#0759b6', surface: '#e8f2ff', nav: 'profile' }
+  ];
+  const rgb = hex => 'rgb(' + parseInt(hex.slice(1, 3), 16) + ', ' + parseInt(hex.slice(3, 5), 16) + ', ' + parseInt(hex.slice(5, 7), 16) + ')';
+  for (const fixture of fixtures) {
+    await page.goto(base + '/health-hub#' + fixture.route, { waitUntil: 'networkidle' });
+    await page.waitForFunction(route => document.body.dataset.hubTheme === route, fixture.route);
+    await page.waitForTimeout(250);
+    await screenshot(page, 'category-' + fixture.route + '-' + width + '.png');
+    const colors = await page.evaluate(({ route, nav, width }) => {
+      const bodyStyle = getComputedStyle(document.body);
+      const navRoot = width > 800 ? '.primary-nav' : '.mobile-bottom-nav';
+      const tab = nav ? document.querySelector(navRoot + ' [data-view="' + nav + '"][aria-current="page"]') : null;
+      const sectionTab = route === 'health'
+        ? (width > 800 ? document.querySelector('#view-health [data-hub-panel-target][aria-current="page"]') : document.querySelector('#view-health [data-hub-section-select]'))
+        : null;
+      const headingAccent = route === 'today'
+        ? document.querySelector('#view-today .reference-intro h1 span')
+        : document.querySelector('#view-' + route + '> .page-heading .eyebrow');
+      return {
+        theme: document.body.dataset.hubTheme,
+        accent: bodyStyle.getPropertyValue('--hub-category-accent').trim(),
+        surface: bodyStyle.getPropertyValue('--hub-category-surface').trim(),
+        tabColor: tab ? getComputedStyle(tab).color : null,
+        tabSurface: tab ? getComputedStyle(tab).backgroundColor : null,
+        sectionTabColor: sectionTab ? getComputedStyle(sectionTab).color : null,
+        headingAccent: headingAccent ? getComputedStyle(headingAccent).color : null
+      };
+    }, { route: fixture.route, nav: fixture.nav, width });
+    check(colors.theme === fixture.route && colors.accent === fixture.accent && colors.surface === fixture.surface,
+      width + ': ' + fixture.route + ' page resolves its route palette');
+    if (fixture.nav) {
+      check(colors.tabColor === rgb(fixture.accent), width + ': ' + fixture.route + ' tab text matches its page accent');
+      check(colors.tabSurface === rgb(fixture.surface), width + ': ' + fixture.route + ' selected tab surface matches its page');
+    }
+    if (fixture.route === 'health') check(colors.sectionTabColor === rgb(fixture.accent), width + ': My Health section control matches the shared brand accent');
+    check(colors.headingAccent === rgb(fixture.accent), width + ': ' + fixture.route + ' page heading matches its category accent');
+    if (fixture.route === 'visit-prep' && width <= 800) {
+      await page.evaluate(() => document.querySelector('#view-visit-prep .reference-visit-actions .text-button')?.scrollIntoView({ block: 'end' }));
+      await page.waitForTimeout(50);
+      check(await page.evaluate(() => {
+        const action = document.querySelector('#view-visit-prep .reference-visit-actions .text-button')?.getBoundingClientRect();
+        const navigation = document.querySelector('.mobile-bottom-nav')?.getBoundingClientRect();
+        return Boolean(action && navigation && action.bottom <= navigation.top);
+      }), width + ': Visit Prep actions can scroll fully above the mobile navigation');
+    }
+  }
+  await page.goto(base + '/health-hub#appointments', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.body.dataset.hubTheme === 'diary');
+  const nested = await page.evaluate(width => {
+    const navRoot = width > 800 ? '.primary-nav' : '.mobile-bottom-nav';
+    const visit = document.querySelector(navRoot + ' [data-view="visit-prep"]');
+    const parent = document.querySelector('#hub-parent-link');
+    return { selected: visit?.getAttribute('aria-current'), parentView: parent?.dataset.view, parentText: parent?.textContent, parentHidden: parent?.hidden };
+  }, width);
+  check(nested.selected === 'page' && nested.parentView === 'visit-prep' && nested.parentText === 'Visit Prep' && !nested.parentHidden,
+    width + ': diary and appointments stay nested under Visit Prep');
+  await context.close();
+}
 async function contextFor(browser, base, width, medications, options = {}) {
-  const context = await browser.newContext({ viewport: { width, height: width > 800 ? 1000 : 844 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+  const context = await browser.newContext({ viewport: { width, height: width > 800 ? 1000 : 844 }, isMobile: width <= 520, hasTouch: width <= 520, reducedMotion: 'reduce', serviceWorkers: 'block' });
   await context.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== base) return route.abort();
@@ -57,12 +124,19 @@ async function contextFor(browser, base, width, medications, options = {}) {
       return route.fulfill({ json: url.pathname === '/api/auth/google' ? { authenticated: false } : { active: false, authenticated: false } });
     }
     if (options.catalogueUnavailable && url.pathname.startsWith('/data/medication/')) return route.fulfill({ status: 503, json: { error: 'Fictional catalogue unavailable' } });
-    if (url.pathname === '/data/medication/nz-medicine-names.json') return route.fulfill({ json: { names: ['Fictional amber tablet', 'Fictional blue capsule'] } });
-    if (url.pathname === '/data/medication/nz-pharmac-medicines.json') return route.fulfill({ json: { products: [
-      { id: 'fictional-10', brand: 'Fictional amber tablet', name: 'Fictional amber tablet - 10 mg tablet', formulation: '10 mg tablet' },
-      { id: 'fictional-20', brand: 'Fictional amber tablet', name: 'Fictional amber tablet - 20 mg capsule', formulation: '20 mg capsule' },
-      { id: 'fictional-unknown', brand: 'Fictional amber tablet', name: 'Fictional amber tablet - unknown form', formulation: '' }
-    ] } });
+    if (url.pathname === '/data/medication/nz-pharmac-medicines.json') return route.fulfill({ json: {
+      schemaVersion: 1, datasetVersion: 'fictional-2026-01', sources: [{ effectiveDate: '2026-01-01' }],
+      ingredients: [
+        { id: 'fictional-amberin', name: 'Fictional amberin', aliases: ['amberin'] },
+        { id: 'fictional-bluein', name: 'Fictional bluein', aliases: ['bluein'] },
+        { id: 'fictional-violetin', name: 'Fictional violetin', aliases: ['violetin'] }
+      ],
+      products: [
+        { id: 'pharmac-fictionalamber10', name: 'Fictional amber tablet - 10 mg tablet', brand: 'Fictional Amber', chemical: 'Fictional amberin', formulation: '10 mg tablet', market: 'Community', interactionRoute: 'oral', pharmacodes: ['fictional-code-10'], nzmtIds: ['fictional-nzmt-10'], ingredients: ['fictional-amberin'], ingredientsComplete: true },
+        { id: 'pharmac-fictionalcombination', name: 'Fictional amber and blue tablet - 5 mg / 10 mg', brand: 'Fictional Duo', chemical: 'Fictional amberin and bluein', formulation: '5 mg / 10 mg tablet', market: 'Community', interactionRoute: 'oral', pharmacodes: ['fictional-code-combo'], nzmtIds: [], ingredients: ['fictional-amberin', 'fictional-bluein'], ingredientsComplete: true },
+        { id: 'pharmac-fictionalincomplete', name: 'Fictional violet capsule - unknown strength', brand: 'Fictional Violet', chemical: 'Fictional violetin', formulation: 'Capsule', market: 'Community', interactionRoute: '', pharmacodes: [], nzmtIds: [], ingredients: ['fictional-violetin', 'unmapped-ingredient'], ingredientsComplete: false }
+      ]
+    } });
     return route.continue();
   });
   await context.addInitScript(({ items, profile }) => {
@@ -142,7 +216,7 @@ async function verifyFormJourney(browser, base, width) {
   const optionalDetails = form.locator('details.medication-optional-fields');
   check(await form.locator('.medication-required-note').isVisible() && /\*\s*Required/i.test(await form.locator('.medication-required-note').innerText()), width + ': required legend appears above medication fields');
   check(await form.locator('[required]').count() === 1 && await name.evaluate(element => element.required && element.getAttribute('aria-required') === 'true'), width + ': medicine name is the sole initially required field with accessible semantics');
-  check(/\*/.test(await name.locator('xpath=ancestor::label[1]').innerText()), width + ': medicine name label has a required marker');
+  check(/\*/.test(await form.locator('label[for="manual-medication-name"]').innerText()), width + ': medicine name label has a required marker');
   check(!(await dose.evaluate(element => element.required)) && /optional/i.test(await dose.locator('xpath=ancestor::label[1]').innerText()), width + ': strength or dose is clearly optional');
   check(await optionalDetails.count() === 1 && !(await optionalDetails.evaluate(element => element.open)) && /Schedule & more details/.test(await optionalDetails.locator(':scope > summary').innerText()), width + ': Schedule & more details starts collapsed');
   await screenshot(page, 'medication-form-' + width + '.png', false);
@@ -175,31 +249,49 @@ async function verifyFormJourney(browser, base, width) {
   await ingredientInput.fill('');
   check(!(await ingredientConfirm.evaluate(element => element.required)) && !(await ingredientConfirm.locator('xpath=ancestor::label[1]').innerText()).includes('*'), width + ': empty optional ingredients remove the confirmation requirement');
 
-  await name.fill('Fictional');
-  const listId = await name.getAttribute('list');
-  check(Boolean(listId), width + ': searchable medicine suggestions are connected to the name field');
-  await page.waitForFunction(id => Boolean(document.getElementById(id)?.querySelector('option')), listId);
-  check(await page.locator('#' + listId + ' option').count() >= 2, width + ': fictional name options are available without auto-selection');
-  check(await name.inputValue() === 'Fictional', width + ': typing a partial name does not silently select a catalogue entry');
-  check(await form.locator('.medication-form-product-choice').isHidden(), width + ': partial search cannot expose a product/form choice');
-  await name.focus(); await page.keyboard.press('Tab');
-  check(await dose.evaluate(element => element === document.activeElement), width + ': keyboard Tab leaves the name suggestions for the next field');
-  await name.fill('Fictional amber tablet');
-  const productChoice = form.locator('.medication-form-product-choice');
-  await productChoice.waitFor({ state: 'visible' });
-  const productSelect = productChoice.locator('select');
-  const useForm = productChoice.locator('[data-use-medication-form]');
-  check(await productSelect.inputValue() === '' && await useForm.isDisabled(), width + ': exact name alone does not choose a product or copy a form');
-  check(await productSelect.locator('option[value="fictional-10"]').isEnabled() && await productSelect.locator('option[value="fictional-unknown"]').isDisabled(), width + ': only known, usable form options can be selected');
-  await productChoice.scrollIntoViewIfNeeded();
+  await name.fill('Fictional amber');
+  const results = form.locator('#medication-name-results');
+  await results.waitFor({ state: 'visible' });
+  check(await results.getByRole('option').count() >= 2, width + ': partial brand search shows in-page product options');
+  check(await name.inputValue() === 'Fictional amber', width + ': typing a partial query never selects the first result');
+  check(await name.getAttribute('role') === 'combobox' && await name.getAttribute('aria-expanded') === 'true' && Boolean(await name.getAttribute('aria-activedescendant')) === false, width + ': search exposes accessible combobox/listbox state before a result is chosen');
+  check(await form.locator('#medication-selected-product').isHidden(), width + ': partial search has no selected product or ingredient autofill');
+  await name.fill('bluein');
+  await results.waitFor({ state: 'visible' });
+  check(await results.getByRole('option').count() >= 1, width + ': generic ingredient alias search returns matching products');
+  if (width <= 520) {
+    await name.fill('Fictional Duo');
+    const comboOption = results.getByRole('option').filter({ hasText: 'Fictional amber and blue tablet' }).first();
+    await comboOption.waitFor({ state: 'visible' });
+    await comboOption.tap();
+  } else {
+    await name.fill('Fictional Duo');
+    await results.waitFor({ state: 'visible' });
+    await name.press('ArrowDown');
+    check(Boolean(await name.getAttribute('aria-activedescendant')), width + ': ArrowDown marks a keyboard-active option');
+    await name.press('Enter');
+  }
+  const selectedPanel = form.locator('#medication-selected-product');
+  await selectedPanel.waitFor({ state: 'visible' });
+  const selectedMatch = await form.evaluate(element => element.catalogueSelection);
+  check(selectedMatch?.productId === 'pharmac-fictionalcombination' && selectedMatch.ingredients.length === 2, width + ': explicit selection stores the exact combination product and both catalogue ingredients');
+  check(/unconfirmed|not checked against your label/i.test(await selectedPanel.innerText()) && /Fictional amberin, Fictional bluein/.test(await selectedPanel.innerText()), width + ': source ingredients for a combination are visibly unconfirmed');
+  check(await ingredientInput.inputValue() === '' && !(await ingredientConfirm.isChecked()), width + ': catalogue ingredients never enter label-confirmed checker fields');
   await screenshot(page, 'medication-product-picker-' + width + '.png', false);
-  await productSelect.focus(); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
-  check(await productSelect.inputValue() === 'fictional-10', width + ': product/form dropdown supports native keyboard selection');
-  check(await dose.inputValue() === '', width + ': even a selected product does not fill the strength field without a second explicit action');
-  await useForm.click();
-  check(await dose.inputValue() === '10 mg tablet', width + ': explicit label-checked action copies only the selected form');
+  await ingredientInput.fill('manual ingredient from fictional package');
+  await ingredientConfirm.check();
   await name.fill('Fictional custom medicine');
-  check(await productChoice.isHidden() && await dose.inputValue() === '', width + ': editing the name clears the copied source form and its picker');
+  check(await selectedPanel.isHidden() && !await form.evaluate(element => Boolean(element.catalogueSelection)), width + ': editing the product name clears the selected catalogue identity');
+  check(await ingredientInput.inputValue() === 'manual ingredient from fictional package' && !(await ingredientConfirm.isChecked()), width + ': name edit preserves manually entered label text but requires reconfirmation');
+  await ingredientInput.fill('');
+  await name.fill('zzzxq-no-matching-product');
+  await page.waitForTimeout(250);
+  const noMatchText = await form.locator('#medication-search-status').innerText();
+  check(/No product matched/.test(noMatchText), width + ': no-match guidance is announced');
+  check(await results.isHidden() && await selectedPanel.isHidden(), width + ': no-match state is clear and has no stale selection');
+  await name.fill('x');
+  check(await results.isHidden(), width + ': one-character searches stay closed until there is enough query text');
+  await name.fill('Fictional custom medicine');
   await dose.fill('10 mg per tablet, copied from fictional label');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
@@ -315,11 +407,40 @@ async function verifyCatalogueFallback(browser, base) {
   await page.locator('#view-medications [data-modal="medication"]').first().click();
   const form = page.locator('#quick-modal [data-modal-form="medication"]');
   await form.locator('[name="name"]').fill('Fictional unavailable catalogue medicine');
-  await page.waitForFunction(() => /suggestions are unavailable/.test(document.querySelector('#medication-name-help')?.textContent || ''));
-  check(await form.locator('.medication-form-product-choice').isHidden() && await form.locator('[name="dose"]').inputValue() === '', 'catalogue failure: no product or dose is selected');
+  await page.waitForFunction(() => /Catalogue search is unavailable/.test(document.querySelector('#medication-search-status')?.textContent || ''));
+  check(await form.locator('#medication-name-results').isHidden() && await form.locator('#medication-selected-product').isHidden() && await form.locator('[name="dose"]').inputValue() === '', 'catalogue failure: no product or dose is selected');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   check(/Fictional unavailable catalogue medicine/.test(await page.locator('#medication-library .library-item').innerText()) && /not recorded/.test(await page.locator('#medication-library .library-item').innerText()), 'catalogue failure: the user can still save a name-only entry');
+  await context.close();
+}
+
+async function verifyCatalogueSelectionSaved(browser, base, width) {
+  const context = await contextFor(browser, base, width, []);
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+  await page.locator('#view-medications [data-modal="medication"]').first().click();
+  const form = page.locator('#quick-modal [data-modal-form="medication"]');
+  const name = form.locator('[name="name"]');
+  await name.fill('Fictional Duo');
+  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional amber and blue tablet' }).first();
+  await option.waitFor({ state: 'visible' });
+  if (width <= 520) await option.tap(); else await option.click();
+  await form.locator('button[type="submit"]').click();
+  await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  check(saved?.catalogueMatch?.productId === 'pharmac-fictionalcombination' && saved.catalogueMatch.ingredients.length === 2, width + ': saving preserves the selected source row and combination ingredients');
+  check(saved.activeIngredients.length === 0 && saved.activeIngredientsManuallyConfirmed === false, width + ': catalogue-derived ingredients remain outside the label-confirmed checker fields');
+  await page.locator('#medication-library [data-edit-medication]').click();
+  const reopened = page.locator('#quick-modal [data-modal-form="medication"]');
+  await reopened.locator('#medication-selected-product').waitFor({ state: 'visible' });
+  check(await reopened.locator('[name="name"]').inputValue() === saved.name, width + ': reopening restores the full selected product name');
+  check((await reopened.locator('#medication-selected-product').innerText()).includes('Fictional amberin, Fictional bluein') && /unconfirmed/i.test(await reopened.locator('#medication-selected-product').innerText()), width + ': reopening re-renders the source ingredients as unconfirmed');
+  await reopened.locator('button[type="submit"]').click();
+  await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+  const reopenedSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  check(reopenedSaved.catalogueMatch?.productId === saved.catalogueMatch.productId && reopenedSaved.activeIngredients.length === 0, width + ': unchanged edit/save retains identity without promoting source ingredients');
   await context.close();
 }
 
@@ -373,10 +494,13 @@ async function verifyEarlierNotesReview(browser, base) {
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   try {
     for (const width of [1440, 390, 320]) {
+      await verifyRouteColorIdentity(browser, base, width);
       await verifySavedRows(browser, base, width);
       await verifyFormJourney(browser, base, width);
       await verifyPossibleReactionJourney(browser, base, width);
     }
+    await verifyCatalogueSelectionSaved(browser, base, 1440);
+    await verifyCatalogueSelectionSaved(browser, base, 390);
     await verifyCatalogueFallback(browser, base);
     await verifyEarlierNotesReview(browser, base);
     assert.deepEqual(report.errors, [], 'No browser JavaScript errors');

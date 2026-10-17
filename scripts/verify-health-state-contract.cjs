@@ -9,6 +9,8 @@ const vm = require('node:vm');
 global.fetch = async () => { throw new Error('Health-state contract checks must not access the network.'); };
 const core = require('../server-src/_lib/doctorai-core.cjs');
 const terminology = require('../term-catalogues.js');
+const medicineSearch = require('../medicine-catalog-search.js');
+const pharmacSnapshot = require('../data/medication/nz-pharmac-medicines.json');
 const copy = value => JSON.parse(JSON.stringify(value));
 const clientSource = fs.readFileSync(path.join(__dirname, '../health-hub.js'), 'utf8');
 const cloneSource = clientSource.match(/^  const clone = value => JSON\.parse\(JSON\.stringify\(value\)\);\r?$/m)?.[0];
@@ -92,6 +94,20 @@ function emptyBrowserState() {
 }
 
 (async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({ ok: true, json: async () => pharmacSnapshot });
+  const pharmac = await medicineSearch.load();
+  global.fetch = originalFetch;
+  const comboRecord = medicineSearch.findById(pharmac, 'pharmac-7e19f47e7eefe045');
+  const catalogueMatch = medicineSearch.selectionFromRecord(comboRecord, pharmac);
+  assert.ok(catalogueMatch?.ingredientsComplete && catalogueMatch.ingredients.length === 2, 'A source-checked combination fixture is available.');
+  const mixedConditions = terminology.conditionEntries({
+    conditions: 'asthma; Older fictional condition note',
+    conditionEntries: [{ id: 'DOID:2841', label: 'Asthma', status: 'current', source: 'DOID' }]
+  });
+  assert.deepEqual(mixedConditions.map(item => [item.label, item.source]), [['Asthma', 'DOID'], ['Older fictional condition note', 'legacy']], 'Structured condition entries must not hide an unmatched legacy profile.conditions entry.');
+  assert.equal(terminology.compatibilityFields(mixedConditions, []).conditions, 'Asthma, Older fictional condition note', 'Mixed legacy and structured condition entries remain present in the compatibility field.');
+
   const empty = browserPayload(emptyBrowserState());
   assert.deepEqual(empty.providers, [], 'The actual browser always includes providers, even when empty.');
   let response = await invoke('PUT', { state: empty });
@@ -112,6 +128,7 @@ function emptyBrowserState() {
     { id: 'CHEBI:17334', substance: 'penicillin', reactionId: 'SYMP:0000487', reaction: 'rash', certainty: 'confirmed', source: 'CHEBI' },
     { id: 'custom:uncertain', substance: 'Fictional substance', reactionId: '', reaction: 'not sure', certainty: 'suspected', source: 'user', medicationId: 'synthetic-medicine' }
   ];
+  populatedState.medications.push({ id: 'synthetic-combination', name: catalogueMatch.productName, dose: '', activeIngredients: [], activeIngredientsManuallyConfirmed: false, catalogueMatch });
   Object.assign(populatedState.profile, terminology.compatibilityFields(populatedState.profile.conditionEntries, populatedState.profile.allergyEntries));
   assert.equal(populatedState.profile.conditions, 'asthma', 'Historical conditions must not enter the current-condition compatibility field.');
   assert.equal(populatedState.profile.allergies, 'penicillin', 'Uncertain reactions must not enter the confirmed-allergy compatibility field.');
@@ -126,6 +143,7 @@ function emptyBrowserState() {
   assert.deepEqual(response.body.state, populated, 'GET must return the complete state saved by the actual browser serializer.');
   assert.deepEqual(response.body.state.profile.conditionEntries, populatedState.profile.conditionEntries, 'Status-tagged conditions must survive browser serialization and API storage.');
   assert.deepEqual(response.body.state.profile.allergyEntries, populatedState.profile.allergyEntries, 'Substance, reaction and certainty must survive browser serialization and API storage.');
+  assert.deepEqual(response.body.state.medications[0].catalogueMatch, catalogueMatch, 'Exact Pharmac identity and source ingredients survive the private-state roundtrip.');
   assert.equal(response.body.state.timeline.find(item => item.id === 'question-synthetic')?.description, 'Could food affect how I take this?', 'Diary questions must survive the same account-state roundtrip.');
   assert.deepEqual(calls, ['identity', 'storage', 'rate', 'read']);
 
@@ -145,6 +163,18 @@ function emptyBrowserState() {
     response = await invoke('PUT', { state: invalid });
     assert.equal(response.statusCode, 400, 'Unknown keys and oversized state must remain rejected.');
     assert.ok(!calls.includes('write'));
+  }
+  for (const mutate of [
+    state => { state.medications[0].catalogueMatch.productId = 'pharmac-not-in-catalogue'; },
+    state => { state.medications[0].catalogueMatch.ingredients[0].name = 'Fictional unverified override'; },
+    state => { state.medications[0].catalogueMatch.productName = 'A different product'; },
+    state => { state.medications[0].catalogueMatch.ruleInteractionRoute = 'systemic'; }
+  ]) {
+    const invalid = copy(populated);
+    mutate(invalid);
+    response = await invoke('PUT', { state: invalid });
+    assert.equal(response.statusCode, 400, 'Unpinned or altered catalogue identity must be rejected.');
+    assert.ok(!calls.includes('write'), 'Invalid catalogue metadata must not reach private storage.');
   }
   response = await invoke('PUT', '{invalid json');
   assert.equal(response.statusCode, 400);

@@ -12,11 +12,11 @@ const categoryCss = read('hub-category-themes.css');
 const auroraCss = read('aurora-theme.css');
 const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
-const main = ['today', 'health', 'diary'];
-const secondary = ['visit-prep', 'profile', 'add', 'alerts'];
+const main = ['today', 'health', 'visit-prep', 'profile'];
+const secondary = ['diary', 'add', 'alerts'];
 const views = [...main, ...secondary];
 const matches = expression => [...html.matchAll(expression)].map(match => match[1]);
-assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Three main destinations and four supporting views are required.');
+assert.deepEqual(matches(/data-view-panel="([^"]+)"/g).sort(), [...views].sort(), 'Four main destinations and three supporting views are required.');
 const ids = matches(/\bid="([^"]+)"/g);
 assert.equal(new Set(ids).size, ids.length, 'Retained controls must have unique DOM IDs.');
 const extractElement = (marker, tag) => {
@@ -49,10 +49,10 @@ assert.ok(primary, 'Desktop primary navigation exists.');
 assert.deepEqual([...primary.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Desktop tabs use the requested order.');
 const mobile = html.match(/<nav class="mobile-bottom-nav"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(mobile, 'Mobile primary navigation exists.');
-assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same three main destinations.');
+assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), main, 'Mobile has the same four main destinations.');
 const category = html.match(/<nav class="category-bar"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(category, 'Compact main navigation exists.');
-assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), [...main, 'alerts', 'profile'], 'The full menu retains every task plus separate Alerts and Profile.');
+assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), [...main, 'alerts'], 'The full menu retains the four main destinations and separate Alerts.');
 for (const nested of ['ask','medications','documents','symptoms','appointments','results','timeline']) {
   assert.ok(html.includes(`data-hub-panel="${nested}"`), `Useful ${nested} feature remains accessible inside its destination.`);
 }
@@ -160,11 +160,11 @@ const mainRoutePalettes = {
 for (const [theme, tokens] of Object.entries(mainRoutePalettes)) {
   assert.match(auroraCss, new RegExp(`--home-${theme}-surface: ${tokens.surface};[\\s\\S]*?--home-${theme}-accent: ${tokens.accent};`), `Homepage ${theme} uses the selected aurora route palette.`);
   assert.match(categoryCss, new RegExp(`--hub-${theme}-surface: ${tokens.surface};[\\s\\S]*?--hub-${theme}-accent: ${tokens.accent};`), `Hub ${theme} matches the homepage route palette.`);
+  assert.match(homeCss, new RegExp(`--home-${theme}-surface: #eaf3ff;[\\s\\S]*?--home-${theme}-accent: ${tokens.accent};`), `Homepage route selector ${theme} keeps the restrained blue fallback palette.`);
   assert.ok(contrast(tokens.accent, tokens.surface) >= 4.5, `${theme} route label contrast meets 4.5:1 on its surface.`);
   assert.ok(contrast(tokens.accent, '#FFFFFF') >= 4.5, `${theme} route accent remains readable on white.`);
 }
-assert.doesNotMatch(categoryCss.split('/* Every tab')[0], /#(?:5b4fa8|0a718e|335ca8|805418|b42332)/i, 'Decorative route identities do not use purple, teal, amber or alert red.');
-assert.doesNotMatch(auroraCss.split('/* Homepage:')[0], /--home-(?:health|visit|profile)-accent:\s*#(?!0759b6)/i, 'Aurora route icons keep the same restrained blue.');
+assert.equal(new Set(Object.values(mainRoutePalettes).map(tokens => tokens.accent)).size, 1, 'Every main category shares the same brand-blue navigation/page accent.');
 assert.match(categoryCss, /\[data-view\]:focus-visible\s*\{[^}]*outline:\s*3px solid/, 'Keyboard users keep a visible navigation outline.');
 assert.match(categoryCss, /@media \(max-width: 800px\)[\s\S]*?\.mobile-bottom-nav\s*\{[^}]*background:\s*#fff/, 'Mobile navigation uses the same calm surface.');
 assert.match(categoryCss, /\.today-compact-grid\s*\{\s*align-items:\s*start/, 'Empty Today cards no longer stretch to the height of the diary form.');
@@ -174,6 +174,9 @@ for (const [level, ink] of [['green', '#166534'], ['orange', '#934407'], ['red',
 }
 navigationContext.routeNavigate('timeline', false, false);
 assert.equal(breadcrumbNodes['hub-parent-link'].textContent, 'My Health', 'History has a predictable My Health parent.');
+navigationContext.routeNavigate('diary', true, false);
+assert.equal(breadcrumbNodes['hub-parent-link'].textContent, 'Visit Prep', 'Diary and appointments have the requested Visit Prep parent.');
+assert.equal(breadcrumbNodes['hub-parent-link'].dataset.view, 'visit-prep', 'The Diary parent returns to Visit Prep.');
 navigationContext.routeNavigate('medications', true, false);
 assert.equal(breadcrumbNodes['hub-current-location'].textContent, 'Medication & Prescriptions', 'Medicines has a direct main section path.');
 navigationContext.routeNavigate('ask', true, false);
@@ -497,5 +500,5 @@ async function verifySignOutResponseHandling() {
   }
 }
 verifyAccountResponseBoundaries().then(verifyAccountStateIsolation).then(verifySignOutResponseHandling).then(() => {
-  console.log('Shared task navigation verified: three main destinations, medicines and scanning inside My Health, legacy and canonical routes, privacy status, account isolation, sign-in/sign-out failure handling, consent, visit preparation and clinical alert boundaries.');
+console.log('Shared task navigation verified: Today, My Health, Visit Prep and Profile; medicines and scanning inside My Health; retained diary/appointment routes; privacy, account isolation, consent and clinical alert boundaries.');
 }).catch(error => {console.error(error); process.exitCode=1;});

@@ -13,6 +13,13 @@ on:
       - 'health-hub.css'
       - 'health-hub.html'
       - 'health-hub.js'
+      - 'medicine-catalog-search.js'
+      - 'term-catalogues.js'
+      - 'hub-category-themes.css'
+      - 'hub-navigation.css'
+      - 'aurora-theme.css'
+      - 'welcome.css'
+      - 'index.html'
       - 'medication-check-controller.js'
       - 'medication-list-template.html'
       - 'privacy.html'
@@ -46,6 +53,8 @@ jobs:
         run: |
           node scripts/check-js.js
           node --check health-hub.js
+          node --check medicine-catalog-search.js
+          node --check scripts/verify-medication-catalog-search.cjs
           node --check 'api/medication/[...action].js'
           node --check scripts/verify-medication-safety.js
           node --check scripts/verify-medication-database.cjs
@@ -62,6 +71,8 @@ jobs:
         run: |
           node scripts/verify-server-core.js
           node scripts/verify-health-state-contract.cjs
+          node scripts/verify-medication-catalog-search.cjs
+          node scripts/verify-five-tabs.cjs
           node scripts/verify-record-preparation.cjs
       - name: Run local medication and scan regressions
         run: |
