@@ -14,7 +14,7 @@ const evidence = process.env.PWA_EVIDENCE_DIR || path.join(os.tmpdir(), 'doctora
 fs.mkdirSync(evidence, { recursive: true });
 const profile = fs.mkdtempSync(path.join(evidence, 'edge-profile-'));
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
-let workerVersion = 'v168';
+let workerVersion = 'v170';
 let legacyMode = true;
 const legacyPwa = `(() => {
   if (!('serviceWorker' in navigator)) return;
@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { 'Content-Type': types[path.extname(file)], 'Cache-Control': 'no-store' });
   if (pathname === '/service-worker.js') {
-    let body = fs.readFileSync(file, 'utf8').replace('doctorai-shell-v168', legacyMode ? 'doctorai-shell-v167' : `doctorai-shell-${workerVersion}`);
+    let body = fs.readFileSync(file, 'utf8').replace('doctorai-shell-v172', legacyMode ? 'doctorai-shell-v168' : `doctorai-shell-${workerVersion}`);
     if (legacyMode) body = body.replace('event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));', 'event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))); self.skipWaiting();').replace('/pwa.js?v=16', '/pwa.js?v=15');
     res.end(body);
   } else if (pathname === '/pwa.js' && legacyMode) {
@@ -57,6 +57,16 @@ const check = (name, value, expected) => {
   report.checks[name] = { value, expected, pass: JSON.stringify(value) === JSON.stringify(expected) };
   assert.deepEqual(value, expected, name);
 };
+async function waitForSnapshot(page, read, ready, description) {
+  const deadline = Date.now() + 30000;
+  let snapshot;
+  do {
+    snapshot = await page.evaluate(read);
+    if (ready(snapshot)) return snapshot;
+    await page.waitForTimeout(100);
+  } while (Date.now() < deadline);
+  throw new Error(`${description}: ${JSON.stringify(snapshot)}`);
+}
 
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -83,15 +93,31 @@ const check = (name, value, expected) => {
     const before = await legacyPage.evaluate(() => Number(sessionStorage.getItem('doctorai-pwa-boot-count')));
     legacyMode = false;
     await legacyPage.evaluate(async () => { const registration = await navigator.serviceWorker.getRegistration(); await registration.update(); });
-    await legacyPage.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
-    const after = await legacyPage.evaluate(() => Number(sessionStorage.getItem('doctorai-pwa-boot-count')));
-    check('Old v15 client does not reload during v168 update', after, before);
-    check('Old v15 client keeps unsaved draft while update waits', await legacyPage.locator('#quick-modal [name="name"]').inputValue(), 'Fictional legacy draft');
-    report.legacyUpdate = await legacyPage.evaluate(async () => {
+    const observedWaiting = await waitForSnapshot(legacyPage, async () => {
       const registration = await navigator.serviceWorker.getRegistration();
-      return { active: registration.active?.state, waiting: registration.waiting?.state, controller: navigator.serviceWorker.controller?.scriptURL, caches: await caches.keys() };
+      const waiting = registration?.waiting?.state;
+      const bootCount = Number(sessionStorage.getItem('doctorai-pwa-boot-count'));
+      const draft = document.querySelector('#quick-modal [name="name"]')?.value;
+      return { active: registration.active?.state, waiting, controller: navigator.serviceWorker.controller?.scriptURL, bootCount, draft };
+    }, value => value.waiting === 'installed' && value.bootCount === before && value.draft === 'Fictional legacy draft', 'New worker did not wait while the old client held an unsaved edit');
+    check('Old v15 client does not reload during v170 update', observedWaiting.bootCount, before);
+    check('Old v15 client keeps unsaved draft while update waits', observedWaiting.draft, 'Fictional legacy draft');
+    report.legacyUpdate = { ...observedWaiting, caches: await legacyPage.evaluate(() => caches.keys()) };
+    check('New worker waits for old client to close', observedWaiting.waiting, 'installed');
+    await legacyPage.waitForTimeout(200);
+    report.legacyUpdate.settled = await legacyPage.evaluate(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      return {
+        waiting: registration?.waiting?.state,
+        controller: navigator.serviceWorker.controller?.scriptURL,
+        bootCount: Number(sessionStorage.getItem('doctorai-pwa-boot-count')),
+        draft: document.querySelector('#quick-modal [name="name"]')?.value,
+      };
     });
-    check('New worker waits for old client to close', report.legacyUpdate.waiting, 'installed');
+    check('Waiting update does not take over the open edit', report.legacyUpdate.settled.waiting, 'installed');
+    check('Old client remains in control during the edit', report.legacyUpdate.settled.controller, observedWaiting.controller);
+    check('Old client keeps draft after update settles', report.legacyUpdate.settled.draft, 'Fictional legacy draft');
+    check('Old client does not reload after update settles', report.legacyUpdate.settled.bootCount, before);
   } finally {
     await legacyContext.close();
   }
@@ -106,16 +132,16 @@ const check = (name, value, expected) => {
     });
     const reopenedPage = reopened.pages()[0] || await reopened.newPage();
     await reopenedPage.goto(`${base}/health-hub#medications`, { waitUntil: 'domcontentloaded' });
-    await reopenedPage.waitForFunction(async () => {
+    await waitForSnapshot(reopenedPage, async () => {
       const registration = await navigator.serviceWorker.getRegistration();
-      return registration?.active?.state === 'activated' && !registration.waiting && !(await caches.keys()).includes('doctorai-shell-v167');
-    });
+      return { active: registration?.active?.state, waiting: Boolean(registration?.waiting), caches: await caches.keys() };
+    }, value => value.active === 'activated' && !value.waiting && !value.caches.includes('doctorai-shell-v168'), 'Reopened client did not activate the update');
     report.legacyReopen = await reopenedPage.evaluate(async () => {
       const registration = await navigator.serviceWorker.getRegistration();
       return { active: registration.active?.state, waiting: !!registration.waiting, caches: await caches.keys() };
     });
     check('Reopen activates the update after old client closes', report.legacyReopen.active, 'activated');
-    check('Reopen clears old v167 cache', report.legacyReopen.caches.includes('doctorai-shell-v167'), false);
+    check('Reopen clears old v168 cache', report.legacyReopen.caches.includes('doctorai-shell-v168'), false);
   } finally {
     await reopened.close();
   }
@@ -145,7 +171,7 @@ const check = (name, value, expected) => {
     const manifest = await cdp.send('Page.getAppManifest');
     check('Manifest URL', new URL(manifest.url).pathname, '/manifest.webmanifest');
     const cacheBefore = await page.evaluate(() => caches.keys());
-    check('Warm app shell cached', cacheBefore.includes('doctorai-shell-v168'), true);
+    check('Warm app shell cached', cacheBefore.includes('doctorai-shell-v170'), true);
     report.cacheBefore = cacheBefore;
     for (const width of [1440, 390, 320]) {
       await page.setViewportSize({ width, height: width > 800 ? 900 : 844 });
@@ -175,9 +201,9 @@ const check = (name, value, expected) => {
     await page.locator('#quick-modal').waitFor({ state: 'visible' });
     await page.locator('#quick-modal [name="name"]').fill('Fictional medication draft');
     const bootBefore = await page.evaluate(() => Number(sessionStorage.getItem('doctorai-pwa-boot-count')));
-    workerVersion = 'v169-test';
+    workerVersion = 'v170-test';
     await page.evaluate(async () => { const registration = await navigator.serviceWorker.getRegistration(); await registration.update(); });
-    await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
+    await waitForSnapshot(page, async () => ({ waiting: Boolean((await navigator.serviceWorker.getRegistration())?.waiting) }), value => value.waiting, 'Current update did not reach waiting state');
     const bootAfter = await page.evaluate(() => Number(sessionStorage.getItem('doctorai-pwa-boot-count')));
     report.update = { bootBefore, bootAfter, controller: await page.evaluate(() => navigator.serviceWorker.controller?.scriptURL), draftVisible: await page.locator('#quick-modal [name="name"]').inputValue().catch(() => null), caches: await page.evaluate(() => caches.keys()) };
     check('Unsaved medication draft survives worker update', report.update.draftVisible, 'Fictional medication draft');

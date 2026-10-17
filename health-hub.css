@@ -6583,3 +6583,20 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
   .measurement-history-item { align-items: flex-start; flex-direction: column; gap: 6px; }
   .measurement-history-actions { align-self: flex-end; }
 }
+
+.medication-name-search > label { display: grid; gap: 6px; }
+.medication-name-search > label span { color: var(--muted); font-size: 12px; font-weight: 700; }
+.medication-name-results { display: grid; gap: 5px; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; padding: 5px; border: 1px solid #cfe0e8; border-radius: 10px; background: #fff; box-shadow: 0 10px 24px rgba(16,48,74,.12); }
+.medication-name-results[hidden], .medication-selected-product[hidden] { display: none; }
+.medication-name-result { display: grid; gap: 4px; width: 100%; min-height: 48px; padding: 9px 10px; border: 1px solid transparent; border-radius: 7px; background: #fff; color: var(--navy); text-align: left; cursor: pointer; }
+.medication-name-result:hover, .medication-name-result[aria-selected="true"] { border-color: #9ac8e9; background: #eef7ff; }
+.medication-name-result:focus-visible { outline: 3px solid #0759b6; outline-offset: 2px; }
+.medication-name-result-title { overflow-wrap: anywhere; color: var(--navy) !important; font-size: 14px !important; line-height: 1.4; }
+.medication-name-result small { color: var(--muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.medication-search-status { min-height: 0; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.medication-search-status:empty { display: none; }
+.medication-selected-product { display: grid; gap: 6px; padding: 11px; border: 1px solid #b8d4e8; border-radius: 9px; background: #f5faff; color: var(--navy); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.medication-selected-product p { margin: 0; }
+.medication-selected-product small { color: var(--muted); }
+.medication-use-catalogue-form { min-height: 44px; justify-self: start; }
+@media (max-width: 520px) { .medication-name-results { max-height: 180px; } .medication-name-result { min-height: 52px; } }

@@ -1,4 +1,4 @@
-/* Main-category identity matches the homepage's blue palette. Keep clinical severity colours separate.
+/* Main destinations use the same restrained brand-blue palette. Clinical severity colours stay separate.
    Loaded after the layout; uses existing route attributes without changing navigation. */
 body[data-hub-layout="reference"][data-hub-theme] {
   --hub-today-surface: #e8f2ff;
@@ -37,7 +37,7 @@ body[data-hub-layout="reference"][data-hub-theme] :is(.primary-nav, .category-ba
   --hub-category-accent: var(--hub-profile-accent);
 }
 
-/* Every tab uses the brand palette; the selected state is also marked by border and position. */
+/* Navigation and destination accents stay paired on the same blue palette. */
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.primary-nav, .category-bar) > [data-view],
 body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav > [data-view] {
   border: 1px solid transparent;
@@ -78,6 +78,8 @@ body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading :is(h1, h2),
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro h1 { color: var(--hub-category-ink); }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading .eyebrow { color: var(--hub-category-accent); }
+/* The legacy Health Hub heading rule is more specific; keep it in step with the brand palette. */
+body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-health .health-page-heading .eyebrow { color: var(--hub-category-accent); }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-health, #view-visit-prep, #view-profile) > .page-heading .page-subtitle,
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro :is(.reference-greeting, .page-subtitle) { color: var(--hub-category-copy); }
 body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-today .reference-intro h1 span { color: var(--hub-category-accent) !important; }

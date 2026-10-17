@@ -498,7 +498,37 @@ function validHealthState(value) {
   const serialized = JSON.stringify(value);
   if (serialized.length > 240000) return false;
   if (value.providers !== undefined && !Array.isArray(value.providers)) return false;
-  return ['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) && (!value.profile || typeof value.profile === 'object');
+  if (!['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) || (value.profile && typeof value.profile !== 'object')) return false;
+  if ((value.medications || []).some(medication => medication?.catalogueMatch !== undefined && !validCatalogueMatch(medication))) return false;
+  return true;
+}
+
+function validCatalogueMatch(medication) {
+  const match = medication?.catalogueMatch;
+  if (!match || typeof match !== 'object' || Array.isArray(match)) return false;
+  const allowed = ['productId', 'productName', 'datasetVersion', 'sourceDate', 'brand', 'chemical', 'formulation', 'market', 'ruleInteractionRoute', 'sourceIds', 'ingredients', 'ingredientsComplete', 'doseStatus'];
+  if (Object.keys(match).some(key => !allowed.includes(key))) return false;
+  if (typeof match.productId !== 'string' || typeof match.productName !== 'string' || match.productName.length > 500 || medication?.name !== match.productName || match.datasetVersion !== '2026-10-01-pharmac' || match.doseStatus !== 'unverified') return false;
+  let catalogue;
+  try { catalogue = require('../../data/medication/nz-pharmac-medicines.json'); } catch { return false; }
+  const product = catalogue.products?.find(item => item.id === match.productId);
+  if (!product || product.name !== match.productName) return false;
+  const ingredientById = new Map((catalogue.ingredients || []).map(item => [item.id, item]));
+  const expectedIngredients = (product.ingredients || []).map(id => ingredientById.get(id)).filter(Boolean).map(item => ({ id: item.id, name: item.name }));
+  const expectedComplete = product.ingredientsComplete === true && (product.ingredients || []).length > 0 && (product.ingredients || []).length === expectedIngredients.length;
+  const sameArray = (left, right) => Array.isArray(left) && JSON.stringify(left) === JSON.stringify(right);
+  return match.datasetVersion === catalogue.datasetVersion
+    && match.sourceDate === (catalogue.sources?.[0]?.effectiveDate || '')
+    && match.brand === (product.brand || '')
+    && match.chemical === (product.chemical || '')
+    && match.formulation === (product.formulation || '')
+    && match.market === (product.market || '')
+    && match.ruleInteractionRoute === (product.interactionRoute || '')
+    && match.ingredientsComplete === expectedComplete
+    && match.ingredients?.length <= 8 && sameArray(match.ingredients, expectedIngredients)
+    && match.sourceIds && typeof match.sourceIds === 'object'
+    && sameArray(match.sourceIds.pharmacodes, product.pharmacodes || [])
+    && sameArray(match.sourceIds.nzmtIds, product.nzmtIds || []);
 }
 
 module.exports = {

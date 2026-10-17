@@ -4,7 +4,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const viewNames = ['today', 'health', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
-  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit prep', profile: 'Profile & settings', add: 'Add Health Detail', alerts: 'Alerts' };
+  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit Prep', profile: 'Profile', add: 'Add Health Detail', alerts: 'Alerts' };
   const hubPanels = { today: [], health: ['details', 'medications', 'documents', 'results', 'timeline', 'ask'], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
   const legacyHubRoutes = { medications: ['health', 'medications'], scan: ['health', 'medications'], visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['health', 'medications'], prescriptions: ['health', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
   function resolveHubRoute(name, requestedPanel = '') {
@@ -685,7 +685,7 @@
       view.querySelectorAll('[data-hub-panel]').forEach(panel => { const selected = panel.dataset.hubPanel === route.panel; panel.hidden = !selected; panel.classList.toggle('active', selected); });
     });
     document.querySelectorAll('.primary-nav [data-view], .hub-utility-nav [data-view], .category-tab[data-view], .mobile-bottom-nav [data-view], .mobile-notifications-button[data-view]').forEach(item => {
-      const navView = next === 'visit-prep' ? 'diary' : next === 'add' ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+      const navView = next === 'visit-prep' || next === 'diary' ? 'visit-prep' : next === 'add' ? 'health' : next; const active = item.dataset.view === navView; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('[data-hub-panel-target]').forEach(item => {
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
@@ -704,7 +704,7 @@
     if (healthActions) healthActions.hidden = route.panel !== 'details';
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
-    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' || next === 'visit-prep' ? 'diary' : '';
+    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
     if (breadcrumb) breadcrumb.hidden = next === 'today';
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');
@@ -733,14 +733,15 @@
     els.medicationToday.innerHTML = medications.map(medication => {
       const isTaken = medication.status === 'taken';
       const isMissed = medication.status === 'missed';
-      const statusText = isTaken ? 'Taken' : isMissed ? 'Missed' : `Due ${medication.time}`;
+      const hasDueTime = Boolean(medication.time && ['Once daily', 'Twice daily'].includes(medication.frequency));
+      const statusText = isTaken ? 'Taken' : isMissed ? 'Missed' : hasDueTime ? `Due ${medication.time}` : 'No due time set';
       const medicationName = escapeHTML(medication.name || 'medication');
       const safety = medicationSafetyMarkup(medication);
       return `<article class="medication-row-wrap ${safety ? 'has-safety-alert' : ''}"><div class="medication-row ${isTaken ? 'taken' : ''} ${isMissed ? 'missed' : ''}">
         <button class="medication-check" type="button" data-med-toggle="${escapeHTML(medication.id)}" aria-label="${isTaken ? `Mark ${medicationName} as due` : `Mark ${medicationName} as taken`}">${isTaken ? iconMarkup('check', 16) : isMissed ? iconMarkup('alert', 16) : ''}</button>
-        <span class="medication-time">${escapeHTML(medication.time)}</span>
-        <div class="medication-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)}</span><small>${escapeHTML(medication.instructions)}</small></div>
-        <div class="medication-actions"><span class="medication-status">${statusText}</span>${!isTaken && !isMissed ? `<button class="missed-button" type="button" data-med-missed="${escapeHTML(medication.id)}" aria-label="Mark ${medicationName} as missed">Mark missed</button>` : ''}<button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div>
+        <span class="medication-time">${medication.time ? escapeHTML(medication.time) : '—'}</span>
+        <div class="medication-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b>${medication.frequency ? `<span>${escapeHTML(medication.frequency)}</span>` : ''}</div>
+        <div class="medication-actions"><span class="medication-status">${statusText}</span>${!isTaken && !isMissed && hasDueTime ? `<button class="missed-button" type="button" data-med-missed="${escapeHTML(medication.id)}" aria-label="Mark ${medicationName} as missed">Mark missed</button>` : ''}<button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div>
       </div>${safety}</article>`;
     }).join('');
   }
@@ -769,37 +770,34 @@
     const inactiveCount = $('#inactive-medications-count'); if (inactiveCount) inactiveCount.textContent = `(${inactive.length})`;
     const inactiveList = $('#inactive-medication-list');
     if (inactiveList) inactiveList.innerHTML = inactive.map(item => `<article class="inactive-medication-row"><span><b>${escapeHTML(item.name || 'Unnamed medicine')}</b><small>${escapeHTML([item.status, item.startDate ? 'Start: ' + item.startDate : '', item.endDate ? 'End: ' + item.endDate : ''].filter(Boolean).join(' · '))}</small></span><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">Edit</button><button type="button" class="text-button" data-delete-medication="${escapeHTML(item.id)}">Delete</button></article>`).join('');
-    els.medicationLibrary.innerHTML = currentMedicationRecords().length ? currentMedicationRecords().map(medication => {
+    els.medicationLibrary.innerHTML = medications.length ? medications.map(medication => {
       const safety = medicationSafetyMarkup(medication);
       const medicationName = escapeHTML(medication.name || 'medication');
       const supply = savedSupplyAmount(medication);
-      const supplyText = supply === null ? 'Remaining supply not recorded' : `Recorded remaining: ${escapeHTML(supply)}`;
-      const supplyStatus = supply === null ? 'Supply not set' : supply === 0 ? 'Verify amount' : supply <= 14 ? 'Low supply' : 'Active';
+      const supplyStatus = supply === 0 ? 'Check recorded supply' : supply !== null && supply <= 14 ? 'Low recorded supply' : '';
+      const schedule = [medication.frequency, medication.time ? `at ${medication.time}` : ''].filter(Boolean).join(' ');
+      const ingredients = Array.isArray(medication.activeIngredients) ? medication.activeIngredients.filter(Boolean) : [];
+      const details = [
+        medication.instructions && medication.instructions !== 'Follow the prescription label' ? ['Label directions', medication.instructions] : null,
+        supply !== null ? ['Remaining supply', supply] : null,
+        medication.refill && medication.refill !== 'Not set' ? ['Refill date', medication.refill] : null,
+        medication.startDate ? ['Start date', medication.startDate] : null,
+        medication.endDate ? ['End date', medication.endDate] : null,
+        medication.prescriptionExpiry ? ['Prescription expiry', medication.prescriptionExpiry] : null,
+        medication.repeats ? ['Repeats', medication.repeats] : null,
+        medication.catalogueMatch?.productId ? ['Pharmac catalogue row (unverified)', [medication.catalogueMatch.productName, medication.catalogueMatch.formulation, Array.isArray(medication.catalogueMatch.ingredients) && medication.catalogueMatch.ingredients.length ? (medication.catalogueMatch.ingredientsComplete ? 'Source ingredients: ' : 'Incomplete mapping; known ingredients: ') + medication.catalogueMatch.ingredients.map(item => item.name).join(', ') : 'No source ingredients mapped', 'not checked against the label'].filter(Boolean).join(' · ')] : null
+      ].filter(Boolean);
+      const hasRetiredProviderMetadata = Boolean(medication.nzfProduct || medication.nzfProductConfirmed || (Array.isArray(medication.resolvedIngredients) && medication.resolvedIngredients.length));
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
-        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name)} ${escapeHTML(medication.dose)}</b><span>${escapeHTML(medication.frequency)} · ${escapeHTML(medication.instructions)}</span><small>${escapeHTML(medication.time)} reminder · ${supplyText}</small></div>
-        <div class="library-meta"><b>${supplyStatus}</b><span>${escapeHTML(medication.refill)}</span><div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
-      </div>${safety}</article>`;
+        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name || 'Unnamed medicine')}</b><span>Recorded strength/dose: ${escapeHTML(medication.dose || 'not recorded')}</span><small>${escapeHTML(schedule || 'Schedule not recorded')}</small></div>
+        <div class="library-meta">${supplyStatus ? `<span class="medication-supply-note">${supplyStatus}</span>` : ''}<div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
+      </div>${safety}${medicationReactionMarkup(medication)}<details class="medication-record-details"><summary>More saved details</summary><div class="medication-record-details-body">${details.length ? `<dl>${details.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : '<p>No other details recorded.</p>'}<p>${ingredients.length ? 'Label ingredients: ' + escapeHTML(ingredients.join(', ')) + ' · ' + (medication.activeIngredientsManuallyConfirmed === true ? 'checked against the label by you' : 'not confirmed against the label') : 'Active ingredients not recorded from the label.'}</p>${hasRetiredProviderMetadata ? '<p>Older provider match details remain in this private record but are not used by the current check.</p>' : ''}${medicationProfileNoteMarkup(medication)}<button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Record a possible reaction</button></div></details></article>`;
     }).join('') : '<div class="empty-state">No current medicines recorded. Add a medicine or review a scanned label to start your list.</div>';
-    els.medicationLibrary.querySelectorAll('.library-item-wrap').forEach((item, index) => {
-      const medication = currentMedicationRecords()[index];
-      const ingredients = Array.isArray(medication?.activeIngredients) ? medication.activeIngredients.filter(Boolean) : [];
-      const copy = item.querySelector('.library-copy');
-      if (!copy) return;
-      const manuallyConfirmed = medication?.activeIngredientsManuallyConfirmed === true;
-      const ingredientSummary = document.createElement('small');
-      ingredientSummary.textContent = ingredients.length
-        ? 'Label ingredients: ' + ingredients.join(', ') + ' · ' + (manuallyConfirmed ? 'checked against the label by you' : 'not confirmed against the label')
-        : 'Active ingredients not recorded from the label';
-      const hasRetiredProviderMetadata = Boolean(
-        medication?.nzfProduct || medication?.nzfProductConfirmed ||
-        (Array.isArray(medication?.resolvedIngredients) && medication.resolvedIngredients.length)
-      );
-      if (hasRetiredProviderMetadata) ingredientSummary.textContent += ' · older provider match details remain in this private record but are not used by the current check';
-      copy.append(ingredientSummary);
-    });
+    const earlierConditions = !Array.isArray(state.profile.conditionEntries) || state.profile.conditionEntries.some(entry => entry?.source === 'legacy') ? state.profile.conditions : '';
+    const earlierText = [earlierConditions, state.profile.notes].filter(Boolean);
+    if (earlierText.length) els.medicationLibrary.insertAdjacentHTML('beforeend', `<details class="medication-profile-notes-review"><summary>Review earlier health notes</summary><div><p>These entries remain as saved text. Review them to decide whether you want to record a possible reaction. No reaction or medicine safety concern is inferred from a note.</p>${earlierText.map(note => `<p class="medication-original-note">${escapeHTML(note)}</p>`).join('')}<button type="button" class="text-button" data-modal="health">Review profile text</button><p>To declare a possible reaction for a saved medicine, open More saved details in its row.</p></div></details>`);
     renderMedicationClashPanel();
   }
-
   function renderMedicationClashPanel() {
     const card = els.medicationLibrary?.closest('.library-card');
     if (!card) return;
@@ -838,9 +836,46 @@
     status.innerHTML = !currentMedicationRecords().length
       ? '<div class="clash-box clash-box-note"><span data-doctorai-icon="info" aria-hidden="true"></span><div><b>No medicines saved yet</b><p>Add your medicines to see if any local name or label-text match needs review.</p></div></div>'
       : caution.length
-        ? '<div class="clash-box clash-box-caution"><span data-doctorai-icon="alert" aria-hidden="true"></span><div><b>Possible text match to review</b><p>' + escapeHTML(caution[0].message) + ' This has not been checked against a medicine database.</p></div></div>'
+        ? '<div class="clash-box clash-box-caution"><span data-doctorai-icon="alert" aria-hidden="true"></span><div><b>Saved-list text matches to review</b><p>Review the cautions beside your medicines with a pharmacist or clinician. These text matches are not a database check.</p></div></div>'
         : '<div class="clash-box clash-box-note"><span data-doctorai-icon="info" aria-hidden="true"></span><div><b>Interaction check not run</b><p>No interaction check has been run for this list. Consent and choose Check saved medicines to start the limited check.</p></div></div>';
     renderMedicationCheckState();
+  }
+
+  function medicationTextKey(value) {
+    return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function medicationProfileNoteMatches(medication) {
+    const name = medicationTextKey(medication.name);
+    if (!name) return [];
+    // Saved text references are available for review, never evidence of a reaction.
+    return [state.profile.conditions, state.profile.notes].filter(value => value && (' ' + medicationTextKey(value) + ' ').includes(' ' + name + ' '));
+  }
+
+  function medicationProfileAllergyEntries() {
+    const terms = window.DoctorAITerminology;
+    const entries = terms?.allergyEntries(state.profile) || [];
+    const legacy = terms ? terms.allergyEntries({ allergies: state.profile.allergies }) : splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy', source: 'legacy' }));
+    // Structured certainty wins for the same substance. Keep other earlier text
+    // during migration, including when an empty structured list was imported.
+    const substanceKey = entry => medicationTextKey(entry.certainty === 'legacy' ? entry.substance.replace(/\([^)]*\)/g, '') : entry.substance);
+    return entries.concat(legacy.filter(item => !entries.some(entry => substanceKey(entry) === substanceKey(item))));
+  }
+
+  function medicationRecordedReactions(medication) {
+    if (!currentMedicationRecords().includes(medication)) return [];
+    return (window.DoctorAITerminology?.allergyEntries(state.profile) || []).filter(entry => entry.certainty === 'suspected' && entry.medicationId === String(medication.id) && medicationTextKey(entry.substance) === medicationTextKey(medication.name));
+  }
+
+  function medicationReactionMarkup(medication) {
+    const reactions = medicationRecordedReactions(medication);
+    if (!reactions.length) return '';
+    return `<div class="medication-record-note" role="note"><b>Possible reaction recorded by you</b><p>${reactions.map(entry => escapeHTML(entry.reaction || 'Details not recorded')).join('; ')}</p><p>For your care conversation. The cause has not been assessed; this is not a confirmed allergy.</p><button type="button" class="text-button" data-modal="health">Review allergies &amp; reactions</button></div>`;
+  }
+
+  function medicationProfileNoteMarkup(medication) {
+    const notes = medicationProfileNoteMatches(medication);
+    return notes.length ? `<div class="medication-profile-note"><b>Saved profile text mentions this name</b>${notes.map(note => `<p>${escapeHTML(note)}</p>`).join('')}<p>Saved text only. A medicine mention does not establish a reaction or a safety concern.</p><button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Review and record a possible reaction</button><button type="button" class="text-button" data-modal="health">Edit profile notes</button></div>` : '';
   }
 
   function medicationSafetyAlerts(medication) {
@@ -859,26 +894,25 @@
       other.activeIngredients.some(item => String(item || '').trim().toLowerCase() === ingredient)
     ));
     if (sharedIngredient) alerts.push({ severity: 'caution', title: 'Possible repeated label ingredient (not database checked)', message: 'The label details you checked include “' + sharedIngredient + '” in another saved entry. This text match does not verify the products, doses or whether the combination was intended. Ask a pharmacist or clinician to review it.', source: 'User-confirmed label text in your saved medication list' });
-    const allergies = splitDetails(state.profile.allergies);
-    const allergyMatchTerms = [medName, ...ingredientNames].filter(Boolean);
+    const allergies = medicationProfileAllergyEntries();
+    const allergyMatchTerms = [medName, ...ingredientNames].map(medicationTextKey).filter(Boolean);
     const matchingAllergy = allergies.find(item => {
-      const allergyName = item.toLowerCase().replace(/\([^)]*\)/g, '').trim();
-      return allergyName && allergyMatchTerms.some(term => term.includes(allergyName) || allergyName.includes(term));
+      if (!['confirmed', 'legacy'].includes(item.certainty)) return false;
+      const allergyName = medicationTextKey(item.certainty === 'legacy' ? item.substance.replace(/\([^)]*\)/g, '') : item.substance);
+      return allergyName && allergyMatchTerms.some(term => (' ' + term + ' ').includes(' ' + allergyName + ' ') || (' ' + allergyName + ' ').includes(' ' + term + ' '));
     });
-    if (matchingAllergy) alerts.push({ severity: 'caution', title: 'Possible text match to saved allergy/reaction (not verified)', message: 'Your health profile mentions “' + matchingAllergy + '”. This text comparison has not checked active ingredients or known cross-sensitivity. Ask a pharmacist or clinician to verify the match before relying on this alert.', source: 'Your saved health profile' });
-    const history = splitDetails(state.profile.conditions + ' ' + state.profile.notes);
-    const historyMatch = history.find(item => {
-      const itemText = item.toLowerCase();
-      return medName && itemText.includes(medName) && !itemText.includes('allerg');
-    });
-    if (historyMatch && !matchingAllergy) alerts.push({ severity: 'caution', title: 'Check your saved health history', message: 'Your notes mention this medicine or a related past issue: “' + historyMatch + '”. Confirm it with your pharmacist or clinician before taking it.', source: 'Your saved health profile' });
+    if (matchingAllergy) alerts.push({ severity: 'caution', title: 'Possible text match to saved allergy/reaction (not verified)', message: 'Your health profile records "' + matchingAllergy.substance + '"' + (matchingAllergy.certainty === 'legacy' ? ' as an earlier entry whose certainty needs review' : ' as a confirmed allergy, as recorded by you') + '. This whole-word text comparison has not checked active ingredients or known cross-sensitivity. Ask a pharmacist or clinician to verify the match before relying on this alert.', source: 'Your saved health profile' });
     return alerts;
   }
 
   function medicationSafetyMarkup(medication) {
     const alerts = medicationSafetyAlerts(medication);
     if (!alerts.length) return '';
-    return `<div class="medication-safety-alerts" role="alert">${alerts.map(alert => `<div class="medication-safety-alert ${alert.severity === 'critical' ? 'critical' : 'caution'}"><span class="safety-alert-icon" aria-hidden="true">${iconMarkup('alert', 16)}</span><div><b>${escapeHTML(alert.title)}</b><p>${escapeHTML(alert.message)}</p><small>${escapeHTML(alert.source)} · Confirm with a pharmacist or clinician</small></div></div>`).join('')}</div>`;
+    const critical = alerts.some(alert => alert.severity === 'critical');
+    const headline = alerts.length === 1 ? escapeHTML(alerts[0].title) : `${alerts.length} saved-list cautions to review`;
+    const titles = alerts.length > 1 ? `<ul class="medication-caution-titles">${alerts.map(alert => `<li>${escapeHTML(alert.title)}</li>`).join('')}</ul>` : '';
+    const explanations = alerts.map(alert => `<div class="medication-caution-explanation">${alerts.length > 1 ? `<b>${escapeHTML(alert.title)}</b>` : ''}<p>${escapeHTML(alert.message)}</p><small>${escapeHTML(alert.source)}</small></div>`).join('');
+    return `<div class="medication-safety-alerts" role="group" aria-label="Medicine cautions"><div class="medication-safety-alert ${critical ? 'critical' : 'caution'}"><span class="safety-alert-icon" aria-hidden="true">${iconMarkup('alert', 16)}</span><div><b>${headline}</b>${titles}<p>Review with a pharmacist or clinician.</p><details><summary>Why this may need review</summary>${explanations}</details></div></div></div>`;
   }
 
   function medicationGuidanceMarkup(medications) {
@@ -2442,19 +2476,52 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (editing) prefill = { ...prefill, refill: '' };
     const frequency = String(prefill.frequency || '');
     const missing = Array.isArray(prefill.__missing) ? prefill.__missing.filter(Boolean) : [];
+    const selectedCatalogue = editing && prefill.catalogueMatch?.productName === prefill.name ? prefill.catalogueMatch : null;
     const ingredientPrefill = Array.isArray(prefill.activeIngredients) ? prefill.activeIngredients.join('; ') : String(prefill.activeIngredients || '');
     const scanError = String(prefill.__scanError || '').trim();
     const scanNote = scanError
       ? '<div class="modal-help scan-result-note scan-result-error"><b>Photo scan not completed.</b><span>' + escapeHTML(scanError) + ' You can enter the details below or try another photo.</span></div>'
       : prefill.__scanned
-        ? '<div class="modal-help scan-result-note"><b>Suggested details from the photo — not verified.</b><span>' + (missing.length ? 'Required fields not read clearly: ' + escapeHTML(missing.join(', ')) + '. ' : '') + 'Check all filled and empty fields against the original before saving.</span></div>'
+        ? '<div class="modal-help scan-result-note"><b>Suggested details from the photo — not verified.</b><span>' + (missing.length ? 'Fields not read clearly: ' + escapeHTML(missing.join(', ')) + '. ' : '') + 'Check all filled and empty fields against the original before saving.</span></div>'
         : '';
     const hasLegacyMatch = Boolean(prefill.nzfProduct || prefill.nzfProductConfirmed || (Array.isArray(prefill.resolvedIngredients) && prefill.resolvedIngredients.length));
     const editNote = editing ? '<div class="modal-help scan-result-note"><b>Update saved medication details.</b><span>Leave the refill field blank to keep its current value' + (savedRefill && savedRefill !== 'Not set' ? ' (' + escapeHTML(savedRefill) + ')' : '') + '. Check “Clear saved refill date” to remove it.' + (hasLegacyMatch ? ' Older provider match details stay in this private record and are not used by the current check.' : '') + '</span></div>' : '';
     const requiresScanReview = Boolean(prefill.__scanned);
-    setModal('Add a medication', 'Medication manager', scanNote + '<form class="modal-form" data-modal-form="medication" data-scan-attempted="' + Boolean(prefill.__scanAttempted || prefill.__scanned) + '" data-scan-review-required="' + requiresScanReview + '"><div class="modal-form-grid"><label class="modal-field"><span>Medication name *</span><input name="name" required maxlength="120" autocomplete="off" list="manual-medicine-list" placeholder="Start typing a medicine name" value="' + escapeHTML(prefill.name || '') + '"><datalist id="manual-medicine-list"></datalist></label><label class="modal-field"><span>Strength / dosage *</span><input name="dose" required maxlength="80" autocomplete="off" placeholder="e.g. 10 mg per tablet" value="' + escapeHTML(prefill.dose || '') + '"></label><label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" value="' + escapeHTML(prefill.time || '') + '"></label><label class="modal-field"><span>Frequency</span><select name="frequency"><option value="">Choose frequency</option><option ' + (frequency === 'Once daily' ? 'selected' : '') + '>Once daily</option><option ' + (frequency === 'Twice daily' ? 'selected' : '') + '>Twice daily</option><option ' + (frequency === 'As needed' ? 'selected' : '') + '>As needed</option><option ' + (frequency === 'Weekly' ? 'selected' : '') + '>Weekly</option></select></label><label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="' + escapeHTML(prefill.startDate || '') + '"></label><label class="modal-field"><span>End date</span><input name="endDate" type="date" value="' + escapeHTML(prefill.endDate || '') + '"></label><label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="' + escapeHTML(prefill.supply ?? '') + '"></label><label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="' + escapeHTML(prefill.refill || '') + '"></label><label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="' + escapeHTML(prefill.prescriptionExpiry || '') + '"></label><label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="' + escapeHTML(prefill.repeats || '') + '"></label><label class="modal-field full"><span>Instructions from the label</span><textarea name="instructions" rows="2" maxlength="500" placeholder="Copy directions exactly">' + escapeHTML(prefill.instructions || '') + '</textarea></label></div><p class="modal-help">Leave remaining supply blank if you do not know it; DoctorAI will keep that amount as unknown. Check every extracted field against the medicine label or prescription before saving. DoctorAI does not prescribe or change treatment.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></div></form>');
+    setModal('Add a medication', 'Medication manager', scanNote + `<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned)}" data-scan-review-required="${requiresScanReview}">
+      <p class="medication-required-note"><b>* Required</b> for the medication name. Leave unknown strength and other details blank. If you enter label ingredients or review a scan, the matching confirmation box is required.</p>
+      <p class="medication-form-error" id="medication-form-error" role="alert"></p>
+      <div class="modal-form-grid">
+        <div class="modal-field full medication-name-search"><label id="medication-name-label" for="manual-medication-name"><span>Medication name *</span></label><input id="manual-medication-name" name="name" required aria-required="true" maxlength="500" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="medication-name-results" aria-describedby="medication-name-help medication-search-status" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><div class="medication-name-results" id="medication-name-results" role="listbox" aria-labelledby="medication-name-label" hidden></div><small class="medication-form-hint" id="medication-name-help">Search a medicine, brand or ingredient. Choose a product only if its full name and form match your label. Catalogue details are not checked against your label.</small><p class="medication-search-status" id="medication-search-status" role="status" aria-live="polite"></p><div class="medication-selected-product" id="medication-selected-product" hidden></div></div>
+        <label class="modal-field"><span>Strength or dosage on label (optional)</span><input name="dose" aria-describedby="medication-dose-help" maxlength="80" autocomplete="off" placeholder="e.g. 10 mg tablet" value="${escapeHTML(prefill.dose || '')}"><small class="medication-form-hint" id="medication-dose-help">Copy the strength and form, or dosage, shown on your package. Leave blank if unknown. Copy directions below if known.</small></label>
+        <label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" aria-describedby="medication-time-help" value="${escapeHTML(prefill.time || '')}"><small class="medication-form-hint" id="medication-time-help">Use a time from your prescription or label, if one was given.</small></label>
+        <label class="modal-field"><span>Frequency (optional)</span><select name="frequency" aria-describedby="medication-frequency-help"><option value="">Choose only if known</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select><small class="medication-form-hint" id="medication-frequency-help">Copy your prescription or label; leave blank if unsure.</small></label>
+        <label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label>
+        <label class="modal-field"><span>End date</span><input name="endDate" type="date" value="${escapeHTML(prefill.endDate || '')}"></label>
+        <label class="modal-field"><span>Remaining supply (optional)</span><input name="supply" type="number" min="0" max="999999" placeholder="30" value="${escapeHTML(prefill.supply ?? '')}"></label>
+        <label class="modal-field"><span>Refill date</span><input name="refill" type="date" value="${escapeHTML(prefill.refill || '')}"></label>
+        <label class="modal-field"><span>Prescription expiry</span><input name="prescriptionExpiry" type="date" value="${escapeHTML(prefill.prescriptionExpiry || '')}"></label>
+        <label class="modal-field"><span>Repeats</span><input name="repeats" maxlength="30" placeholder="e.g. 2 repeats" value="${escapeHTML(prefill.repeats || '')}"></label>
+        <label class="modal-field full"><span>Dose and directions from label (optional)</span><textarea name="instructions" rows="2" maxlength="500" aria-describedby="medication-instructions-help" placeholder="Copy directions exactly">${escapeHTML(prefill.instructions || '')}</textarea><small class="medication-form-hint" id="medication-instructions-help">Copy the amount and timing you were prescribed. DoctorAI does not choose a dose or schedule.</small></label>
+      </div><p class="modal-help">Leave unknown details blank and check every field against the original label or prescription.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save medication <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></div></form>`);
     const medicationForm = document.querySelector('[data-modal-form="medication"]');
-    if (medicationForm) attachLocalMedicineSuggestions(medicationForm);
+    if (medicationForm) attachLocalMedicineSuggestions(medicationForm, selectedCatalogue);
+    if (medicationForm) {
+      medicationForm.addEventListener('invalid', event => {
+        const disclosure = event.target.closest('details');
+        if (disclosure) disclosure.open = true;
+        const error = medicationForm.querySelector('#medication-form-error');
+        if (error && !error.textContent) error.textContent = event.target.name === 'name'
+          ? 'Medication name is required. Copy it from your label.'
+          : 'Check the required confirmation against your label before saving.';
+        event.target.setAttribute('aria-invalid', 'true');
+      }, true);
+      medicationForm.addEventListener('input', event => {
+        event.target.removeAttribute?.('aria-invalid');
+        const error = medicationForm.querySelector('#medication-form-error');
+        if (error) error.textContent = '';
+      });
+      medicationForm.addEventListener('change', event => event.target.removeAttribute?.('aria-invalid'));
+    }
     if (medicationForm && editing) {
       els.modalTitle.textContent = 'Edit medication';
       medicationForm.dataset.editMedicationId = editId;
@@ -2483,8 +2550,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const scanReviewCheck = document.createElement('input');
         scanReviewCheck.type = 'checkbox';
         scanReviewCheck.name = 'scanFieldsReviewed';
+        scanReviewCheck.required = true;
+        scanReviewCheck.setAttribute('aria-required', 'true');
         const scanReviewText = document.createElement('span');
-        scanReviewText.textContent = 'I compared every extracted field — including the medicine name, strength, active ingredients, directions and dates — with the original label or prescription. I corrected anything that did not match.';
+        scanReviewText.textContent = 'I compared every extracted field - including the medicine name, strength, active ingredients, directions and dates - with the original label or prescription. I corrected anything that did not match. *';
         scanReview.append(scanReviewCheck, scanReviewText);
         medicationGrid.append(scanReview);
         for (const fieldName of ['name', 'dose', 'activeIngredients', 'frequency', 'time', 'instructions', 'supply', 'refill', 'startDate', 'endDate', 'prescriptionExpiry', 'repeats']) {
@@ -2519,7 +2588,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       ingredientCheck.name = 'ingredientsConfirmed';
       ingredientCheck.checked = editing && prefill.activeIngredientsManuallyConfirmed === true;
       const ingredientCheckText = document.createElement('span');
-      ingredientCheckText.textContent = 'I copied every active ingredient listed on the original label. This checks my transcription only; it does not validate the medicine, dose, or safety.';
+      const ingredientConfirmationText = 'I copied every active ingredient listed on the original label. This checks my transcription only; it does not validate the medicine, dose, or safety.';
+      const syncIngredientConfirmation = () => {
+        ingredientCheck.required = Boolean(ingredientInput.value.trim());
+        if (ingredientCheck.required) ingredientCheck.setAttribute('aria-required', 'true');
+        else ingredientCheck.removeAttribute('aria-required');
+        ingredientCheckText.textContent = ingredientConfirmationText + (ingredientCheck.required ? ' *' : '');
+      };
+      syncIngredientConfirmation();
+      ingredientInput.addEventListener('input', syncIngredientConfirmation);
       ingredientConfirm.append(ingredientCheck, ingredientCheckText);
       medicationGrid.append(ingredientConfirm);
       for (const fieldName of ['name', 'dose', 'activeIngredients']) {
@@ -2533,30 +2610,219 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         medicationGrid.after(legacyNote);
       }
     }
+    collapseMedicationOptionalFields(medicationForm, requiresScanReview);
   }
 
-  let localMedicineNamesPromise;
-  function attachLocalMedicineSuggestions(form) {
+  function collapseMedicationOptionalFields(form, scanReviewRequired) {
+    const grid = form?.querySelector('.modal-form-grid');
+    if (!grid) return;
+    const optional = document.createElement('details');
+    optional.className = 'medication-optional-fields';
+    optional.open = scanReviewRequired;
+    optional.innerHTML = '<summary>Schedule &amp; more details <span>(optional)</span></summary><div class="modal-form-grid"></div>';
+    const optionalGrid = optional.querySelector('.modal-form-grid');
+    [...grid.children].forEach(field => {
+      if (!field.querySelector('[name="name"], [name="dose"], [name="scanFieldsReviewed"]') && !field.classList.contains('medication-form-product-choice')) optionalGrid.append(field);
+    });
+    grid.after(optional);
+    const reactionHelp = document.createElement('p');
+    reactionHelp.className = 'medication-form-hint';
+    reactionHelp.textContent = 'To record a possible reaction, save this medicine, then open More saved details in its row.';
+    optional.after(reactionHelp);
+  }
+
+  function openMedicationReactionModal(medication) {
+    setModal('Record a possible reaction', 'Your observation', '<form class="modal-form" data-modal-form="medication-reaction" data-medication-id="' + escapeHTML(medication.id) + '"><p class="medication-required-note"><b>* Required</b> for what you noticed and your declaration.</p><p class="medication-form-error" id="medication-form-error" role="alert"></p><p class="modal-help">Record your own observation about <b>' + escapeHTML(medication.name) + '</b>. This does not establish a cause or a confirmed allergy.</p><div class="modal-form-grid"><label class="modal-field full"><span>What did you notice? *</span><textarea name="reaction" rows="3" maxlength="120" required aria-required="true" aria-describedby="medication-reaction-help"></textarea><small class="medication-form-hint" id="medication-reaction-help">Use your own words. This stays in Allergies &amp; reactions as Possible reaction for review.</small></label><label class="modal-field full medication-reaction-confirm"><input name="reactionDeclared" type="checkbox" required aria-required="true"><span>I want to record this as a possible reaction I noticed with this medicine. The cause is not confirmed. *</span></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save possible reaction</button></div></form>');
+    const form = els.modalBody.querySelector('form');
+    form.addEventListener('invalid', event => {
+      const error = form.querySelector('#medication-form-error');
+      if (!error.textContent) error.textContent = event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
+      event.target.setAttribute('aria-invalid', 'true');
+    }, true);
+    form.addEventListener('input', event => {
+      event.target.removeAttribute('aria-invalid');
+      form.querySelector('#medication-form-error').textContent = '';
+    });
+  }
+
+  function attachLocalMedicineSuggestions(form, savedMatch = null) {
     const input = form.elements.name;
-    const list = form.querySelector('#manual-medicine-list');
-    if (!input || !list) return;
-    const notice = document.createElement('small');
-    notice.textContent = 'NZ names from Pharmac community and hospital schedules (October 2026). Confirm the medicine and every ingredient against your label. A name suggestion is not a safety check.';
-    input.parentElement.append(notice);
-    if (!localMedicineNamesPromise) localMedicineNamesPromise = fetch('/data/medication/nz-medicine-names.json?v=20261001', { credentials: 'omit' })
-      .then(response => { if (!response.ok) throw new Error('Medicine names unavailable'); return response.json(); })
-      .then(data => Array.isArray(data.names) ? data.names.filter(name => typeof name === 'string' && name.length <= 120) : [])
-      .catch(() => { localMedicineNamesPromise = null; return []; });
-    const update = names => {
-      if (!form.isConnected) return;
-      const query = input.value.toLocaleLowerCase().trim();
-      list.replaceChildren();
-      if (query.length < 2) return;
-      const matches = names.filter(name => name.toLocaleLowerCase().includes(query));
-      matches.sort((a, b) => Number(!a.toLocaleLowerCase().startsWith(query)) - Number(!b.toLocaleLowerCase().startsWith(query)) || a.length - b.length || a.localeCompare(b));
-      matches.slice(0, 80).forEach(name => { const option = document.createElement('option'); option.value = name; list.append(option); });
+    const search = window.DoctorAIMedicineCatalogSearch;
+    const results = form.querySelector('#medication-name-results');
+    const status = form.querySelector('#medication-search-status');
+    const selectedPanel = form.querySelector('#medication-selected-product');
+    if (!input || !search || !results || !status || !selectedPanel) return;
+    const dose = form.elements.dose;
+    let catalogue = null;
+    let selected = null;
+    let matches = [];
+    let activeIndex = -1;
+    let requestId = 0;
+    let applyingSelection = false;
+
+    const closeResults = () => {
+      results.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
     };
-    localMedicineNamesPromise.then(names => { update(names); input.addEventListener('input', () => update(names)); });
+    const clearSelection = () => {
+      selected = null;
+      form.catalogueSelection = null;
+      selectedPanel.replaceChildren();
+      selectedPanel.hidden = true;
+    };
+    const setActive = index => {
+      if (!matches.length) return;
+      activeIndex = (index + matches.length) % matches.length;
+      const options = [...results.querySelectorAll('[role="option"]')];
+      options.forEach((option, position) => {
+        const active = position === activeIndex;
+        option.setAttribute('aria-selected', String(active));
+        if (active) input.setAttribute('aria-activedescendant', option.id);
+      });
+      options[activeIndex]?.scrollIntoView?.({ block: 'nearest' });
+    };
+    const showSelection = selection => {
+      selectedPanel.replaceChildren();
+      const heading = document.createElement('b');
+      heading.textContent = 'Selected Pharmac catalogue row — not checked against your label';
+      const details = document.createElement('p');
+      details.textContent = [selection.productName, selection.brand, selection.formulation].filter(Boolean).join(' · ');
+      const ingredients = document.createElement('p');
+      const sourceNames = selection.ingredients.map(item => item.name);
+      ingredients.textContent = sourceNames.length
+        ? (selection.ingredientsComplete ? 'Catalogue ingredients (unconfirmed): ' : 'Incomplete catalogue mapping; known ingredients (unconfirmed): ') + sourceNames.join(', ')
+        : 'No mapped ingredients are available for this catalogue row.';
+      const route = document.createElement('small');
+      route.textContent = 'Rule-scope tag: ' + (selection.ruleInteractionRoute || 'unknown') + '. This is not evidence of the route you take it.';
+      selectedPanel.append(heading, details, ingredients, route);
+      const canCopyForm = Boolean(dose && selection.formulation && selection.formulation.length <= 80);
+      if (canCopyForm) {
+        const useForm = document.createElement('button');
+        useForm.type = 'button';
+        useForm.className = 'secondary-button medication-use-catalogue-form';
+        useForm.textContent = 'Copy catalogue form as unverified';
+        useForm.addEventListener('click', () => {
+          if (!selected || selected.productId !== selection.productId || input.value !== selection.productName) return;
+          dose.value = selection.formulation;
+          dose.dispatchEvent(new Event('input', { bubbles: true }));
+          dose.focus();
+        });
+        selectedPanel.append(useForm);
+      }
+      selectedPanel.hidden = false;
+    };
+    const selectRecord = record => {
+      const next = search.selectionFromRecord(record, catalogue);
+      if (!next) return;
+      const identityChanged = selected?.productId !== next.productId;
+      applyingSelection = true;
+      input.value = next.productName;
+      if (input.value !== selected?.productName) input.dispatchEvent(new Event('input', { bubbles: true }));
+      applyingSelection = false;
+      selected = next;
+      form.catalogueSelection = next;
+      if (identityChanged && form.elements.ingredientsConfirmed) form.elements.ingredientsConfirmed.checked = false;
+      closeResults();
+      status.textContent = 'Exact catalogue row selected. Check its full name and form against your package. Ingredients remain unconfirmed until you copy them from the label.';
+      showSelection(next);
+    };
+    const renderMatches = (found, total, query) => {
+      matches = found;
+      results.replaceChildren();
+      if (!total) {
+        closeResults();
+        status.textContent = 'No product matched that search. Try a brand, generic name or ingredient, or enter the exact label name yourself.';
+        return;
+      }
+      found.forEach((record, index) => {
+        const product = record.product;
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.role = 'option';
+        option.id = 'medication-name-option-' + index;
+        option.setAttribute('aria-selected', 'false');
+        option.className = 'medication-name-result';
+        const name = document.createElement('span');
+        name.className = 'medication-name-result-title';
+        name.textContent = product.name;
+        const meta = document.createElement('small');
+        meta.textContent = [product.brand, product.chemical, product.formulation].filter(Boolean).join(' · ') || 'Product details limited';
+        option.append(name, meta);
+        option.addEventListener('pointerdown', event => { if (event.pointerType === 'mouse') event.preventDefault(); });
+        option.addEventListener('click', () => selectRecord(record));
+        results.append(option);
+      });
+      results.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      const shown = found.length;
+      status.textContent = total > shown
+        ? `Showing ${shown} of ${total} matches for “${query}”. Add more letters to narrow the list, then choose the exact product from your package.`
+        : `${total} ${total === 1 ? 'match' : 'matches'} for “${query}”. Choose the exact product from your package; typing alone does not select one.`;
+      if (activeIndex >= shown) activeIndex = -1;
+    };
+    const update = async () => {
+      const thisRequest = ++requestId;
+      const query = input.value.trim();
+      if (!selected || selected.productName !== query) clearSelection();
+      activeIndex = -1;
+      input.removeAttribute('aria-activedescendant');
+      results.replaceChildren();
+      results.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      if (query.length < 2) {
+        matches = [];
+        closeResults();
+        status.textContent = '';
+        return;
+      }
+      status.textContent = 'Searching the local Pharmac catalogue…';
+      try {
+        catalogue ||= await search.load();
+        if (thisRequest !== requestId || !form.isConnected) return;
+        const found = search.search(catalogue, query, 8);
+        renderMatches(found.matches, found.totalMatches, query);
+      } catch {
+        if (thisRequest !== requestId || !form.isConnected) return;
+        matches = [];
+        results.replaceChildren();
+        closeResults();
+        status.textContent = 'Catalogue search is unavailable. Enter the name from your package; no product was selected.';
+      }
+    };
+    input.addEventListener('input', () => { if (!applyingSelection) update(); });
+    input.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown' && !results.hidden) { event.preventDefault(); setActive(activeIndex + 1); }
+      else if (event.key === 'ArrowUp' && !results.hidden) { event.preventDefault(); setActive(activeIndex <= 0 ? matches.length - 1 : activeIndex - 1); }
+      else if (event.key === 'Enter' && !results.hidden && activeIndex >= 0) { event.preventDefault(); selectRecord(matches[activeIndex]); }
+      else if (event.key === 'Escape' && !results.hidden) { event.preventDefault(); closeResults(); status.textContent = 'Search suggestions closed. No product was selected.'; }
+    });
+    input.addEventListener('blur', () => window.setTimeout(() => {
+      if (!results.contains(document.activeElement)) closeResults();
+    }, 150));
+    input.closest('.medication-name-search')?.addEventListener('focusout', () => window.setTimeout(() => {
+      if (!input.closest('.medication-name-search')?.contains(document.activeElement)) closeResults();
+    }, 150));
+
+    if (savedMatch && savedMatch.productId && savedMatch.productName === input.value) {
+      search.load().then(loaded => {
+        if (!form.isConnected || input.value !== savedMatch.productName) return;
+        catalogue = loaded;
+        const record = search.findById(loaded, savedMatch.productId);
+        const verified = record && search.selectionFromRecord(record, loaded);
+        if (verified && verified.productName === input.value) {
+          selected = verified;
+          form.catalogueSelection = verified;
+          showSelection(verified);
+          status.textContent = 'Saved catalogue row rechecked against the bundled source. Its ingredients are still unconfirmed against your label.';
+        } else {
+          status.textContent = 'The saved source row is no longer available. Review the medicine name against your package.';
+        }
+      }).catch(() => { if (form.isConnected) status.textContent = 'Could not recheck the saved source row. The saved medicine name remains available.'; });
+    } else {
+      update();
+    }
   }
 
   function prepareScanImage(file) {
@@ -3311,6 +3577,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
   }
 
+  function rejectMedicationForm(form, message, field) {
+    const error = form.querySelector('#medication-form-error');
+    if (error) error.textContent = message;
+    field?.setAttribute('aria-invalid', 'true');
+    field?.focus();
+    showToast(message);
+  }
+
   function handleModalSubmit(event) {
     if (event.target.matches('[data-care-summary-form]')) { event.preventDefault(); reviewCareSummary(event.target); return; }
     if (event.target.matches('[data-appointment-request-form]')) { event.preventDefault(); reviewAppointmentRequest(event.target); return; }
@@ -3348,32 +3622,65 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       setSymptomGuidanceResult(result, 'monitor', 'Keep tracking and arrange care if needed', 'Record changes in your diary and contact a qualified healthcare professional if the symptom persists, worsens or concerns you.', 'No serious problem has been ruled out.');
       return;
     }
-    if (form.dataset.modalForm === 'medication') {
+    if (form.dataset.modalForm === 'medication-reaction') {
+      const medication = currentMedicationRecords().find(item => String(item.id) === form.dataset.medicationId);
+      if (!medication) { rejectMedicationForm(form, 'This medicine is no longer current. Close this form and review your list.', form.elements.reaction); return; }
+      const reaction = String(values.reaction || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (!reaction || values.reactionDeclared !== 'on') { rejectMedicationForm(form, 'Describe what you noticed and confirm your declaration.', !reaction ? form.elements.reaction : form.elements.reactionDeclared); return; }
+      const entries = medicationProfileAllergyEntries();
+      const duplicate = entries.some(entry => entry.certainty === 'suspected' && entry.medicationId === String(medication.id) && medicationTextKey(entry.substance) === medicationTextKey(medication.name) && medicationTextKey(entry.reaction) === medicationTextKey(reaction));
+      if (duplicate) { rejectMedicationForm(form, 'That possible reaction is already recorded. Review it in your health profile.', form.elements.reaction); return; }
+      entries.push({ id: 'custom:' + (window.crypto?.randomUUID?.() || Date.now()), substance: medication.name, reactionId: '', reaction, certainty: 'suspected', source: 'user', medicationId: String(medication.id) });
+      state.profile.allergyEntries = entries;
+      state.profile.allergies = window.DoctorAITerminology.compatibilityFields([], entries).allergies;
+      destinationView = 'medications';
+      postSaveToast = 'Possible reaction saved for review. The cause is not confirmed.';
+    } else if (form.dataset.modalForm === 'medication') {
       const editingId = String(form.dataset.editMedicationId || '');
       const existingIndex = editingId ? state.medications.findIndex(item => String(item.id) === editingId) : -1;
       if (editingId && existingIndex < 0) { showToast('This saved medication is no longer in your list. Close this form and reopen the medication you want to edit.'); return; }
       const existingMedication = existingIndex >= 0 ? state.medications[existingIndex] : null;
-      const name = String(values.name || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      const name = String(values.name || '').replace(/\s+/g, ' ').trim();
       const dose = String(values.dose || '').replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!name || !dose) { showToast('Add the medication name and strength exactly as shown on the label.'); (form.elements.name?.value ? form.elements.dose : form.elements.name)?.focus(); return; }
+      if (!name) { rejectMedicationForm(form, 'Add the medication name exactly as shown on the label.', form.elements.name); return; }
+      if (name.length > 500) { rejectMedicationForm(form, 'This medicine name is longer than 500 characters. No text was shortened; enter the full label name in a shorter field only if it is shown that way on your package.', form.elements.name); return; }
       const scanReviewRequired = form.dataset.scanReviewRequired === 'true';
       const scanFieldsReviewed = values.scanFieldsReviewed === 'on';
-      if (scanReviewRequired && !scanFieldsReviewed) { showToast('Compare the extracted name, strength, ingredients and directions with the original label before saving.'); form.elements.scanFieldsReviewed?.focus(); return; }
+      if (scanReviewRequired && !scanFieldsReviewed) { rejectMedicationForm(form, 'Compare the extracted name, strength, ingredients and directions with the original label before saving.', form.elements.scanFieldsReviewed); return; }
       const activeIngredients = [...new Set(String(values.activeIngredients || '').split(/[;,\n]/).map(item => item.replace(/\s+/g, ' ').trim().slice(0, 120)).filter(Boolean))];
-      if (activeIngredients.length > 8) { showToast('Add no more than eight active ingredient names, separated by commas or semicolons.'); form.elements.activeIngredients?.focus(); return; }
+      if (activeIngredients.length > 8) { rejectMedicationForm(form, 'Add no more than eight active ingredient names, separated by commas or semicolons.', form.elements.activeIngredients); return; }
       const ingredientsManuallyConfirmed = values.ingredientsConfirmed === 'on';
-      if (activeIngredients.length && !ingredientsManuallyConfirmed) { showToast('Check that every active ingredient on the original label appears above before saving.'); form.elements.ingredientsConfirmed?.focus(); return; }
+      if (activeIngredients.length && !ingredientsManuallyConfirmed) { rejectMedicationForm(form, 'Check that every active ingredient on the original label appears above before saving.', form.elements.ingredientsConfirmed); return; }
+      const rawCatalogueMatch = form.catalogueSelection;
+      const catalogueMatch = rawCatalogueMatch && rawCatalogueMatch.productName === name && /^pharmac-[a-z0-9]+$/.test(String(rawCatalogueMatch.productId || '')) && typeof rawCatalogueMatch.datasetVersion === 'string' && Array.isArray(rawCatalogueMatch.ingredients) && rawCatalogueMatch.ingredients.length <= 8 && rawCatalogueMatch.ingredients.every(item => item && typeof item.id === 'string' && item.id.length <= 120 && typeof item.name === 'string' && item.name.length > 0 && item.name.length <= 120) ? {
+        productId: rawCatalogueMatch.productId, productName: rawCatalogueMatch.productName,
+        datasetVersion: rawCatalogueMatch.datasetVersion, sourceDate: String(rawCatalogueMatch.sourceDate || ''),
+        brand: String(rawCatalogueMatch.brand || ''), chemical: String(rawCatalogueMatch.chemical || ''),
+        formulation: String(rawCatalogueMatch.formulation || ''), market: String(rawCatalogueMatch.market || ''),
+        ruleInteractionRoute: String(rawCatalogueMatch.ruleInteractionRoute || ''),
+        sourceIds: { pharmacodes: [...(rawCatalogueMatch.sourceIds?.pharmacodes || [])], nzmtIds: [...(rawCatalogueMatch.sourceIds?.nzmtIds || [])] },
+        ingredients: rawCatalogueMatch.ingredients.map(item => ({ id: item.id, name: item.name })),
+        ingredientsComplete: rawCatalogueMatch.ingredientsComplete === true, doseStatus: 'unverified'
+      } : null;
+      if (rawCatalogueMatch && !catalogueMatch) { rejectMedicationForm(form, 'The selected catalogue row could not be verified. Search and select the exact product again, or save the label name without a catalogue selection.', form.elements.name); return; }
       const frequency = ['Once daily', 'Twice daily', 'As needed', 'Weekly'].includes(values.frequency) ? values.frequency : '';
       const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(values.time || '')) ? String(values.time) : '';
       const supplyInput = String(values.supply ?? '').trim();
       const supplyAmount = supplyInput === '' ? null : Number(supplyInput);
       const supply = supplyAmount !== null && Number.isFinite(supplyAmount) && supplyAmount >= 0 ? Math.min(999999, supplyAmount) : null;
       const refill = values.refill ? formatDate(values.refill) : editingId && values.clearRefill !== 'on' ? String(existingMedication?.refill || 'Not set') : 'Not set';
+      const suppliedInstructions = String(values.instructions || '');
+      const instructions = existingMedication && String(existingMedication.instructions || '').replace(/\r\n/g, '\n') === suppliedInstructions.replace(/\r\n/g, '\n')
+        ? String(existingMedication.instructions || '')
+        : suppliedInstructions.replace(/\s+/g, ' ').trim().slice(0, 500);
       const existingScanDetailsUnchanged = existingMedication
         && existingMedication.name === name && existingMedication.dose === dose
+        && String(existingMedication.catalogueMatch?.productId || '') === String(catalogueMatch?.productId || '')
         && JSON.stringify(existingMedication.activeIngredients || []) === JSON.stringify(activeIngredients)
-        && existingMedication.instructions === String(values.instructions || 'Follow the prescription label').replace(/\s+/g, ' ').trim().slice(0, 500);
-      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || ('med-' + Date.now()), name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, scanFieldsReviewed: scanReviewRequired ? scanFieldsReviewed : Boolean(existingMedication?.scanFieldsReviewed === true && existingScanDetailsUnchanged), frequency, instructions: String(values.instructions || 'Follow the prescription label').replace(/\s+/g, ' ').trim().slice(0, 500), time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
+        && existingMedication.instructions === instructions;
+      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || ('med-' + Date.now()), name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, scanFieldsReviewed: scanReviewRequired ? scanFieldsReviewed : Boolean(existingMedication?.scanFieldsReviewed === true && existingScanDetailsUnchanged), frequency, instructions, time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
+      if (catalogueMatch) medicationRecord.catalogueMatch = catalogueMatch;
+      else delete medicationRecord.catalogueMatch;
       if (existingIndex >= 0) state.medications[existingIndex] = medicationRecord;
       else state.medications.push(medicationRecord);
       clearMedicationSafetyResults();
@@ -3387,7 +3694,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         postSaveToast = scanReviewRequired && scanFieldsReviewed ? 'Scanned medication saved after you checked it against the original label. Any local check has limited coverage.' : 'Medication saved. Check its details against the original label. Any local check has limited coverage.';
         focusMedicationSafetyPanel = true;
       } else {
-        showToast('Medication reminder saved.');
+        showToast('Medication saved.');
       }
     } else if (form.dataset.modalForm === 'provider') {
       const clean = (value, max) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -3988,6 +4295,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const appointment = state.appointments.find(item => String(item.id) === prepareTarget.dataset.prepareAppointment);
       if (appointment) prepareAppointment(appointment);
       else showToast('This appointment is no longer in your list.');
+      return;
+    }
+    const reactionMedication = event.target.closest('[data-record-medication-reaction]');
+    if (reactionMedication) {
+      event.preventDefault();
+      const medication = currentMedicationRecords().find(item => String(item.id) === reactionMedication.dataset.recordMedicationReaction);
+      if (medication) openMedicationReactionModal(medication);
+      else showToast('This medicine is no longer current. Review your list.');
       return;
     }
     const editMedication = event.target.closest('[data-edit-medication]');

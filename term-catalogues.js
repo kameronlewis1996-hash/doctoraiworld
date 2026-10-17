@@ -57,11 +57,16 @@
     return String(value || '').split(/[,;\n]/).map(part => part.trim()).filter(Boolean);
   }
   function conditionEntries(profile) {
-    if (Array.isArray(profile?.conditionEntries)) return profile.conditionEntries.filter(item => item && typeof item.label === 'string').map(item => ({ id: String(item.id || ''), label: item.label.slice(0, 120), status: statusValues.has(item.status) ? item.status : 'unsure', source: String(item.source || 'user') }));
+    if (Array.isArray(profile?.conditionEntries)) {
+      const structured = profile.conditionEntries.filter(item => item && typeof item.label === 'string').map(item => ({ id: String(item.id || ''), label: item.label.slice(0, 120), status: statusValues.has(item.status) ? item.status : 'unsure', source: String(item.source || 'user') }));
+      const represented = new Set(structured.map(item => normalise(item.label)));
+      const legacy = legacyPieces(profile?.conditions).filter(label => !represented.has(normalise(label))).map((label, index) => ({ id: 'legacy-condition-' + index, label: label.slice(0, 120), status: 'unsure', source: 'legacy' }));
+      return [...structured, ...legacy];
+    }
     return legacyPieces(profile?.conditions).map((label, index) => ({ id: 'legacy-condition-' + index, label: label.slice(0, 120), status: 'unsure', source: 'legacy' }));
   }
   function allergyEntries(profile) {
-    if (Array.isArray(profile?.allergyEntries)) return profile.allergyEntries.filter(item => item && typeof item.substance === 'string').map(item => ({ id: String(item.id || ''), substance: item.substance.slice(0, 120), reactionId: String(item.reactionId || ''), reaction: String(item.reaction || '').slice(0, 120), certainty: certaintyValues.has(item.certainty) ? item.certainty : 'unsure', source: String(item.source || 'user') }));
+    if (Array.isArray(profile?.allergyEntries)) return profile.allergyEntries.filter(item => item && typeof item.substance === 'string').map(item => ({ id: String(item.id || ''), substance: item.substance.slice(0, 120), reactionId: String(item.reactionId || ''), reaction: String(item.reaction || '').slice(0, 120), certainty: certaintyValues.has(item.certainty) ? item.certainty : 'unsure', source: String(item.source || 'user'), ...(item.medicationId ? { medicationId: String(item.medicationId).slice(0, 120) } : {}) }));
     return legacyPieces(profile?.allergies).map((substance, index) => ({ id: 'legacy-allergy-' + index, substance: substance.slice(0, 120), reactionId: '', reaction: '', certainty: 'legacy', source: 'legacy' }));
   }
   function compatibilityFields(conditions, allergies) {
