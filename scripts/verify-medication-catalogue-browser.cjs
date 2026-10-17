@@ -132,6 +132,42 @@ async function snapshot(page, filename) {
     assert.deepEqual(records[0].activeIngredients, []);
     report.checks.push('Changing medicine name clears selected source metadata and derived ingredients on save');
 
+    await page.locator('#medication-library [data-edit-medication]').first().click();
+    await ingredient.fill('Synthetic label ingredient');
+    await form.locator('[name="ingredientsConfirmed"]').check();
+    await form.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#medication-library [data-edit-medication]').first().click();
+    await name.fill('Fictional corrected medicine name');
+    assert.equal(await ingredient.inputValue(), 'Synthetic label ingredient', 'name correction preserves manually entered label text');
+    assert.equal(await form.locator('[name="ingredientsConfirmed"]').isChecked(), false, 'name correction requires renewed label confirmation');
+    await form.locator('button[type="submit"]').click();
+    assert.equal(await form.isVisible(), true, 'unconfirmed manual text blocks saving');
+    records = await saved(page);
+    assert.equal(records[0].name, 'Fictional different medicine', 'blocked save does not change the record or checker input');
+    await form.locator('[name="ingredientsConfirmed"]').check();
+    await form.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    records = await saved(page);
+    assert.equal(records[0].name, 'Fictional corrected medicine name');
+    assert.deepEqual(records[0].activeIngredients, ['Synthetic label ingredient']);
+    assert.equal(records[0].activeIngredientsManuallyConfirmed, true);
+    report.checks.push('Manual label text survives name correction; save requires renewed confirmation');
+
+    await page.locator('#medication-library [data-edit-medication]').first().click();
+    await name.fill('Abacavir/Lamivudine Viatris');
+    await form.locator('.medication-catalogue-choice').filter({ hasText: 'Abacavir/Lamivudine Viatris' }).first().click();
+    await ingredient.fill('Synthetic label ingredient');
+    await form.locator('[name="ingredientsConfirmed"]').check();
+    await name.fill('Fictional corrected medicine name');
+    assert.equal(await form.evaluate(el => el.catalogueSelection), null);
+    assert.equal(await ingredient.inputValue(), 'Synthetic label ingredient', 'manual text entered after catalogue selection survives a name change');
+    assert.equal(await form.locator('[name="ingredientsConfirmed"]').isChecked(), false);
+    await form.locator('button[type="submit"]').click();
+    assert.equal(await form.isVisible(), true);
+    report.checks.push('Changing selected product clears its identity while preserving edited label text for re-confirmation');
+
     assert.deepEqual(report.pageErrors, []);
     fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify({ result: 'passed', checks: report.checks.length, pageErrors: report.pageErrors.length, screenshots: report.screenshots }, null, 2));

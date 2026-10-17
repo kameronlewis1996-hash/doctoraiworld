@@ -2573,6 +2573,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         (chosen.formulation || 'not stated') + '. Entered strength/dose remains unverified.' +
         (chosen.ruleInteractionRoute ? ' Rule-scope tag: ' + chosen.ruleInteractionRoute + ' (not verified administration route).' : '');
     };
+    const resetIngredientConfirmation = () => {
+      if (form.elements.ingredientsConfirmed) form.elements.ingredientsConfirmed.checked = false;
+      if (form.elements.scanFieldsReviewed) form.elements.scanFieldsReviewed.checked = false;
+    };
     const resetIngredients = () => {
       const field = form.elements.activeIngredients;
       if (field) {
@@ -2583,12 +2587,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const hint = label?.querySelector('.medication-ingredient-help');
         if (hint) hint.textContent = 'Copy every active ingredient from the package, then confirm your transcription below. Leave blank if unknown.';
       }
-      if (form.elements.ingredientsConfirmed) form.elements.ingredientsConfirmed.checked = false;
-      if (form.elements.scanFieldsReviewed) form.elements.scanFieldsReviewed.checked = false;
+      resetIngredientConfirmation();
     };
     const clearSelection = () => {
+      const derivedIngredients = form.elements.activeIngredients?.dataset.catalogueDerived === 'true';
       form.catalogueSelection = null;
-      resetIngredients();
+      if (derivedIngredients) resetIngredients();
+      else resetIngredientConfirmation();
       showSelection();
     };
     showSelection();
@@ -2596,7 +2601,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     input.addEventListener('input', () => {
       if (input.value !== form.dataset.lastMedicineName) {
         if (form.catalogueSelection) clearSelection();
-        else if (form.elements.activeIngredients?.value) resetIngredients();
+        else if (form.elements.activeIngredients?.dataset.catalogueDerived === 'true') resetIngredients();
+        else if (form.elements.activeIngredients?.value) resetIngredientConfirmation();
       }
       form.dataset.lastMedicineName = input.value;
     });
