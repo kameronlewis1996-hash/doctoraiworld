@@ -2527,11 +2527,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (!input || !list) return;
     const notice = document.createElement('small');
     notice.textContent = 'Searches Pharmac product names, ingredients, formulations and identifiers. Check the exact product and every active ingredient against your label; a suggestion is not a safety check.';
+    const catalogueLink = document.createElement('a');
+    catalogueLink.href = '/medication-list-template#name-lookup-title';
+    catalogueLink.target = '_blank';
+    catalogueLink.rel = 'noopener noreferrer';
+    catalogueLink.textContent = 'Browse the full Pharmac catalogue and ingredient mappings';
     const detail = document.createElement('small');
     detail.className = 'medication-catalogue-search-status';
     detail.setAttribute('role', 'status');
     detail.setAttribute('aria-live', 'polite');
-    input.parentElement.append(notice, detail);
+    const help = document.createElement('div');
+    help.className = 'modal-field full medication-catalogue-search-help';
+    help.append(notice, catalogueLink, detail);
+    input.parentElement.after(help);
     const medicineSearch = globalThis.DoctorAIMedicineCatalogSearch;
     if (!medicineSearch) {
       detail.textContent = 'The Pharmac medicine search is unavailable. You can still enter the name from your package.';
@@ -2544,7 +2552,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       list.replaceChildren();
       const query = medicineSearch.normalise(input.value);
       if (query.length < 2) {
-        detail.textContent = 'Type a medicine, ingredient, strength, formulation, or Pharmac code to search the local catalogue.';
+        detail.textContent = 'Type a medicine, ingredient, strength, formulation, or Pharmac code to search the local catalogue. The full search lets you browse every matching product.';
         return;
       }
       if (!catalogue) {
@@ -2577,7 +2585,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         : ingredients.hasPartialMapping
           ? 'Partial catalogue ingredient mapping: ' + ingredients.names.join(', ') + '; other ingredients may be missing.'
           : 'Active ingredients are incomplete in this catalogue record.';
-      const countText = totalMatches === 1 ? '1 product match.' : `${totalMatches} product matches; first result shown.`;
+      const countText = totalMatches === 1
+        ? '1 product match.'
+        : totalMatches > matches.length
+          ? `${totalMatches} product matches; first ${matches.length} suggestions shown. Use the full search to browse all matches.`
+          : `${totalMatches} product matches; first result shown.`;
       detail.textContent = `${countText} ${product.name}. ${ingredientText} Verify against the package label.`;
     };
     localMedicineCataloguePromise.then(catalogue => {

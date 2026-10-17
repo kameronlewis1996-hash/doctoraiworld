@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('medicine-name-query');
   const status = document.getElementById('medicine-name-search-status');
   const results = document.getElementById('medicine-name-search-results');
-  if (!form || !input || !status || !results) return;
+  const moreButton = document.getElementById('medicine-name-search-more');
+  if (!form || !input || !status || !results || !moreButton) return;
 
   const medicineSearch = window.DoctorAIMedicineCatalogSearch;
   if (!medicineSearch) {
@@ -27,9 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  const pageSize = 20;
+  let visibleLimit = 20;
+  let nextPageRequested = false;
+  let searchSequence = 0;
+  moreButton.addEventListener('click', () => {
+    nextPageRequested = true;
+    visibleLimit += pageSize;
+    form.requestSubmit();
+  });
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    const thisSearch = ++searchSequence;
+    if (!nextPageRequested) visibleLimit = 20;
+    nextPageRequested = false;
     results.replaceChildren();
+    moreButton.hidden = true;
     const query = medicineSearch.normalise(input.value);
     if (query.length < 2) {
       status.textContent = 'Enter at least two characters from a medicine name, ingredient, strength, or Pharmac code.';
@@ -40,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     status.textContent = 'Searching the Pharmac product and ingredient list stored on this site…';
     try {
       const catalogue = await medicineSearch.load();
-      const { matches, totalMatches } = medicineSearch.search(catalogue, query, 20);
+      if (thisSearch !== searchSequence) return;
+      const { matches, totalMatches } = medicineSearch.search(catalogue, query, Math.min(visibleLimit, catalogue.products.length));
       matches.forEach(record => {
         const product = record.product;
         const ingredientSummary = medicineSearch.ingredientSummary(record);
@@ -53,8 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const detail = document.createElement('p');
         detail.className = 'medicine-catalogue-result-detail';
         const fields = [];
+        if (product.brand && product.brand !== product.name) fields.push('Brand: ' + product.brand);
         if (product.chemical) fields.push('Chemical name: ' + product.chemical);
         if (product.formulation) fields.push('Form/strength: ' + product.formulation);
+        if (product.market) fields.push('Market: ' + product.market);
         detail.textContent = fields.join(' · ');
 
         const ingredients = document.createElement('p');
@@ -97,11 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (totalMatches === 0) {
         status.textContent = 'No matching product was found in this Pharmac dataset. Try a brand, ingredient, part of the name, formulation, strength, or Pharmac code. A missing result does not prove a medicine is unlisted.';
       } else if (totalMatches > matches.length) {
-        status.textContent = `Showing the first ${matches.length} of ${totalMatches} matches. Add more search terms to narrow the results.`;
+        moreButton.hidden = false;
+        moreButton.textContent = `Show the next ${Math.min(pageSize, totalMatches - matches.length)} matches`;
+        status.textContent = `Showing ${matches.length} of ${totalMatches} matching products. Select “${moreButton.textContent}” to browse the rest.`;
       } else {
-        status.textContent = `Found ${totalMatches} matching ${totalMatches === 1 ? 'product' : 'products'}. Check the exact product and ingredients against the package label.`;
+        status.textContent = `Showing all ${totalMatches} matching ${totalMatches === 1 ? 'product' : 'products'}. Check the exact product and ingredients against the package label.`;
       }
     } catch (error) {
+      if (thisSearch !== searchSequence) return;
       status.textContent = error.message || 'The public name list could not be loaded. You can still use the blank template.';
     }
   });

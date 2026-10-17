@@ -6584,4 +6584,6 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
   .measurement-history-actions { align-self: flex-end; }
 }
 
-.medication-catalogue-search-status { display: block; margin-top: 6px; color: var(--muted-light); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.medication-catalogue-search-help { display: grid; gap: 6px; }
+.medication-catalogue-search-help > a { color: var(--blue-strong); font-size: 13px; font-weight: 700; text-underline-offset: 3px; }
+.medication-catalogue-search-status { display: block; margin-top: 2px; color: var(--muted-light); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }

@@ -6,10 +6,15 @@
 
   function normalise(value) {
     return String(value || '')
+      .replace(/[\u00b5\u03bc]g/gi, 'mcg')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[®™]/g, '')
       .toLocaleLowerCase()
+      .replace(/\bmicrograms?\b/g, 'mcg')
+      .replace(/\bmilligrams?\b/g, 'mg')
+      .replace(/\bgrams?\b/g, 'g')
+      .replace(/\bmillilit(?:er|re)s?\b/g, 'ml')
       .replace(/(\d)\s+(micrograms?|mcg|mg|grams?|g|ml|units?)\b/g, '$1$2')
       .replace(/[^a-z0-9.]+/g, ' ')
       .replace(/\s+/g, ' ')
@@ -81,7 +86,7 @@
       tokens.every((token, index) => record.searchText.includes(token) || record.compactSearchText.includes(compactTokens[index]))
     );
     matches.sort((a, b) => rank(a, query) - rank(b, query) || a.product.name.localeCompare(b.product.name));
-    const count = Number.isInteger(limit) ? Math.max(1, Math.min(100, limit)) : 20;
+    const count = Number.isInteger(limit) ? Math.max(1, Math.min(catalogue.products.length, limit)) : 20;
     return { matches: matches.slice(0, count), totalMatches: matches.length };
   }
 
