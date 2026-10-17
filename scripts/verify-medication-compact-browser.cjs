@@ -6,6 +6,9 @@ const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const medicationCore = require('../server-src/_lib/doctorai-core.cjs');
+const medicationSafetyHandler = require('../api/medication/safety.js');
+const medicationSafetyEngine = require('../server-src/medication/safety-engine.cjs');
 
 const root = path.resolve(__dirname, '..');
 const out = process.env.MEDICATION_COMPACT_EVIDENCE_DIR || path.join(os.tmpdir(), 'doctorai-medication-compact-qa');
@@ -37,7 +40,7 @@ const fictionalMedications = [
     supply: null, refill: 'Not set', activeIngredients: ['fictionalin'],
     activeIngredientsManuallyConfirmed: true }
 ];
-const report = { checks: [], screenshots: [], errors: [], stubbedApiCalls: [] };
+const report = { checks: [], screenshots: [], errors: [], stubbedApiCalls: [], checkerRequests: [] };
 function check(condition, description) { assert.ok(condition, description); report.checks.push(description); }
 async function noOverflow(page, description) {
   check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), description + ': no horizontal overflow');
@@ -46,6 +49,18 @@ async function screenshot(page, name, fullPage = true) {
   const file = path.join(out, name);
   await page.screenshot({ path: file, fullPage });
   report.screenshots.push(file);
+}
+async function storedMedicationByProductId(page, productId) {
+  return page.evaluate(productId => {
+    for (const key of Object.keys(localStorage).filter(value => value.startsWith('doctorai-health-hub-') && value.endsWith('-medications'))) {
+      try {
+        const records = JSON.parse(localStorage.getItem(key) || '[]');
+        const found = Array.isArray(records) && records.find(item => item?.catalogueMatch?.productId === productId);
+        if (found) return found;
+      } catch { /* Ignore unrelated or invalid fictional test storage. */ }
+    }
+    return null;
+  }, productId);
 }
 
 async function verifyRouteColorIdentity(browser, base, width) {
@@ -116,14 +131,35 @@ async function verifyRouteColorIdentity(browser, base, width) {
 }
 async function contextFor(browser, base, width, medications, options = {}) {
   const context = await browser.newContext({ viewport: { width, height: width > 800 ? 1000 : 844 }, isMobile: width <= 520, hasTouch: width <= 520, reducedMotion: 'reduce', serviceWorkers: 'block' });
-  await context.route('**/*', route => {
+  await context.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (url.origin !== base) return route.abort();
     if (url.pathname.startsWith('/api/')) {
       report.stubbedApiCalls.push({ method: route.request().method(), path: url.pathname });
+      const method = route.request().method();
+      if (options.proAccount && url.pathname === '/api/auth/google' && method === 'GET') {
+        return route.fulfill({ json: { authenticated: true, user: { sub: 'synthetic-medication-review-account', email: 'fixture@example.invalid', name: 'Fictional Reviewer' }, medicationLoginId: 'a'.repeat(64) } });
+      }
+      if (options.proAccount && url.pathname === '/api/auth/config') {
+        return route.fulfill({ json: { googleClientId: '', medicationRulesVersion: '2026.10.15-r149' } });
+      }
+      if (options.proAccount && url.pathname === '/api/stripe/entitlement') {
+        return route.fulfill({ json: { active: true, expiresAt: Math.floor(Date.now() / 1000) + 3600 } });
+      }
+      if (options.proAccount && url.pathname === '/api/health/state') {
+        return route.fulfill({ json: method === 'GET' ? { state: null, updatedAt: 0 } : { ok: true, updatedAt: Date.now() } });
+      }
+      if (options.proAccount && url.pathname === '/api/medication/safety' && method === 'POST') {
+        const body = route.request().postDataJSON();
+        report.checkerRequests.push(body);
+        const response = { statusCode: 200, headers: {}, setHeader(name, value) { this.headers[String(name).toLowerCase()] = value; }, status(code) { this.statusCode = code; return this; }, json(payload) { this.body = payload; return this; } };
+        await medicationSafetyHandler({ method: 'POST', headers: {}, body }, response);
+        return route.fulfill({ status: response.statusCode, json: response.body });
+      }
       return route.fulfill({ json: url.pathname === '/api/auth/google' ? { authenticated: false } : { active: false, authenticated: false } });
     }
     if (options.catalogueUnavailable && url.pathname.startsWith('/data/medication/')) return route.fulfill({ status: 503, json: { error: 'Fictional catalogue unavailable' } });
+    if (options.realCatalogue && url.pathname === '/data/medication/nz-pharmac-medicines.json') return route.continue();
     if (url.pathname === '/data/medication/nz-pharmac-medicines.json') return route.fulfill({ json: {
       schemaVersion: 1, datasetVersion: 'fictional-2026-01', sources: [{ effectiveDate: '2026-01-01' }],
       ingredients: [
@@ -256,6 +292,8 @@ async function verifyFormJourney(browser, base, width) {
   const results = form.locator('#medication-name-results');
   await results.waitFor({ state: 'visible' });
   check(await results.getByRole('option').count() >= 2, width + ': partial brand search shows in-page product options');
+  const firstOption = results.getByRole('option').first();
+  check(await firstOption.locator('.medication-name-result-title').innerText() === 'Fictional Amber' && /Fictional amberin.*10 mg tablet/.test(await firstOption.locator('small').innerText()), width + ': product options lead with the plain brand and keep chemical/form details in the subtitle');
   check(await name.inputValue() === 'Fictional amber', width + ': typing a partial query never selects the first result');
   check(await name.getAttribute('role') === 'combobox' && await name.getAttribute('aria-expanded') === 'true' && Boolean(await name.getAttribute('aria-activedescendant')) === false, width + ': search exposes accessible combobox/listbox state before a result is chosen');
   check(await form.locator('#medication-selected-product').isHidden(), width + ': partial search has no selected product or ingredient autofill');
@@ -264,7 +302,7 @@ async function verifyFormJourney(browser, base, width) {
   check(await results.getByRole('option').count() >= 1, width + ': generic ingredient alias search returns matching products');
   if (width <= 520) {
     await name.fill('Fictional Duo');
-    const comboOption = results.getByRole('option').filter({ hasText: 'Fictional amber and blue tablet' }).first();
+    const comboOption = results.getByRole('option').filter({ hasText: 'Fictional Duo' }).first();
     await comboOption.waitFor({ state: 'visible' });
     await comboOption.tap();
   } else {
@@ -436,7 +474,7 @@ async function verifyCatalogueSelectionSaved(browser, base, width) {
   const form = page.locator('#quick-modal [data-modal-form="medication"]');
   const name = form.locator('[name="name"]');
   await name.fill('Fictional Duo');
-  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional amber and blue tablet' }).first();
+  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional Duo' }).first();
   await option.waitFor({ state: 'visible' });
   if (width <= 520) await option.tap(); else await option.click();
   await form.locator('[name="doseAmount"]').fill('2');
@@ -468,7 +506,7 @@ async function verifyIncompleteCatalogueSelection(browser, base) {
   await page.locator('#view-medications [data-modal="medication"]').first().click();
   const form = page.locator('#quick-modal [data-modal-form="medication"]');
   await form.locator('[name="name"]').fill('Fictional Violet');
-  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional violet capsule' }).first();
+  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional Violet' }).first();
   await option.waitFor({ state: 'visible' });
   await option.tap();
   const panel = form.locator('#medication-selected-product');
@@ -489,6 +527,109 @@ async function verifyIncompleteCatalogueSelection(browser, base) {
   check(saved.catalogueMatch?.ingredientsComplete === false && saved.activeIngredients.length === 0, 'incomplete product: unchanged edit/save remains unconfirmed and incomplete');
   await noOverflow(page, '390 incomplete catalogue selection');
   await context.close();
+}
+
+async function verifyVoltarenJourney(browser, base, width) {
+  const originalCore = {
+    identityFromRequest: medicationCore.identityFromRequest,
+    storageConfigured: medicationCore.storageConfigured,
+    activeEntitlement: medicationCore.activeEntitlement,
+    reportError: medicationCore.reportError
+  };
+  medicationCore.identityFromRequest = async () => ({ sub: 'synthetic-medication-review-account', email: 'fixture@example.invalid' });
+  medicationCore.storageConfigured = () => true;
+  medicationCore.activeEntitlement = async () => ({ tier: 'pro', exp: Math.floor(Date.now() / 1000) + 3600 });
+  medicationCore.reportError = () => {};
+  const context = await contextFor(browser, base, width, [], { realCatalogue: true, proAccount: true });
+  const page = await context.newPage();
+  const beforeRequests = report.checkerRequests.length;
+  page.on('pageerror', error => report.errors.push(error.message));
+  try {
+    await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await page.locator('#view-medications [data-modal="medication"]').first().click();
+    const form = page.locator('#quick-modal [data-modal-form="medication"]');
+    const name = form.locator('[name="name"]');
+    await name.fill('Voltaren Diclofenac sodium Suppos 100 mg');
+    const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Suppos 100 mg' }).first();
+    await option.waitFor({ state: 'visible' });
+    const optionText = await option.innerText();
+    check((await option.locator('.medication-name-result-title').innerText()) === 'Voltaren' && /Diclofenac sodium.*Suppos 100 mg/.test(optionText), width + ': Voltaren options lead with the plain brand and show exact chemical/formulation separately');
+    if (width <= 520) await option.tap(); else await option.click();
+    const selectedPanel = form.locator('#medication-selected-product');
+    await selectedPanel.waitFor({ state: 'visible' });
+    const selected = await form.evaluate(element => element.catalogueSelection);
+    const ingredients = form.locator('[name="activeIngredients"]');
+    const confirmed = form.locator('[name="ingredientsConfirmed"]');
+    check(selected?.productId === 'pharmac-27fe3db7fbaac919' && selected.ingredientsComplete === true && selected.ingredients.length === 1, width + ': the exact Voltaren suppository source row is complete and selected by its explicit product ID');
+    check((await selectedPanel.innerText()).includes('Catalogue ingredients (unconfirmed): Diclofenac') && /not checked against your label/i.test(await selectedPanel.innerText()), width + ': source ingredient display remains clearly separate from label confirmation');
+    check(/not sent to the check/i.test(await selectedPanel.innerText()) && /enter every active ingredient/i.test(await selectedPanel.innerText()) && /save and check again/i.test(await selectedPanel.innerText()), width + ': selection guidance explains the confirmation gate and next action');
+    check(await ingredients.inputValue() === '' && !(await confirmed.isChecked()), width + ': choosing the source row does not fill or confirm label ingredient text');
+    await screenshot(page, 'voltaren-selected-unconfirmed-' + width + '.png', false);
+    await form.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    let saved = await storedMedicationByProductId(page, 'pharmac-27fe3db7fbaac919');
+    if (!saved) throw new Error('Voltaren save did not persist a matching product row in account-scoped storage.');
+    check(saved.catalogueMatch?.productId === 'pharmac-27fe3db7fbaac919' && saved.catalogueMatch.ingredientsComplete === true && saved.activeIngredients.length === 0 && saved.activeIngredientsManuallyConfirmed === false, width + ': saving the selected source row preserves complete catalogue data without promoting it to label-confirmed fields');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await page.locator('#medication-library [data-edit-medication]').first().click();
+    const reopened = page.locator('#quick-modal [data-modal-form="medication"]');
+    await reopened.locator('#medication-selected-product').waitFor({ state: 'visible' });
+    check(await reopened.locator('[name="name"]').inputValue() === saved.name && await reopened.evaluate(element => element.catalogueSelection?.productId) === saved.catalogueMatch.productId, width + ': reload and edit restore the exact Pharmac product identity and full label name');
+    check(/Catalogue ingredients \(unconfirmed\): Diclofenac/.test(await reopened.locator('#medication-selected-product').innerText()) && await reopened.locator('[name="activeIngredients"]').inputValue() === '', width + ': reload keeps source ingredients visible but outside the label text field');
+    await reopened.locator('[data-close-modal]').click();
+    const panel = page.locator('.clash-panel');
+    await panel.waitFor({ state: 'visible' });
+    await page.waitForFunction(() => document.querySelector('.clash-panel') && !document.querySelector('.clash-panel').classList.contains('pro-locked'));
+    await panel.locator('[data-local-medication-db-consent]').check();
+    await panel.locator('[data-run-local-medication-safety-check]').click();
+    await page.waitForFunction(() => /active ingredients were not checked by you against the package/i.test(document.querySelector('[data-local-medication-db-result]')?.textContent || ''));
+    let unconfirmedRequest = report.checkerRequests.at(-1);
+    const unconfirmedResolution = medicationSafetyEngine.resolveMedication(unconfirmedRequest.medications[0]);
+    check(report.checkerRequests.length === beforeRequests + 1, width + ': exact selected Voltaren triggers one local safety request');
+    check(unconfirmedRequest.medications[0].name === saved.name && !Object.hasOwn(unconfirmedRequest.medications[0], 'catalogueMatch') && !Object.hasOwn(unconfirmedRequest.medications[0], 'productId') && !Object.hasOwn(unconfirmedRequest.medications[0], 'activeIngredients') && !Object.hasOwn(unconfirmedRequest.medications[0], 'activeIngredientsConfirmed') && !Object.hasOwn(unconfirmedRequest.medications[0], 'doseAmount') && !Object.hasOwn(unconfirmedRequest.medications[0], 'doseUnit'), width + ': checker adapter sends only the saved name and strength/dose; product identity and source ingredients stay out');
+    check(unconfirmedResolution.status === 'resolved' && unconfirmedResolution.basis === 'catalogue_name' && unconfirmedResolution.labelIngredientsConfirmed !== true, width + ': current name-only matching remains separate from selected-ID data and label confirmation');
+    const firstUiResult = await page.locator('[data-local-medication-db-result]').innerText();
+    check(/Selected Pharmac mapping: Diclofenac\. It has not been checked against your package/i.test(firstUiResult) && /did not send this product or its ingredient list/i.test(firstUiResult) && /any name match above is separate from label confirmation/i.test(firstUiResult), width + ': concise checker text distinguishes source mapping from package confirmation');
+    await screenshot(page, 'voltaren-check-unconfirmed-' + width + '.png');
+    await panel.locator('[data-local-medication-db-consent]').uncheck();
+    await page.locator('#medication-library [data-edit-medication]').first().click();
+    const edit = page.locator('#quick-modal [data-modal-form="medication"]');
+    await edit.locator('#medication-selected-product').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => document.querySelector('#quick-modal [data-modal-form="medication"]')?.catalogueSelection?.productId === 'pharmac-27fe3db7fbaac919');
+    await edit.locator('details.medication-optional-fields > summary').click();
+    await edit.locator('[name="activeIngredients"]').fill('Diclofenac sodium');
+    await edit.locator('[name="ingredientsConfirmed"]').check();
+    await edit.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    saved = await storedMedicationByProductId(page, 'pharmac-27fe3db7fbaac919');
+    if (!saved) throw new Error('Confirmed Voltaren edit lost the selected product row.');
+    check(saved.activeIngredientsManuallyConfirmed === true && saved.activeIngredients.join(', ') === 'Diclofenac sodium' && saved.catalogueMatch.productId === 'pharmac-27fe3db7fbaac919', width + ': after checking the original label, the confirmed text and separate source identity save together');
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    saved = await storedMedicationByProductId(page, 'pharmac-27fe3db7fbaac919');
+    check(Boolean(saved), width + ': the confirmed medication remains in its account-scoped local storage after reload');
+    check(saved.activeIngredientsManuallyConfirmed === true && saved.activeIngredients[0] === 'Diclofenac sodium' && saved.catalogueMatch.productId === 'pharmac-27fe3db7fbaac919', width + ': confirmed label text and exact product ID survive reload independently');
+    const reloadedPanel = page.locator('.clash-panel');
+    await reloadedPanel.waitFor({ state: 'visible' });
+    await reloadedPanel.locator('[data-local-medication-db-consent]').check();
+    await reloadedPanel.locator('[data-run-local-medication-safety-check]').click();
+    await page.waitForFunction(() => /name mapping agrees with the ingredient text you checked against the package/i.test(document.querySelector('[data-local-medication-db-result]')?.textContent || ''));
+    const confirmedRequest = report.checkerRequests.at(-1);
+    const confirmedResolution = medicationSafetyEngine.resolveMedication(confirmedRequest.medications[0]);
+    check(report.checkerRequests.length === beforeRequests + 2 && confirmedRequest.medications[0].activeIngredientsConfirmed === true && confirmedRequest.medications[0].activeIngredients.join(', ') === 'Diclofenac sodium', width + ': after reload, the checker receives label ingredients only after explicit confirmation');
+    check(!Object.hasOwn(confirmedRequest.medications[0], 'catalogueMatch') && !Object.hasOwn(confirmedRequest.medications[0], 'productId'), width + ': confirmed checker request still validates text through the existing allowlisted contract, not a product-ID bypass');
+    check(confirmedResolution.status === 'resolved' && confirmedResolution.basis === 'catalogue_and_confirmed_label' && confirmedResolution.labelIngredientsConfirmed === true, width + ': confirmed label matching is reported with its distinct evidence basis');
+    await screenshot(page, 'voltaren-check-confirmed-' + width + '.png');
+    await noOverflow(page, width + ' Voltaren save/reload/check journey');
+  } finally {
+    await context.close();
+    medicationCore.identityFromRequest = originalCore.identityFromRequest;
+    medicationCore.storageConfigured = originalCore.storageConfigured;
+    medicationCore.activeEntitlement = originalCore.activeEntitlement;
+    medicationCore.reportError = originalCore.reportError;
+  }
 }
 
 async function verifyEarlierNotesReview(browser, base) {
@@ -549,6 +690,8 @@ async function verifyEarlierNotesReview(browser, base) {
     await verifyCatalogueSelectionSaved(browser, base, 1440);
     await verifyCatalogueSelectionSaved(browser, base, 390);
     await verifyIncompleteCatalogueSelection(browser, base);
+    await verifyVoltarenJourney(browser, base, 1440);
+    await verifyVoltarenJourney(browser, base, 390);
     await verifyCatalogueFallback(browser, base);
     await verifyEarlierNotesReview(browser, base);
     assert.deepEqual(report.errors, [], 'No browser JavaScript errors');

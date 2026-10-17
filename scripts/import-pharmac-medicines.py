@@ -358,7 +358,9 @@ def substance(name):
         terms[norm(term)] = id
     return id
 
-UNSPECIFIED = re.compile(r'oestrogens|compound|multivitamin|electrolytes|mixed salt|ringer|parenteral nutrition|esters|enzyme|vaccine|immunoglobulin|extract|with/without|and/or|solution', re.I)
+UNSPECIFIED = re.compile(r'oestrogens|compound|multivitamin|electrolytes|mixed salt|ringer|parenteral nutrition|esters|\benzyme\b|vaccine|immunoglobulin|extract|with/without|and/or|solution', re.I)
+if UNSPECIFIED.search('Coenzyme Q10'):
+    raise AssertionError('A whole-word enzyme filter must not classify Coenzyme Q10 as an unspecified mixture.')
 DEVICE = re.compile(r'\b(device|meter|monitor|sensor|lancets?|needles?|syringes?|pump|diagnostic test|test strips?|condoms?|dressings?|bandages?|catheter)\b', re.I)
 ACCESSORY = re.compile(r'with (?:diluent|solvent|applicator|dropper|inhaler device)', re.I)
 

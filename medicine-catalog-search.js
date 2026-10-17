@@ -1,7 +1,7 @@
 (function (root) {
   'use strict';
 
-  const DATA_URL = '/data/medication/nz-pharmac-medicines.json?v=20261001';
+  const DATA_URL = '/data/medication/nz-pharmac-medicines.json?v=20261017';
   const strengthSearchToken = /^\d+(?:\.\d+)?(?:mcg|mg|g|ml|units?)$/;
   let cataloguePromise;
 

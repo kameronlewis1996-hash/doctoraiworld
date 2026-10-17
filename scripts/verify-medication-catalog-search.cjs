@@ -22,10 +22,10 @@ async function run() {
   const ingredientIds = new Set(catalogue.ingredients.map(item => item.id));
   const completeProducts = catalogue.products.filter(record => record.product.ingredientsComplete === true);
   const incompleteProducts = catalogue.products.filter(record => record.product.ingredientsComplete !== true);
-  assert.equal(completeProducts.length, 3306, 'Only rows marked complete in the pinned source count as complete mappings.');
-  assert.equal(incompleteProducts.length, 113, 'Every remaining product stays explicitly incomplete.');
+  assert.equal(completeProducts.length, 3310, 'Only rows marked complete in the pinned source count as complete mappings.');
+  assert.equal(incompleteProducts.length, 109, 'Every remaining product stays explicitly incomplete.');
   assert.equal(incompleteProducts.filter(record => record.product.ingredients.length > 0).length, 29, 'Partial mappings retain known source ingredients without being promoted to complete.');
-  assert.equal(incompleteProducts.filter(record => record.product.ingredients.length === 0).length, 84, 'Empty mappings remain unknown.');
+  assert.equal(incompleteProducts.filter(record => record.product.ingredients.length === 0).length, 80, 'Empty mappings remain unknown.');
   assert.equal(catalogue.products.filter(record => record.product.ingredients.length > 1).length, 342, 'Combination-product ingredients are kept together.');
   assert.equal(catalogue.products.filter(record => (record.product.ingredients || []).some(id => !ingredientIds.has(id))).length, 0, 'Every referenced source ingredient ID resolves to a catalogue record.');
   const productNames = new Map();

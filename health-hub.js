@@ -2707,15 +2707,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const heading = document.createElement('b');
       heading.textContent = 'Selected Pharmac catalogue row — not checked against your label';
       const details = document.createElement('p');
-      details.textContent = [selection.productName, selection.brand, selection.formulation].filter(Boolean).join(' · ');
+      details.textContent = selection.productName;
       const ingredients = document.createElement('p');
       const sourceNames = selection.ingredients.map(item => item.name);
       ingredients.textContent = sourceNames.length
         ? (selection.ingredientsComplete ? 'Catalogue ingredients (unconfirmed): ' : 'Incomplete catalogue mapping; known ingredients (unconfirmed): ') + sourceNames.join(', ')
         : 'No mapped ingredients are available for this catalogue row.';
+      const labelGuidance = document.createElement('p');
+      labelGuidance.className = 'medication-product-label-guidance';
+      labelGuidance.textContent = selection.ingredientsComplete
+        ? 'Compare this product and its ingredients with your package. This catalogue row is not sent to the check, and a name match does not confirm your label. To check label ingredients, open Schedule & more details, enter every active ingredient as printed, confirm, save and check again.'
+        : 'This may be only a partial ingredient list. Compare it with your package. Enter every active ingredient under Schedule & more details, confirm, save and check again. This catalogue row is not sent to the check.';
       const route = document.createElement('small');
       route.textContent = 'Rule-scope tag: ' + (selection.ruleInteractionRoute || 'unknown') + '. This is not evidence of the route you take it.';
-      selectedPanel.append(heading, details, ingredients, route);
+      selectedPanel.append(heading, details, ingredients, labelGuidance, route);
       const canCopyForm = Boolean(dose && selection.formulation && selection.formulation.length <= 80);
       if (canCopyForm) {
         const useForm = document.createElement('button');
@@ -2765,9 +2770,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         option.className = 'medication-name-result';
         const name = document.createElement('span');
         name.className = 'medication-name-result-title';
-        name.textContent = product.name;
+        name.textContent = product.brand || product.chemical || product.name;
         const meta = document.createElement('small');
-        meta.textContent = [product.brand, product.chemical, product.formulation].filter(Boolean).join(' · ') || 'Product details limited';
+        const distinctChemical = product.brand && product.chemical && product.brand.trim().toLocaleLowerCase() !== product.chemical.trim().toLocaleLowerCase()
+          ? product.chemical : '';
+        meta.textContent = [distinctChemical, product.formulation].filter(Boolean).join(' · ') || 'Product details limited';
         option.append(name, meta);
         option.addEventListener('pointerdown', event => { if (event.pointerType === 'mouse') event.preventDefault(); });
         option.addEventListener('click', () => selectRecord(record));
@@ -3914,7 +3921,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       catalogue.append(document.createTextNode(' '), source);
       container.append(catalogue);
     }
-    (Array.isArray(result.resolved) ? result.resolved : []).forEach(item => {
+    const savedMedications = currentMedicationRecords();
+    (Array.isArray(result.resolved) ? result.resolved : []).forEach((item, index) => {
       const line = document.createElement('p');
       const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
       let matchText = 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : '');
@@ -3929,6 +3937,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       else if (item.strength?.status === 'listed_match') matchText += '; the numeric strength appears in the catalogue, but this is not a dose or treatment check';
       line.textContent = String(item.name || 'Saved medicine') + ': ' + matchText;
       container.append(line);
+      const saved = savedMedications[index];
+      const product = saved?.catalogueMatch;
+      if (!product || product.productName !== item.name) return;
+      const note = document.createElement('p');
+      note.className = 'medication-db-incomplete-note medication-catalogue-confirmation-note';
+      const sourceNames = (Array.isArray(product.ingredients) ? product.ingredients : []).map(ingredient => ingredient?.name).filter(Boolean);
+      if (item.matchState === 'name_label_mismatch' || item.basis === 'name_label_disagreement') {
+        note.textContent = (item.reason || 'The name and confirmed label ingredient list disagree.') + ' The saved catalogue row does not override that mismatch; no ingredient-based check ran for this medicine.';
+      } else if (item.labelIngredientsConfirmed === true) {
+        note.textContent = 'You confirmed the ingredient text against the package. ' + (product.ingredientsComplete === true ? 'The selected Pharmac mapping agrees with that text; wording agreement is not clinical validation.' : 'The Pharmac mapping remains incomplete, so the label confirmation does not make the catalogue mapping complete.');
+      } else if (product.ingredientsComplete === true) {
+        note.textContent = 'Selected Pharmac mapping' + (sourceNames.length ? ': ' + sourceNames.join(', ') : '') + '. It has not been checked against your package. We did not send this product or its ingredient list; any name match above is separate from label confirmation.';
+      } else {
+        note.textContent = 'The Pharmac mapping is incomplete' + (sourceNames.length ? '; known ingredients: ' + sourceNames.join(', ') : '; no ingredients mapped') + '. This is not a full list. We did not send this product or its ingredient list; any name match above is separate from label confirmation.';
+      }
+      container.append(note);
     });
     const disclaimer = document.createElement('p');
     disclaimer.className = 'medication-db-incomplete-note';

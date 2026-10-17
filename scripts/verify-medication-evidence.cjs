@@ -7,6 +7,7 @@ const seed = require('../data/medication/medication-safety.seed.json');
 const nz = require('../data/medication/nz-pharmac-medicines.json');
 const exclusions = require('../docs/medication-provenance-exclusions.json');
 const engine = require('../server-src/medication/safety-engine.cjs');
+const importer = fs.readFileSync(path.join(__dirname, 'import-pharmac-medicines.py'), 'utf8');
 const { decision, isCcByRecord } = require('./medication-provenance-policy.cjs');
 const { defaultMedicationSafetyProvider } = require('../server-src/medication/safety-provider.cjs');
 
@@ -56,10 +57,16 @@ assert.ok(!seed.interactionRules.some(item => item.id === 'warfarin-nsaid'));
 assert.equal(nz.licence.name, 'CC BY 4.0');
 assert.equal(nz.licence.url, 'https://creativecommons.org/licenses/by/4.0/');
 assert.equal(nz.stats.productFormulations, 3419);
-assert.equal(nz.stats.incompleteIngredientProducts, 113);
+assert.equal(nz.stats.ingredientTerms, 1138);
+assert.equal(nz.stats.completeIngredientProducts, 3310);
+assert.equal(nz.stats.incompleteIngredientProducts, 109);
 assert.match(nz.attribution, /Pharmac does not endorse DoctorAI/);
 assert.match(nz.disclaimer, /does not establish Medsafe approval/);
 assert.match(nz.sources[0].sha256, /^[a-f0-9]{64}$/);
+assert.equal(nz.sources[0].sha256, 'cb89c7d2d44be5145f8966f4c7e3bedf971f28432c208748fed91a68f4260b7b');
+assert.equal(nz.sources[1].sha256, 'f60f7df51ef4716f2382580dda49f033ea3b45ee5734deb826068e0a49f2bf7b');
+assert.match(importer, /UNSPECIFIED\s*=\s*re\.compile\([^\n]*\\benzyme\\b/);
+assert.match(importer, /UNSPECIFIED\.search\('Coenzyme Q10'\)/);
 
 function assertProduct(prefix, expectedIngredients, shouldResolve = true) {
   const product = nz.products.find(item => item.name.startsWith(prefix));
@@ -77,6 +84,27 @@ assertProduct('Micreme H — Hydrocortisone with miconazole', ['pharmac-hydrocor
 const incompleteBreztri = assertProduct('Breztri Aerosphere', ['pharmac-budesonide', 'pharmac-glycopyrronium', 'pharmac-eformoterol'], false);
 assert.equal(incompleteBreztri.ingredientsComplete, false, 'Incomplete catalogue ingredients must remain unknown');
 assert.equal(engine.resolveMedication(incompleteBreztri.name).status, 'unknown');
+
+const coenzymeIngredient = nz.ingredients.find(item => item.id === 'pharmac-coenzyme-q10');
+assert.deepEqual(coenzymeIngredient, { id: 'pharmac-coenzyme-q10', name: 'Coenzyme Q10', aliases: [], classes: [], source: 'Pharmac Pharmaceutical Schedule' });
+const coenzymeRows = nz.products.filter(item => item.chemical === 'Coenzyme Q10');
+assert.deepEqual(coenzymeRows.map(item => item.id).sort(), [
+  'pharmac-1566ae8ef06fc485', 'pharmac-893a79aa51fbfed2',
+  'pharmac-e3ebd2cfb6bbbfac', 'pharmac-fe7fd70950eb0249'
+].sort());
+for (const product of coenzymeRows) {
+  assert.equal(product.ingredientsComplete, true, product.name);
+  assert.deepEqual(product.ingredients, ['pharmac-coenzyme-q10'], product.name);
+  assert.equal(engine.resolveMedication(product.name).status, 'resolved', product.name);
+  assert.deepEqual(engine.resolveMedication({ name: product.name, activeIngredients: ['Coenzyme Q10'], activeIngredientsConfirmed: true }).ingredients.map(item => item.id), ['pharmac-coenzyme-q10']);
+}
+const coenzymeResult = engine.review({ medications: [coenzymeRows[0].name] });
+assert.deepEqual(coenzymeIngredient.classes, [], 'the corrected terminology entry adds no pharmacological class');
+assert.ok(coenzymeResult.alerts.every(alert => !['interaction', 'allergy', 'contraindication'].includes(alert.type)), 'the corrected terminology entry activates no clinical rules');
+assert.equal(coenzymeResult.coverage.interactionRuleCount, 2);
+assert.equal(coenzymeResult.coverage.combinationRuleCount, 1);
+assert.equal(coenzymeResult.coverage.conditionRuleCount, 0);
+assert.equal(seed.allergyRules.length, 2);
 
 const root = path.join(__dirname, '..');
 const chatSource = fs.readFileSync(path.join(root, 'api/chat.js'), 'utf8');
@@ -111,18 +139,18 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=104/);
+  assert.match(hubHtml, /health-hub\.js\?v=105/);
   assert.match(hubHtml, /term-catalogues\.js\?v=3/);
-  assert.match(hubHtml, /medicine-catalog-search\.js\?v=1/);
+  assert.match(hubHtml, /medicine-catalog-search\.js\?v=2/);
   assert.match(hubHtml, /hub-aurora-secondary\.css\?v=6/);
-  assert.match(hubHtml, /health-hub\.css\?v=89/);
+  assert.match(hubHtml, /health-hub\.css\?v=90/);
   assert.match(hubHtml, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /doctorai-shell-v173/);
+  assert.match(serviceWorker, /doctorai-shell-v174/);
   assert.match(serviceWorker, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /health-hub\.js\?v=104/);
+  assert.match(serviceWorker, /health-hub\.js\?v=105/);
   assert.match(serviceWorker, /term-catalogues\.js\?v=3/);
-  assert.match(serviceWorker, /medicine-catalog-search\.js\?v=1/);
+  assert.match(serviceWorker, /medicine-catalog-search\.js\?v=2/);
   assert.match(serviceWorker, /hub-aurora-secondary\.css\?v=6/);
 
-  console.log('Medication rights, retained-data provenance, Pharmac attribution, three corrected ingredient mappings, incomplete-product fail-closed handling, chat boundaries and cache versions verified.');
+  console.log('Medication rights, retained-data provenance, Pharmac attribution, Coenzyme Q10 importer regression, incomplete-product handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
