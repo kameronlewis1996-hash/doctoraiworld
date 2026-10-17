@@ -3760,7 +3760,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const line = document.createElement('p');
       const names = (Array.isArray(item.ingredients) ? item.ingredients : []).map(ingredient => ingredient.name).filter(Boolean);
       let matchText = 'not matched; clashes are unknown' + (item.reason ? ' (' + item.reason + ')' : '');
-      if (item.catalogueProductId && item.labelIngredientsConfirmed !== true && item.status !== 'resolved') {
+      if (item.catalogueProductId && ['catalogue_product_unconfirmed', 'selected_product_incomplete'].includes(item.matchState)) {
         const sourceNames = (Array.isArray(item.catalogueIngredients) ? item.catalogueIngredients : []).map(ingredient => ingredient.name).filter(Boolean);
         matchText = 'selected Pharmac product ' + item.catalogueProductId + ' lists ' + (sourceNames.join(', ') || 'no mapped ingredients') +
           '; ' + (item.catalogueIngredientsComplete ? 'catalogue mapping recorded' : 'catalogue mapping incomplete') +
