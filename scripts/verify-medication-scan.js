@@ -58,6 +58,7 @@ async function run() {
   assert.equal(success.statusCode, 200);
   assert.equal(success.body.medication.name, 'Test medicine');
   assert.equal(success.body.medication.time, '08:30');
+  assert.equal(Object.hasOwn(success.body.medication, 'doseAmount'), false, 'Scan suggestions must not derive a per-dose amount from product strength or label text.');
   assert.equal(success.body.review.required, true);
   assert.equal(success.body.review.confirmed, false);
   assert.equal(success.body.review.fields.name.status, 'extracted');

@@ -212,6 +212,9 @@ async function verifyFormJourney(browser, base, width) {
   await form.waitFor({ state: 'visible' });
   const name = form.locator('[name="name"]');
   const dose = form.locator('[name="dose"]');
+  const doseAmount = form.locator('[name="doseAmount"]');
+  const doseUnit = form.locator('[name="doseUnitChoice"]');
+  const customDoseUnit = form.locator('[name="doseUnitCustom"]');
   const time = form.locator('[name="time"]');
   const optionalDetails = form.locator('details.medication-optional-fields');
   check(await form.locator('.medication-required-note').isVisible() && /\*\s*Required/i.test(await form.locator('.medication-required-note').innerText()), width + ': required legend appears above medication fields');
@@ -226,19 +229,19 @@ async function verifyFormJourney(browser, base, width) {
   await name.fill('Fictional custom medicine');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  check(await page.locator('#medication-library .library-item-wrap').count() === 1 && /Recorded strength\/dose: not recorded/i.test(await page.locator('#medication-library .library-item').innerText()), width + ': name-only entry saves with strength or dose explicitly not recorded');
+  check(await page.locator('#medication-library .library-item-wrap').count() === 1 && /Product strength: not recorded/i.test(await page.locator('#medication-library .library-item').innerText()), width + ': name-only entry saves with product strength explicitly not recorded');
   const nameOnlyMedication = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
-  check(nameOnlyMedication.name === 'Fictional custom medicine' && !nameOnlyMedication.dose && !nameOnlyMedication.time, width + ': saving a name alone does not invent a dose or schedule');
+  check(nameOnlyMedication.name === 'Fictional custom medicine' && !nameOnlyMedication.dose && !nameOnlyMedication.doseAmount && !nameOnlyMedication.doseUnit && !nameOnlyMedication.time, width + ': saving a name alone does not invent product strength, amount or schedule');
   check(nameOnlyMedication.instructions === '', width + ': blank new instructions remain exactly empty without invented directions');
   await page.locator('#medication-library [data-edit-medication]').click();
   await form.waitFor({ state: 'visible' });
-  check(await name.inputValue() === 'Fictional custom medicine' && await dose.inputValue() === '', width + ': name-only record reopens with its optional dose blank');
+  check(await name.inputValue() === 'Fictional custom medicine' && await dose.inputValue() === '' && await doseAmount.inputValue() === '' && await doseUnit.inputValue() === '', width + ': name-only record reopens with optional strength and dose amount blank');
   check(!(await optionalDetails.evaluate(element => element.open)), width + ': optional details also start collapsed while editing');
   await optionalDetails.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
   check(await optionalDetails.evaluate(element => element.open), width + ': optional form details open with keyboard Enter');
   check(!(await time.evaluate(element => element.required)) && /optional/i.test(await time.locator('xpath=ancestor::label[1]').innerText()), width + ': preferred time is clearly optional');
-  for (const [field, label] of [[name, 'name'], [dose, 'strength or dose'], [time, 'time']]) {
+  for (const [field, label] of [[name, 'name'], [dose, 'product strength'], [doseAmount, 'dose amount'], [doseUnit, 'dose unit'], [time, 'time']]) {
     const help = await field.evaluate(element => (element.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean).map(id => document.getElementById(id)?.textContent || '').join(' '));
     check(/label|prescription|package/i.test(help), width + ': ' + label + ' help is associated and label-led');
   }
@@ -293,14 +296,23 @@ async function verifyFormJourney(browser, base, width) {
   check(await results.isHidden(), width + ': one-character searches stay closed until there is enough query text');
   await name.fill('Fictional custom medicine');
   await dose.fill('10 mg per tablet, copied from fictional label');
+  await doseAmount.fill('1.5');
+  await form.locator('button[type="submit"]').click();
+  check(await form.isVisible() && /Choose a unit/i.test(await form.locator('#medication-form-error').innerText()), width + ': an amount cannot be saved without a unit');
+  await doseUnit.selectOption('other');
+  check(await form.locator('[data-dose-unit-custom-field]').isVisible(), width + ': choosing a custom unit reveals its input');
+  await customDoseUnit.fill('sachets');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   await page.waitForFunction(() => document.querySelector('#medications-count')?.textContent === '1 current');
-  check(/Fictional custom medicine/.test(await page.locator('#medication-library').innerText()), width + ': custom entry saves without a catalogue match');
+  check(/Fictional custom medicine/.test(await page.locator('#medication-library').innerText()) && /Amount per dose recorded: 1\.5 sachets/.test(await page.locator('#medication-library').innerText()), width + ': custom entry and separately recorded amount save without a catalogue match');
+  const amountSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  check(amountSaved.doseAmount === '1.5' && amountSaved.doseUnit === 'sachets' && amountSaved.dose === '10 mg per tablet, copied from fictional label', width + ': pack strength and user-recorded amount remain separate fields');
   await noOverflow(page, width + ' after add');
   await screenshot(page, 'medication-added-' + width + '.png');
   await page.locator('#medication-library [data-edit-medication]').click();
   check(await form.locator('[name="name"]').inputValue() === 'Fictional custom medicine', width + ': editing reopens the saved custom name');
+  check(await doseAmount.inputValue() === '1.5' && await doseUnit.inputValue() === 'other' && await customDoseUnit.inputValue() === 'sachets', width + ': custom amount and unit reopen without conversion');
   await form.locator('[name="dose"]').fill('20 mg per tablet, copied from fictional label');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
@@ -427,20 +439,55 @@ async function verifyCatalogueSelectionSaved(browser, base, width) {
   const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional amber and blue tablet' }).first();
   await option.waitFor({ state: 'visible' });
   if (width <= 520) await option.tap(); else await option.click();
+  await form.locator('[name="doseAmount"]').fill('2');
+  await form.locator('[name="doseUnitChoice"]').selectOption('tablets');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
   check(saved?.catalogueMatch?.productId === 'pharmac-fictionalcombination' && saved.catalogueMatch.ingredients.length === 2, width + ': saving preserves the selected source row and combination ingredients');
   check(saved.activeIngredients.length === 0 && saved.activeIngredientsManuallyConfirmed === false, width + ': catalogue-derived ingredients remain outside the label-confirmed checker fields');
+  check(saved.doseAmount === '2' && saved.doseUnit === 'tablets' && saved.dose !== '2 tablets', width + ': dose amount is saved separately from the product formulation and label ingredient gate');
   await page.locator('#medication-library [data-edit-medication]').click();
   const reopened = page.locator('#quick-modal [data-modal-form="medication"]');
   await reopened.locator('#medication-selected-product').waitFor({ state: 'visible' });
   check(await reopened.locator('[name="name"]').inputValue() === saved.name, width + ': reopening restores the full selected product name');
+  check(await reopened.locator('[name="doseAmount"]').inputValue() === '2' && await reopened.locator('[name="doseUnitChoice"]').inputValue() === 'tablets', width + ': selected product reopens its recorded amount without deriving it from strength');
   check((await reopened.locator('#medication-selected-product').innerText()).includes('Fictional amberin, Fictional bluein') && /unconfirmed/i.test(await reopened.locator('#medication-selected-product').innerText()), width + ': reopening re-renders the source ingredients as unconfirmed');
   await reopened.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   const reopenedSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
   check(reopenedSaved.catalogueMatch?.productId === saved.catalogueMatch.productId && reopenedSaved.activeIngredients.length === 0, width + ': unchanged edit/save retains identity without promoting source ingredients');
+  await context.close();
+}
+
+async function verifyIncompleteCatalogueSelection(browser, base) {
+  const context = await contextFor(browser, base, 390, []);
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+  await page.locator('#view-medications [data-modal="medication"]').first().click();
+  const form = page.locator('#quick-modal [data-modal-form="medication"]');
+  await form.locator('[name="name"]').fill('Fictional Violet');
+  const option = form.locator('#medication-name-results [role="option"]').filter({ hasText: 'Fictional violet capsule' }).first();
+  await option.waitFor({ state: 'visible' });
+  await option.tap();
+  const panel = form.locator('#medication-selected-product');
+  const selected = await form.evaluate(element => element.catalogueSelection);
+  check(selected?.ingredientsComplete === false && selected.ingredients.map(item => item.name).join(', ') === 'Fictional violetin', 'incomplete product: the known source ingredient is preserved but mapping remains incomplete');
+  check(/Incomplete catalogue mapping; known ingredients \(unconfirmed\): Fictional violetin/.test(await panel.innerText()), 'incomplete product: the UI does not present a partial source mapping as complete');
+  await form.locator('button[type="submit"]').click();
+  await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  check(saved.catalogueMatch?.ingredientsComplete === false && saved.catalogueMatch.ingredients.length === 1 && saved.activeIngredients.length === 0, 'incomplete product: persistence retains source status and does not populate confirmed checker fields');
+  await page.locator('#medication-library [data-edit-medication]').click();
+  const reopened = page.locator('#quick-modal [data-modal-form="medication"]');
+  await reopened.locator('#medication-selected-product').waitFor({ state: 'visible' });
+  check(/Incomplete catalogue mapping/.test(await reopened.locator('#medication-selected-product').innerText()), 'incomplete product: reopen still labels the mapping incomplete');
+  await reopened.locator('button[type="submit"]').click();
+  await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  check(saved.catalogueMatch?.ingredientsComplete === false && saved.activeIngredients.length === 0, 'incomplete product: unchanged edit/save remains unconfirmed and incomplete');
+  await noOverflow(page, '390 incomplete catalogue selection');
   await context.close();
 }
 
@@ -501,6 +548,7 @@ async function verifyEarlierNotesReview(browser, base) {
     }
     await verifyCatalogueSelectionSaved(browser, base, 1440);
     await verifyCatalogueSelectionSaved(browser, base, 390);
+    await verifyIncompleteCatalogueSelection(browser, base);
     await verifyCatalogueFallback(browser, base);
     await verifyEarlierNotesReview(browser, base);
     assert.deepEqual(report.errors, [], 'No browser JavaScript errors');

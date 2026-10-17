@@ -111,15 +111,15 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=103/);
+  assert.match(hubHtml, /health-hub\.js\?v=104/);
   assert.match(hubHtml, /term-catalogues\.js\?v=3/);
   assert.match(hubHtml, /medicine-catalog-search\.js\?v=1/);
   assert.match(hubHtml, /hub-aurora-secondary\.css\?v=6/);
-  assert.match(hubHtml, /health-hub\.css\?v=88/);
+  assert.match(hubHtml, /health-hub\.css\?v=89/);
   assert.match(hubHtml, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /doctorai-shell-v172/);
+  assert.match(serviceWorker, /doctorai-shell-v173/);
   assert.match(serviceWorker, /health-alerts\.js\?v=6/);
-  assert.match(serviceWorker, /health-hub\.js\?v=103/);
+  assert.match(serviceWorker, /health-hub\.js\?v=104/);
   assert.match(serviceWorker, /term-catalogues\.js\?v=3/);
   assert.match(serviceWorker, /medicine-catalog-search\.js\?v=1/);
   assert.match(serviceWorker, /hub-aurora-secondary\.css\?v=6/);

@@ -128,7 +128,7 @@ function emptyBrowserState() {
     { id: 'CHEBI:17334', substance: 'penicillin', reactionId: 'SYMP:0000487', reaction: 'rash', certainty: 'confirmed', source: 'CHEBI' },
     { id: 'custom:uncertain', substance: 'Fictional substance', reactionId: '', reaction: 'not sure', certainty: 'suspected', source: 'user', medicationId: 'synthetic-medicine' }
   ];
-  populatedState.medications.push({ id: 'synthetic-combination', name: catalogueMatch.productName, dose: '', activeIngredients: [], activeIngredientsManuallyConfirmed: false, catalogueMatch });
+  populatedState.medications.push({ id: 'synthetic-combination', name: catalogueMatch.productName, dose: '', doseAmount: '1', doseUnit: 'tablets', activeIngredients: [], activeIngredientsManuallyConfirmed: false, catalogueMatch });
   Object.assign(populatedState.profile, terminology.compatibilityFields(populatedState.profile.conditionEntries, populatedState.profile.allergyEntries));
   assert.equal(populatedState.profile.conditions, 'asthma', 'Historical conditions must not enter the current-condition compatibility field.');
   assert.equal(populatedState.profile.allergies, 'penicillin', 'Uncertain reactions must not enter the confirmed-allergy compatibility field.');
@@ -144,6 +144,8 @@ function emptyBrowserState() {
   assert.deepEqual(response.body.state.profile.conditionEntries, populatedState.profile.conditionEntries, 'Status-tagged conditions must survive browser serialization and API storage.');
   assert.deepEqual(response.body.state.profile.allergyEntries, populatedState.profile.allergyEntries, 'Substance, reaction and certainty must survive browser serialization and API storage.');
   assert.deepEqual(response.body.state.medications[0].catalogueMatch, catalogueMatch, 'Exact Pharmac identity and source ingredients survive the private-state roundtrip.');
+  assert.equal(response.body.state.medications[0].doseAmount, '1', 'A separately recorded per-dose amount survives the private-state roundtrip.');
+  assert.equal(response.body.state.medications[0].doseUnit, 'tablets', 'A separate amount unit survives the private-state roundtrip.');
   assert.equal(response.body.state.timeline.find(item => item.id === 'question-synthetic')?.description, 'Could food affect how I take this?', 'Diary questions must survive the same account-state roundtrip.');
   assert.deepEqual(calls, ['identity', 'storage', 'rate', 'read']);
 
@@ -175,6 +177,19 @@ function emptyBrowserState() {
     response = await invoke('PUT', { state: invalid });
     assert.equal(response.statusCode, 400, 'Unpinned or altered catalogue identity must be rejected.');
     assert.ok(!calls.includes('write'), 'Invalid catalogue metadata must not reach private storage.');
+  }
+  for (const mutate of [
+    state => { state.medications[0].doseAmount = '1 tablet'; },
+    state => { state.medications[0].doseAmount = '0'; },
+    state => { state.medications[0].doseAmount = '0.00000000000000001'; },
+    state => { state.medications[0].doseUnit = 'mL\nunsafe'; },
+    state => { delete state.medications[0].doseUnit; }
+  ]) {
+    const invalid = copy(populated);
+    mutate(invalid);
+    response = await invoke('PUT', { state: invalid });
+    assert.equal(response.statusCode, 400, 'Malformed amount/unit details are rejected before private storage.');
+    assert.ok(!calls.includes('write'));
   }
   response = await invoke('PUT', '{invalid json');
   assert.equal(response.statusCode, 400);

@@ -500,7 +500,23 @@ function validHealthState(value) {
   if (value.providers !== undefined && !Array.isArray(value.providers)) return false;
   if (!['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'memoryDetails'].every(key => !value[key] || Array.isArray(value[key])) || (value.profile && typeof value.profile !== 'object')) return false;
   if ((value.medications || []).some(medication => medication?.catalogueMatch !== undefined && !validCatalogueMatch(medication))) return false;
+  if ((value.medications || []).some(medication => !validDoseAmount(medication))) return false;
   return true;
+}
+
+function validDoseAmount(medication) {
+  if (!medication || typeof medication !== 'object' || Array.isArray(medication)) return true;
+  const hasAmount = Object.hasOwn(medication, 'doseAmount');
+  const hasUnit = Object.hasOwn(medication, 'doseUnit');
+  if (!hasAmount && !hasUnit) return true;
+  if (!hasAmount || !hasUnit || typeof medication.doseAmount !== 'string' || typeof medication.doseUnit !== 'string') return false;
+  const amount = medication.doseAmount.trim();
+  const unit = medication.doseUnit.trim();
+  if (!amount && !unit) return true;
+  if (!amount || !unit || amount.length > 18 || unit.length > 32 || /[\u0000-\u001f\u007f]/.test(unit)) return false;
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(amount)) return false;
+  const numericAmount = Number(amount);
+  return Number.isFinite(numericAmount) && numericAmount > 0 && numericAmount <= 1000000;
 }
 
 function validCatalogueMatch(medication) {

@@ -6598,5 +6598,13 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
 .medication-selected-product { display: grid; gap: 6px; padding: 11px; border: 1px solid #b8d4e8; border-radius: 9px; background: #f5faff; color: var(--navy); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
 .medication-selected-product p { margin: 0; }
 .medication-selected-product small { color: var(--muted); }
+.medication-dose-entry { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.medication-dose-entry > legend { margin: 0 0 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.medication-dose-entry-controls { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1fr); gap: 10px; }
+.medication-dose-entry-controls .medication-custom-dose-unit { grid-column: 1 / -1; }
+.medication-dose-entry-controls [data-dose-unit-custom-field][hidden] { display: none; }
+.medication-dose-entry > .medication-form-hint { display: block; margin-top: 7px; }
+.library-copy small.medication-dose-amount { color: var(--muted); }
+@media (max-width: 520px) { .medication-dose-entry-controls { grid-template-columns: minmax(0, 1fr); } .medication-dose-entry-controls .medication-custom-dose-unit { grid-column: auto; } }
 .medication-use-catalogue-form { min-height: 44px; justify-self: start; }
 @media (max-width: 520px) { .medication-name-results { max-height: 180px; } .medication-name-result { min-height: 52px; } }
