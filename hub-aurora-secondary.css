@@ -618,6 +618,28 @@ body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-sign
 .medication-form-product-choice[hidden] { display: none; }
 .medication-form-product-choice select { width: 100%; }
 .medication-form-product-choice button { min-height: 44px; font-size: 13px; font-weight: 650; }
+.medication-optional-fields { margin: 12px 0; border-top: 1px solid #cfddf0; border-bottom: 1px solid #cfddf0; }
+.medication-optional-fields > summary { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; min-height: 48px; cursor: pointer; color: #0759b6; font-weight: 650; }
+.medication-optional-fields > summary::before { content: '+'; font-size: 20px; margin-right: 3px; }
+.medication-optional-fields[open] > summary::before { content: '\2212'; }
+.medication-optional-fields > summary span { color: #49617f; font-size: 12px; font-weight: 400; }
+.medication-optional-fields .modal-form-grid { padding-bottom: 15px; }
+.medication-optional-fields > summary:focus-visible { outline: 3px solid #0759b6; outline-offset: 2px; }
+.medication-record-note { margin: 0 0 9px 46px; padding: 12px; border: 1px solid #bdd1ed; border-radius: 9px; background: #f1f6fd; color: #264a71; font-size: 13px; overflow-wrap: anywhere; }
+.medication-record-note p { margin: 6px 0; }
+.medication-profile-note { margin: 10px 0; padding: 10px; border-left: 3px solid #bdd1ed; }
+.medication-profile-note p { white-space: pre-wrap; }
+.medication-profile-notes-review { margin: 12px 0; padding: 0 12px; border: 1px solid #bdd1ed; border-radius: 9px; background: #f1f6fd; color: #264a71; font-size: 13px; overflow-wrap: anywhere; }
+.medication-profile-notes-review > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+.medication-profile-notes-review > summary::before { content: '+'; margin-right: 7px; }
+.medication-profile-notes-review[open] > summary::before { content: '\2212'; }
+.medication-profile-notes-review > summary:focus-visible { outline: 3px solid #0759b6; outline-offset: 2px; }
+.medication-profile-notes-review .medication-original-note { white-space: pre-wrap; }
+.medication-profile-notes-review .text-button { min-height: 44px; }
+.medication-record-details .text-button, .medication-record-note .text-button { min-height: 44px; }
+body[data-hub-layout="reference"] .modal-field.medication-reaction-confirm { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
+body[data-hub-layout="reference"] .medication-reaction-confirm input { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px; }
+@media (max-width: 600px) { .medication-record-note { margin-left: 0; } }
 @media (max-width: 600px) { .medication-record-details { margin-left: 0; } }
 @media (max-width: 620px) {
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav { margin-bottom: 14px; padding: 4px; }

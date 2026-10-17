@@ -790,8 +790,11 @@
       return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
         <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name || 'Unnamed medicine')}</b><span>Recorded strength/dose: ${escapeHTML(medication.dose || 'not recorded')}</span><small>${escapeHTML(schedule || 'Schedule not recorded')}</small></div>
         <div class="library-meta">${supplyStatus ? `<span class="medication-supply-note">${supplyStatus}</span>` : ''}<div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
-      </div>${safety}<details class="medication-record-details"><summary>More saved details</summary><div class="medication-record-details-body">${details.length ? `<dl>${details.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : '<p>No other details recorded.</p>'}<p>${ingredients.length ? 'Label ingredients: ' + escapeHTML(ingredients.join(', ')) + ' · ' + (medication.activeIngredientsManuallyConfirmed === true ? 'checked against the label by you' : 'not confirmed against the label') : 'Active ingredients not recorded from the label.'}</p>${hasRetiredProviderMetadata ? '<p>Older provider match details remain in this private record but are not used by the current check.</p>' : ''}</div></details></article>`;
+      </div>${safety}${medicationReactionMarkup(medication)}<details class="medication-record-details"><summary>More saved details</summary><div class="medication-record-details-body">${details.length ? `<dl>${details.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : '<p>No other details recorded.</p>'}<p>${ingredients.length ? 'Label ingredients: ' + escapeHTML(ingredients.join(', ')) + ' · ' + (medication.activeIngredientsManuallyConfirmed === true ? 'checked against the label by you' : 'not confirmed against the label') : 'Active ingredients not recorded from the label.'}</p>${hasRetiredProviderMetadata ? '<p>Older provider match details remain in this private record but are not used by the current check.</p>' : ''}${medicationProfileNoteMarkup(medication)}<button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Record a possible reaction</button></div></details></article>`;
     }).join('') : '<div class="empty-state">No current medicines recorded. Add a medicine or review a scanned label to start your list.</div>';
+    const earlierConditions = !Array.isArray(state.profile.conditionEntries) || state.profile.conditionEntries.some(entry => entry?.source === 'legacy') ? state.profile.conditions : '';
+    const earlierText = [earlierConditions, state.profile.notes].filter(Boolean);
+    if (earlierText.length) els.medicationLibrary.insertAdjacentHTML('beforeend', `<details class="medication-profile-notes-review"><summary>Review earlier health notes</summary><div><p>These entries remain as saved text. Review them to decide whether you want to record a possible reaction. No reaction or medicine safety concern is inferred from a note.</p>${earlierText.map(note => `<p class="medication-original-note">${escapeHTML(note)}</p>`).join('')}<button type="button" class="text-button" data-modal="health">Review profile text</button><p>To declare a possible reaction for a saved medicine, open More saved details in its row.</p></div></details>`);
     renderMedicationClashPanel();
   }
   function renderMedicationClashPanel() {
@@ -837,6 +840,43 @@
     renderMedicationCheckState();
   }
 
+  function medicationTextKey(value) {
+    return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function medicationProfileNoteMatches(medication) {
+    const name = medicationTextKey(medication.name);
+    if (!name) return [];
+    // Saved text references are available for review, never evidence of a reaction.
+    return [state.profile.conditions, state.profile.notes].filter(value => value && (' ' + medicationTextKey(value) + ' ').includes(' ' + name + ' '));
+  }
+
+  function medicationProfileAllergyEntries() {
+    const terms = window.DoctorAITerminology;
+    const entries = terms?.allergyEntries(state.profile) || [];
+    const legacy = terms ? terms.allergyEntries({ allergies: state.profile.allergies }) : splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy', source: 'legacy' }));
+    // Structured certainty wins for the same substance. Keep other earlier text
+    // during migration, including when an empty structured list was imported.
+    const substanceKey = entry => medicationTextKey(entry.certainty === 'legacy' ? entry.substance.replace(/\([^)]*\)/g, '') : entry.substance);
+    return entries.concat(legacy.filter(item => !entries.some(entry => substanceKey(entry) === substanceKey(item))));
+  }
+
+  function medicationRecordedReactions(medication) {
+    if (!currentMedicationRecords().includes(medication)) return [];
+    return (window.DoctorAITerminology?.allergyEntries(state.profile) || []).filter(entry => entry.certainty === 'suspected' && entry.medicationId === String(medication.id) && medicationTextKey(entry.substance) === medicationTextKey(medication.name));
+  }
+
+  function medicationReactionMarkup(medication) {
+    const reactions = medicationRecordedReactions(medication);
+    if (!reactions.length) return '';
+    return `<div class="medication-record-note" role="note"><b>Possible reaction recorded by you</b><p>${reactions.map(entry => escapeHTML(entry.reaction || 'Details not recorded')).join('; ')}</p><p>For your care conversation. The cause has not been assessed; this is not a confirmed allergy.</p><button type="button" class="text-button" data-modal="health">Review allergies &amp; reactions</button></div>`;
+  }
+
+  function medicationProfileNoteMarkup(medication) {
+    const notes = medicationProfileNoteMatches(medication);
+    return notes.length ? `<div class="medication-profile-note"><b>Saved profile text mentions this name</b>${notes.map(note => `<p>${escapeHTML(note)}</p>`).join('')}<p>Saved text only. A medicine mention does not establish a reaction or a safety concern.</p><button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Review and record a possible reaction</button><button type="button" class="text-button" data-modal="health">Edit profile notes</button></div>` : '';
+  }
+
   function medicationSafetyAlerts(medication) {
     const alerts = [];
     if (!currentMedicationRecords().includes(medication)) return alerts;
@@ -853,19 +893,14 @@
       other.activeIngredients.some(item => String(item || '').trim().toLowerCase() === ingredient)
     ));
     if (sharedIngredient) alerts.push({ severity: 'caution', title: 'Possible repeated label ingredient (not database checked)', message: 'The label details you checked include “' + sharedIngredient + '” in another saved entry. This text match does not verify the products, doses or whether the combination was intended. Ask a pharmacist or clinician to review it.', source: 'User-confirmed label text in your saved medication list' });
-    const allergies = splitDetails(state.profile.allergies);
-    const allergyMatchTerms = [medName, ...ingredientNames].filter(Boolean);
+    const allergies = medicationProfileAllergyEntries();
+    const allergyMatchTerms = [medName, ...ingredientNames].map(medicationTextKey).filter(Boolean);
     const matchingAllergy = allergies.find(item => {
-      const allergyName = item.toLowerCase().replace(/\([^)]*\)/g, '').trim();
-      return allergyName && allergyMatchTerms.some(term => term.includes(allergyName) || allergyName.includes(term));
+      if (!['confirmed', 'legacy'].includes(item.certainty)) return false;
+      const allergyName = medicationTextKey(item.certainty === 'legacy' ? item.substance.replace(/\([^)]*\)/g, '') : item.substance);
+      return allergyName && allergyMatchTerms.some(term => (' ' + term + ' ').includes(' ' + allergyName + ' ') || (' ' + allergyName + ' ').includes(' ' + term + ' '));
     });
-    if (matchingAllergy) alerts.push({ severity: 'caution', title: 'Possible text match to saved allergy/reaction (not verified)', message: 'Your health profile mentions “' + matchingAllergy + '”. This text comparison has not checked active ingredients or known cross-sensitivity. Ask a pharmacist or clinician to verify the match before relying on this alert.', source: 'Your saved health profile' });
-    const history = splitDetails(state.profile.conditions + ' ' + state.profile.notes);
-    const historyMatch = history.find(item => {
-      const itemText = item.toLowerCase();
-      return medName && itemText.includes(medName) && !itemText.includes('allerg');
-    });
-    if (historyMatch && !matchingAllergy) alerts.push({ severity: 'caution', title: 'Check your saved health history', message: 'Your notes mention this medicine or a related past issue: “' + historyMatch + '”. Confirm it with your pharmacist or clinician before taking it.', source: 'Your saved health profile' });
+    if (matchingAllergy) alerts.push({ severity: 'caution', title: 'Possible text match to saved allergy/reaction (not verified)', message: 'Your health profile records "' + matchingAllergy.substance + '"' + (matchingAllergy.certainty === 'legacy' ? ' as an earlier entry whose certainty needs review' : ' as a confirmed allergy, as recorded by you') + '. This whole-word text comparison has not checked active ingredients or known cross-sensitivity. Ask a pharmacist or clinician to verify the match before relying on this alert.', source: 'Your saved health profile' });
     return alerts;
   }
 
@@ -2445,17 +2480,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const scanNote = scanError
       ? '<div class="modal-help scan-result-note scan-result-error"><b>Photo scan not completed.</b><span>' + escapeHTML(scanError) + ' You can enter the details below or try another photo.</span></div>'
       : prefill.__scanned
-        ? '<div class="modal-help scan-result-note"><b>Suggested details from the photo — not verified.</b><span>' + (missing.length ? 'Required fields not read clearly: ' + escapeHTML(missing.join(', ')) + '. ' : '') + 'Check all filled and empty fields against the original before saving.</span></div>'
+        ? '<div class="modal-help scan-result-note"><b>Suggested details from the photo — not verified.</b><span>' + (missing.length ? 'Fields not read clearly: ' + escapeHTML(missing.join(', ')) + '. ' : '') + 'Check all filled and empty fields against the original before saving.</span></div>'
         : '';
     const hasLegacyMatch = Boolean(prefill.nzfProduct || prefill.nzfProductConfirmed || (Array.isArray(prefill.resolvedIngredients) && prefill.resolvedIngredients.length));
     const editNote = editing ? '<div class="modal-help scan-result-note"><b>Update saved medication details.</b><span>Leave the refill field blank to keep its current value' + (savedRefill && savedRefill !== 'Not set' ? ' (' + escapeHTML(savedRefill) + ')' : '') + '. Check “Clear saved refill date” to remove it.' + (hasLegacyMatch ? ' Older provider match details stay in this private record and are not used by the current check.' : '') + '</span></div>' : '';
     const requiresScanReview = Boolean(prefill.__scanned);
     setModal('Add a medication', 'Medication manager', scanNote + `<form class="modal-form" data-modal-form="medication" data-scan-attempted="${Boolean(prefill.__scanAttempted || prefill.__scanned)}" data-scan-review-required="${requiresScanReview}">
-      <p class="medication-required-note"><b>* Required</b> for medication name and strength or dosage. Other fields are optional. If you enter label ingredients or review a scan, the matching confirmation box is required.</p>
+      <p class="medication-required-note"><b>* Required</b> for the medication name. Leave unknown strength and other details blank. If you enter label ingredients or review a scan, the matching confirmation box is required.</p>
       <p class="medication-form-error" id="medication-form-error" role="alert"></p>
       <div class="modal-form-grid">
         <label class="modal-field"><span>Medication name *</span><input name="name" required aria-required="true" maxlength="120" autocomplete="off" list="manual-medicine-list" aria-describedby="medication-name-help" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><datalist id="manual-medicine-list"></datalist></label>
-        <label class="modal-field"><span>Strength or dosage on label *</span><input name="dose" required aria-required="true" aria-describedby="medication-dose-help" maxlength="80" autocomplete="off" placeholder="e.g. 10 mg tablet" value="${escapeHTML(prefill.dose || '')}"><small class="medication-form-hint" id="medication-dose-help">Copy the strength and form, or dosage, shown on your package. Do not guess how much to take; copy directions below if known.</small></label>
+        <label class="modal-field"><span>Strength or dosage on label (optional)</span><input name="dose" aria-describedby="medication-dose-help" maxlength="80" autocomplete="off" placeholder="e.g. 10 mg tablet" value="${escapeHTML(prefill.dose || '')}"><small class="medication-form-hint" id="medication-dose-help">Copy the strength and form, or dosage, shown on your package. Leave blank if unknown. Copy directions below if known.</small></label>
         <label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" aria-describedby="medication-time-help" value="${escapeHTML(prefill.time || '')}"><small class="medication-form-hint" id="medication-time-help">Use a time from your prescription or label, if one was given.</small></label>
         <label class="modal-field"><span>Frequency (optional)</span><select name="frequency" aria-describedby="medication-frequency-help"><option value="">Choose only if known</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select><small class="medication-form-hint" id="medication-frequency-help">Copy your prescription or label; leave blank if unsure.</small></label>
         <label class="modal-field"><span>Start date</span><input name="startDate" type="date" value="${escapeHTML(prefill.startDate || '')}"></label>
@@ -2470,12 +2505,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (medicationForm) attachLocalMedicineSuggestions(medicationForm);
     if (medicationForm) {
       medicationForm.addEventListener('invalid', event => {
+        const disclosure = event.target.closest('details');
+        if (disclosure) disclosure.open = true;
         const error = medicationForm.querySelector('#medication-form-error');
         if (error && !error.textContent) error.textContent = event.target.name === 'name'
           ? 'Medication name is required. Copy it from your label.'
-          : event.target.name === 'dose'
-            ? 'Strength or dosage is required. Copy it from your label.'
-            : 'Check the required confirmation against your label before saving.';
+          : 'Check the required confirmation against your label before saving.';
         event.target.setAttribute('aria-invalid', 'true');
       }, true);
       medicationForm.addEventListener('input', event => {
@@ -2573,6 +2608,39 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         medicationGrid.after(legacyNote);
       }
     }
+    collapseMedicationOptionalFields(medicationForm, requiresScanReview);
+  }
+
+  function collapseMedicationOptionalFields(form, scanReviewRequired) {
+    const grid = form?.querySelector('.modal-form-grid');
+    if (!grid) return;
+    const optional = document.createElement('details');
+    optional.className = 'medication-optional-fields';
+    optional.open = scanReviewRequired;
+    optional.innerHTML = '<summary>Schedule &amp; more details <span>(optional)</span></summary><div class="modal-form-grid"></div>';
+    const optionalGrid = optional.querySelector('.modal-form-grid');
+    [...grid.children].forEach(field => {
+      if (!field.querySelector('[name="name"], [name="dose"], [name="scanFieldsReviewed"]') && !field.classList.contains('medication-form-product-choice')) optionalGrid.append(field);
+    });
+    grid.after(optional);
+    const reactionHelp = document.createElement('p');
+    reactionHelp.className = 'medication-form-hint';
+    reactionHelp.textContent = 'To record a possible reaction, save this medicine, then open More saved details in its row.';
+    optional.after(reactionHelp);
+  }
+
+  function openMedicationReactionModal(medication) {
+    setModal('Record a possible reaction', 'Your observation', '<form class="modal-form" data-modal-form="medication-reaction" data-medication-id="' + escapeHTML(medication.id) + '"><p class="medication-required-note"><b>* Required</b> for what you noticed and your declaration.</p><p class="medication-form-error" id="medication-form-error" role="alert"></p><p class="modal-help">Record your own observation about <b>' + escapeHTML(medication.name) + '</b>. This does not establish a cause or a confirmed allergy.</p><div class="modal-form-grid"><label class="modal-field full"><span>What did you notice? *</span><textarea name="reaction" rows="3" maxlength="120" required aria-required="true" aria-describedby="medication-reaction-help"></textarea><small class="medication-form-hint" id="medication-reaction-help">Use your own words. This stays in Allergies &amp; reactions as Possible reaction for review.</small></label><label class="modal-field full medication-reaction-confirm"><input name="reactionDeclared" type="checkbox" required aria-required="true"><span>I want to record this as a possible reaction I noticed with this medicine. The cause is not confirmed. *</span></label></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Save possible reaction</button></div></form>');
+    const form = els.modalBody.querySelector('form');
+    form.addEventListener('invalid', event => {
+      const error = form.querySelector('#medication-form-error');
+      if (!error.textContent) error.textContent = event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
+      event.target.setAttribute('aria-invalid', 'true');
+    }, true);
+    form.addEventListener('input', event => {
+      event.target.removeAttribute('aria-invalid');
+      form.querySelector('#medication-form-error').textContent = '';
+    });
   }
 
   let localMedicineNamesPromise;
@@ -2622,6 +2690,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       .catch(() => { localMedicineNamesPromise = null; return []; });
     const update = names => {
       if (!form.isConnected) return;
+      if (!names.length) notice.textContent = 'Catalogue suggestions are unavailable. Copy the exact name from your label; you can still save your own entry.';
       const query = input.value.toLocaleLowerCase().trim();
       list.replaceChildren();
       productChoice.hidden = true;
@@ -2634,13 +2703,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       matches.sort((a, b) => Number(!a.toLocaleLowerCase().startsWith(query)) - Number(!b.toLocaleLowerCase().startsWith(query)) || a.length - b.length || a.localeCompare(b));
       matches.slice(0, 80).forEach(name => { const option = document.createElement('option'); option.value = name; list.append(option); });
       if (!names.some(name => name.toLocaleLowerCase() === query)) return;
-      selectedName = input.value;
+      const requestedName = input.value;
+      selectedName = requestedName;
       if (!localMedicineProductsPromise) localMedicineProductsPromise = fetch('/data/medication/nz-pharmac-medicines.json?v=20261001', { credentials: 'omit' })
         .then(response => { if (!response.ok) throw new Error('Product forms unavailable'); return response.json(); })
         .then(data => Array.isArray(data.products) ? data.products : [])
         .catch(() => { localMedicineProductsPromise = null; return []; });
       localMedicineProductsPromise.then(products => {
-        if (!form.isConnected || input.value !== selectedName) return;
+        if (!form.isConnected || input.value !== requestedName) return;
         productOptions = products.filter(product => product.name?.toLocaleLowerCase() === query || product.brand?.toLocaleLowerCase() === query);
         if (!productOptions.length) return;
         productChoice.hidden = false;
@@ -3452,14 +3522,27 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       setSymptomGuidanceResult(result, 'monitor', 'Keep tracking and arrange care if needed', 'Record changes in your diary and contact a qualified healthcare professional if the symptom persists, worsens or concerns you.', 'No serious problem has been ruled out.');
       return;
     }
-    if (form.dataset.modalForm === 'medication') {
+    if (form.dataset.modalForm === 'medication-reaction') {
+      const medication = currentMedicationRecords().find(item => String(item.id) === form.dataset.medicationId);
+      if (!medication) { rejectMedicationForm(form, 'This medicine is no longer current. Close this form and review your list.', form.elements.reaction); return; }
+      const reaction = String(values.reaction || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (!reaction || values.reactionDeclared !== 'on') { rejectMedicationForm(form, 'Describe what you noticed and confirm your declaration.', !reaction ? form.elements.reaction : form.elements.reactionDeclared); return; }
+      const entries = medicationProfileAllergyEntries();
+      const duplicate = entries.some(entry => entry.certainty === 'suspected' && entry.medicationId === String(medication.id) && medicationTextKey(entry.substance) === medicationTextKey(medication.name) && medicationTextKey(entry.reaction) === medicationTextKey(reaction));
+      if (duplicate) { rejectMedicationForm(form, 'That possible reaction is already recorded. Review it in your health profile.', form.elements.reaction); return; }
+      entries.push({ id: 'custom:' + (window.crypto?.randomUUID?.() || Date.now()), substance: medication.name, reactionId: '', reaction, certainty: 'suspected', source: 'user', medicationId: String(medication.id) });
+      state.profile.allergyEntries = entries;
+      state.profile.allergies = window.DoctorAITerminology.compatibilityFields([], entries).allergies;
+      destinationView = 'medications';
+      postSaveToast = 'Possible reaction saved for review. The cause is not confirmed.';
+    } else if (form.dataset.modalForm === 'medication') {
       const editingId = String(form.dataset.editMedicationId || '');
       const existingIndex = editingId ? state.medications.findIndex(item => String(item.id) === editingId) : -1;
       if (editingId && existingIndex < 0) { showToast('This saved medication is no longer in your list. Close this form and reopen the medication you want to edit.'); return; }
       const existingMedication = existingIndex >= 0 ? state.medications[existingIndex] : null;
       const name = String(values.name || '').replace(/\s+/g, ' ').trim().slice(0, 120);
       const dose = String(values.dose || '').replace(/\s+/g, ' ').trim().slice(0, 80);
-      if (!name || !dose) { rejectMedicationForm(form, 'Add the medication name and strength or dosage exactly as shown on the label.', name ? form.elements.dose : form.elements.name); return; }
+      if (!name) { rejectMedicationForm(form, 'Add the medication name exactly as shown on the label.', form.elements.name); return; }
       const scanReviewRequired = form.dataset.scanReviewRequired === 'true';
       const scanFieldsReviewed = values.scanFieldsReviewed === 'on';
       if (scanReviewRequired && !scanFieldsReviewed) { rejectMedicationForm(form, 'Compare the extracted name, strength, ingredients and directions with the original label before saving.', form.elements.scanFieldsReviewed); return; }
@@ -3473,11 +3556,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const supplyAmount = supplyInput === '' ? null : Number(supplyInput);
       const supply = supplyAmount !== null && Number.isFinite(supplyAmount) && supplyAmount >= 0 ? Math.min(999999, supplyAmount) : null;
       const refill = values.refill ? formatDate(values.refill) : editingId && values.clearRefill !== 'on' ? String(existingMedication?.refill || 'Not set') : 'Not set';
+      const suppliedInstructions = String(values.instructions || '');
+      const instructions = existingMedication && String(existingMedication.instructions || '').replace(/\r\n/g, '\n') === suppliedInstructions.replace(/\r\n/g, '\n')
+        ? String(existingMedication.instructions || '')
+        : suppliedInstructions.replace(/\s+/g, ' ').trim().slice(0, 500);
       const existingScanDetailsUnchanged = existingMedication
         && existingMedication.name === name && existingMedication.dose === dose
         && JSON.stringify(existingMedication.activeIngredients || []) === JSON.stringify(activeIngredients)
-        && existingMedication.instructions === String(values.instructions || 'Follow the prescription label').replace(/\s+/g, ' ').trim().slice(0, 500);
-      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || ('med-' + Date.now()), name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, scanFieldsReviewed: scanReviewRequired ? scanFieldsReviewed : Boolean(existingMedication?.scanFieldsReviewed === true && existingScanDetailsUnchanged), frequency, instructions: String(values.instructions || 'Follow the prescription label').replace(/\s+/g, ' ').trim().slice(0, 500), time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
+        && existingMedication.instructions === instructions;
+      const medicationRecord = { ...(existingMedication || {}), id: existingMedication?.id || ('med-' + Date.now()), name, dose, activeIngredients, activeIngredientsConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, activeIngredientsManuallyConfirmed: activeIngredients.length > 0 && ingredientsManuallyConfirmed, scanFieldsReviewed: scanReviewRequired ? scanFieldsReviewed : Boolean(existingMedication?.scanFieldsReviewed === true && existingScanDetailsUnchanged), frequency, instructions, time, status: existingMedication?.status ?? 'due', supply, refill, startDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.startDate || '')) ? values.startDate : '', endDate: /^\d{4}-\d{2}-\d{2}$/.test(String(values.endDate || '')) ? values.endDate : '', prescriptionExpiry: /^\d{4}-\d{2}-\d{2}$/.test(String(values.prescriptionExpiry || '')) ? values.prescriptionExpiry : '', repeats: String(values.repeats || '').replace(/\s+/g, ' ').trim().slice(0, 30) };
       if (existingIndex >= 0) state.medications[existingIndex] = medicationRecord;
       else state.medications.push(medicationRecord);
       clearMedicationSafetyResults();
@@ -3491,7 +3578,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         postSaveToast = scanReviewRequired && scanFieldsReviewed ? 'Scanned medication saved after you checked it against the original label. Any local check has limited coverage.' : 'Medication saved. Check its details against the original label. Any local check has limited coverage.';
         focusMedicationSafetyPanel = true;
       } else {
-        showToast('Medication reminder saved.');
+        showToast('Medication saved.');
       }
     } else if (form.dataset.modalForm === 'provider') {
       const clean = (value, max) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -4092,6 +4179,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const appointment = state.appointments.find(item => String(item.id) === prepareTarget.dataset.prepareAppointment);
       if (appointment) prepareAppointment(appointment);
       else showToast('This appointment is no longer in your list.');
+      return;
+    }
+    const reactionMedication = event.target.closest('[data-record-medication-reaction]');
+    if (reactionMedication) {
+      event.preventDefault();
+      const medication = currentMedicationRecords().find(item => String(item.id) === reactionMedication.dataset.recordMedicationReaction);
+      if (medication) openMedicationReactionModal(medication);
+      else showToast('This medicine is no longer current. Review your list.');
       return;
     }
     const editMedication = event.target.closest('[data-edit-medication]');

@@ -110,11 +110,12 @@ function emptyBrowserState() {
   ];
   populatedState.profile.allergyEntries = [
     { id: 'CHEBI:17334', substance: 'penicillin', reactionId: 'SYMP:0000487', reaction: 'rash', certainty: 'confirmed', source: 'CHEBI' },
-    { id: 'custom:uncertain', substance: 'Fictional substance', reactionId: '', reaction: 'not sure', certainty: 'suspected', source: 'user' }
+    { id: 'custom:uncertain', substance: 'Fictional substance', reactionId: '', reaction: 'not sure', certainty: 'suspected', source: 'user', medicationId: 'synthetic-medicine' }
   ];
   Object.assign(populatedState.profile, terminology.compatibilityFields(populatedState.profile.conditionEntries, populatedState.profile.allergyEntries));
   assert.equal(populatedState.profile.conditions, 'asthma', 'Historical conditions must not enter the current-condition compatibility field.');
   assert.equal(populatedState.profile.allergies, 'penicillin', 'Uncertain reactions must not enter the confirmed-allergy compatibility field.');
+  assert.equal(terminology.allergyEntries(populatedState.profile)[1].medicationId, 'synthetic-medicine', 'The explicit medicine link must survive terminology review.');
   const populated = browserPayload(populatedState);
   response = await invoke('PUT', JSON.stringify({ state: populated }));
   assert.equal(response.statusCode, 200, 'Providers and other saved records must pass together through JSON transport.');
