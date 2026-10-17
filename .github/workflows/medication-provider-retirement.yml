@@ -67,6 +67,7 @@ jobs:
         run: |
           node scripts/verify-medication-safety.js
           node scripts/verify-medication-database.cjs
+          node scripts/verify-medication-catalog-search.cjs
           node scripts/verify-medication-pipeline.cjs
           node scripts/verify-medication-evidence.cjs
           node scripts/verify-medication-check-controller.cjs
