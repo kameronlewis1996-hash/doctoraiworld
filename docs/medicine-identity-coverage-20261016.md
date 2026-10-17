@@ -13,6 +13,10 @@ Frozen denominator: **3,419** formulation records in `data/medication/nz-pharmac
 | Unique brand + formulation text | 2464 / 2596 branded rows | 45 brand + form strings refer to more than one source row; include chemical or exact source ID |
 | Unique brand + chemical + formulation text | 3419 / 3419 | An exact tuple identifies a source row, not a current shelf pack |
 
+## Search coverage
+
+The public medication-list lookup and Health Hub medication-name suggestions now use these 3,419 records. They match brand, chemical name, mapped ingredient names and aliases, formulation/strength text, Pharmac codes, NZMT identifiers and schedule labels. The medication-list lookup displays the catalogue’s mapped ingredient names and labels incomplete mappings; it does not infer missing ingredients. Search is terminology assistance only and does not resolve identity or activate an interaction rule.
+
 The identity resolver requires NZ region and either an exact source identifier or the complete brand + chemical + formulation tuple. Unbranded/generic products require a source identifier. It intersects all supplied facts and returns explicit unknown, incomplete, conflicting or ambiguous states. It never resolves an ingredient from a bare generic or brand name, formulation alone, suggestion, image or OCR text. A matched source row still reports ingredient completeness and route evidence separately; an unknown route is not upgraded from a tablet name or the interaction-route tag. Form and strength remain the exact source formulation statement because splitting combination strengths without a checked ingredient-to-strength map would overstate precision.
 
 ## Shelf, OTC and pack gaps

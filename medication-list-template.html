@@ -26,11 +26,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/medication-list-template.css?v=5">
+  <link rel="stylesheet" href="/medication-list-template.css?v=6">
   <link rel="stylesheet" href="/resource-share.css?v=2">
   <link rel="stylesheet" href="/accessibility.css?v=14" media="screen">
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
-  <script defer src="/medication-list-template.js"></script>
+  <script defer src="/medicine-catalog-search.js?v=1"></script>
+  <script defer src="/medication-list-template.js?v=2"></script>
   <script defer src="/resource-share.js?v=1"></script>
   <script defer src="/feature-icons.js?v=8"></script>
 </head>
@@ -71,20 +72,20 @@
         <div class="guide-section-heading">
           <div>
             <p class="guide-eyebrow">Optional local lookup</p>
-            <h2 id="name-lookup-title"><span class="guide-heading-icon" data-doctorai-icon="search" aria-hidden="true"></span>Look up a medicine name</h2>
+            <h2 id="name-lookup-title"><span class="guide-heading-icon" data-doctorai-icon="search" aria-hidden="true"></span>Search medicines and ingredients</h2>
           </div>
-          <p>Search names from the New Zealand Pharmac schedules to help copy a name from your package onto your list.</p>
+          <p>Search Pharmac product formulations by brand, chemical name, ingredient, strength, form, or identifier.</p>
         </div>
         <form id="medicine-name-search" role="search" autocomplete="off" novalidate>
-          <label for="medicine-name-query">Name shown on the package or label</label>
+          <label for="medicine-name-query">Medicine, ingredient, strength, formulation, or Pharmac code</label>
           <div class="medicine-name-search-row">
-            <input id="medicine-name-query" type="search" maxlength="120" spellcheck="false" placeholder="Type at least two characters">
-            <button class="guide-button" type="submit">Search names</button>
+            <input id="medicine-name-query" type="search" maxlength="120" spellcheck="false" placeholder="e.g. ramipril, Apo-Ramipril, 2.5 mg">
+            <button class="guide-button" type="submit">Search catalogue</button>
           </div>
         </form>
-        <p class="medicine-name-search-status" id="medicine-name-search-status" role="status" aria-live="polite">Your search is not saved or sent. The public name list is loaded from this site when you search.</p>
-        <ul class="medicine-name-search-results" id="medicine-name-search-results" aria-label="Matching medicine names"></ul>
-        <p class="medicine-name-source">Names adapted from Pharmac’s <a href="https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml" rel="noopener noreferrer">October 2026 Pharmaceutical Schedule</a> and <a href="https://schedule.pharmac.govt.nz/pub/HML/archive/2026/2026-10-01/HML_2026-10-01.xml" rel="noopener noreferrer">Hospital Medicines List</a> under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>. Pharmac does not endorse DoctorAI. This is a name lookup only: a result does not confirm the exact product, ingredients, availability, funding, suitability, or safety. A missing name does not prove that a medicine is not listed. Check the full name and strength against your package with a pharmacist or clinician.</p>
+        <p class="medicine-name-search-status" id="medicine-name-search-status" role="status" aria-live="polite">Search runs in your browser against a public list stored on this site. Your query is not saved or sent.</p>
+        <ul class="medicine-name-search-results" id="medicine-name-search-results" aria-label="Matching medicine products and ingredients"></ul>
+        <p class="medicine-name-source">This catalogue has 3,419 product formulations in Pharmac’s <a href="https://schedule.pharmac.govt.nz/pub/schedule/archive/2026/2026-10-01/Schedule_2026-10-01.xml" rel="noopener noreferrer">1 October 2026 Pharmaceutical Schedule</a> and <a href="https://schedule.pharmac.govt.nz/pub/HML/archive/2026/2026-10-01/HML_2026-10-01.xml" rel="noopener noreferrer">Hospital Medicines List</a>, adapted under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>. Pharmac does not endorse DoctorAI. Ingredient details are catalogue mappings and must be checked against the exact package; 113 catalogue records have incomplete ingredient mappings. This snapshot is not a complete list of every medicine sold in New Zealand. A result does not confirm current availability, funding, suitability, or safety, and this search does not check medicine clashes. A missing name does not prove that a medicine is unlisted. Ask a pharmacist or clinician to review the exact product and your full medicine list.</p>
       </section>
 
       <section class="guide-section" aria-labelledby="template-title">

@@ -6583,3 +6583,5 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
   .measurement-history-item { align-items: flex-start; flex-direction: column; gap: 6px; }
   .measurement-history-actions { align-self: flex-end; }
 }
+
+.medication-catalogue-search-status { display: block; margin-top: 6px; color: var(--muted-light); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }

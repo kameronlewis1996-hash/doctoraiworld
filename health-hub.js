@@ -2520,28 +2520,70 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     globalThis.DoctorAIMedicinePhotoReview?.mount(medicationForm);
   }
 
-  let localMedicineNamesPromise;
+  let localMedicineCataloguePromise;
   function attachLocalMedicineSuggestions(form) {
     const input = form.elements.name;
     const list = form.querySelector('#manual-medicine-list');
     if (!input || !list) return;
     const notice = document.createElement('small');
-    notice.textContent = 'NZ names from Pharmac community and hospital schedules (October 2026). Confirm the medicine and every ingredient against your label. A name suggestion is not a safety check.';
-    input.parentElement.append(notice);
-    if (!localMedicineNamesPromise) localMedicineNamesPromise = fetch('/data/medication/nz-medicine-names.json?v=20261001', { credentials: 'omit' })
-      .then(response => { if (!response.ok) throw new Error('Medicine names unavailable'); return response.json(); })
-      .then(data => Array.isArray(data.names) ? data.names.filter(name => typeof name === 'string' && name.length <= 120) : [])
-      .catch(() => { localMedicineNamesPromise = null; return []; });
-    const update = names => {
+    notice.textContent = 'Searches Pharmac product names, ingredients, formulations and identifiers. Check the exact product and every active ingredient against your label; a suggestion is not a safety check.';
+    const detail = document.createElement('small');
+    detail.className = 'medication-catalogue-search-status';
+    detail.setAttribute('role', 'status');
+    detail.setAttribute('aria-live', 'polite');
+    input.parentElement.append(notice, detail);
+    const medicineSearch = globalThis.DoctorAIMedicineCatalogSearch;
+    if (!medicineSearch) {
+      detail.textContent = 'The Pharmac medicine search is unavailable. You can still enter the name from your package.';
+      return;
+    }
+    if (!localMedicineCataloguePromise) localMedicineCataloguePromise = medicineSearch.load()
+      .catch(() => { localMedicineCataloguePromise = null; return null; });
+    const update = catalogue => {
       if (!form.isConnected) return;
-      const query = input.value.toLocaleLowerCase().trim();
       list.replaceChildren();
-      if (query.length < 2) return;
-      const matches = names.filter(name => name.toLocaleLowerCase().includes(query));
-      matches.sort((a, b) => Number(!a.toLocaleLowerCase().startsWith(query)) - Number(!b.toLocaleLowerCase().startsWith(query)) || a.length - b.length || a.localeCompare(b));
-      matches.slice(0, 80).forEach(name => { const option = document.createElement('option'); option.value = name; list.append(option); });
+      const query = medicineSearch.normalise(input.value);
+      if (query.length < 2) {
+        detail.textContent = 'Type a medicine, ingredient, strength, formulation, or Pharmac code to search the local catalogue.';
+        return;
+      }
+      if (!catalogue) {
+        detail.textContent = 'The Pharmac medicine catalogue could not be loaded. You can still enter the name from your package.';
+        return;
+      }
+      const { matches, totalMatches } = medicineSearch.search(catalogue, query, 80);
+      matches.forEach(record => {
+        const product = record.product;
+        const ingredients = medicineSearch.ingredientSummary(record);
+        const option = document.createElement('option');
+        option.value = product.name.length <= 120 ? product.name : (product.brand || product.chemical || product.name).slice(0, 120);
+        option.label = [product.chemical, product.formulation, ingredients.complete
+          ? 'catalogue ingredients: ' + ingredients.names.join(', ')
+          : ingredients.hasPartialMapping
+            ? 'partial catalogue ingredients: ' + ingredients.names.join(', ')
+            : 'ingredients incomplete'].filter(Boolean).join(' · ');
+        list.append(option);
+      });
+      if (!totalMatches) {
+        detail.textContent = 'No Pharmac product matches those terms. The catalogue does not cover every medicine sold in New Zealand; check spelling or enter the name from your package.';
+        return;
+      }
+      const queryKey = medicineSearch.normalise(input.value);
+      const selected = matches.find(record => medicineSearch.normalise(record.product.name) === queryKey) || matches[0];
+      const product = selected.product;
+      const ingredients = medicineSearch.ingredientSummary(selected);
+      const ingredientText = ingredients.complete
+        ? 'Catalogue ingredient mapping: ' + ingredients.names.join(', ') + '.'
+        : ingredients.hasPartialMapping
+          ? 'Partial catalogue ingredient mapping: ' + ingredients.names.join(', ') + '; other ingredients may be missing.'
+          : 'Active ingredients are incomplete in this catalogue record.';
+      const countText = totalMatches === 1 ? '1 product match.' : `${totalMatches} product matches; first result shown.`;
+      detail.textContent = `${countText} ${product.name}. ${ingredientText} Verify against the package label.`;
     };
-    localMedicineNamesPromise.then(names => { update(names); input.addEventListener('input', () => update(names)); });
+    localMedicineCataloguePromise.then(catalogue => {
+      update(catalogue);
+      input.addEventListener('input', () => update(catalogue));
+    });
   }
 
   function prepareScanImage(file) {

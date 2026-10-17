@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $required = @(
   'index.html', 'about.html', 'about.css', 'aurora-pages.css', 'public-info-aurora.css', 'hub-aurora-secondary.css', 'today-records.css', 'medicine-photo-review.css', 'medicine-photo-review.js', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'doctorai-layout.css', 'doctorai-medicine-illustration.png', 'health-alerts.js', 'health-alert-status.js', 'medication-check-controller.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
-  'medication-list-template.html', 'medication-list-template.css', 'medication-list-template.js',
+  'medication-list-template.html', 'medication-list-template.css', 'medication-list-template.js', 'medicine-catalog-search.js', 'data/medication/nz-pharmac-medicines.json',
   'subscription.html', 'subscription.css', 'subscription.js',
   'terms.html', 'staff.html', 'staff-grants.js',
   'branding.js', 'logo-loader.js', 'site-shell.css', 'site-shell.js', 'pwa.js', 'service-worker.js', 'manifest.webmanifest', 'sitemap.xml',
@@ -105,12 +105,15 @@ $templateJs = Get-Content -Raw -LiteralPath (Join-Path $root 'medication-list-te
 if ($templateHtml -notmatch '<title>Free Medication List Template for Appointments \| DoctorAI</title>' -or $templateHtml -notmatch '<link rel="canonical" href="https://www\.doctoraiworld\.com/medication-list-template">' -or $templateHtml -notmatch '<h1>Medication list template for your next appointment</h1>') { $failures.Add('The medication-list resource must have a specific title, canonical URL, and descriptive H1') }
 if ($templateHtml -notmatch 'fda\.gov/consumers/consumer-updates/create-and-keep-medication-list-your-health' -or $templateHtml -notmatch 'medlineplus\.gov/ency/patientinstructions/000600\.htm') { $failures.Add('The medication-list resource must cite its FDA and MedlinePlus source guidance') }
 if ($templateHtml -notmatch 'does not verify medicine safety or check drug interactions' -or $templateHtml -notmatch 'Do not start, stop, or change a medicine based on this page') { $failures.Add('The medication-list resource must state product limits and avoid treatment directions') }
+$catalogSearchJs = Get-Content -Raw -LiteralPath (Join-Path $root 'medicine-catalog-search.js')
 $searchIsBrowserOnly = $templateJs -match 'form\.addEventListener\(''submit'',\s*async event\s*=>\s*\{\s*event\.preventDefault\(\);' -and
-  $templateJs -match 'credentials:\s*''omit''' -and
-  $templateJs -match 'fetch\(''/data/medication/nz-medicine-names\.json\?v=20261001''' -and
-  $templateJs -notmatch 'fetch\([^)]*input\.value'
+  $catalogSearchJs -match 'credentials:\s*''omit''' -and
+  $catalogSearchJs -match 'fetch\(DATA_URL' -and
+  $catalogSearchJs -match "const DATA_URL = '/data/medication/nz-pharmac-medicines\.json\?v=20261001'" -and
+  $templateJs -notmatch 'fetch\([^)]*input\.value' -and
+  $catalogSearchJs -notmatch 'fetch\([^)]*input\.value'
 $searchIsPersistedOrSent = $templateJs -match '(?i)(localStorage|sessionStorage)\.setItem|navigator\.sendBeacon|XMLHttpRequest'
-if ($templateHtml -match '<form\b[^>]*\b(action|method)\s*=' -or -not $searchIsBrowserOnly -or $searchIsPersistedOrSent -or $templateJs -notmatch 'window\.print\(\)') { $failures.Add('Medication-name search must stay browser-only, not submit or persist the query, and preserve printing') }
+if ($templateHtml -match '<form\b[^>]*\b(action|method)\s*=' -or -not $searchIsBrowserOnly -or $searchIsPersistedOrSent -or $templateJs -notmatch 'window\.print\(\)' -or $catalogSearchJs -notmatch 'product\.ingredientsComplete') { $failures.Add('Medication catalogue search must stay browser-only, label incomplete ingredient mappings, not persist the query, and preserve printing') }
 $sitemapText = Get-Content -Raw -LiteralPath (Join-Path $root 'sitemap.xml')
 if ($sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/</loc>' -or $sitemapText -notmatch '<loc>https://www\.doctoraiworld\.com/medication-list-template</loc>') { $failures.Add('The sitemap must include the homepage and medication-list resource') }
 $homeHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'index.html')
