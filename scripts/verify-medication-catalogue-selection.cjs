@@ -199,6 +199,7 @@ async function run() {
       }))
     });
     assert.ok(confirmedPair.resolved.every(item => item.status === 'resolved' && item.labelIngredientsConfirmed === true));
+    assert.ok(confirmedPair.resolved.every(item => item.identityOnly === false && /matching used your confirmed label list/i.test(item.reason)));
     assert.equal(confirmedPair.coverage.confirmedLabels, 2);
     assert.ok(confirmedPair.alerts.some(alert => alert.ruleId === 'warfarin-sulfamethoxazole'),
       'Confirming every mapped label ingredient permits the existing retained rule');

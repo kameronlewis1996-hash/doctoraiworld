@@ -111,19 +111,19 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=103/);
-  assert.match(hubHtml, /health-hub\.css\?v=89/);
-  assert.match(hubHtml, /health-alerts\.js\?v=7/);
+  assert.match(hubHtml, /health-hub\.js\?v=104/);
+  assert.match(hubHtml, /health-hub\.css\?v=90/);
+  assert.match(hubHtml, /health-alerts\.js\?v=8/);
   assert.match(hubHtml, /health-alert-status\.js\?v=6/);
-  assert.match(hubHtml, /medicine-catalog-search\.js\?v=3/);
-  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v173';/);
+  assert.match(hubHtml, /medicine-catalog-search\.js\?v=4/);
+  assert.match(serviceWorker, /const CACHE_NAME = 'doctorai-shell-v175';/);
   for (const asset of [
-    'health-hub.js?v=103',
-    'health-hub.css?v=89',
-    'medicine-catalog-search.js?v=3',
+    'health-hub.js?v=104',
+    'health-hub.css?v=90',
+    'medicine-catalog-search.js?v=4',
     'medicine-photo-review.css?v=1',
     'medicine-photo-review.js?v=1',
-    'health-alerts.js?v=7',
+    'health-alerts.js?v=8',
     'health-alert-status.js?v=6',
     'aurora-theme.css?v=10',
     'hub-category-themes.css?v=5',

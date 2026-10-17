@@ -10,7 +10,7 @@ const medicationSchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    name: { type: 'string', description: 'Medicine name copied only from clearly visible text, or an empty string.' },
+    name: { type: 'string', maxLength: 500, description: 'Medicine name copied in full only from clearly visible text, or an empty string. Never shorten a product name.' },
     dose: { type: 'string', description: 'Strength or dosage copied only from clearly visible text, or an empty string.' },
     activeIngredients: { type: 'array', description: 'Active ingredient names only when clearly printed in the visible active-ingredient/composition section. Never infer ingredients from a brand name. Return an empty array when absent or unclear.', items: { type: 'string', maxLength: 120 }, maxItems: 8 },
     frequency: { type: 'string', enum: ['', 'Once daily', 'Twice daily', 'As needed', 'Weekly'] },
@@ -57,6 +57,7 @@ function validDate(value) {
 
 function normalizeExtractedMedication(medication) {
   const field = (name, max) => String(medication?.[name] || '').replace(/\s+/g, ' ').trim().slice(0, max);
+  const fullName = String(medication?.name || '').replace(/\s+/g, ' ').trim();
   const frequency = field('frequency', 20);
   const time = field('time', 5);
   const supply = field('supply', 20);
@@ -64,7 +65,7 @@ function normalizeExtractedMedication(medication) {
     ? [...new Set(medication.activeIngredients.map(item => String(item || '').replace(/\s+/g, ' ').trim().slice(0, 120)).filter(Boolean))].slice(0, 8)
     : [];
   const scanned = {
-    name: field('name', 120),
+    name: fullName.length <= 500 ? fullName : '',
     dose: field('dose', 80),
     activeIngredients,
     frequency: FREQUENCIES.has(frequency) ? frequency : '',

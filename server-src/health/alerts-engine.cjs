@@ -123,7 +123,15 @@ function createHealthAlertsEngine(medicineEngine) {
     const now = Number.isNaN(suppliedNow.getTime()) ? new Date() : suppliedNow;
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const todayDate = validDate(today);
-    const allMedicines = list(state.medications).map(item => typeof item === 'string' ? { name: item } : { ...record(item), activeIngredientsConfirmed: record(item).activeIngredientsConfirmed === true || record(item).activeIngredientsManuallyConfirmed === true });
+    const allMedicines = list(state.medications).map(item => {
+      if (typeof item === 'string') return { name: item };
+      const saved = record(item);
+      const selected = record(saved.catalogueMatch);
+      const labelConfirmed = saved.activeIngredientsManuallyConfirmed === true && Array.isArray(saved.activeIngredients) && saved.activeIngredients.length > 0;
+      return { ...saved,
+        ...(selected.productName === saved.name && /^pharmac-[a-z0-9]+$/.test(String(selected.productId || '')) ? { catalogueProductId: selected.productId } : {}),
+        activeIngredients: labelConfirmed ? saved.activeIngredients : [], activeIngredientsConfirmed: labelConfirmed };
+    });
     const activeMedicines = currentMedicines(allMedicines, now);
     const excludedMedicines = allMedicines.filter(item => !activeMedicines.includes(item));
     const medicines = activeMedicines.slice(0, MAX_MEDICINES);

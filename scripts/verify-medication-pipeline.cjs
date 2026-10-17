@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const core = require('../server-src/_lib/doctorai-core.cjs');
+const pharmacCatalogue = require('../data/medication/nz-pharmac-medicines.json');
 
 const original = {
   identityFromRequest: core.identityFromRequest,
@@ -49,13 +50,20 @@ async function run() {
   assert.equal(scan.body.review.confirmed, false);
   assert.equal(scan.body.review.fields.name.status, 'extracted');
   assert.equal(scan.body.review.fields.name.confidence, 'not_reported');
+  const longProduct = pharmacCatalogue.products.find(item => item.name.length > 120 && item.name.length <= 500);
+  assert.ok(longProduct, 'the pinned Pharmac snapshot contains long exact product names');
+  scannedLabel.name = longProduct.name;
+  const longScan = await call(scanHandler, { image: png, consent: true });
+  assert.equal(longScan.statusCode, 200);
+  assert.equal(longScan.body.medication.name, longProduct.name, 'scan review must not shorten a canonical product name');
+  scannedLabel.name = 'rifampicin';
 
   const ui = fs.readFileSync(path.join(__dirname, '../health-hub.js'), 'utf8');
   assert.match(ui, /data-scan-review-required=/, 'successful OCR must mark the form for review');
   assert.match(ui, /values\.scanFieldsReviewed === 'on'/, 'saving OCR fields must require explicit review');
   assert.match(ui, /if \(scanReviewRequired && !scanFieldsReviewed\)/, 'the review check must gate saving');
   assert.match(ui, /ingredientCheck\.checked = false/, 'editing a confirmed ingredient must revoke prior confirmation');
-  assert.match(ui, /ingredientInput\.addEventListener\('input', \(\) => \{\s*if \(medicationForm\.elements\.scanFieldsReviewed\) medicationForm\.elements\.scanFieldsReviewed\.checked = false;/, 'editing an ingredient must also revoke scan-field review');
+  assert.match(ui, /ingredientInput\.addEventListener\('input', \(\) => \{[\s\S]{0,600}?if \(medicationForm\.elements\.scanFieldsReviewed\) medicationForm\.elements\.scanFieldsReviewed\.checked = false;/, 'editing an ingredient must also revoke scan-field review');
 
   const confirmedScannedMedicine = {
     name: scan.body.medication.name,
@@ -95,6 +103,15 @@ async function run() {
 
   const unconfirmed = await call(safetyHandler, { consent: true, medications: [{ ...confirmedScannedMedicine, activeIngredientsConfirmed: false }] });
   assert.equal(unconfirmed.statusCode, 400, 'the server must reject active ingredients without user confirmation');
+
+  const selectedLongProduct = await call(safetyHandler, { consent: true, medications: [{ name: longProduct.name, dose: 'as recorded', catalogueProductId: longProduct.id }] });
+  assert.equal(selectedLongProduct.statusCode, 200, 'the server accepts a full canonical Pharmac name with its exact ID');
+  assert.equal(selectedLongProduct.body.resolved[0].catalogueProductId, longProduct.id);
+  assert.equal(selectedLongProduct.body.resolved[0].labelIngredientsConfirmed, undefined, 'a selected product is not label confirmation');
+  const mismatchedSelection = await call(safetyHandler, { consent: true, medications: [{ name: longProduct.name, dose: 'as recorded', catalogueProductId: 'pharmac-not-a-row' }] });
+  assert.equal(mismatchedSelection.statusCode, 400, 'the endpoint rejects IDs absent from the pinned catalogue');
+  const overlongName = await call(safetyHandler, { consent: true, medications: [{ name: 'x'.repeat(501), dose: 'as recorded' }] });
+  assert.equal(overlongName.statusCode, 400, 'a name above the 500-character limit is rejected, not truncated');
 
   process.stdout.write('Synthetic scan→review→confirmed label→save gate→local rules pipeline passed. OCR confidence remains unknown; unverified strength and name/label mismatch states are preserved.\n');
 }

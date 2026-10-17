@@ -104,7 +104,31 @@
     };
   }
 
-  const api = { load, normalise, search, ingredientSummary };
+  // A result is a product selection only after the person chooses its exact row.
+  // Keep source-derived ingredients separate from label-confirmed ingredients.
+  function selectionFromRecord(record, catalogue) {
+    const product = record?.product;
+    if (!product || typeof product.id !== 'string' || typeof product.name !== 'string' || product.name.length > 500 || !catalogue?.datasetVersion) return null;
+    const mapped = Array.isArray(record.ingredientRecords) ? record.ingredientRecords : [];
+    const sourceIds = Array.isArray(product.ingredients) ? product.ingredients : [];
+    return {
+      productId: product.id,
+      productName: product.name,
+      datasetVersion: catalogue.datasetVersion,
+      sourceDate: catalogue.sources?.[0]?.effectiveDate || '',
+      brand: product.brand || '',
+      chemical: product.chemical || '',
+      formulation: product.formulation || '',
+      market: product.market || '',
+      ruleInteractionRoute: product.interactionRoute || '',
+      sourceIds: { pharmacodes: [...(product.pharmacodes || [])], nzmtIds: [...(product.nzmtIds || [])] },
+      ingredients: mapped.map(item => ({ id: item.id, name: item.name })),
+      ingredientsComplete: product.ingredientsComplete === true && sourceIds.length > 0 && sourceIds.length === mapped.length,
+      doseStatus: 'unverified'
+    };
+  }
+
+  const api = { load, normalise, search, ingredientSummary, selectionFromRecord };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.DoctorAIMedicineCatalogSearch = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
