@@ -10,7 +10,9 @@ const productIds = {
   single: 'pharmac-97085b2844338e94',
   combination: 'pharmac-7e19f47e7eefe045',
   incomplete: 'pharmac-f5051fe573125919',
-  longName: 'pharmac-5ac28b8c3c5ef827'
+  longName: 'pharmac-5ac28b8c3c5ef827',
+  warfarin: 'pharmac-0a29aaf4f9d374ff',
+  coTrimoxazole: 'pharmac-2265f4edb1773786'
 };
 
 async function run() {
@@ -58,9 +60,11 @@ async function run() {
       doseStatus: 'unverified'
     });
     const resolved = safety.resolveMedication({ name: selected.productName, catalogueProductId: selected.productId, dose: '10 mg per ml' });
-    assert.equal(resolved.status, 'resolved');
+    assert.equal(resolved.status, 'unknown');
+    assert.equal(resolved.matchState, 'catalogue_product_unconfirmed');
     assert.equal(resolved.identityOnly, true);
-    assert.deepEqual(resolved.ingredients.map(item => item.id), ['pharmac-lamivudine']);
+    assert.deepEqual(resolved.ingredients, []);
+    assert.deepEqual(resolved.catalogueIngredients.map(item => item.id), ['pharmac-lamivudine']);
     assert.notEqual(resolved.labelIngredientsConfirmed, true, 'Catalogue identity is not label confirmation');
   });
 
@@ -70,9 +74,20 @@ async function run() {
     assert.deepEqual(selected.ingredients.map(item => item.id), ['pharmac-abacavir-sulphate', 'pharmac-lamivudine']);
     assert.deepEqual(selected.ingredients.map(item => item.name), ['Abacavir sulphate', 'Lamivudine']);
     const resolved = safety.resolveMedication({ name: selected.productName, catalogueProductId: selected.productId });
-    assert.equal(resolved.status, 'resolved');
-    assert.deepEqual(resolved.ingredients.map(item => item.id), selected.ingredients.map(item => item.id));
+    assert.equal(resolved.status, 'unknown');
+    assert.equal(resolved.matchState, 'catalogue_product_unconfirmed');
+    assert.deepEqual(resolved.ingredients, []);
+    assert.deepEqual(resolved.catalogueIngredients.map(item => item.id), selected.ingredients.map(item => item.id));
     assert.notEqual(resolved.labelIngredientsConfirmed, true);
+    const confirmed = safety.resolveMedication({
+      name: selected.productName,
+      catalogueProductId: selected.productId,
+      activeIngredients: selected.ingredients.map(item => item.name),
+      activeIngredientsConfirmed: true
+    });
+    assert.equal(confirmed.status, 'resolved');
+    assert.equal(confirmed.labelIngredientsConfirmed, true);
+    assert.deepEqual(confirmed.ingredients.map(item => item.id), selected.ingredients.map(item => item.id));
   });
 
   check('partial ingredient mapping remains incomplete and cannot silently resolve', () => {
@@ -82,6 +97,7 @@ async function run() {
     const resolved = safety.resolveMedication({ name: selected.productName, catalogueProductId: selected.productId });
     assert.equal(resolved.status, 'unknown');
     assert.equal(resolved.ingredients.length, 0);
+    assert.equal(resolved.catalogueIngredients.length, 1);
   });
 
   check('long product name remains exact and is not identified by a truncated label', () => {
@@ -89,8 +105,10 @@ async function run() {
     assert.ok(selected.productName.length > 120);
     assert.equal(selected.productName, product(productIds.longName).product.name);
     const exact = safety.resolveMedication({ name: selected.productName, catalogueProductId: selected.productId });
-    assert.equal(exact.status, 'resolved');
-    assert.deepEqual(exact.ingredients.map(item => item.id), selected.ingredients.map(item => item.id));
+    assert.equal(exact.status, 'unknown');
+    assert.equal(exact.matchState, 'catalogue_product_unconfirmed');
+    assert.deepEqual(exact.ingredients, []);
+    assert.deepEqual(exact.catalogueIngredients.map(item => item.id), selected.ingredients.map(item => item.id));
     const truncated = safety.resolveMedication({ name: selected.productName.slice(0, 120), catalogueProductId: selected.productId });
     assert.equal(truncated.status, 'unknown');
     assert.equal(truncated.matchState, 'catalogue_selection_mismatch');
@@ -133,18 +151,24 @@ async function run() {
     assert.equal(conflictingLabel.ingredients.length, 0);
   });
 
-  check('full checker review retains catalogue evidence basis without widening active rules', () => {
+  check('full checker review separates catalogue display from active clinical rules', () => {
     const selected = select(productIds.single);
     const medication = { name: selected.productName, catalogueProductId: selected.productId, dose: '10 mg per ml' };
     const direct = safety.resolveMedication(medication);
-    assert.equal(direct.basis, 'catalogue_product_id');
+    assert.equal(direct.catalogueProductId, selected.productId);
     assert.equal(direct.identityOnly, true);
+    assert.equal(direct.status, 'unknown');
+    assert.equal(direct.matchState, 'catalogue_product_unconfirmed');
+    assert.deepEqual(direct.ingredients, []);
+    assert.deepEqual(direct.catalogueIngredients.map(item => item.id), selected.ingredients.map(item => item.id));
     assert.notEqual(direct.labelIngredientsConfirmed, true);
 
     const reviewed = safety.review({ medications: [medication] });
     assert.equal(reviewed.resolved.length, 1);
-    assert.equal(reviewed.resolved[0].basis, 'catalogue_product_id');
+    assert.equal(reviewed.resolved[0].catalogueProductId, selected.productId);
     assert.equal(reviewed.resolved[0].identityOnly, true);
+    assert.equal(reviewed.resolved[0].status, 'unknown');
+    assert.deepEqual(reviewed.resolved[0].ingredients, []);
     assert.notEqual(reviewed.resolved[0].labelIngredientsConfirmed, true);
     assert.equal(reviewed.coverage.confirmedLabels, 0, 'Selecting a catalogue row alone does not confirm the original label');
     assert.deepEqual({
@@ -155,7 +179,29 @@ async function run() {
     }, { pairwise: 2, combinations: 1, conditions: 0, allergies: 2 });
     assert.equal(reviewed.coverage.interactionCoverage, 'limited');
     assert.equal(reviewed.coverage.doseAssessment, 'not_performed');
-    assert.ok(reviewed.alerts.every(alert => alert.type === 'coverage'), 'An unrelated single medicine cannot create a clinical alert');
+    assert.ok(!reviewed.alerts.some(alert => ['interaction', 'allergy', 'duplicate-ingredient', 'contraindication'].includes(alert.type)));
+
+    const pair = [select(productIds.warfarin), select(productIds.coTrimoxazole)];
+    const unconfirmed = safety.review({
+      medications: pair.map(item => ({ name: item.productName, catalogueProductId: item.productId })),
+      allergies: ['Warfarin']
+    });
+    assert.ok(unconfirmed.resolved.every(item => item.status === 'unknown' && item.ingredients.length === 0));
+    assert.equal(unconfirmed.coverage.assessedPairs, 0);
+    assert.ok(!unconfirmed.alerts.some(alert => ['interaction', 'allergy', 'duplicate-ingredient', 'contraindication'].includes(alert.type)),
+      'A selected source row alone cannot make a pair or allergy rule eligible');
+    const confirmedPair = safety.review({
+      medications: pair.map(item => ({
+        name: item.productName,
+        catalogueProductId: item.productId,
+        activeIngredients: item.ingredients.map(ingredient => ingredient.name),
+        activeIngredientsConfirmed: true
+      }))
+    });
+    assert.ok(confirmedPair.resolved.every(item => item.status === 'resolved' && item.labelIngredientsConfirmed === true));
+    assert.equal(confirmedPair.coverage.confirmedLabels, 2);
+    assert.ok(confirmedPair.alerts.some(alert => alert.ruleId === 'warfarin-sulfamethoxazole'),
+      'Confirming every mapped label ingredient permits the existing retained rule');
 
     const partial = select(productIds.incomplete);
     const partialReview = safety.review({ medications: [{ name: partial.productName, catalogueProductId: partial.productId }] });
