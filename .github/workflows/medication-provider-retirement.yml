@@ -59,7 +59,7 @@ jobs:
           node --check scripts/verify-medication-safety.js
           node --check scripts/verify-medication-staff-test.cjs
           node --check server-src/staff/medication-clash-test.cjs
-          node --check api/staff/medication-clash-test.js
+          node --check 'api/staff/[...action].js'
           node --check staff-medication-tests.js
           node --check scripts/verify-medication-database.cjs
           node --check scripts/verify-medication-pipeline.cjs
