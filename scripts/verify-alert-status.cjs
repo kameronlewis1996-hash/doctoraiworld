@@ -21,8 +21,8 @@ check('resolved warfarin and ibuprofen remain unassessed and never green', () =>
   assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
   assert.ok(result.alerts.some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'));
   assert.equal(describe(result).level, 'orange');
-  assert.equal(describe(result).title, 'Medicine pair unassessed');
-  assert.match(describe(result).note, /1 of 1 saved medicine pairs/);
+  assert.equal(describe(result).title, 'Some medicine pairs not checked');
+  assert.match(describe(result).note, /1 of 1 saved medicine pair(?:s)?/);
 });
 check('empty records never imply clearance', () => assert.equal(describe(evaluate({})).level, 'neutral'));
 check('incomplete records need review rather than green', () => assert.equal(describe(evaluate({ medications: [label('one', 'paracetamol')] })).level, 'orange'));

@@ -195,7 +195,7 @@ async function verifySavedRows(browser, base, width) {
   check(await rows.count() === 2, width + ': both fictional current medicines are present');
   const first = rows.first();
   const mainText = await first.locator('.library-item').innerText();
-  check(/Fictional amber tablet/.test(mainText) && /10 mg per tablet/.test(mainText), width + ': the main row shows the saved name and strength');
+    check(/Fictional amber tablet/.test(mainText) && /Strength entered: 10 mg per tablet/.test(mainText), width + ': the main row shows the saved name and strength');
   check(!/fictionalin|remaining supply not recorded|not set|Fictional label directions/i.test(mainText), width + ': source detail and empty placeholders stay out of the main row');
   const details = first.locator('details.medication-record-details');
   check(await details.count() === 1 && !(await details.evaluate(element => element.open)), width + ': extra saved details start collapsed');
@@ -265,7 +265,7 @@ async function verifyFormJourney(browser, base, width) {
   await name.fill('Fictional custom medicine');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  check(await page.locator('#medication-library .library-item-wrap').count() === 1 && /Product strength: not recorded/i.test(await page.locator('#medication-library .library-item').innerText()), width + ': name-only entry saves with product strength explicitly not recorded');
+  check(await page.locator('#medication-library .library-item-wrap').count() === 1 && /Strength not recorded/i.test(await page.locator('#medication-library .library-item').innerText()), width + ': name-only entry saves with product strength explicitly not recorded');
   const nameOnlyMedication = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
   check(nameOnlyMedication.name === 'Fictional custom medicine' && !nameOnlyMedication.dose && !nameOnlyMedication.doseAmount && !nameOnlyMedication.doseUnit && !nameOnlyMedication.time, width + ': saving a name alone does not invent product strength, amount or schedule');
   check(nameOnlyMedication.instructions === '', width + ': blank new instructions remain exactly empty without invented directions');
@@ -354,7 +354,10 @@ async function verifyFormJourney(browser, base, width) {
   await form.locator('[name="dose"]').fill('20 mg per tablet, copied from fictional label');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  check(/20 mg per tablet/.test(await page.locator('#medication-library').innerText()), width + ': edit updates saved strength text');
+  const updatedRow = page.locator('#medication-library .library-item-wrap').first();
+  check(/Strength text needs review/.test(await updatedRow.locator('.library-item').innerText()), width + ': edited mixed strength text is flagged for review rather than shown as verified');
+  await updatedRow.locator('.medication-record-details > summary').click();
+  check(/Saved strength-field text \(unverified\)\s+20 mg per tablet, copied from fictional label/.test(await updatedRow.locator('.medication-record-details').innerText()), width + ': edited raw strength text stays available in the collapsed details');
   await page.locator('#medication-library [data-delete-medication]').click();
   check(await page.locator('#medication-library .library-item-wrap').count() === 0, width + ': delete clears the saved row');
   check(await page.locator('#medications-count').innerText() === '0 current', width + ': count updates after delete');
@@ -529,6 +532,39 @@ async function verifyIncompleteCatalogueSelection(browser, base) {
   await context.close();
 }
 
+async function verifyStrengthTextPresentation(browser, base, width) {
+  const fixture = { id: 'fictional-fexaclear', name: 'Fexaclear — Fexofenadine hydrochloride — Tab 120 mg', dose: '90 Fexofenadine HCl Ta 120mg (FEX)', doseAmount: '120', doseUnit: 'mg', frequency: 'Once daily', time: '', instructions: '', supply: null, refill: 'Not set' };
+  const context = await contextFor(browser, base, width, [fixture]);
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  try {
+    await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.querySelector('#medication-library .library-item-wrap'));
+    const row = page.locator('#medication-library > .library-item-wrap').first();
+    const visible = await row.locator('.library-item').innerText();
+    check(/Fexaclear/.test(visible) && /Saved product text: Fexofenadine hydrochloride \/ Tab 120 mg \(not verified\)/.test(visible), width + ': compact card leads with the familiar name and keeps the product text secondary and unverified');
+    check(/Strength text needs review/.test(visible) && /Amount per dose recorded: 120 mg/.test(visible), width + ': mixed strength text is flagged separately from the saved amount per dose');
+    check(!/90 Fexofenadine HCl/.test(visible), width + ': mixed source text is not presented as a verified product strength on the card');
+    const details = row.locator('.medication-record-details');
+    check(await details.locator(':scope > summary').innerText() === 'Label and other details for Fexaclear', width + ': extra details have a clear medicine-specific label');
+    await details.locator(':scope > summary').click();
+    const detailsText = await details.innerText();
+    check(/Saved strength-field text \(unverified\)\s+90 Fexofenadine HCl Ta 120mg \(FEX\)/.test(detailsText), width + ': original mixed text remains available verbatim in details');
+    check(!/No other details recorded/.test(detailsText), width + ': empty boilerplate is removed');
+    await screenshot(page, 'strength-review-' + width + '.png');
+    await row.locator('[data-edit-medication]').click();
+    const form = page.locator('#quick-modal [data-modal-form="medication"]');
+    check(await form.locator('[name="dose"]').inputValue() === fixture.dose, width + ': editing reopens the exact mixed source text');
+    await form.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+    check(saved.dose === fixture.dose && saved.doseAmount === '120' && saved.doseUnit === 'mg', width + ': saving an unchanged edit preserves the full mixed text and separate amount');
+    await noOverflow(page, width + ' mixed strength review');
+  } finally {
+    await context.close();
+  }
+}
+
 async function verifyVoltarenJourney(browser, base, width) {
   const originalCore = {
     identityFromRequest: medicationCore.identityFromRequest,
@@ -622,6 +658,34 @@ async function verifyVoltarenJourney(browser, base, width) {
     check(!Object.hasOwn(confirmedRequest.medications[0], 'catalogueMatch') && !Object.hasOwn(confirmedRequest.medications[0], 'productId'), width + ': confirmed checker request still validates text through the existing allowlisted contract, not a product-ID bypass');
     check(confirmedResolution.status === 'resolved' && confirmedResolution.basis === 'catalogue_and_confirmed_label' && confirmedResolution.labelIngredientsConfirmed === true, width + ': confirmed label matching is reported with its distinct evidence basis');
     await screenshot(page, 'voltaren-check-confirmed-' + width + '.png');
+
+    await page.locator('#view-medications [data-modal="medication"]').first().click();
+    const ibuprofenForm = page.locator('#quick-modal [data-modal-form="medication"]');
+    const ibuprofenName = ibuprofenForm.locator('[name="name"]');
+    await ibuprofenName.fill('Ibuprofen Tab 400 mg');
+    const ibuprofenOption = ibuprofenForm.locator('#medication-name-results [role="option"]').filter({ hasText: 'Tab 400 mg' }).first();
+    await ibuprofenOption.waitFor({ state: 'visible' });
+    if (width <= 520) await ibuprofenOption.tap(); else await ibuprofenOption.click();
+    const ibuprofenSelected = await ibuprofenForm.evaluate(element => element.catalogueSelection);
+    check(ibuprofenSelected?.productId === 'pharmac-34fe78bf9d3ca1b3' && ibuprofenSelected.ruleInteractionRoute === 'oral', width + ': the exact ibuprofen tablet remains a distinct oral product row');
+    await ibuprofenForm.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    await reloadedPanel.locator('[data-local-medication-db-consent]').check();
+    await reloadedPanel.locator('[data-run-local-medication-safety-check]').click();
+    await page.waitForFunction(() => /Pair not checked/.test(document.querySelector('[data-local-medication-db-result]')?.textContent || ''));
+    const pairRequest = report.checkerRequests.at(-1);
+    const pairReview = medicationSafetyEngine.review(pairRequest);
+    const pairUi = await page.locator('[data-local-medication-db-result]').innerText();
+    check(pairRequest.medications.length === 2 && pairRequest.medications.some(item => item.name === 'Voltaren — Diclofenac sodium — Suppos 100 mg') && pairRequest.medications.some(item => item.name === 'Ibuprofen — Tab 400 mg'), width + ': the synthetic checker journey includes the exact Voltaren suppository and ibuprofen tablet');
+    check(pairReview.coverage.requestedPairs === 1 && pairReview.coverage.assessedPairs === 0 && pairReview.coverage.unassessedPairs === 1 && pairReview.status === 'unknown', width + ': exact NSAID pair remains unknown and unassessed in the active ruleset');
+    check(pairReview.resolved[0].possibleInteractionRoutes[0] === 'systemic' && pairReview.resolved[1].possibleInteractionRoutes[0] === 'oral', width + ': route distinction survives exact-name resolution without guessing from dose text');
+    check(/Both|both|Voltaren/.test(pairUi) && /not assessed by this limited check/.test(pairUi) && /No alert does not mean safe/.test(pairUi) && /pharmacist or prescriber/i.test(pairUi), width + ': checker wording names the pair, states it was not assessed and gives a professional next step');
+    check(await page.locator('#medication-library .medication-pair-coverage-badge').count() === 2, width + ': the unassessed-pair marker also appears beside both saved medicines');
+    const localAlertShortcut = page.locator('#view-medications .hub-alert-shortcut[data-alert-level="orange"]');
+    check(await localAlertShortcut.locator('[data-alert-title]').innerText() === 'Some medicine pairs not checked' && await localAlertShortcut.locator('[data-alert-note]').isHidden(), width + ': the medication-level alert stays visible without repeating the full orange explanation');
+    check(/No alert does not mean safe/.test(await localAlertShortcut.getAttribute('aria-label')) && /pharmacist or prescriber/.test(await localAlertShortcut.getAttribute('aria-label')), width + ': screen-reader button name retains the complete safety and next-step wording');
+    check(await page.locator('[data-local-medication-db-result] .safety-result-alert.is-warning').count() === 0 && await page.locator('[data-local-medication-db-result] .safety-result-alert.is-unknown[role="status"]').count() === 1, width + ': unknown coverage stays orange/status and is not misrepresented as a red interaction warning');
+    await screenshot(page, 'voltaren-ibuprofen-not-checked-' + width + '.png');
     await noOverflow(page, width + ' Voltaren save/reload/check journey');
   } finally {
     await context.close();
@@ -690,6 +754,8 @@ async function verifyEarlierNotesReview(browser, base) {
     await verifyCatalogueSelectionSaved(browser, base, 1440);
     await verifyCatalogueSelectionSaved(browser, base, 390);
     await verifyIncompleteCatalogueSelection(browser, base);
+    await verifyStrengthTextPresentation(browser, base, 1440);
+    await verifyStrengthTextPresentation(browser, base, 390);
     await verifyVoltarenJourney(browser, base, 1440);
     await verifyVoltarenJourney(browser, base, 390);
     await verifyCatalogueFallback(browser, base);

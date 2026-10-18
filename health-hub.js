@@ -1,6 +1,49 @@
 (() => {
   'use strict';
 
+  const strengthUnit = '(?:mcg|micrograms?|mg|g|kg|ml|millilit(?:er|re)s?|iu|units?|%)';
+  const strengthComponent = `\\d+(?:[.,]\\d+)?\\s*${strengthUnit}`;
+  const strengthForm = '(?:tab(?:let)?s?|cap(?:sule)?s?|suppos(?:itory|itories)?|injection|injectable|inj|oral|solution|suspension|liquid|patch(?:es)?|spray|drops?|cream|ointment|gel|inhaler|actuation|vial|ampoule|sachet|modified-release|extended-release|immediate-release|dispersible|enteric-coated)';
+  const productStrengthPattern = new RegExp(`^(?:${strengthForm}\\s+)?${strengthComponent}(?:(?:\\s*(?:/|per|\\+)\\s*${strengthComponent})|(?:\\s+per\\s+${strengthForm}))*(?:\\s+${strengthForm})*$`, 'i');
+  function isPlausibleProductStrength(value) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    return Boolean(text) && text.length <= 80 && productStrengthPattern.test(text);
+  }
+  function medicationCardSummary(medication) {
+    const fullName = String(medication?.name || 'Unnamed medicine').trim();
+    const nameWithSeparators = fullName.replace(new RegExp(String.fromCharCode(8212), 'g'), '|').replace(new RegExp(String.fromCharCode(8211), 'g'), '|');
+    const parts = nameWithSeparators.split(/\s+\|\s+|\s+-\s+/).map(value => value.trim()).filter(Boolean);
+    const catalogue = medication?.catalogueMatch?.productName === fullName ? medication.catalogueMatch : null;
+    const title = String(catalogue?.brand || (parts.length > 1 && parts[0].length <= 60 ? parts[0] : fullName)).trim();
+    const catalogueText = catalogue ? [catalogue.chemical, catalogue.formulation].map(value => String(value || '').trim()).filter(Boolean).join(' / ') : '';
+    const subtitle = catalogueText
+      ? 'Pharmac listing: ' + catalogueText + ' (check against package)'
+      : parts.length > 1 && title !== fullName ? 'Saved product text: ' + parts.slice(1).join(' / ') + ' (not verified)' : '';
+    return { fullName, title: title || fullName, subtitle };
+  }
+  function medicationStrengthPresentation(medication) {
+    const raw = String(medication?.dose || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return { label: 'Strength not recorded', unverified: false, raw: '' };
+    if (!isPlausibleProductStrength(raw)) return { label: 'Strength text needs review', unverified: true, raw };
+    return { label: 'Strength entered: ' + raw, unverified: false, raw };
+  }
+  function medicationPairCoverageBadge(medication) {
+    const view = medicationCheckController.snapshot();
+    if (view.status !== 'complete') return '';
+    const key = medicationTextKey(medication?.name);
+    if (!key) return '';
+    const pairs = (Array.isArray(view.result?.alerts) ? view.result.alerts : [])
+      .filter(alert => alert?.type === 'interaction-coverage')
+      .map(alert => {
+        const match = String(alert.message || '').match(/^(.*?) has no matching pairwise rule/i);
+        const names = match?.[1].split(/\s+\+\s+/);
+        return names?.length === 2 ? { left: names[0], right: names[1] } : null;
+      }).filter(Boolean);
+    const matches = pairs.filter(pair => medicationTextKey(pair.left) === key || medicationTextKey(pair.right) === key);
+    if (!matches.length) return '';
+    const label = matches.map(pair => `${pair.left} + ${pair.right}`).join('; ');
+    return `<span class="medication-pair-coverage-badge" role="note" aria-label="${escapeHTML(label)} was not checked by the retained rules"><span aria-hidden="true">?</span> Pair not checked</span>`;
+  }
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const viewNames = ['today', 'health', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
@@ -369,7 +412,7 @@
     load: () => { medicationCheckStorageKey = localStorageKey('medication-check'); return read('medication-check', null); },
     save: value => { medicationCheckStorageKey = localStorageKey('medication-check'); write('medication-check', value); },
     remove: () => { try { if (medicationCheckStorageKey) localStorage.removeItem(medicationCheckStorageKey); } catch {} medicationCheckStorageKey = ''; },
-    onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); renderHealthAlerts(); }
+    onChange: () => { renderMedicationCheckState(); renderHomePrescriptionAlert(); renderHealthAlerts(); renderMedicationPairCoverageBadges(); }
   });
 
   const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
@@ -772,15 +815,18 @@
     if (inactiveList) inactiveList.innerHTML = inactive.map(item => `<article class="inactive-medication-row"><span><b>${escapeHTML(item.name || 'Unnamed medicine')}</b><small>${escapeHTML([item.status, item.startDate ? 'Start: ' + item.startDate : '', item.endDate ? 'End: ' + item.endDate : ''].filter(Boolean).join(' · '))}</small></span><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">Edit</button><button type="button" class="text-button" data-delete-medication="${escapeHTML(item.id)}">Delete</button></article>`).join('');
     els.medicationLibrary.innerHTML = medications.length ? medications.map(medication => {
       const safety = medicationSafetyMarkup(medication);
-      const medicationName = escapeHTML(medication.name || 'medication');
+      const summary = medicationCardSummary(medication);
+      const strength = medicationStrengthPresentation(medication);
+      const medicationName = escapeHTML(summary.fullName || 'medication');
       const supply = savedSupplyAmount(medication);
       const supplyStatus = supply === 0 ? 'Check recorded supply' : supply !== null && supply <= 14 ? 'Low recorded supply' : '';
       const schedule = [medication.frequency, medication.time ? `at ${medication.time}` : ''].filter(Boolean).join(' ');
       const doseAmount = String(medication.doseAmount || '').trim();
       const doseUnit = String(medication.doseUnit || '').trim();
       const ingredients = Array.isArray(medication.activeIngredients) ? medication.activeIngredients.filter(Boolean) : [];
+      const product = medication.catalogueMatch?.productId ? medication.catalogueMatch : null;
       const details = [
-        doseAmount && doseUnit ? ['Recorded amount per dose', doseAmount + ' ' + doseUnit] : null,
+        summary.title !== summary.fullName ? ['Full saved medicine name', summary.fullName] : null,
         medication.instructions && medication.instructions !== 'Follow the prescription label' ? ['Label directions', medication.instructions] : null,
         supply !== null ? ['Remaining supply', supply] : null,
         medication.refill && medication.refill !== 'Not set' ? ['Refill date', medication.refill] : null,
@@ -788,19 +834,37 @@
         medication.endDate ? ['End date', medication.endDate] : null,
         medication.prescriptionExpiry ? ['Prescription expiry', medication.prescriptionExpiry] : null,
         medication.repeats ? ['Repeats', medication.repeats] : null,
-        medication.catalogueMatch?.productId ? ['Pharmac catalogue row (unverified)', [medication.catalogueMatch.productName, medication.catalogueMatch.formulation, Array.isArray(medication.catalogueMatch.ingredients) && medication.catalogueMatch.ingredients.length ? (medication.catalogueMatch.ingredientsComplete ? 'Source ingredients: ' : 'Incomplete mapping; known ingredients: ') + medication.catalogueMatch.ingredients.map(item => item.name).join(', ') : 'No source ingredients mapped', 'not checked against the label'].filter(Boolean).join(' · ')] : null
+        product ? ['Pharmac source row (not checked against package)', [product.productName, product.formulation ? 'Formulation: ' + product.formulation : '', product.ruleInteractionRoute ? 'Rule-scope route tag: ' + product.ruleInteractionRoute + ' (not administration confirmation)' : 'Rule-scope route tag: unknown', Array.isArray(product.ingredients) && product.ingredients.length ? (product.ingredientsComplete ? 'Catalogue ingredients: ' : 'Incomplete mapping; known catalogue ingredients: ') + product.ingredients.map(item => item.name).join(', ') : 'No catalogue ingredients mapped', 'Catalogue ingredients are not confirmed against your label'].filter(Boolean).join(' / ')] : null,
+        strength.unverified ? ['Saved strength-field text (unverified)', strength.raw] : null
       ].filter(Boolean);
       const hasRetiredProviderMetadata = Boolean(medication.nzfProduct || medication.nzfProductConfirmed || (Array.isArray(medication.resolvedIngredients) && medication.resolvedIngredients.length));
-      return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}"><div class="library-item">
-        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b>${escapeHTML(medication.name || 'Unnamed medicine')}</b><span>Product strength: ${escapeHTML(medication.dose || 'not recorded')}</span>${doseAmount && doseUnit ? `<small class="medication-dose-amount">Amount per dose recorded: ${escapeHTML(doseAmount)} ${escapeHTML(doseUnit)}</small>` : ''}<small>${escapeHTML(schedule || 'Schedule not recorded')}</small></div>
+      const detailsList = details.length ? `<dl>${details.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : '';
+      const ingredientsDetails = ingredients.length ? `<p>Label ingredients: ${escapeHTML(ingredients.join(', '))} / ${medication.activeIngredientsManuallyConfirmed === true ? 'you marked these as checked against the label; this is not clinical validation' : 'not confirmed against the label'}</p>` : '';
+      const retiredDetails = hasRetiredProviderMetadata ? '<p>Older provider match details remain in this private record but are not used by the current check.</p>' : '';
+      const profileNote = medicationProfileNoteMarkup(medication);
+      const pairCoverage = medicationPairCoverageBadge(medication);
+      return `<article class="library-item-wrap ${safety ? 'has-safety-alert' : ''}" data-medication-id="${escapeHTML(medication.id)}"><div class="library-item">
+        <span class="medicine-icon" aria-hidden="true">${iconMarkup('capsule')}</span><div class="library-copy"><b class="medication-card-title" title="${escapeHTML(summary.fullName)}">${escapeHTML(summary.title)}</b>${summary.subtitle ? `<span class="medication-catalogue-subtitle">${escapeHTML(summary.subtitle)}</span>` : ''}<span class="medication-strength-line ${strength.unverified ? 'is-unverified' : ''}">${escapeHTML(strength.label)}</span>${strength.unverified ? '<small class="medication-strength-help">Check the package before correcting this text.</small>' : ''}${doseAmount && doseUnit ? `<small class="medication-dose-amount">Amount per dose recorded: ${escapeHTML(doseAmount)} ${escapeHTML(doseUnit)}</small>` : ''}<small>${escapeHTML(schedule || 'Schedule not recorded')}</small>${pairCoverage}</div>
         <div class="library-meta">${supplyStatus ? `<span class="medication-supply-note">${supplyStatus}</span>` : ''}<div class="library-item-actions"><button class="medication-edit-link" type="button" data-edit-medication="${escapeHTML(medication.id)}" aria-label="Edit ${medicationName} in saved medications">Edit</button><button class="delete-item" type="button" data-delete-medication="${escapeHTML(medication.id)}" aria-label="Delete ${medicationName} from saved medications">Delete</button></div></div>
-      </div>${safety}${medicationReactionMarkup(medication)}<details class="medication-record-details"><summary>More saved details</summary><div class="medication-record-details-body">${details.length ? `<dl>${details.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : '<p>No other details recorded.</p>'}<p>${ingredients.length ? 'Label ingredients: ' + escapeHTML(ingredients.join(', ')) + ' · ' + (medication.activeIngredientsManuallyConfirmed === true ? 'checked against the label by you' : 'not confirmed against the label') : 'Active ingredients not recorded from the label.'}</p>${hasRetiredProviderMetadata ? '<p>Older provider match details remain in this private record but are not used by the current check.</p>' : ''}${medicationProfileNoteMarkup(medication)}<button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Record a possible reaction</button></div></details></article>`;
+      </div>${safety}${medicationReactionMarkup(medication)}<details class="medication-record-details"><summary>Label and other details for ${escapeHTML(summary.title)}</summary><div class="medication-record-details-body">${detailsList}${ingredientsDetails}${retiredDetails}${profileNote}<button type="button" class="text-button" data-record-medication-reaction="${escapeHTML(medication.id)}">Record a possible reaction</button></div></details></article>`;
     }).join('') : '<div class="empty-state">No current medicines recorded. Add a medicine or review a scanned label to start your list.</div>';
     const earlierConditions = !Array.isArray(state.profile.conditionEntries) || state.profile.conditionEntries.some(entry => entry?.source === 'legacy') ? state.profile.conditions : '';
     const earlierText = [earlierConditions, state.profile.notes].filter(Boolean);
-    if (earlierText.length) els.medicationLibrary.insertAdjacentHTML('beforeend', `<details class="medication-profile-notes-review"><summary>Review earlier health notes</summary><div><p>These entries remain as saved text. Review them to decide whether you want to record a possible reaction. No reaction or medicine safety concern is inferred from a note.</p>${earlierText.map(note => `<p class="medication-original-note">${escapeHTML(note)}</p>`).join('')}<button type="button" class="text-button" data-modal="health">Review profile text</button><p>To declare a possible reaction for a saved medicine, open More saved details in its row.</p></div></details>`);
+    if (earlierText.length) els.medicationLibrary.insertAdjacentHTML('beforeend', `<details class="medication-profile-notes-review"><summary>Review earlier health notes</summary><div><p>These entries remain as saved text. Review them to decide whether you want to record a possible reaction. No reaction or medicine safety concern is inferred from a note.</p>${earlierText.map(note => `<p class="medication-original-note">${escapeHTML(note)}</p>`).join('')}<button type="button" class="text-button" data-modal="health">Review profile text</button><p>To record a possible reaction, open that medicine's details.</p></div></details>`);
     renderMedicationClashPanel();
   }
+  function renderMedicationPairCoverageBadges() {
+    if (!els.medicationLibrary) return;
+    els.medicationLibrary.querySelectorAll('.library-item-wrap[data-medication-id]').forEach(row => {
+      const medication = state.medications.find(item => String(item.id || '') === row.dataset.medicationId);
+      const copy = row.querySelector('.library-copy');
+      if (!copy) return;
+      copy.querySelector('.medication-pair-coverage-badge')?.remove();
+      const badge = medication && medicationPairCoverageBadge(medication);
+      if (badge) copy.insertAdjacentHTML('beforeend', badge);
+    });
+  }
+
   function renderMedicationClashPanel() {
     const card = els.medicationLibrary?.closest('.library-card');
     if (!card) return;
@@ -811,15 +875,15 @@
       panel.dataset.proFeature = 'medication-clash';
       card.appendChild(panel);
       panel.innerHTML = '<div class="clash-heading"><div><p class="card-kicker">DoctorAI Pro</p><h2>Limited local medication check</h2></div><span>Pro</span></div>' +
-        '<p class="clash-description">This check compares saved medicine names and recorded allergies or conditions with a small set of DoctorAI’s own local rules. It does not assess every medicine, interaction, allergy, condition, dose, timing, or your personal situation. No alert does not mean a medicine or combination is safe.</p>' +
+        '<p class="clash-description">DoctorAI checks only a few medicine rules. No alert does not mean safe; ask a pharmacist or prescriber about your full list.</p>' +
         '<details class="medication-local-coverage"><summary>See what the local data covers</summary><div>' +
           '<p>Medicine names use a licensed Pharmac snapshot. Some product formulations have incomplete ingredient mappings; see the source and coverage details with each result.</p>' +
           '<p>Only a small set of retained medicine-pair and allergy prompts is available. Coverage is limited and does not represent a complete New Zealand medicine catalogue or a full condition assessment. A name match does not establish Medsafe approval, availability or suitability.</p>' +
           '<p>Source data: Pharmac New Zealand schedules, shared under CC BY 4.0. <a href="https://schedule.pharmac.govt.nz/pub/" target="_blank" rel="noopener noreferrer">View Pharmac source files</a>.</p>' +
         '</div></details>' +
         '<div class="clash-status" role="status" aria-live="polite"></div>' +
-        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent aria-describedby="medication-check-steps"><span><b>Allow one fresh check after login and checks when my medicine details, allergies or conditions change.</b> After I choose Check saved medicines, send each saved medicine name and strength/dose (up to 30 medicines), plus active ingredient names only when you confirmed them against the original label, and allergy and condition terms in your active profile to DoctorAI’s server for this check, once after each successful login, and on relevant changes while this consent remains enabled. Schedules, notes, symptoms, label images and older provider match details are not included. DoctorAI checks these terms against its own limited local rules and does not query an external medicine database.</span></label>' +
-        '<p class="medication-check-steps" id="medication-check-steps">Select consent, then choose Check saved medicines to start. Selecting the box alone sends nothing. Rechecks run once after each successful login and on relevant changes. Reloading the same signed-in session does not add another login check. Uncheck it to revoke consent. Last results are kept only where you already allow device storage.</p>' +
+        '<label class="clash-consent"><input type="checkbox" data-local-medication-db-consent aria-describedby="medication-check-steps"><span><b>Allow one fresh check after login and checks when my medicine details, allergies or conditions change.</b> After I choose Check saved medicines, send each saved medicine name, strength/dose text only when it matches a recognised strength format, active ingredient names only when you confirmed them against the original label, and allergy and condition terms in your active profile to DoctorAI’s server for this check. Schedules, notes, symptoms, label images and selected Pharmac product IDs or catalogue ingredients are not sent. DoctorAI checks these terms against its own limited local rules and does not query an external medicine database.</span></label>' +
+        '<p class="medication-check-steps" id="medication-check-steps">Select consent, then choose Check saved medicines to start. Selecting the box alone sends nothing. Uncheck to revoke consent. Results stay only where device storage is allowed.</p>' +
         '<div class="clash-actions"><button class="primary-button" type="button" data-run-local-medication-safety-check>Check saved medicines</button></div>' +
         '<p class="medication-check-time" data-medication-check-time></p>' +
         '<div class="medication-db-result" data-local-medication-db-result role="status" aria-live="polite"></div>' +
@@ -1072,7 +1136,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (medicines) {
       const active = currentMedicationRecords();
       medicines.innerHTML = !loading && active.length
-        ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(item.dose ? 'Saved dose: ' + item.dose : 'Dose not recorded')}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button></li>`).join('')}</ul>`
+         ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => { const strength = medicationStrengthPresentation(item); const amount = item.doseAmount && item.doseUnit ? 'Amount per dose recorded: ' + item.doseAmount + ' ' + item.doseUnit : ''; return `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(strength.label)}${amount ? ' · ' + escapeHTML(amount) : ''}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button></li>`; }).join('')}</ul>`
         : emptyRecord('medicines', 'No current medicines saved. Add a medicine using the details on its label.');
     }
     const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure', source: 'legacy' }));
@@ -2500,7 +2564,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       <p class="medication-form-error" id="medication-form-error" role="alert"></p>
       <div class="modal-form-grid">
         <div class="modal-field full medication-name-search"><label id="medication-name-label" for="manual-medication-name"><span>Medication name *</span></label><input id="manual-medication-name" name="name" required aria-required="true" maxlength="500" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="medication-name-results" aria-describedby="medication-name-help medication-search-status" placeholder="Start typing a medicine name" value="${escapeHTML(prefill.name || '')}"><div class="medication-name-results" id="medication-name-results" role="listbox" aria-labelledby="medication-name-label" hidden></div><small class="medication-form-hint" id="medication-name-help">Search the local NZ Pharmac list; it does not include every retail medicine. Choose only a full name and form that match your label. Source ingredients are not checked against it.</small><p class="medication-search-status" id="medication-search-status" role="status" aria-live="polite"></p><div class="medication-selected-product" id="medication-selected-product" hidden></div></div>
-        <label class="modal-field"><span>Product strength and form (optional)</span><input name="dose" aria-describedby="medication-dose-help" maxlength="80" autocomplete="off" placeholder="e.g. 10 mg tablet" value="${escapeHTML(prefill.dose || '')}"><small class="medication-form-hint" id="medication-dose-help">Copy what is in each tablet or mL from the package. This is separate from the amount per dose below. Leave blank if unknown.</small></label>
+         <label class="modal-field"><span>Product strength and form (optional)</span><input name="dose" aria-describedby="medication-dose-help" maxlength="80" autocomplete="off" placeholder="e.g. 120 mg tablet" value="${escapeHTML(prefill.dose || '')}"><small class="medication-form-hint" id="medication-dose-help">Enter the strength and form only, as shown on the package. Keep the amount you take below. Mixed scan text is saved for review and is not sent as a dose.</small></label>
         <fieldset class="modal-field full medication-dose-entry"><legend>Amount per dose (optional)</legend><div class="medication-dose-entry-controls"><label class="modal-field"><span>Amount</span><input name="doseAmount" type="number" inputmode="decimal" max="1000000" step="any" aria-describedby="medication-dose-amount-help" placeholder="e.g. 1 or 5" value="${escapeHTML(prefill.doseAmount || '')}"></label><label class="modal-field"><span>Unit</span><select name="doseUnitChoice" aria-describedby="medication-dose-amount-help">${doseUnitOptions}</select></label><label class="modal-field medication-custom-dose-unit" data-dose-unit-custom-field ${doseUnitChoice === 'other' ? '' : 'hidden'}><span>Custom unit</span><input name="doseUnitCustom" maxlength="32" autocomplete="off" placeholder="Enter the unit as written" value="${escapeHTML(customDoseUnit)}"></label></div><small class="medication-form-hint" id="medication-dose-amount-help">Copy an amount from your label or prescription. DoctorAI does not calculate or recommend doses.</small></fieldset>
         <label class="modal-field"><span>Preferred time (optional)</span><input name="time" type="time" aria-describedby="medication-time-help" value="${escapeHTML(prefill.time || '')}"><small class="medication-form-hint" id="medication-time-help">Use a time from your prescription or label, if one was given.</small></label>
         <label class="modal-field"><span>Frequency (optional)</span><select name="frequency" aria-describedby="medication-frequency-help"><option value="">Choose only if known</option><option ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option><option ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option><option ${frequency === 'As needed' ? 'selected' : ''}>As needed</option><option ${frequency === 'Weekly' ? 'selected' : ''}>Weekly</option></select><small class="medication-form-hint" id="medication-frequency-help">Copy your prescription or label; leave blank if unsure.</small></label>
@@ -2646,7 +2710,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     grid.after(optional);
     const reactionHelp = document.createElement('p');
     reactionHelp.className = 'medication-form-hint';
-    reactionHelp.textContent = 'To record a possible reaction, save this medicine, then open More saved details in its row.';
+    reactionHelp.textContent = 'To record a possible reaction, save this medicine, then open its Label and other details section.';
     optional.after(reactionHelp);
   }
 
@@ -3667,7 +3731,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (editingId && existingIndex < 0) { showToast('This saved medication is no longer in your list. Close this form and reopen the medication you want to edit.'); return; }
       const existingMedication = existingIndex >= 0 ? state.medications[existingIndex] : null;
       const name = String(values.name || '').replace(/\s+/g, ' ').trim();
-      const dose = String(values.dose || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+      const dose = String(values.dose || '').replace(/\s+/g, ' ').trim();
       const doseAmountRaw = String(values.doseAmount || '').trim();
       const doseUnitChoice = String(values.doseUnitChoice || '').trim();
       const doseUnitCustom = String(values.doseUnitCustom || '').replace(/\s+/g, ' ').trim();
@@ -3679,6 +3743,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (doseAmountRaw && doseUnitChoice !== 'other' && !standardDoseUnits.includes(doseUnitChoice)) { rejectMedicationForm(form, 'Choose a listed unit or enter a custom unit.', form.elements.doseUnitChoice); return; }
       const doseAmount = doseAmountRaw;
       const doseUnit = doseUnitChoice === 'other' ? doseUnitCustom : doseUnitChoice;
+      if (dose.length > 80 && !(existingMedication && String(existingMedication.dose || '') === dose)) { rejectMedicationForm(form, 'Strength and form text is longer than 80 characters. No text was shortened; keep the strength and form only, and record other package text in directions.', form.elements.dose); return; }
       if (!name) { rejectMedicationForm(form, 'Add the medication name exactly as shown on the label.', form.elements.name); return; }
       if (name.length > 500) { rejectMedicationForm(form, 'This medicine name is longer than 500 characters. No text was shortened; enter the full label name in a shorter field only if it is shown that way on your package.', form.elements.name); return; }
       const scanReviewRequired = form.dataset.scanReviewRequired === 'true';
@@ -3846,15 +3911,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const combinationRuleCount = Number.isSafeInteger(result.coverage?.combinationRuleCount) ? result.coverage.combinationRuleCount : 0;
     const incomplete = result.status === 'unknown' || result.coverage?.completeForRequest === false || hasUnassessedPairs;
     summary.className = 'medication-db-summary ' + (hasWarnings ? 'is-warning' : 'is-incomplete');
-    if (hasWarnings) summary.textContent = 'A medicine warning was found in this very limited check. Review the alert below with a pharmacist or prescriber.';
-    else summary.textContent = 'Very limited check: ' + pairwiseRuleCount + ' pairwise and ' + combinationRuleCount + ' multi-medicine rules are retained. Unmatched pairs and medicine risks outside these rules are unassessed. No alert does not mean safe; ask a pharmacist or prescriber to review your full medicine list.';
+    if (hasWarnings) summary.textContent = 'A medicine warning was found. Review the alert below with a pharmacist or prescriber.';
+    else if (hasUnassessedPairs) summary.textContent = 'At least one medicine pair was not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review your full list.';
+    else summary.textContent = 'Very limited check: ' + pairwiseRuleCount + ' pairwise and ' + combinationRuleCount + ' multi-medicine rules are retained. Other medicine risks are unassessed. No alert does not mean safe; ask a pharmacist or prescriber to review your full medicine list.';
     container.append(summary);
-    if (hasUnassessedPairs) {
-      const note = document.createElement('p');
-      note.className = 'medication-db-incomplete-note';
-      note.textContent = 'At least one medicine pair is unassessed. See the notice below for the specific pair and review advice.';
-      container.append(note);
-    }
     const visibleAlerts = alerts.filter(alert => alert.type !== 'coverage');
     const rank = alert => ['high', 'critical'].includes(alert.severity) ? 0 : alert.severity === 'moderate' ? 1 : 2;
     visibleAlerts.sort((left, right) => rank(left) - rank(right)).forEach(alert => {
@@ -3866,14 +3926,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       article.setAttribute('role', warning || caution ? 'alert' : 'status');
       article.setAttribute('aria-live', warning || caution ? 'assertive' : 'polite');
       const heading = document.createElement('h3');
-      heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : String(alert.title || 'Medicine check notice');
+      heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : alert.type === 'interaction-coverage' ? 'Pair not checked' : String(alert.title || 'Medicine check notice');
       const icon = document.createElement('span');
       icon.className = 'medication-warning-icon';
       icon.innerHTML = iconMarkup(warning || caution ? 'alert' : 'info');
       icon.setAttribute('aria-hidden', 'true');
       heading.prepend(icon);
       const copy = document.createElement('p');
-      copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
+      if (alert.type === 'interaction-coverage') {
+        const pair = String(alert.message || '').split(' has no matching pairwise rule')[0];
+        copy.textContent = pair && pair !== alert.message
+          ? pair + ' was not assessed by this limited check. No alert does not mean safe; ask a pharmacist or prescriber to review.'
+          : 'This medicine pair was not assessed by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.';
+      } else copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
       article.append(heading, copy);
       if (alert.source?.publisher) {
         const source = document.createElement('small');
@@ -3966,7 +4031,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     return {
       medications: currentMedicationRecords().map(item => {
         const confirmed = item?.activeIngredientsManuallyConfirmed === true && Array.isArray(item.activeIngredients) && item.activeIngredients.length > 0;
-        return { name: String(item?.name || '').trim(), dose: String(item?.dose || '').trim(), ...(confirmed ? { activeIngredients: item.activeIngredients.map(name => String(name).trim()).filter(Boolean), activeIngredientsConfirmed: true } : {}) };
+        const dose = String(item?.dose || '').trim();
+        return { name: String(item?.name || '').trim(), ...(isPlausibleProductStrength(dose) ? { dose } : {}), ...(confirmed ? { activeIngredients: item.activeIngredients.map(name => String(name).trim()).filter(Boolean), activeIngredientsConfirmed: true } : {}) };
       }),
       allergies: splitDetails(state.profile?.allergies || ''), conditions: splitDetails(state.profile?.conditions || '')
     };
