@@ -1,14 +1,16 @@
 (function () {
   const staff = document.querySelector('#staff-content');
   if (!staff) return;
+  const toolsPanel = staff.querySelector('#staff-tools-panel') || staff;
+  const toolsGrid = toolsPanel.querySelector('#staff-tools-grid, .grid');
   const grant = document.createElement('section');
   grant.style.cssText = 'margin-top:28px;padding:22px;border-radius:18px;background:#173451;color:#fff';
   grant.innerHTML = '<h2 style="margin:0;font-size:20px">Give someone free DoctorAI Pro for 1 month</h2><p style="color:#cfe9f2;font-size:12px;line-height:1.55">Enter an email to create a secure 30-day access code. Send the code or link privately.</p><form style="display:flex;gap:10px;flex-wrap:wrap"><input type="email" required aria-label="Recipient email address" placeholder="person@example.com" style="flex:1 1 230px;min-height:42px;padding:0 12px;border:0;border-radius:9px"><button style="min-height:42px;padding:0 15px;border:0;border-radius:9px;background:#8ee9f4;color:#173451;font-weight:800">Create 30-day code</button></form><div role="status" aria-live="polite" style="margin-top:12px;color:#bff4ff;font-size:12px;line-height:1.5;word-break:break-word"></div>';
-  staff.insertBefore(grant, staff.firstElementChild);
+  toolsPanel.insertBefore(grant, toolsGrid || toolsPanel.firstElementChild);
   const stats = document.createElement('section');
   stats.style.cssText = 'margin-top:14px;padding:18px;border:1px solid #cde5f0;border-radius:16px;background:#f8fdff;color:#173451';
   stats.innerHTML = '<b>Free Pro users</b><div style="margin-top:8px;font-size:28px;font-weight:800">Loading…</div><small style="color:#6a8493">Active users who redeemed a current DoctorAI Pro code</small><div style="margin-top:12px;font-size:12px;color:#587487"></div>';
-  staff.insertBefore(stats, staff.children[1]);
+  toolsPanel.insertBefore(stats, toolsGrid || null);
   const loadStats = async () => {
     const value = stats.querySelector('div'); const details = stats.querySelector('div:last-child');
     value.textContent = 'Loading…'; details.textContent = '';
