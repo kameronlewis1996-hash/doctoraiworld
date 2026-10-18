@@ -6620,7 +6620,7 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
 #hub-shell #view-medications .library-copy .medication-dose-amount { color: #29485f; }
 #hub-shell #view-medications .medication-pair-coverage-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; margin-top: 8px; padding: 4px 8px; border: 1px solid #d6a257; border-radius: 999px; background: #fff6e8; color: #70440d; font-size: 12px; font-weight: 700; line-height: 1.35; }
 #hub-shell #view-medications .medication-pair-coverage-badge > span { display: inline-grid; place-items: center; width: 18px; height: 18px; border: 1px solid currentColor; border-radius: 50%; font-size: 13px; }
-#view-medications .hub-alert-shortcut[data-alert-level="orange"] .hub-alert-shortcut-copy [data-alert-note] { display: none; }
+#view-medications [data-alert-level="orange"] [data-alert-note] { display: none; }
 .medication-db-summary.is-incomplete { border-color: #d6a257; background: #fff6e8; color: #62400e; }
 .safety-result-alert.is-unknown { border-color: #d6a257; background: #fff9ef; color: #62400e; }
 .safety-result-alert.is-unknown h3 { color: #62400e; }
