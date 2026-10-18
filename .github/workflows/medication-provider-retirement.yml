@@ -57,6 +57,10 @@ jobs:
           node --check scripts/verify-medication-catalog-search.cjs
           node --check 'api/medication/[...action].js'
           node --check scripts/verify-medication-safety.js
+          node --check scripts/verify-medication-staff-test.cjs
+          node --check server-src/staff/medication-clash-test.cjs
+          node --check api/staff/medication-clash-test.js
+          node --check staff-medication-tests.js
           node --check scripts/verify-medication-database.cjs
           node --check scripts/verify-medication-pipeline.cjs
           node --check scripts/verify-medication-evidence.cjs
@@ -77,6 +81,7 @@ jobs:
       - name: Run local medication and scan regressions
         run: |
           node scripts/verify-medication-safety.js
+          node scripts/verify-medication-staff-test.cjs
           node scripts/verify-medication-database.cjs
           node scripts/verify-medication-pipeline.cjs
           node scripts/verify-medication-evidence.cjs
