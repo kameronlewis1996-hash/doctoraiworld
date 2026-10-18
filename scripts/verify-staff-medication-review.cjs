@@ -56,6 +56,7 @@ async function main() {
   assert.match(html, /role="tablist"[^>]*data-staff-tabs/);
   assert.match(html, /role="tab" id="staff-medication-review-tab"/);
   assert.match(html, /role="tabpanel" id="staff-review-panel"[^>]*hidden/);
+  assert.match(html, /Sign in through Health Hub/);
   assert.match(html, /staff-review\.css\?v=1/);
   assert.match(html, /staff-review\.js\?v=1/);
   assert.match(script, /ArrowRight/);
