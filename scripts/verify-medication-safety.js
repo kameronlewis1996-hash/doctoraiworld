@@ -2,6 +2,8 @@
 
 const assert = require('node:assert/strict');
 const { review } = require('../server-src/medication/safety-engine.cjs');
+const pharmac = require('../data/medication/nz-pharmac-medicines.json');
+const exclusions = require('../docs/medication-provenance-exclusions.json');
 
 const interaction = review({ medications: ['Marevan', 'Nurofen'] });
 assert.deepEqual(interaction.resolved.map(item => item.status), ['resolved', 'resolved']);
@@ -43,5 +45,29 @@ assert.equal(resolvedButUnassessedPair.status, 'unknown');
 assert.equal(resolvedButUnassessedPair.coverage.completeForRequest, false);
 assert.ok(!resolvedButUnassessedPair.alerts.some(alert => alert.ruleId === 'warfarin-nsaid'));
 assert.ok(resolvedButUnassessedPair.alerts.some(alert => alert.type === 'interaction-coverage' && alert.severity === 'unknown' && /unassessed/i.test(alert.message)));
+
+const voltarenSuppository = pharmac.products.find(item => item.id === 'pharmac-27fe3db7fbaac919');
+const ibuprofenTablet = pharmac.products.find(item => item.id === 'pharmac-34fe78bf9d3ca1b3');
+assert.equal(voltarenSuppository.name, 'Voltaren — Diclofenac sodium — Suppos 100 mg');
+assert.equal(voltarenSuppository.interactionRoute, 'systemic', 'The suppository is tagged systemic for rule scope, not administration verification');
+assert.equal(ibuprofenTablet.interactionRoute, 'oral');
+assert.deepEqual(voltarenSuppository.ingredients, ['diclofenac']);
+assert.deepEqual(ibuprofenTablet.ingredients, ['ibuprofen']);
+assert.equal(exclusions.exclusions.interactionRules.find(item => item.id === 'systemic-nonaspirin-nsaid-duplicate-toxicity')?.reason, 'reuse-status-unverified-or-conditional');
+
+for (const labelConfirmed of [false, true]) {
+  const pair = review({ medications: [
+    { name: voltarenSuppository.name, ...(labelConfirmed ? { activeIngredients: ['Diclofenac sodium'], activeIngredientsConfirmed: true } : {}) },
+    { name: ibuprofenTablet.name, ...(labelConfirmed ? { activeIngredients: ['Ibuprofen'], activeIngredientsConfirmed: true } : {}) }
+  ] });
+  assert.equal(pair.status, 'unknown', 'This exact pair must remain unknown, not green or a clinical warning');
+  assert.equal(pair.coverage.requestedPairs, 1);
+  assert.equal(pair.coverage.assessedPairs, 0);
+  assert.equal(pair.coverage.unassessedPairs, 1);
+  assert.deepEqual(pair.resolved.map(item => item.status), ['resolved', 'resolved']);
+  assert.deepEqual(pair.resolved.map(item => item.possibleInteractionRoutes[0]), ['systemic', 'oral']);
+  assert.ok(pair.alerts.some(item => item.type === 'interaction-coverage' && item.severity === 'unknown' && /This pair is unassessed/i.test(item.message)));
+  assert.ok(!pair.alerts.some(item => ['interaction', 'contraindication'].includes(item.type)), 'Excluded NSAID duplicate evidence must not be activated');
+}
 
 console.log('Limited local medication check verified with synthetic names, allergies and conditions; uncovered scope stays unknown.');

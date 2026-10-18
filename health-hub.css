@@ -6609,3 +6609,23 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
 @media (max-width: 520px) { .medication-dose-entry-controls { grid-template-columns: minmax(0, 1fr); } .medication-dose-entry-controls .medication-custom-dose-unit { grid-column: auto; } }
 .medication-use-catalogue-form { min-height: 44px; justify-self: start; }
 @media (max-width: 520px) { .medication-name-results { max-height: 180px; } .medication-name-result { min-height: 52px; } }
+
+/* Medication cards keep product identity, strength text and dose amount distinct. */
+#hub-shell #view-medications .library-copy { min-width: 0; }
+#hub-shell #view-medications .library-copy .medication-card-title { overflow-wrap: anywhere; line-height: 1.35; }
+#hub-shell #view-medications .library-copy .medication-catalogue-subtitle { color: #49657a; line-height: 1.45; overflow-wrap: anywhere; }
+#hub-shell #view-medications .library-copy .medication-strength-line { color: #29485f; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+#hub-shell #view-medications .library-copy .medication-strength-line.is-unverified { color: #70440d; }
+#hub-shell #view-medications .library-copy .medication-strength-help { color: #70440d; }
+#hub-shell #view-medications .library-copy .medication-dose-amount { color: #29485f; }
+#hub-shell #view-medications .medication-pair-coverage-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; margin-top: 8px; padding: 4px 8px; border: 1px solid #d6a257; border-radius: 999px; background: #fff6e8; color: #70440d; font-size: 12px; font-weight: 700; line-height: 1.35; }
+#hub-shell #view-medications .medication-pair-coverage-badge > span { display: inline-grid; place-items: center; width: 18px; height: 18px; border: 1px solid currentColor; border-radius: 50%; font-size: 13px; }
+#view-medications .hub-alert-shortcut[data-alert-level="orange"] .hub-alert-shortcut-copy [data-alert-note] { display: none; }
+.medication-db-summary.is-incomplete { border-color: #d6a257; background: #fff6e8; color: #62400e; }
+.safety-result-alert.is-unknown { border-color: #d6a257; background: #fff9ef; color: #62400e; }
+.safety-result-alert.is-unknown h3 { color: #62400e; }
+@media (max-width: 520px) {
+  #hub-shell #view-medications .library-item { grid-template-columns: 36px minmax(0, 1fr); align-items: start; }
+  #hub-shell #view-medications .library-meta { grid-column: 2; width: 100%; text-align: left; }
+  #hub-shell #view-medications .library-meta .library-item-actions { justify-content: flex-start; }
+}
