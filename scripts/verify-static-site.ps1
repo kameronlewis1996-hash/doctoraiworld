@@ -4,7 +4,7 @@ $required = @(
   'index.html', 'about.html', 'about.css', 'aurora-pages.css', 'public-info-aurora.css', 'hub-aurora-secondary.css', 'hub-category-themes.css', 'today-records.css', 'welcome.css', 'welcome.js', 'care-design.css', 'health-hub.html', 'health-hub.css', 'health-hub.js', 'medicine-catalog-search.js', 'doctorai-layout.css', 'doctorai-medicine-illustration.png', 'health-alerts.js', 'health-alert-status.js', 'medication-check-controller.js', 'accessibility.css', 'feature-icons.js', 'privacy.html', 'download.html',
   'medication-list-template.html', 'medication-list-template.css', 'medication-list-template.js',
   'subscription.html', 'subscription.css', 'subscription.js',
-  'terms.html', 'staff.html', 'staff-grants.js',
+  'terms.html', 'staff.html', 'staff-grants.js', 'staff-review.css', 'staff-review.js', 'staff-medication-tests.css', 'staff-medication-tests.js', 'api/staff/medication-review.js', 'scripts/verify-staff-medication-review.cjs',
   'branding.js', 'logo-loader.js', 'site-shell.css', 'site-shell.js', 'pwa.js', 'service-worker.js', 'manifest.webmanifest', 'sitemap.xml',
   'doctorai-public-logo-transparent.png', 'doctorai-head-logo-transparent.png', 'doctorai-app-icon.png',
   'google-g-logo.svg', 'vercel.json',
@@ -123,6 +123,12 @@ $aboutHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'about.html')
 if ($aboutHtml -notmatch '<link rel="canonical" href="https://www\.doctoraiworld\.com/about">' -or [regex]::Matches($aboutHtml, '<h1(?:\s|>)').Count -ne 1 -or $aboutHtml -notmatch 'href="/health-hub"' -or $aboutHtml -notmatch 'href="/about\.css\?v=3"') {
   $failures.Add('The About page must keep its canonical /about route, a single main heading, a Health Hub path and its scoped stylesheet')
 }
+$staffHtml = Get-Content -Raw -LiteralPath (Join-Path $root 'staff.html')
+$staffReviewApi = Get-Content -Raw -LiteralPath (Join-Path $root 'api/staff/medication-review.js')
+if ($staffHtml -notmatch 'role="tablist"[^>]*data-staff-tabs' -or $staffHtml -notmatch 'role="tab" id="staff-medication-review-tab"' -or $staffHtml -notmatch 'role="tabpanel" id="staff-review-panel"[^>]*hidden' -or $staffHtml -notmatch 'staff-review\.js\?v=1' -or $staffHtml -notmatch 'staff-review\.css\?v=1') { $failures.Add('The medication review tab must remain hidden inside the staff-only workspace and load its scoped assets') }
+$staffTestsScript = Get-Content -Raw -LiteralPath (Join-Path $root 'staff-medication-tests.js')
+if ($staffHtml -notmatch 'staff-medication-tests\.js\?v=2' -or $staffHtml -notmatch 'staff-medication-tests\.css\?v=1' -or $staffTestsScript -notmatch "querySelector\('#staff-tools-panel'\) \|\| content") { $failures.Add('The synthetic medication test workspace must stay versioned and contained within the staff tools panel') }
+if ($staffReviewApi -notmatch 'identityFromRequest' -or $staffReviewApi -notmatch 'core\.isAdmin\(session\)' -or $staffReviewApi -notmatch 'core\.noStore\(response\)' -or $staffReviewApi -notmatch 'Excluded from active checks' -or $staffReviewApi -notmatch '1269') { $failures.Add('The medication review packet must require a verified staff admin session, disable caching and preserve the inactive-candidate status') }
 $htmlFiles = @('index.html', 'about.html', 'appointment-checklist.html', 'health-hub.html', 'subscription.html', 'terms.html', 'privacy.html', 'download.html', 'staff.html', 'research.html', 'mobile-auth.html', 'medication-list-template.html', 'professional-brief-demo.html')
 $sampleBrief = Get-Content -Raw -LiteralPath (Join-Path $root 'professional-brief-demo.html')
 if ($sampleBrief -notmatch 'name="robots" content="noindex, nofollow"' -or $sampleBrief -notmatch 'Fictional data' -or $sampleBrief -notmatch 'not a medical record or clinical decision support' -or $sampleBrief -match '<script\b') { $failures.Add('The professional-facing sample must stay a static, prominently fictional prototype') }
