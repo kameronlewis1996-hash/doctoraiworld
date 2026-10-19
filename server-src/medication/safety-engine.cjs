@@ -215,17 +215,24 @@ function distinctCombinationEntries(componentMatches) {
   return assign(0, new Set()) ? selected.slice() : null;
 }
 const sourceFor = rule => rule.source || { publisher: 'DoctorAI medication database' };
-const nonaffirmativeAllergy = /\b(?:no|not sure|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|uncertain|uncertainty|unconfirmed|possible|possibly|potential|suspected|maybe|query|if|asked about|question of|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/i;
+const nonaffirmativeAllergy = /\b(?:no|not sure|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|uncertain|uncertainty|unconfirmed|possible|possibly|potential|suspected|maybe|query|if|asked about|question of|history of|historical|previously|in the past|last year|childhood|used to|past episode|resolved|recovered from|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/i;
 function positiveAllergyStatements(allergies) {
-  return allergies.flatMap(allergy => String(allergy || '')
-    .split(/[;,\n.!?]|\b(?:but|however|except)\b/gi)
+  return allergies.flatMap(allergy => (String(allergy || '').match(/[^;,\n.!?]+(?:\?)?/g) || [])
+    .flatMap(statement => statement.split(/\b(?:but|however|except)\b/gi))
     .map(statement => statement.trim())
     .filter(statement => statement && !statement.endsWith('?') && !nonaffirmativeAllergy.test(norm(statement))));
+}
+function containsWholeTerm(text, term) {
+  const normalizedText = norm(text);
+  const normalizedTerm = norm(term);
+  if (!normalizedText || !normalizedTerm) return false;
+  const escapedTerm = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${escapedTerm}(?=$|[^a-z0-9])`, 'i').test(normalizedText);
 }
 function directAllergyMatch(ingredient, allergy) {
   const allergyTerm = norm(allergy).replace(/\b(allergy|allergic|reaction|hypersensitivity|anaphylaxis|rash)\b/g, ' ').replace(/\s+/g, ' ').trim();
   if (!allergyTerm) return false;
-  return ingredientTerms(ingredient).some(term => allergyTerm === term || allergyTerm.includes(term));
+  return ingredientTerms(ingredient).some(term => containsWholeTerm(allergyTerm, term));
 }
 function conditionMatches(rule, conditions) {
   const terms = (rule.conditionTerms || []).map(norm).filter(Boolean);
@@ -320,6 +327,7 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
       severity: rule.severity,
       title: 'Potential multi-medicine interaction',
       message: `${[...implicated.values()].map(medication => medication.name).join(' + ')}: ${rule.effect}`,
+      medicationIndexes: [...implicated.keys()],
       source: sourceFor(rule),
       ruleId: rule.id,
       recordVersion: rule.recordVersion || 1,
@@ -332,9 +340,9 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
     for (const ingredient of medication.ingredients) {
       const exactAllergy = positiveAllergies.find(allergy => directAllergyMatch(ingredient, allergy));
       if (exactAllergy) alerts.push({ type: 'allergy', severity: 'high', title: 'Recorded ingredient allergy needs review', message: `${medication.name} resolves to ${ingredient.name}, which matches the recorded allergy “${exactAllergy}”. Do not rely on DoctorAI alone; confirm with a pharmacist or prescriber.`, source: { publisher: 'DoctorAI ingredient resolution', recordVersion: 1 } });
-      for (const rule of db.allergyRules || []) if (rule.ingredientClass && (ingredient.classes || []).includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
+      for (const rule of db.allergyRules || []) if (rule.ingredientClass && (ingredient.classes || []).includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => containsWholeTerm(allergy, term)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
     }
-    for (const rule of db.allergyRules || []) if (rule.productClass && (medication.productClasses || []).includes(rule.productClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name}: ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
+    for (const rule of db.allergyRules || []) if (rule.productClass && (medication.productClasses || []).includes(rule.productClass) && allergyText.some(allergy => rule.allergyTerms.some(term => containsWholeTerm(allergy, term)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name}: ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
   }
   const conditionText = conditions.map(norm).filter(Boolean);
   for (const medication of resolved) for (const ingredient of medication.ingredients) for (const rule of db.contraindicationRules || []) if (matchesSide(ingredient, rule.medicine, medication) && conditionMatches(rule, conditionText)) alerts.push({ type: 'contraindication', severity: rule.severity, title: 'Condition and medicine need review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
