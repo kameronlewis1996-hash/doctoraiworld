@@ -3,11 +3,13 @@
   const reviewPanel = document.querySelector('#staff-review-panel');
   const reviewStatus = document.querySelector('#staff-review-status');
   const reviewContent = document.querySelector('#staff-review-content');
-  if (!tablist || !reviewPanel || !reviewStatus || !reviewContent) return;
+  const staffContent = document.querySelector('#staff-content');
+  if (!tablist || !reviewPanel || !reviewStatus || !reviewContent || !staffContent) return;
 
-  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  const tabs = [...tablist.children].filter(element => element.getAttribute('role') === 'tab');
   const panels = tabs.map(tab => document.getElementById(tab.getAttribute('aria-controls')));
   let loaded = false;
+  if (tabs.length !== panels.length || panels.some(panel => !panel)) return;
 
   function create(tag, className, text) {
     const element = document.createElement(tag);
@@ -24,13 +26,28 @@
       tab.tabIndex = selected ? 0 : -1;
       panels[tabIndex].hidden = !selected;
     });
+    const selectedBounds = tabs[nextIndex].getBoundingClientRect();
+    const tablistBounds = tablist.getBoundingClientRect();
+    if (selectedBounds.left < tablistBounds.left) tablist.scrollLeft -= tablistBounds.left - selectedBounds.left;
+    else if (selectedBounds.right > tablistBounds.right) tablist.scrollLeft += selectedBounds.right - tablistBounds.right;
     if (moveFocus) tabs[nextIndex].focus();
-    if (tabs[nextIndex].id === 'staff-medication-review-tab' && !loaded) loadReview();
+    const nextTab = tabs[nextIndex];
+    if (nextTab.dataset.staffHash) {
+      history.replaceState(null, '', `${location.pathname}${location.search}${nextTab.dataset.staffHash}`);
+    } else if (['#medication-review', '#medication-tests', '#ideas-lab'].includes(location.hash)) {
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+    }
+    if (nextTab.id === 'staff-medication-review-tab' && !loaded && !staffContent.hidden) loadReview();
+  }
+
+  function selectTabFromHash() {
+    const matchingTab = tabs.find(tab => tab.dataset.staffHash === location.hash);
+    if (matchingTab) selectTab(tabs.indexOf(matchingTab));
   }
 
   tablist.addEventListener('click', event => {
     const tab = event.target.closest('[role="tab"]');
-    if (!tab) return;
+    if (!tab || !tabs.includes(tab)) return;
     selectTab(tabs.indexOf(tab));
   });
 
@@ -42,6 +59,14 @@
     else if (event.key === 'Home') { event.preventDefault(); selectTab(0, true); }
     else if (event.key === 'End') { event.preventDefault(); selectTab(tabs.length - 1, true); }
   });
+
+  if (staffContent.hidden) {
+    new MutationObserver(() => {
+      if (!staffContent.hidden) selectTabFromHash();
+    }).observe(staffContent, { attributes: true, attributeFilter: ['hidden'] });
+  } else {
+    selectTabFromHash();
+  }
 
   function addList(parent, items) {
     const list = create('ul');
