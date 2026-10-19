@@ -222,10 +222,17 @@ function positiveAllergyStatements(allergies) {
     .map(statement => statement.trim())
     .filter(statement => statement && !statement.endsWith('?') && !nonaffirmativeAllergy.test(norm(statement))));
 }
+function containsWholeTerm(text, term) {
+  const normalizedText = norm(text);
+  const normalizedTerm = norm(term);
+  if (!normalizedText || !normalizedTerm) return false;
+  const escapedTerm = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${escapedTerm}(?=$|[^a-z0-9])`, 'i').test(normalizedText);
+}
 function directAllergyMatch(ingredient, allergy) {
   const allergyTerm = norm(allergy).replace(/\b(allergy|allergic|reaction|hypersensitivity|anaphylaxis|rash)\b/g, ' ').replace(/\s+/g, ' ').trim();
   if (!allergyTerm) return false;
-  return ingredientTerms(ingredient).some(term => allergyTerm === term || allergyTerm.includes(term));
+  return ingredientTerms(ingredient).some(term => containsWholeTerm(allergyTerm, term));
 }
 function conditionMatches(rule, conditions) {
   const terms = (rule.conditionTerms || []).map(norm).filter(Boolean);
@@ -332,9 +339,9 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
     for (const ingredient of medication.ingredients) {
       const exactAllergy = positiveAllergies.find(allergy => directAllergyMatch(ingredient, allergy));
       if (exactAllergy) alerts.push({ type: 'allergy', severity: 'high', title: 'Recorded ingredient allergy needs review', message: `${medication.name} resolves to ${ingredient.name}, which matches the recorded allergy “${exactAllergy}”. Do not rely on DoctorAI alone; confirm with a pharmacist or prescriber.`, source: { publisher: 'DoctorAI ingredient resolution', recordVersion: 1 } });
-      for (const rule of db.allergyRules || []) if (rule.ingredientClass && (ingredient.classes || []).includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
+      for (const rule of db.allergyRules || []) if (rule.ingredientClass && (ingredient.classes || []).includes(rule.ingredientClass) && allergyText.some(allergy => rule.allergyTerms.some(term => containsWholeTerm(allergy, term)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
     }
-    for (const rule of db.allergyRules || []) if (rule.productClass && (medication.productClasses || []).includes(rule.productClass) && allergyText.some(allergy => rule.allergyTerms.some(term => allergy.includes(norm(term)) || norm(term).includes(allergy)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name}: ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
+    for (const rule of db.allergyRules || []) if (rule.productClass && (medication.productClasses || []).includes(rule.productClass) && allergyText.some(allergy => rule.allergyTerms.some(term => containsWholeTerm(allergy, term)))) alerts.push({ type: 'allergy', severity: rule.severity, title: 'Recorded allergy needs review', message: `${medication.name}: ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });
   }
   const conditionText = conditions.map(norm).filter(Boolean);
   for (const medication of resolved) for (const ingredient of medication.ingredients) for (const rule of db.contraindicationRules || []) if (matchesSide(ingredient, rule.medicine, medication) && conditionMatches(rule, conditionText)) alerts.push({ type: 'contraindication', severity: rule.severity, title: 'Condition and medicine need review', message: `${medication.name} resolves to ${ingredient.name}. ${rule.effect}`, source: sourceFor(rule), ruleId: rule.id, recordVersion: rule.recordVersion || 1, evidenceSummary: rule.evidenceSummary || '' });

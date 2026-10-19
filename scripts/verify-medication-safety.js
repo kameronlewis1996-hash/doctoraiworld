@@ -21,6 +21,22 @@ assert.ok(retainedInteraction.alerts.some(alert => alert.ruleId === 'warfarin-su
 const allergy = review({ medications: ['amoxicillin'], allergies: ['penicillin'] });
 assert.equal(allergy.status, 'red');
 assert.ok(allergy.alerts.some(alert => alert.type === 'allergy'));
+assert.ok(allergy.alerts.some(alert => alert.ruleId === 'penicillin-class'), 'The exact common class label still triggers the curated penicillin prompt');
+
+const penicillinase = review({ medications: ['amoxicillin'], allergies: ['penicillinase'] });
+assert.ok(!penicillinase.alerts.some(alert => alert.type === 'allergy'), 'A longer unrelated word must not match the penicillin class label');
+
+const directIngredientAlias = review({ medications: ['amoxicillin'], allergies: ['amoxycillin'] });
+assert.ok(directIngredientAlias.alerts.some(alert => alert.type === 'allergy'), 'An exact ingredient alias still matches a recorded allergy');
+
+const directIngredientSubstring = review({ medications: ['amoxicillin'], allergies: ['amoxycillinase'] });
+assert.ok(!directIngredientSubstring.alerts.some(alert => alert.type === 'allergy'), 'An ingredient alias embedded in a longer word must not match');
+
+const nsaidClass = review({ medications: ['ibuprofen'], allergies: ['NSAIDs'] });
+assert.ok(nsaidClass.alerts.some(alert => alert.ruleId === 'nsaid-class'), 'The exact common plural NSAID label still triggers its curated class prompt');
+
+const nsaidSubstring = review({ medications: ['ibuprofen'], allergies: ['nonNSAIDish'] });
+assert.ok(!nsaidSubstring.alerts.some(alert => alert.type === 'allergy'), 'A class label embedded in a longer token must not match');
 
 const uncoveredCondition = review({ medications: ['paracetamol'], conditions: ['kidney disease'] });
 assert.equal(uncoveredCondition.status, 'unknown');
