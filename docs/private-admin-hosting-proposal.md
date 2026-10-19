@@ -9,6 +9,8 @@ Reviewed 19 October 2026. This is a read-only proposal; no domain, DNS, Vercel p
 - The current Vercel deployment-protection setting is `all_except_custom_domains`. A custom admin subdomain therefore must not rely on this project's current Vercel authentication boundary. The app's Google session and server-side admin allowlist are the current data gate.
 - Review-only candidates in `review-workspace/` must never be published as static files or loaded directly by the patient-facing application. The root `.vercelignore` now excludes that directory. This reduces accidental publication risk; it is not a replacement for server-side authorization.
 - The existing staff tab returns a fixed display-only packet and the test tab runs fixed synthetic scenarios. It does not import candidate JSON or activate any additional clinical rule.
+- The Ideas Lab saves short notes in this browser only, using a SHA-256 namespace derived from the verified staff email. The notes are not uploaded or synced. This is convenient local persistence, not encryption or a security boundary; the UI warns against health/patient details and confidential source content and provides a clear-all control.
+- The Preview has no isolated KV credentials for durable cross-device storage. `DOCTORAI_TEST_KV_REST_API_URL` and `DOCTORAI_TEST_KV_REST_API_TOKEN` are absent; do not fall back to generic production KV variables. Server-backed ideas sync requires approval and separately provisioned Preview-only KV. `DOCTORAI_TEST_BLOB_READ_WRITE_TOKEN` is not needed for text-only ideas.
 
 ## Options
 
@@ -22,7 +24,7 @@ Reviewed 19 October 2026. This is a read-only proposal; no domain, DNS, Vercel p
 
 Keep `/staff` for the current authenticated administrator and use a dedicated project for a later `admin.doctoraiworld.com` workspace if broader reviewer access is required. Prefer Vercel Authentication plus the app-level staff allowlist, because it avoids a shared gate and Vercel's latest changelog says this protection is now available without an extra feature charge on all plans. Confirm intended reviewer identities and current Vercel billing first. The standalone domain mapping should be made only after explicit DNS/project approval.
 
-Before the separate admin domain is used, verify the Google OAuth authorized origin and redirect URI, cookie `SameSite`/domain behavior, the exact staff allowlist, and that every sensitive API remains server-authorized and `no-store`. Do not place source candidate files in the static root or create a public rewrite to them. A future authenticated review UI should read review data from a server route that checks the admin session; it must not fetch `review-workspace/*.json` from the browser.
+Before the separate admin domain is used, verify the Google OAuth authorized origin and redirect URI, cookie `SameSite`/domain behavior, the exact staff allowlist, and that every sensitive API remains server-authorized and `no-store`. Do not place source candidate files in the static root or create a public rewrite to them. A future authenticated review UI should read review data from a server route that checks the admin session; it must not fetch `review-workspace/*.json` from the browser. If ideas must sync across devices, approve and configure the isolated Preview KV variables named above, add an admin-authorized server route with per-user scoping and `no-store` responses, then test access denial and account isolation before enabling it.
 
 ## Approval gates
 
@@ -31,6 +33,7 @@ Before the separate admin domain is used, verify the Google OAuth authorized ori
 3. Approve or decline the separate Vercel project and the DNS CNAME for `admin.doctoraiworld.com`. No domain purchase is proposed.
 4. Approve a data-handling scope for candidate evidence, including who can view it and how it is retained. Source reuse rights and competent clinical review remain separate gates.
 5. Test the origin-specific login/session behavior and API denials on a protected preview before any custom domain is mapped.
+6. For shared Ideas Lab persistence, separately approve Preview-only KV and configure `DOCTORAI_TEST_KV_REST_API_URL` plus `DOCTORAI_TEST_KV_REST_API_TOKEN`; this is not enabled by the current branch.
 
 ## Official Vercel references
 

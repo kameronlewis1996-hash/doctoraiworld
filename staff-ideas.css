@@ -2,6 +2,12 @@
 .staff-ideas-intro{max-width:68ch;margin:8px 0 0;color:#405a79;font-size:14px;line-height:1.6}
 .staff-ideas-note{margin:15px 0;padding:13px 15px;border:1px solid #edcc91;border-radius:12px;background:#fff8ea;color:#694a14;font-size:13px;line-height:1.55}
 .staff-idea-form{display:grid;gap:13px;margin-top:18px;padding:18px;border:1px solid #d7e3f3;border-radius:14px;background:#fff}
+.staff-ideas-manage{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:18px 0 10px}
+.staff-ideas-manage label{display:grid;gap:5px;color:#244c83;font-size:13px;font-weight:800}
+.staff-ideas-manage select{min-height:44px;min-width:180px;padding:8px 11px;border:1px solid #cbdcf5;border-radius:9px;background:#fff;color:#071b46;font:inherit;font-size:14px}
+.staff-ideas-manage .staff-idea-clear{min-height:44px;padding:0 13px;border:1px solid #aebed2;border-radius:9px;background:#fff;color:#405a79;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.staff-ideas-manage .staff-idea-clear:hover:not(:disabled){background:#f5f8ff}
+.staff-ideas-manage .staff-idea-clear:disabled{opacity:.55;cursor:not-allowed}
 .staff-idea-form label{display:grid;gap:6px;color:#244c83;font-size:13px;font-weight:800}
 .staff-idea-form :is(input,select,textarea){width:100%;min-height:46px;padding:10px 12px;border:1px solid #cbdcf5;border-radius:9px;background:#fff;color:#071b46;font:inherit;font-size:16px}
 .staff-idea-form textarea{min-height:110px;resize:vertical;line-height:1.5}
@@ -19,4 +25,5 @@
 .staff-idea-card p{margin:6px 0 0;color:#405a79;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
 .staff-ideas-empty{margin:16px 0 0;color:#617690;font-size:13px;line-height:1.5}
 @media(prefers-reduced-motion:reduce){.staff-ideas-panel *{scroll-behavior:auto}}
+@media(max-width:560px){.staff-tabs{flex-wrap:wrap;overflow:visible;overscroll-behavior:auto}.staff-tabs [role=tab]{flex:1 1 calc(50% - 8px);justify-content:center;text-align:center}}
 @media(max-width:420px){.staff-page .top{display:grid;grid-template-columns:1fr;gap:8px}.staff-page .brand{width:100%;flex:1 1 auto}.staff-page .back{justify-self:start;max-width:none;justify-content:flex-start;text-align:left}}

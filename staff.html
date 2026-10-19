@@ -49,7 +49,7 @@
   <script defer src="/feature-icons.js?v=8"></script>
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
   <link rel="stylesheet" href="/staff-medication-tests.css?v=1">
-  <link rel="stylesheet" href="/staff-review.css?v=2"><link rel="stylesheet" href="/staff-ideas.css?v=2">
+  <link rel="stylesheet" href="/staff-review.css?v=2"><link rel="stylesheet" href="/staff-ideas.css?v=4">
 </head>
 <body class="doctorai-system-page staff-page" data-staff-page data-subscription="free">
     <main><div class="top"><a class="brand" href="/health-hub#today"><img data-brand-logo src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI"><span>DoctorAI Staff Only</span></a><a class="back" href="/health-hub#today">Back to Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a></div>
@@ -71,8 +71,8 @@
   </section>
   <section class="staff-tab-panel staff-ideas-panel" role="tabpanel" id="staff-ideas-panel" aria-labelledby="staff-ideas-tab" hidden>
     <h2 id="staff-ideas-heading">Ideas lab</h2>
-    <p class="staff-ideas-intro">Capture product and workflow ideas for this review session.</p>
-    <p class="staff-ideas-note" role="note">Temporary only: ideas stay in this page memory and disappear when you reload or leave. They are not sent or saved. Do not include patient details, medicine information, or confidential source material.</p>
+    <p class="staff-ideas-intro">Capture and organise product and workflow ideas for this review session.</p>
+    <p class="staff-ideas-note" role="note">Saved only in this browser, not uploaded or synced. Other people using this browser may see your notes. Avoid patient, medicine, or confidential source details; clear saved ideas before sharing this device.</p>
     <form class="staff-idea-form" id="staff-idea-form">
       <label for="staff-idea-category">Category</label>
       <select id="staff-idea-category" name="category" required>
@@ -84,19 +84,26 @@
       <textarea id="staff-idea-details" name="details" maxlength="600" rows="4" required></textarea>
       <button type="submit">Add idea</button>
     </form>
-    <p class="staff-idea-status" id="staff-idea-status" role="status" aria-live="polite" aria-atomic="true">No ideas added. Add a short product or workflow idea above.</p>
-    <ul class="staff-idea-list" id="staff-idea-list" aria-label="Temporary ideas"></ul>
+    <div class="staff-ideas-manage">
+      <label for="staff-idea-filter">Show category</label>
+      <select id="staff-idea-filter">
+        <option value="all">All categories</option><option value="Product">Product</option><option value="Clarity">Clarity</option><option value="Accessibility">Accessibility</option><option value="Reliability">Reliability</option><option value="Other">Other</option>
+      </select>
+      <button type="button" class="staff-idea-clear" id="staff-idea-clear" disabled>Clear saved ideas</button>
+    </div>
+    <p class="staff-idea-status" id="staff-idea-status" role="status" aria-live="polite" aria-atomic="true">Verifying staff access before loading saved ideas.</p>
+    <ul class="staff-idea-list" id="staff-idea-list" aria-label="Saved staff ideas"></ul>
   </section>
 </div>
       <div class="restricted" id="restricted" hidden><h2>Staff access is restricted</h2><p>This workspace is available only to authorised DoctorAI staff. Open the Health Hub, sign in with an approved Google account, then return here.</p><a class="apply" href="/health-hub#today" target="_blank" rel="noreferrer">Sign in through Health Hub</a><br><a class="apply" href="mailto:support@doctoraiworld.com?subject=Apply for a job with DoctorAI">Apply for a job with DoctorAI</a></div>
     </section><div class="footer">DoctorAI · Private staff tools · Not medical care</div>
   </main>
   <script>
-    (async()=>{const status=document.querySelector('#status'),staff=document.querySelector('#staff-content'),restricted=document.querySelector('#restricted');try{const r=await fetch('/api/staff/access',{headers:{accept:'application/json'}});const p=await r.json();if(r.ok&&p.allowed){status.textContent=`Signed in as ${p.email} · Staff admin access granted.`;staff.hidden=false}else{status.textContent=p.reason||'Staff access is restricted.';status.classList.add('error');restricted.hidden=false}}catch{status.textContent='Staff access could not be verified.';status.classList.add('error');restricted.hidden=false}})();
+    (async()=>{const status=document.querySelector('#status'),staff=document.querySelector('#staff-content'),restricted=document.querySelector('#restricted');try{const r=await fetch('/api/staff/access',{headers:{accept:'application/json'}});const p=await r.json();if(r.ok&&p.allowed){status.textContent=`Signed in as ${p.email} · Staff admin access granted.`;staff.dataset.staffAdminEmail=String(p.email||'');staff.hidden=false;staff.dispatchEvent(new CustomEvent('staffaccessgranted',{detail:{email:staff.dataset.staffAdminEmail}}))}else{status.textContent=p.reason||'Staff access is restricted.';status.classList.add('error');restricted.hidden=false}}catch{status.textContent='Staff access could not be verified.';status.classList.add('error');restricted.hidden=false}})();
   </script>
 </body>
   <script src="/staff-grants.js?v=3"></script>
   <script defer src="/staff-medication-tests.js?v=3"></script>
   <script src="/staff-review.js?v=2" defer></script>
-  <script src="/staff-ideas.js?v=1" defer></script>
+  <script src="/staff-ideas.js?v=2" defer></script>
 </html>

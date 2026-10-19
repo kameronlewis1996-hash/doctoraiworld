@@ -79,17 +79,28 @@ async function main() {
   assert.match(html, /staff-review\.js\?v=2/);
   assert.match(html, /staff-medication-tests\.css\?v=1/);
   assert.match(html, /staff-medication-tests\.js\?v=3/);
-  assert.match(html, /staff-ideas\.css\?v=2/);
-  assert.match(html, /staff-ideas\.js\?v=1/);
+  assert.match(html, /staff-ideas\.css\?v=4/);
+  assert.match(html, /staff-ideas\.js\?v=2/);
   assert.match(medicationTests, /querySelector\('#staff-medication-tests-panel'\)/);
   assert.match(medicationTests, /scenarioId/);
   assert.match(medicationTests, /credentials:\s*'same-origin'/);
   assert.match(medicationTests, /cache:\s*'no-store'/);
   assert.doesNotMatch(medicationTests, /localStorage|sessionStorage|review-workspace|catalogue\.v\d+\.json/);
-  assert.match(html, /ideas stay in this page memory and disappear when you reload or leave/);
-  assert.match(ideasScript, /const ideas = \[\]/);
+  assert.match(html, /Saved only in this browser, not uploaded or synced/);
+  assert.match(html, /staff-idea-filter/);
+  assert.match(html, /Clear saved ideas/);
+  assert.match(html, /staffAdminEmail/);
+  assert.match(ideasScript, /doctorai-staff-ideas-v1:/);
+  assert.match(ideasScript, /staffaccessgranted/);
+  assert.match(ideasScript, /crypto\.subtle\.digest\('SHA-256'/);
+  assert.match(ideasScript, /localStorage\.getItem/);
+  assert.match(ideasScript, /localStorage\.setItem/);
+  assert.match(ideasScript, /localStorage\.removeItem/);
+  assert.match(ideasScript, /No ideas.*sync|not synced to other devices/s);
   assert.match(ideasScript, /textContent/);
-  assert.doesNotMatch(ideasScript, /fetch\s*\(|localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|review-workspace/);
+  assert.doesNotMatch(ideasScript, /fetch\s*\(|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|review-workspace/);
+  assert.match(ideasScript, /staffContent\.hidden \|\| !staffAccessVerified/);
+  assert.match(ideasScript, /maximumIdeas = 30/);
   assert.match(ideasStyles, /\.staff-idea-form/);
   assert.match(html, /:focus-visible/);
   assert.match(vercelIgnore, /(?:^|\r?\n)review-workspace\/?(?:\r?\n|$)/);
@@ -110,7 +121,9 @@ async function main() {
   assert.match(api, /core\.noStore\(response\)/);
   assert.match(html, /id="staff-content" hidden/);
 
-  console.log('Staff review workspaces passed: 405/401/403/200 access gates, four keyboard tabs, fixed fictional tests, memory-only ideas, and Vercel exclusion contract.');
+  await require('./verify-staff-ideas.cjs')();
+
+  console.log('Staff review workspaces passed: 405/401/403/200 access gates, four keyboard tabs, fixed fictional tests, account-scoped browser ideas, and Vercel exclusion contract.');
 }
 
 main().catch(error => {
