@@ -10,8 +10,12 @@ const handler = require('../api/staff/medication-review.js');
 const html = fs.readFileSync(path.join(root, 'staff.html'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'staff-review.js'), 'utf8');
 const medicationTests = fs.readFileSync(path.join(root, 'staff-medication-tests.js'), 'utf8');
+const ideasScript = fs.readFileSync(path.join(root, 'staff-ideas.js'), 'utf8');
+const ideasStyles = fs.readFileSync(path.join(root, 'staff-ideas.css'), 'utf8');
 const api = fs.readFileSync(path.join(root, 'api/staff/medication-review.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'staff-review.css'), 'utf8');
+const vercelIgnore = fs.readFileSync(path.join(root, '.vercelignore'), 'utf8');
+const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 
 function response() {
   return {
@@ -57,13 +61,51 @@ async function main() {
   assert.match(html, /role="tablist"[^>]*data-staff-tabs/);
   assert.match(html, /role="tab" id="staff-medication-review-tab"/);
   assert.match(html, /role="tabpanel" id="staff-review-panel"[^>]*hidden/);
+  for (const [id, label] of [
+    ['staff-tools-tab', 'Site tools'],
+    ['staff-medication-review-tab', 'Medication review'],
+    ['staff-medication-tests-tab', 'Testing lab'],
+    ['staff-ideas-tab', 'Ideas lab']
+  ]) {
+    assert.match(html, new RegExp(`role="tab" id="${id}"[^>]*>${label}</button>`));
+  }
+  for (const id of ['staff-tools-panel', 'staff-review-panel', 'staff-medication-tests-panel', 'staff-ideas-panel']) {
+    assert.match(html, new RegExp(`role="tabpanel" id="${id}"[^>]*`));
+  }
+  assert.match(html, /data-staff-hash="#medication-tests"/);
+  assert.match(html, /data-staff-hash="#ideas-lab"/);
   assert.match(html, /Sign in through Health Hub/);
-  assert.match(html, /staff-review\.css\?v=1/);
-  assert.match(html, /staff-review\.js\?v=1/);
+  assert.match(html, /staff-review\.css\?v=2/);
+  assert.match(html, /staff-review\.js\?v=2/);
   assert.match(html, /staff-medication-tests\.css\?v=1/);
-  assert.match(html, /staff-medication-tests\.js\?v=2/);
-  assert.match(medicationTests, /querySelector\('#staff-tools-panel'\) \|\| content/);
-  assert.match(medicationTests, /observe\(workspace, \{ attributes: true, attributeFilter: \['hidden'\] \}\)/);
+  assert.match(html, /staff-medication-tests\.js\?v=3/);
+  assert.match(html, /staff-ideas\.css\?v=4/);
+  assert.match(html, /staff-ideas\.js\?v=2/);
+  assert.match(medicationTests, /querySelector\('#staff-medication-tests-panel'\)/);
+  assert.match(medicationTests, /scenarioId/);
+  assert.match(medicationTests, /credentials:\s*'same-origin'/);
+  assert.match(medicationTests, /cache:\s*'no-store'/);
+  assert.doesNotMatch(medicationTests, /localStorage|sessionStorage|review-workspace|catalogue\.v\d+\.json/);
+  assert.match(html, /Saved only in this browser, not uploaded or synced/);
+  assert.match(html, /staff-idea-filter/);
+  assert.match(html, /Clear saved ideas/);
+  assert.match(html, /staffAdminEmail/);
+  assert.match(ideasScript, /doctorai-staff-ideas-v1:/);
+  assert.match(ideasScript, /staffaccessgranted/);
+  assert.match(ideasScript, /crypto\.subtle\.digest\('SHA-256'/);
+  assert.match(ideasScript, /localStorage\.getItem/);
+  assert.match(ideasScript, /localStorage\.setItem/);
+  assert.match(ideasScript, /localStorage\.removeItem/);
+  assert.match(ideasScript, /No ideas.*sync|not synced to other devices/s);
+  assert.match(ideasScript, /textContent/);
+  assert.doesNotMatch(ideasScript, /fetch\s*\(|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|review-workspace/);
+  assert.match(ideasScript, /staffContent\.hidden \|\| !staffAccessVerified/);
+  assert.match(ideasScript, /maximumIdeas = 30/);
+  assert.match(ideasStyles, /\.staff-idea-form/);
+  assert.match(html, /:focus-visible/);
+  assert.match(vercelIgnore, /(?:^|\r?\n)review-workspace\/?(?:\r?\n|$)/);
+  assert.doesNotMatch(html, /(?:src|href)=["'][^"']*review-workspace/);
+  assert.doesNotMatch(JSON.stringify([...(vercelConfig.redirects || []), ...(vercelConfig.rewrites || [])]), /review-workspace/);
   assert.match(script, /ArrowRight/);
   assert.match(script, /ArrowLeft/);
   assert.match(script, /Home/);
@@ -79,7 +121,9 @@ async function main() {
   assert.match(api, /core\.noStore\(response\)/);
   assert.match(html, /id="staff-content" hidden/);
 
-  console.log('Staff medication review passed: 405/401/403/200 access gates, no-store response, admin-only tabs, display-only fixtures, and keyboard navigation.');
+  await require('./verify-staff-ideas.cjs')();
+
+  console.log('Staff review workspaces passed: 405/401/403/200 access gates, four keyboard tabs, fixed fictional tests, account-scoped browser ideas, and Vercel exclusion contract.');
 }
 
 main().catch(error => {
