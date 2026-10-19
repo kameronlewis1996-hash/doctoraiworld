@@ -93,9 +93,10 @@ function createHealthAlertsEngine(medicineEngine) {
 
   function positiveDetail(item) {
     if (item.excluded) return false;
+    if (item.kind === 'allergy' && item.value.includes('?')) return false;
     const value = norm(item.value);
     if (/^(?:none|none known|no known allergies|no allergies|nkda|nka|unknown|not added|not known|not provided|n\/a)$/.test(value)) return false;
-    if (/\b(?:no|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|possible|possibly|suspected|maybe|query|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/.test(value) || value.endsWith('?')) return false;
+    if (/\b(?:no|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|possible|possibly|suspected|maybe|query|history of|historical|previously|in the past|last year|childhood|used to|past episode|resolved|recovered from|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/.test(value) || value.endsWith('?')) return false;
     return affirmativeMatches(value, /[a-z][a-z -]*/i, true).length > 0;
   }
 
@@ -140,6 +141,11 @@ function createHealthAlertsEngine(medicineEngine) {
     const urgentAction = 'If this is happening now, seek urgent medical advice now. For severe symptoms, collapse or immediate danger, call your local emergency service. If it has resolved but was not assessed, contact a clinician promptly.';
     const emergencyAction = 'If this is happening now, call your local emergency service now (111 in New Zealand). Do not wait for DoctorAI. If the episode has resolved and was not assessed, seek prompt clinical advice.';
 
+    const uncertainAllergies = allergyItems.filter(item => !allergies.includes(item) && /\b(?:possible|possibly|suspected|maybe|query|question of|history of|historical|previously|in the past|last year|childhood|used to|past episode|resolved|recovered from)\b|\?/i.test(item.value));
+    for (const allergy of uncertainAllergies) {
+      add({ type: 'allergy-record-unconfirmed', severity: 'unknown', title: 'Allergy entry needs confirmation', message: 'This saved allergy entry is uncertain or historical. DoctorAI did not treat it as a confirmed allergy or as proof that there is no allergy.', triggers: [allergy], nextAction: 'Confirm the current allergy history with a pharmacist or clinician. Do not rely on this limited checker to rule out an allergy.', ruleId: 'allergy-record-unconfirmed', sources: [internal] });
+    }
+
     // Reuse the original rule evaluation for each exact pair so each prompt has
     // explicit medicine triggers, without inferring pairs from message text.
     // Absence of a retained rule is recorded as unassessed, never as a clean pair.
@@ -163,6 +169,23 @@ function createHealthAlertsEngine(medicineEngine) {
           add({ type: alert.type === 'interaction' ? 'medication-medication' : 'duplicate-ingredient', severity: alert.severity, title: alert.title, message: alert.message, triggers: [medicineTriggers[left], medicineTriggers[right]], nextAction: reviewAction, ruleId: alert.ruleId, sources: [alert.source] });
         }
       }
+    }
+    for (const alert of medicationReview.alerts.filter(item => item.type === 'interaction' && item.subtype === 'multi-medicine')) {
+      const indexes = [...new Set(Array.isArray(alert.medicationIndexes) ? alert.medicationIndexes : [])]
+        .filter(index => Number.isInteger(index) && index >= 0 && index < medicineTriggers.length);
+      const exactTriggers = indexes.map(index => medicineTriggers[index]);
+      // Preserve the prompt even if an older/malformed engine result lacks
+      // exact indices. In that case point to the full active list.
+      add({
+        type: 'medication-medication',
+        severity: alert.severity,
+        title: alert.title,
+        message: exactTriggers.length ? alert.message : 'A retained multi-medicine prompt matched, but its exact saved-medicine links are unavailable. Review the full active medicine list with a pharmacist or prescriber.',
+        triggers: exactTriggers.length ? exactTriggers : medicineTriggers,
+        nextAction: reviewAction,
+        ruleId: alert.ruleId,
+        sources: [alert.source]
+      });
     }
     if (pairCoverage.unassessedPairs > 0) {
       const examples = pairCoverage.unassessed.slice(0, 3).map(pair => `${pair.left} + ${pair.right}`).join('; ');

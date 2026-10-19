@@ -38,6 +38,12 @@ assert.ok(nsaidClass.alerts.some(alert => alert.ruleId === 'nsaid-class'), 'The 
 const nsaidSubstring = review({ medications: ['ibuprofen'], allergies: ['nonNSAIDish'] });
 assert.ok(!nsaidSubstring.alerts.some(alert => alert.type === 'allergy'), 'A class label embedded in a longer token must not match');
 
+for (const allergyText of ['Penicillin allergy?', 'Penicillin allergy? just asking', 'History of penicillin allergy']) {
+  const uncertainAllergy = review({ medications: ['amoxicillin'], allergies: [allergyText] });
+  assert.ok(!uncertainAllergy.alerts.some(alert => alert.type === 'allergy'), `${allergyText} must not be treated as a confirmed current allergy`);
+  assert.equal(uncertainAllergy.coverage.completeForRequest, false, 'Uncertain allergy wording must not produce a complete or safe result');
+}
+
 const uncoveredCondition = review({ medications: ['paracetamol'], conditions: ['kidney disease'] });
 assert.equal(uncoveredCondition.status, 'unknown');
 assert.equal(uncoveredCondition.coverage.completeForRequest, false);

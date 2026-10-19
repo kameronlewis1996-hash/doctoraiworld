@@ -1,7 +1,8 @@
 'use strict';
 
-// All fixtures below are invented and exist only in this verification script.
-// No browser health storage, live accounts, production data or APIs are used.
+// All records below are synthetic verification inputs; catalogue-backed cases
+// use pinned public product labels only to exercise exact name/route lookup.
+// No browser health storage, live accounts, production user data or APIs are used.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -9,6 +10,7 @@ const vm = require('node:vm');
 const { execFileSync } = require('node:child_process');
 const medicationEngine = require('../server-src/medication/safety-engine.cjs');
 const { createHealthAlertsEngine } = require('../server-src/health/alerts-engine.cjs');
+const pharmac = require('../data/medication/nz-pharmac-medicines.json');
 const engine = createHealthAlertsEngine(medicationEngine);
 const root = path.resolve(__dirname, '..');
 const now = '2026-10-11T12:00:00Z';
@@ -54,6 +56,31 @@ check('medication-medication-catalogue-brand', () => {
   assert.equal(result.coverage.medications.resolved, 2);
 });
 check('duplicate-ingredient', () => assert.ok(has(evaluate({ medications: [label('d1', 'paracetamol'), label('d2', 'acetaminophen')] }), 'duplicate-ingredient')));
+check('multi-medicine-rule-reaches-health-alerts-with-exact-triggers', () => {
+  const catalogueLabel = (productId, ingredient) => {
+    const product = pharmac.products.find(item => item.id === productId);
+    assert.ok(product, `Synthetic fixture product ${productId} must remain in the pinned catalogue`);
+    return { id: productId, name: product.name, activeIngredients: [ingredient], activeIngredientsManuallyConfirmed: true };
+  };
+  const medications = [
+    catalogueLabel('pharmac-16d587d3ac509b1d', 'Perindopril'),
+    catalogueLabel('pharmac-edf9bc89ac681b09', 'Furosemide'),
+    catalogueLabel('pharmac-9e06355ab49a321f', 'Ibuprofen')
+  ];
+  const engineResult = medicationEngine.review({ medications });
+  const engineAlert = engineResult.alerts.find(item => item.ruleId === 'ras-inhibitor-diuretic-nsaid-aki');
+  assert.ok(engineAlert, 'The retained combination rule should match the confirmed synthetic labels');
+  assert.deepEqual(engineAlert.medicationIndexes, [0, 1, 2]);
+  const result = evaluate({ medications });
+  const alert = result.alerts.find(item => item.type === 'medication-medication' && item.ruleId === 'ras-inhibitor-diuretic-nsaid-aki');
+  assert.ok(alert, 'The health-alert adapter must preserve the combination alert');
+  assert.deepEqual(alert.triggers.map(item => item.id), medications.map(item => item.id));
+  assert.equal(alert.severity, 'high');
+  assert.ok(alert.sources.some(source => source.publisher === engineAlert.source.publisher));
+  assert.equal(result.coverage.medicationMedication.requestedPairs, 3);
+  assert.equal(result.coverage.medicationMedication.assessedPairs, 0, 'A triple rule must not be counted as pairwise coverage');
+  assert.equal(result.coverage.medicationMedication.unassessedPairs, 3);
+});
 check('allergy-medication', () => assert.ok(has(evaluate({ medications: [label('pen', 'amoxicillin')], profile: { allergies: 'Penicillin (rash)' } }), 'allergy-medication', 'penicillin-class')));
 check('condition-coverage-remains-unassessed', () => {
   const result = evaluate({ medications: [label('ibu', 'ibuprofen')], profile: { conditions: 'Asthma' } });
@@ -83,6 +110,15 @@ for (const value of ['No chest pain', 'History of sudden chest pain', 'Mother ha
 });
 for (const value of ['No penicillin allergy', 'Not allergic to penicillin', 'Penicillin allergy ruled out', 'Family history of penicillin allergy', 'Possible penicillin allergy', 'I don’t have a penicillin allergy', "I'm not allergic to penicillin", 'I haven’t had penicillin allergy']) check(`allergy-nonaffirmative-${value}`, () => {
   assert.ok(!has(evaluate({ medications: [label('pen', 'amoxicillin')], profile: { allergies: value } }), 'allergy-medication'));
+});
+for (const value of ['Penicillin allergy?', 'Penicillin allergy? just asking', 'History of penicillin allergy', 'Possible penicillin allergy']) check(`allergy-uncertain-record-visible-${value}`, () => {
+  const result = evaluate({ medications: [label('pen', 'amoxicillin')], profile: { allergies: value } });
+  assert.ok(!has(result, 'allergy-medication'), 'Uncertain/historical wording is not promoted into a confirmed allergy match');
+  const notice = result.alerts.find(item => item.type === 'allergy-record-unconfirmed');
+  assert.ok(notice, 'Uncertain allergy history must remain visible as an unknown record, not disappear');
+  assert.equal(notice.severity, 'unknown');
+  assert.match(notice.message, /did not treat it as a confirmed allergy or as proof that there is no allergy/);
+  assert.equal(result.coverage.allergyMedication.excludedOrUncertain, 1);
 });
 check('negation-scope-stops-at-but', () => {
   const result = evaluate({ medications: [label('pen', 'amoxicillin'), label('ibu', 'ibuprofen')], profile: { allergies: 'No penicillin allergy but ibuprofen rash' } });

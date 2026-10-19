@@ -215,10 +215,10 @@ function distinctCombinationEntries(componentMatches) {
   return assign(0, new Set()) ? selected.slice() : null;
 }
 const sourceFor = rule => rule.source || { publisher: 'DoctorAI medication database' };
-const nonaffirmativeAllergy = /\b(?:no|not sure|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|uncertain|uncertainty|unconfirmed|possible|possibly|potential|suspected|maybe|query|if|asked about|question of|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/i;
+const nonaffirmativeAllergy = /\b(?:no|not sure|not|without|denies?|denied|never|negative for|ruled out|free of|absence of|uncertain|uncertainty|unconfirmed|possible|possibly|potential|suspected|maybe|query|if|asked about|question of|history of|historical|previously|in the past|last year|childhood|used to|past episode|resolved|recovered from|family history|mother|father|sister|brother|parent|partner|child|son|daughter)\b/i;
 function positiveAllergyStatements(allergies) {
-  return allergies.flatMap(allergy => String(allergy || '')
-    .split(/[;,\n.!?]|\b(?:but|however|except)\b/gi)
+  return allergies.flatMap(allergy => (String(allergy || '').match(/[^;,\n.!?]+(?:\?)?/g) || [])
+    .flatMap(statement => statement.split(/\b(?:but|however|except)\b/gi))
     .map(statement => statement.trim())
     .filter(statement => statement && !statement.endsWith('?') && !nonaffirmativeAllergy.test(norm(statement))));
 }
@@ -327,6 +327,7 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
       severity: rule.severity,
       title: 'Potential multi-medicine interaction',
       message: `${[...implicated.values()].map(medication => medication.name).join(' + ')}: ${rule.effect}`,
+      medicationIndexes: [...implicated.keys()],
       source: sourceFor(rule),
       ruleId: rule.id,
       recordVersion: rule.recordVersion || 1,
