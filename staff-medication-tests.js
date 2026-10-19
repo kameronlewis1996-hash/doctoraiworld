@@ -225,8 +225,13 @@
 
   const content = document.querySelector('#staff-content');
   if (!content) return;
-  if (!content.hidden) addTabWorkspace(content);
-  new MutationObserver(() => {
-    if (!content.hidden) addTabWorkspace(content);
-  }).observe(content, { attributes: true, attributeFilter: ['hidden'] });
+  const workspace = content.querySelector('#staff-tools-panel') || content;
+  const prepareWorkspace = () => {
+    if (!content.hidden && !workspace.hidden) addTabWorkspace(workspace);
+  };
+  prepareWorkspace();
+  new MutationObserver(prepareWorkspace).observe(content, { attributes: true, attributeFilter: ['hidden'] });
+  if (workspace !== content) {
+    new MutationObserver(prepareWorkspace).observe(workspace, { attributes: true, attributeFilter: ['hidden'] });
+  }
 })();

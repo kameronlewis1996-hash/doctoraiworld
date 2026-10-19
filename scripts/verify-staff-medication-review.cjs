@@ -9,6 +9,7 @@ const core = require('../server-src/_lib/doctorai-core.cjs');
 const handler = require('../api/staff/medication-review.js');
 const html = fs.readFileSync(path.join(root, 'staff.html'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'staff-review.js'), 'utf8');
+const medicationTests = fs.readFileSync(path.join(root, 'staff-medication-tests.js'), 'utf8');
 const api = fs.readFileSync(path.join(root, 'api/staff/medication-review.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'staff-review.css'), 'utf8');
 
@@ -59,6 +60,10 @@ async function main() {
   assert.match(html, /Sign in through Health Hub/);
   assert.match(html, /staff-review\.css\?v=1/);
   assert.match(html, /staff-review\.js\?v=1/);
+  assert.match(html, /staff-medication-tests\.css\?v=1/);
+  assert.match(html, /staff-medication-tests\.js\?v=2/);
+  assert.match(medicationTests, /querySelector\('#staff-tools-panel'\) \|\| content/);
+  assert.match(medicationTests, /observe\(workspace, \{ attributes: true, attributeFilter: \['hidden'\] \}\)/);
   assert.match(script, /ArrowRight/);
   assert.match(script, /ArrowLeft/);
   assert.match(script, /Home/);
