@@ -94,6 +94,8 @@ The verifier serves the actual local files with repository CSP, blocks external 
 
 ## Release state and remaining gaps
 
-No branch push, remote draft PR, preview deployment, production deployment or merge was performed. The feature-branch Git integration automatically creates Vercel previews. Because deployment was explicitly prohibited, pushing and creating the draft PR are **pending further authorization**; this is a known automatic side effect, not an uncertain push outcome or an automatic approval denial. [The exact draft PR text](PR.md) is prepared locally. Deployment configuration was left unchanged.
+The follow-up authorization permits publishing the styling branch, opening a draft PR, and verifying its normal Vercel feature preview. Production release, merging, promotion, broader preview access and security-setting changes remain prohibited. The earlier publication hold is resolved by that explicit clarification. No deployment configuration changes are needed.
+
+The [draft PR description](PR.md) accompanies this branch. Hosted PR, CI and exact preview identity/results are recorded in the PR and `/workspace/doctoraiworld-style-delivery-20261020.json`. The local verification above is separate from hosted acceptance.
 
 Real sign-in, protected hosted staff data, live Google OAuth, paid scans, payments, external research responses, cross-device persistence, real devices, screen-reader acceptance and live-browser pixel rendering were not tested. Fictional staff responses are local browser fixtures, not bypasses or changes to production access. No production health data or review records were read or written.

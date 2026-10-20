@@ -6,6 +6,6 @@ DoctorAI's public resources and private staff tools had drifted from the welcome
 
 No API, medical wording/rules, dataset, authentication, storage, payment, route, security or deployment configuration changes. Update the PWA shell cache and associated asset assertions so the new style is available offline.
 
-See [visual evidence, route inventory, test results and known gaps](review.md). All screenshots are local Chromium renders. Live welcome HTML and CSS were retrieved read-only and match the baseline source. No preview deployment, production deployment or merge has been made.
+See [visual evidence, route inventory, test results and known gaps](review.md). All screenshots are local Chromium renders. Live welcome HTML and CSS were retrieved read-only and match the baseline source. A normal feature-branch preview is authorized for review. No production release or merge is authorized.
 
-This PR is prepared locally. Pushing is pending explicit permission because the repository's Git integration automatically creates Vercel preview deployments for feature branches; the user prohibited deployment for this task. Deployment settings were not changed to bypass that restriction.
+The follow-up authorization explicitly permits branch publication, this draft PR and its normal Vercel preview. Production promotion, merging, broader preview access and security-setting changes remain prohibited. Exact hosted verification and CI status will be recorded on this PR.
