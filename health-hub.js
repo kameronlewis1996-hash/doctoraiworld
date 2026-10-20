@@ -717,6 +717,18 @@
     if (open) { closeProfile(); requestAnimationFrame(() => (document.querySelector('#category-bar [aria-current="page"]') || document.querySelector('#category-bar [data-view]'))?.focus({ preventScroll: true })); }
     else if (restoreFocus) button?.focus({ preventScroll: true });
   }
+  // Presentation-only filtering: alerts and loading/error status remain visible.
+  function selectTodaySection(value) {
+    const panels = [...document.querySelectorAll('#view-today [data-today-section]')];
+    const selected = value === 'all' || panels.some(panel => panel.dataset.todaySection === value) ? value : 'all';
+    panels.forEach(panel => { panel.hidden = selected !== 'all' && panel.dataset.todaySection !== selected; });
+    document.querySelectorAll('[data-today-section-select]').forEach(select => { select.value = selected; });
+    document.querySelectorAll('[data-today-section-target]').forEach(button => {
+      const active = button.dataset.todaySectionTarget === selected;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'true'); else button.removeAttribute('aria-current');
+    });
+  }
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
     const next = route.view; currentView = next; currentHubPanel = route.panel;
@@ -748,7 +760,11 @@
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
     const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
-    if (breadcrumb) breadcrumb.hidden = next === 'today';
+    if (breadcrumb) {
+      breadcrumb.hidden = false;
+      breadcrumb.querySelector('[data-view="today"]').hidden = next === 'today';
+      breadcrumb.querySelector('span[aria-hidden]').hidden = next === 'today';
+    }
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');
     if (parentDivider) parentDivider.hidden = !parentView;
@@ -4172,6 +4188,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       return;
     }
+    const todaySection = event.target.closest('[data-today-section-target]');
+    if (todaySection) { selectTodaySection(todaySection.dataset.todaySectionTarget); return; }
     const nestedTarget = event.target.closest('[data-hub-panel-target]');
     if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, true, nestedTarget.dataset.hubPanelTarget); return; }
     const viewTarget = event.target.closest('[data-view]');
@@ -4833,6 +4851,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
+    if (event.target.matches('[data-today-section-select]')) { selectTodaySection(event.target.value); return; }
     if (event.target.matches('[data-hub-section-select]')) { showView('health', true, true, event.target.value); return; }
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });

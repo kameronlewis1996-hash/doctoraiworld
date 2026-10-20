@@ -1,5 +1,7 @@
 # Welcome-page visual consistency — 20 October 2026
 
+This records the initial styling pass. The later approved Today layout refinement, its changed markup/presentation controls and focused verification are documented in [Today layout follow-up](../today-layout-20261020/review.md). Earlier screenshots and counts below remain evidence of the initial pass.
+
 Implementation and verification performed with Astra. Baseline: current main `5881b2019d847749ec97a04285543554bf8999a2`. Worktree: `/workspace/doctoraiworld-style`; branch: `style/welcome-consistency-20261020`. Main was fetched again before packaging and remained at that baseline. The concurrent database work is not included.
 
 ## Canonical design and live inspection

@@ -1,0 +1,98 @@
+{
+  "checks": [
+    "320: identical hero geometry, transparent page, no overflow, all six section choices, keyboard, always-visible alerts, Add/Manage, My Health picker, diary save, bottom clearance",
+    "390: identical hero geometry, transparent page, no overflow, all six section choices, keyboard, always-visible alerts, Add/Manage, My Health picker, diary save, bottom clearance",
+    "1440: identical hero geometry, transparent page, no overflow, all six section choices, keyboard, always-visible alerts, Add/Manage, My Health picker, diary save, bottom clearance"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "width": 320,
+      "today": {
+        "left": 12,
+        "width": 296,
+        "top": 162,
+        "padding": "18px 16px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "12px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "30px",
+        "viewPadding": "18px 0px 118px"
+      },
+      "health": {
+        "left": 12,
+        "width": 296,
+        "top": 162,
+        "padding": "18px 16px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "12px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "30px",
+        "viewPadding": "18px 0px 118px"
+      }
+    },
+    {
+      "width": 390,
+      "today": {
+        "left": 12,
+        "width": 366,
+        "top": 162,
+        "padding": "18px 16px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "12px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "30px",
+        "viewPadding": "18px 0px 118px"
+      },
+      "health": {
+        "left": 12,
+        "width": 366,
+        "top": 162,
+        "padding": "18px 16px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "12px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "30px",
+        "viewPadding": "18px 0px 118px"
+      }
+    },
+    {
+      "width": 1440,
+      "today": {
+        "left": 322,
+        "width": 1040,
+        "top": 128,
+        "padding": "20px 24px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "16px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "36px",
+        "viewPadding": "36px 0px 35px"
+      },
+      "health": {
+        "left": 322,
+        "width": 1040,
+        "top": 128,
+        "padding": "20px 24px",
+        "border": "1px solid rgb(200, 217, 236)",
+        "borderRadius": "16px",
+        "margin": "0px 0px 24px",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "shadow": "rgb(7, 89, 182) 3px 0px 0px 0px inset, rgba(10, 35, 64, 0.055) 0px 10px 28px 0px",
+        "fontSize": "36px",
+        "viewPadding": "36px 0px 35px"
+      }
+    }
+  ],
+  "result": "passed"
+}

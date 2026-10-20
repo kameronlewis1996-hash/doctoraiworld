@@ -1,0 +1,12 @@
+[
+  {
+    "level": "orange",
+    "result": "passed",
+    "label": "Alerts: Review needed. 1 notice in your saved details. Open to review. Open alerts."
+  },
+  {
+    "level": "red",
+    "result": "passed",
+    "label": "Alerts: Contact a professional. 1 notice. Ask a pharmacist or clinician to review. Open alerts."
+  }
+]
