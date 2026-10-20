@@ -1,0 +1,836 @@
+{
+  "mode": "Local Chromium, repository CSP, blocked external requests, fictional fixtures only; system font fallback when Google Fonts is unavailable",
+  "routes": [
+    {
+      "route": "/",
+      "width": 1440,
+      "title": "One Personal Health Hub for Care Conversations | DoctorAI",
+      "heading": [
+        "Your health, witha little more clarity."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/about",
+      "width": 1440,
+      "title": "Why We’re Doing This | DoctorAI World",
+      "heading": [
+        "Why we’re doing this."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/appointment-checklist",
+      "width": 1440,
+      "title": "Free New Zealand Doctor Appointment Checklist: What to Bring | DoctorAI",
+      "heading": [
+        "New Zealand doctor appointment checklist: what to bring"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/medication-list-template",
+      "width": 1440,
+      "title": "Free Medication List Template for Appointments | DoctorAI",
+      "heading": [
+        "Medication list template for your next appointment"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/research",
+      "width": 1440,
+      "title": "Latest Medical Research Explorer | DoctorAI",
+      "heading": [
+        "Research, withoutthe overload."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/subscription",
+      "width": 1440,
+      "title": "DoctorAI Pro — Your health story, always ready",
+      "heading": [
+        "Your health story,always ready."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/download",
+      "width": 1440,
+      "title": "DoctorAI Web App | Open the Free Health Hub",
+      "heading": [
+        "Your health hub, with you."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/terms",
+      "width": 1440,
+      "title": "Terms & Conditions · DoctorAI",
+      "heading": [
+        "Terms & Conditions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/privacy",
+      "width": 1440,
+      "title": "Privacy Notice · DoctorAI",
+      "heading": [
+        "Privacy Notice"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/staff",
+      "width": 1440,
+      "title": "DoctorAI Staff Only",
+      "heading": [
+        "DoctorAI Staff Only"
+      ],
+      "background": "radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.925), rgba(0, 0, 0, 0) 44%), radial-gradient(36% 28% at -4% 8%, rgba(182, 188, 243, 0.66), rgba(0, 0, 0, 0) 93%), radial-gradient(34% 27% at 102% 12%, rgba(155, 220, 242, 0.67), rgba(0, 0, 0, 0) 94%), radial-gradient(34% 28% at -5% 40%, rgba(238, 201, 237, 0.66), rgba(0, 0, 0, 0) 94%), radial-gradient(38% 34% at 105% 43%, rgba(174, 170, 240, 0.627), rgba(0, 0, 0, 0) 94%), radial-gradient(42% 30% at 22% 80%, rgba(197, 234, 250, 0.604), rgba(0, 0, 0, 0) 94%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/mobile-auth",
+      "width": 1440,
+      "title": "Sign in to DoctorAI",
+      "heading": [
+        "Welcome back"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/professional-brief-demo",
+      "width": 1440,
+      "title": "Synthetic Visit Brief Prototype | DoctorAI World",
+      "heading": [
+        "Visit brief"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#today",
+      "width": 1440,
+      "title": "Today · DoctorAI Personal Health Hub",
+      "heading": [
+        "Your health, today."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#health",
+      "width": 1440,
+      "title": "My Health · DoctorAI Personal Health Hub",
+      "heading": [
+        "My Health"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#medications",
+      "width": 1440,
+      "title": "Medication & Prescriptions · DoctorAI Personal Health Hub",
+      "heading": [
+        "Medication & Prescriptions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#diary",
+      "width": 1440,
+      "title": "Symptom diary · DoctorAI Personal Health Hub",
+      "heading": [
+        "Symptom diary"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#appointments",
+      "width": 1440,
+      "title": "Appointments · DoctorAI Personal Health Hub",
+      "heading": [
+        "Appointments"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#visit-prep",
+      "width": 1440,
+      "title": "Visit Prep · DoctorAI Personal Health Hub",
+      "heading": [
+        "Visit Prep"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#profile",
+      "width": 1440,
+      "title": "Profile · DoctorAI Personal Health Hub",
+      "heading": [
+        "Profile"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#alerts",
+      "width": 1440,
+      "title": "Alerts · DoctorAI Personal Health Hub",
+      "heading": [
+        "Alerts"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#add",
+      "width": 1440,
+      "title": "Add Health Detail · DoctorAI Personal Health Hub",
+      "heading": [
+        "Add Health Detail"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#documents",
+      "width": 1440,
+      "title": "Documents · DoctorAI Personal Health Hub",
+      "heading": [
+        "Documents"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#results",
+      "width": 1440,
+      "title": "Measurements & results · DoctorAI Personal Health Hub",
+      "heading": [
+        "Measurements & results"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#timeline",
+      "width": 1440,
+      "title": "Health history · DoctorAI Personal Health Hub",
+      "heading": [
+        "Health history"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#ask",
+      "width": 1440,
+      "title": "Ask DoctorAI · DoctorAI Personal Health Hub",
+      "heading": [
+        "Ask DoctorAI"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "title": "One Personal Health Hub for Care Conversations | DoctorAI",
+      "heading": [
+        "Your health, witha little more clarity."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/about",
+      "width": 390,
+      "title": "Why We’re Doing This | DoctorAI World",
+      "heading": [
+        "Why we’re doing this."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/appointment-checklist",
+      "width": 390,
+      "title": "Free New Zealand Doctor Appointment Checklist: What to Bring | DoctorAI",
+      "heading": [
+        "New Zealand doctor appointment checklist: what to bring"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/medication-list-template",
+      "width": 390,
+      "title": "Free Medication List Template for Appointments | DoctorAI",
+      "heading": [
+        "Medication list template for your next appointment"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/research",
+      "width": 390,
+      "title": "Latest Medical Research Explorer | DoctorAI",
+      "heading": [
+        "Research, withoutthe overload."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/subscription",
+      "width": 390,
+      "title": "DoctorAI Pro — Your health story, always ready",
+      "heading": [
+        "Your health story,always ready."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/download",
+      "width": 390,
+      "title": "DoctorAI Web App | Open the Free Health Hub",
+      "heading": [
+        "Your health hub, with you."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/terms",
+      "width": 390,
+      "title": "Terms & Conditions · DoctorAI",
+      "heading": [
+        "Terms & Conditions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/privacy",
+      "width": 390,
+      "title": "Privacy Notice · DoctorAI",
+      "heading": [
+        "Privacy Notice"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/staff",
+      "width": 390,
+      "title": "DoctorAI Staff Only",
+      "heading": [
+        "DoctorAI Staff Only"
+      ],
+      "background": "radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.925), rgba(0, 0, 0, 0) 44%), radial-gradient(36% 28% at -4% 8%, rgba(182, 188, 243, 0.66), rgba(0, 0, 0, 0) 93%), radial-gradient(34% 27% at 102% 12%, rgba(155, 220, 242, 0.67), rgba(0, 0, 0, 0) 94%), radial-gradient(34% 28% at -5% 40%, rgba(238, 201, 237, 0.66), rgba(0, 0, 0, 0) 94%), radial-gradient(38% 34% at 105% 43%, rgba(174, 170, 240, 0.627), rgba(0, 0, 0, 0) 94%), radial-gradient(42% 30% at 22% 80%, rgba(197, 234, 250, 0.604), rgba(0, 0, 0, 0) 94%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/mobile-auth",
+      "width": 390,
+      "title": "Sign in to DoctorAI",
+      "heading": [
+        "Welcome back"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/professional-brief-demo",
+      "width": 390,
+      "title": "Synthetic Visit Brief Prototype | DoctorAI World",
+      "heading": [
+        "Visit brief"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#today",
+      "width": 390,
+      "title": "Today · DoctorAI Personal Health Hub",
+      "heading": [
+        "Your health, today."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#health",
+      "width": 390,
+      "title": "My Health · DoctorAI Personal Health Hub",
+      "heading": [
+        "My Health"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#medications",
+      "width": 390,
+      "title": "Medication & Prescriptions · DoctorAI Personal Health Hub",
+      "heading": [
+        "Medication & Prescriptions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#diary",
+      "width": 390,
+      "title": "Symptom diary · DoctorAI Personal Health Hub",
+      "heading": [
+        "Symptom diary"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#appointments",
+      "width": 390,
+      "title": "Appointments · DoctorAI Personal Health Hub",
+      "heading": [
+        "Appointments"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#visit-prep",
+      "width": 390,
+      "title": "Visit Prep · DoctorAI Personal Health Hub",
+      "heading": [
+        "Visit Prep"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#profile",
+      "width": 390,
+      "title": "Profile · DoctorAI Personal Health Hub",
+      "heading": [
+        "Profile"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#alerts",
+      "width": 390,
+      "title": "Alerts · DoctorAI Personal Health Hub",
+      "heading": [
+        "Alerts"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#add",
+      "width": 390,
+      "title": "Add Health Detail · DoctorAI Personal Health Hub",
+      "heading": [
+        "Add Health Detail"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#documents",
+      "width": 390,
+      "title": "Documents · DoctorAI Personal Health Hub",
+      "heading": [
+        "Documents"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#results",
+      "width": 390,
+      "title": "Measurements & results · DoctorAI Personal Health Hub",
+      "heading": [
+        "Measurements & results"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#timeline",
+      "width": 390,
+      "title": "Health history · DoctorAI Personal Health Hub",
+      "heading": [
+        "Health history"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#ask",
+      "width": 390,
+      "title": "Ask DoctorAI · DoctorAI Personal Health Hub",
+      "heading": [
+        "Ask DoctorAI"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/",
+      "width": 320,
+      "title": "One Personal Health Hub for Care Conversations | DoctorAI",
+      "heading": [
+        "Your health, witha little more clarity."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/about",
+      "width": 320,
+      "title": "Why We’re Doing This | DoctorAI World",
+      "heading": [
+        "Why we’re doing this."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/appointment-checklist",
+      "width": 320,
+      "title": "Free New Zealand Doctor Appointment Checklist: What to Bring | DoctorAI",
+      "heading": [
+        "New Zealand doctor appointment checklist: what to bring"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/medication-list-template",
+      "width": 320,
+      "title": "Free Medication List Template for Appointments | DoctorAI",
+      "heading": [
+        "Medication list template for your next appointment"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/research",
+      "width": 320,
+      "title": "Latest Medical Research Explorer | DoctorAI",
+      "heading": [
+        "Research, withoutthe overload."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/subscription",
+      "width": 320,
+      "title": "DoctorAI Pro — Your health story, always ready",
+      "heading": [
+        "Your health story,always ready."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/download",
+      "width": 320,
+      "title": "DoctorAI Web App | Open the Free Health Hub",
+      "heading": [
+        "Your health hub, with you."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/terms",
+      "width": 320,
+      "title": "Terms & Conditions · DoctorAI",
+      "heading": [
+        "Terms & Conditions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/privacy",
+      "width": 320,
+      "title": "Privacy Notice · DoctorAI",
+      "heading": [
+        "Privacy Notice"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/staff",
+      "width": 320,
+      "title": "DoctorAI Staff Only",
+      "heading": [
+        "DoctorAI Staff Only"
+      ],
+      "background": "radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.925), rgba(0, 0, 0, 0) 44%), radial-gradient(36% 28% at -4% 8%, rgba(182, 188, 243, 0.66), rgba(0, 0, 0, 0) 93%), radial-gradient(34% 27% at 102% 12%, rgba(155, 220, 242, 0.67), rgba(0, 0, 0, 0) 94%), radial-gradient(34% 28% at -5% 40%, rgba(238, 201, 237, 0.66), rgba(0, 0, 0, 0) 94%), radial-gradient(38% 34% at 105% 43%, rgba(174, 170, 240, 0.627), rgba(0, 0, 0, 0) 94%), radial-gradient(42% 30% at 22% 80%, rgba(197, 234, 250, 0.604), rgba(0, 0, 0, 0) 94%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/mobile-auth",
+      "width": 320,
+      "title": "Sign in to DoctorAI",
+      "heading": [
+        "Welcome back"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/professional-brief-demo",
+      "width": 320,
+      "title": "Synthetic Visit Brief Prototype | DoctorAI World",
+      "heading": [
+        "Visit brief"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#today",
+      "width": 320,
+      "title": "Today · DoctorAI Personal Health Hub",
+      "heading": [
+        "Your health, today."
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#health",
+      "width": 320,
+      "title": "My Health · DoctorAI Personal Health Hub",
+      "heading": [
+        "My Health"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#medications",
+      "width": 320,
+      "title": "Medication & Prescriptions · DoctorAI Personal Health Hub",
+      "heading": [
+        "Medication & Prescriptions"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#diary",
+      "width": 320,
+      "title": "Symptom diary · DoctorAI Personal Health Hub",
+      "heading": [
+        "Symptom diary"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#appointments",
+      "width": 320,
+      "title": "Appointments · DoctorAI Personal Health Hub",
+      "heading": [
+        "Appointments"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#visit-prep",
+      "width": 320,
+      "title": "Visit Prep · DoctorAI Personal Health Hub",
+      "heading": [
+        "Visit Prep"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#profile",
+      "width": 320,
+      "title": "Profile · DoctorAI Personal Health Hub",
+      "heading": [
+        "Profile"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#alerts",
+      "width": 320,
+      "title": "Alerts · DoctorAI Personal Health Hub",
+      "heading": [
+        "Alerts"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#add",
+      "width": 320,
+      "title": "Add Health Detail · DoctorAI Personal Health Hub",
+      "heading": [
+        "Add Health Detail"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#documents",
+      "width": 320,
+      "title": "Documents · DoctorAI Personal Health Hub",
+      "heading": [
+        "Documents"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#results",
+      "width": 320,
+      "title": "Measurements & results · DoctorAI Personal Health Hub",
+      "heading": [
+        "Measurements & results"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#timeline",
+      "width": 320,
+      "title": "Health history · DoctorAI Personal Health Hub",
+      "heading": [
+        "Health history"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    },
+    {
+      "route": "/health-hub#ask",
+      "width": 320,
+      "title": "Ask DoctorAI · DoctorAI Personal Health Hub",
+      "heading": [
+        "Ask DoctorAI"
+      ],
+      "background": "radial-gradient(at 49% 33%, rgba(255, 255, 255, 0.78), rgba(0, 0, 0, 0) 41%), radial-gradient(12% 13% at 20% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(13% 13% at 80% 39%, rgba(255, 255, 255, 0.66), rgba(0, 0, 0, 0) 96%), radial-gradient(19% 15% at -1% 0%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 92%), radial-gradient(19% 16% at -2% 31%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 18% at 27% 23%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(23% 19% at 103% 31%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(18% 18% at -3% 49%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 88%), radial-gradient(22% 20% at 102% 49%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(20% 18% at 16% 77%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 90%), radial-gradient(24% 19% at 83% 79%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(35% 27% at 0% 36%, rgba(141, 172, 250, 0.77), rgba(0, 0, 0, 0) 90%), radial-gradient(34% 30% at 100% 46%, rgba(173, 155, 244, 0.682), rgba(0, 0, 0, 0) 90%), radial-gradient(at 6% 28%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 44%), radial-gradient(at 96% 32%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 45%), radial-gradient(at 7% 53%, rgba(244, 201, 241, 0.682), rgba(0, 0, 0, 0) 40%), radial-gradient(at 88% 55%, rgba(185, 184, 249, 0.68), rgba(0, 0, 0, 0) 44%), radial-gradient(at 48% 84%, rgba(149, 223, 251, 0.77), rgba(0, 0, 0, 0) 47%)",
+      "backgroundColor": "rgb(245, 248, 255)"
+    }
+  ],
+  "checks": [
+    "1440: public menu keyboard; research loading/empty/error; staff denied gate, fictional ideas form, tab keyboard, review error and testing layout; orange/red actual alert renderer; checklist form/reset and print background",
+    "390: public menu keyboard; research loading/empty/error; staff denied gate, fictional ideas form, tab keyboard, review error and testing layout; orange/red actual alert renderer; checklist form/reset and print background",
+    "320: public menu keyboard; research loading/empty/error; staff denied gate, fictional ideas form, tab keyboard, review error and testing layout; orange/red actual alert renderer; checklist form/reset and print background"
+  ],
+  "errors": [],
+  "screenshots": [
+    "welcome-1440.png",
+    "about-1440.png",
+    "appointment-checklist-1440.png",
+    "medication-list-template-1440.png",
+    "research-1440.png",
+    "subscription-1440.png",
+    "download-1440.png",
+    "terms-1440.png",
+    "privacy-1440.png",
+    "staff-1440.png",
+    "mobile-auth-1440.png",
+    "professional-brief-demo-1440.png",
+    "health-hub-today-1440.png",
+    "health-hub-health-1440.png",
+    "health-hub-medications-1440.png",
+    "health-hub-diary-1440.png",
+    "health-hub-appointments-1440.png",
+    "health-hub-visit-prep-1440.png",
+    "health-hub-profile-1440.png",
+    "health-hub-alerts-1440.png",
+    "health-hub-add-1440.png",
+    "health-hub-documents-1440.png",
+    "health-hub-results-1440.png",
+    "health-hub-timeline-1440.png",
+    "health-hub-ask-1440.png",
+    "research-empty-1440.png",
+    "research-loading-1440.png",
+    "staff-ideas-1440.png",
+    "staff-review-error-1440.png",
+    "staff-review-fixture-1440.png",
+    "staff-testing-1440.png",
+    "hub-orange-1440.png",
+    "hub-red-1440.png",
+    "welcome-390.png",
+    "about-390.png",
+    "appointment-checklist-390.png",
+    "medication-list-template-390.png",
+    "research-390.png",
+    "subscription-390.png",
+    "download-390.png",
+    "terms-390.png",
+    "privacy-390.png",
+    "staff-390.png",
+    "mobile-auth-390.png",
+    "professional-brief-demo-390.png",
+    "health-hub-today-390.png",
+    "health-hub-health-390.png",
+    "health-hub-medications-390.png",
+    "health-hub-diary-390.png",
+    "health-hub-appointments-390.png",
+    "health-hub-visit-prep-390.png",
+    "health-hub-profile-390.png",
+    "health-hub-alerts-390.png",
+    "health-hub-add-390.png",
+    "health-hub-documents-390.png",
+    "health-hub-results-390.png",
+    "health-hub-timeline-390.png",
+    "health-hub-ask-390.png",
+    "research-empty-390.png",
+    "research-loading-390.png",
+    "staff-ideas-390.png",
+    "staff-review-error-390.png",
+    "staff-review-fixture-390.png",
+    "staff-testing-390.png",
+    "hub-orange-390.png",
+    "hub-red-390.png",
+    "research-empty-320.png",
+    "research-loading-320.png",
+    "staff-ideas-320.png",
+    "staff-review-error-320.png",
+    "staff-review-fixture-320.png",
+    "staff-testing-320.png"
+  ],
+  "result": "passed"
+}
