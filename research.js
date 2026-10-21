@@ -91,16 +91,17 @@
     return (payload.results || payload.resultList?.result || []).map(normalise);
   }
 
-  const pickBest = items => items.slice().sort((a, b) => {
+  const selectHighlight = items => items.slice().sort((a, b) => {
     const score = item => Math.log1p(item.citations) * 2 + Math.min(item.abstract.length / 900, 2) + (item.openAccess ? .75 : 0) + (item.authors !== 'Authors unavailable' ? .2 : 0);
     return score(b) - score(a) || String(b.date).localeCompare(String(a.date));
   })[0];
   const paperKey = paper => paper?.url || `${paper?.source || ''}:${paper?.id || ''}:${paper?.title || ''}`;
+  const limitationsNotice = '<div class="paper-reading-note"><strong>Limitations not assessed.</strong> This abstract may omit study limitations. Read the full paper before drawing conclusions.</div>';
 
   const highlightMarkup = paper => {
     if (!paper) return '<div class="highlight-state">No matching paper was indexed for this window yet. Try the Explore tab for a broader search.</div>';
     const access = paper.openAccess ? ' · Open access' : '';
-    return `<h4 class="highlight-paper-title">${escape(paper.title)}</h4><p class="highlight-paper-meta">${escape(paper.journal)} · ${escape(paper.date)}${access}</p><p class="highlight-paper-copy">${escape(shortText(paper.abstract))}</p><a class="highlight-paper-link" href="${escape(paper.url)}" target="_blank" rel="noopener">Read the original paper →</a>`;
+    return `<h4 class="highlight-paper-title">${escape(paper.title)}</h4><p class="highlight-paper-meta">${escape(paper.journal)} · ${escape(paper.date)}${access}</p><p class="highlight-paper-copy">${escape(shortText(paper.abstract))}</p>${limitationsNotice}<a class="highlight-paper-link" href="${escape(paper.url)}" target="_blank" rel="noopener">Read the original paper →</a>`;
   };
 
   async function loadHighlights() {
@@ -120,7 +121,7 @@
       const used = new Set();
       const picks = pools.map(pool => {
         const unused = pool.papers.filter(paper => !used.has(paperKey(paper)));
-        const paper = pickBest(unused);
+        const paper = selectHighlight(unused);
         if (paper) used.add(paperKey(paper));
         return { ...pool, paper };
       });
@@ -129,7 +130,7 @@
         if (slot) slot.innerHTML = highlightMarkup(pick.paper);
         const card = document.querySelector(`[data-period-card="${pick.key}"]`);
         const windowLabel = card?.querySelector('.period-pill');
-        if (windowLabel && pick.fallback) windowLabel.textContent = 'Recent';
+        if (windowLabel && pick.key === 'day') windowLabel.textContent = pick.fallback ? 'Past 30 days' : 'Past seven days';
       });
     } catch (_) {
       ['day', 'month', 'year'].forEach(key => { const slot = document.querySelector(`#highlight-${key}`); if (slot) slot.innerHTML = '<div class="highlight-state">The live index is taking a moment to respond. Open Explore to try again.</div>'; });
@@ -157,7 +158,7 @@
     results.setAttribute('aria-busy', 'false');
     if (!items.length) { results.innerHTML = '<div class="state-card">No matching publications were found. Try a broader phrase such as “sleep”, “prevention” or “blood pressure”.</div>'; return; }
     const fallbackNotice = options.fallback ? `<div class="state-card research-fallback">No recent exact matches were indexed for “${escape(topic)}”. These are ${options.fallbackTopic ? `related results for “${escape(options.fallbackTopic)}”` : 'recent broader results'} to help you continue exploring.</div>` : '';
-    results.innerHTML = fallbackNotice + items.slice(0, 12).map(item => `<article class="paper-card"><span class="paper-label">${escape(item.journal)} · ${escape(item.date)}</span><h3>${escape(item.title)}</h3><div class="paper-meta">${escape(item.authors)}${item.openAccess ? '<span class="oa">Open access</span>' : ''}</div><p>${escape(item.abstract)}</p><a href="${escape(item.url)}" target="_blank" rel="noopener">Read original source <span data-doctorai-icon="external" aria-hidden="true"></span></a></article>`).join('');
+    results.innerHTML = fallbackNotice + items.slice(0, 12).map(item => `<article class="paper-card"><span class="paper-label">${escape(item.journal)} · ${escape(item.date)}</span><h3>${escape(item.title)}</h3><div class="paper-meta">${escape(item.authors)}${item.openAccess ? '<span class="oa">Open access</span>' : ''}</div><p>${escape(item.abstract)}</p>${limitationsNotice}<a href="${escape(item.url)}" target="_blank" rel="noopener">Read original source <span data-doctorai-icon="external" aria-hidden="true"></span></a></article>`).join('');
   };
 
   const renderError = topic => {
