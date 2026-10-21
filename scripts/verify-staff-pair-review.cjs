@@ -91,7 +91,7 @@ async function run() {
     assert.match(html, /role="tab" id="staff-pair-review-tab"[^>]*data-staff-hash="#pair-review"/);
     assert.match(html, /role="tabpanel" id="staff-pair-review-panel"[^>]*hidden/);
     assert.match(html, /Synthetic preview only[\s\S]*no research findings or source material are included/);
-    assert.match(html, /private 4,050-pair research ledger is not included/);
+    assert.match(html, /private research ledger is not included/);
     assert.doesNotMatch(html, /warfarin|sulfamethoxazole|medsafe/i);
     assert.match(apiSource, /core\.identityFromRequest/);
     assert.match(apiSource, /core\.isAdmin\(session\)/);
