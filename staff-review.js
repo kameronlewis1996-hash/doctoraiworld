@@ -34,7 +34,7 @@
     const nextTab = tabs[nextIndex];
     if (nextTab.dataset.staffHash) {
       history.replaceState(null, '', `${location.pathname}${location.search}${nextTab.dataset.staffHash}`);
-    } else if (['#medication-review', '#medication-tests', '#ideas-lab'].includes(location.hash)) {
+    } else if (['#medication-review', '#pair-review', '#medication-tests', '#ideas-lab'].includes(location.hash)) {
       history.replaceState(null, '', `${location.pathname}${location.search}`);
     }
     if (nextTab.id === 'staff-medication-review-tab' && !loaded && !staffContent.hidden) loadReview();

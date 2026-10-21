@@ -49,7 +49,7 @@
   <script defer src="/feature-icons.js?v=8"></script>
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
   <link rel="stylesheet" href="/staff-medication-tests.css?v=1">
-  <link rel="stylesheet" href="/staff-review.css?v=2"><link rel="stylesheet" href="/staff-ideas.css?v=4">
+  <link rel="stylesheet" href="/staff-review.css?v=2"><link rel="stylesheet" href="/staff-ideas.css?v=4"><link rel="stylesheet" href="/staff-pair-review.css?v=1">
 </head>
 <body class="doctorai-system-page staff-page" data-staff-page data-subscription="free">
     <main><div class="top"><a class="brand" href="/health-hub#today"><img data-brand-logo src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI"><span>DoctorAI Staff Only</span></a><a class="back" href="/health-hub#today">Back to Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a></div>
@@ -58,6 +58,7 @@
   <div class="staff-tabs" role="tablist" aria-label="Staff workspaces" data-staff-tabs>
     <button type="button" role="tab" id="staff-tools-tab" aria-selected="true" aria-controls="staff-tools-panel" tabindex="0">Site tools</button>
     <button type="button" role="tab" id="staff-medication-review-tab" data-staff-hash="#medication-review" aria-selected="false" aria-controls="staff-review-panel" tabindex="-1">Medication review</button>
+    <button type="button" role="tab" id="staff-pair-review-tab" data-staff-hash="#pair-review" aria-selected="false" aria-controls="staff-pair-review-panel" tabindex="-1">Pair research</button>
     <button type="button" role="tab" id="staff-medication-tests-tab" data-staff-hash="#medication-tests" aria-selected="false" aria-controls="staff-medication-tests-panel" tabindex="-1">Testing lab</button>
     <button type="button" role="tab" id="staff-ideas-tab" data-staff-hash="#ideas-lab" aria-selected="false" aria-controls="staff-ideas-panel" tabindex="-1">Ideas lab</button>
   </div>
@@ -65,6 +66,25 @@
   <section class="staff-tab-panel" role="tabpanel" id="staff-review-panel" aria-labelledby="staff-medication-review-tab" hidden>
     <p class="staff-review-loading" id="staff-review-status" role="status" aria-live="polite" aria-atomic="true">Open this tab to load the admin-only review packet.</p>
     <div id="staff-review-content" hidden></div>
+  </section>
+  <section class="staff-tab-panel staff-pair-review-panel" role="tabpanel" id="staff-pair-review-panel" aria-labelledby="staff-pair-review-tab" hidden>
+    <div class="pair-review-header">
+      <div><p class="pair-review-eyebrow">Synthetic interface demo</p><h2 id="pair-review-heading">Pair research preview</h2>
+        <p class="pair-review-intro">Preview the reviewer interface with four fictional sample records. The private 4,050-pair research ledger is not included.</p></div>
+      <span class="pair-review-lock" aria-label="Staff admin only">Staff admin only</span>
+    </div>
+    <p class="pair-review-notice" role="note">Synthetic preview only. All sample records are fictional; no research findings or source material are included. This interface preview does not create patient alerts or change the active ruleset.</p>
+    <div class="pair-review-status-counts" id="pair-review-counts" aria-label="Synthetic sample status counts"></div>
+    <form class="pair-review-search" id="pair-review-search">
+      <div class="pair-review-search-field"><label for="pair-review-query">Search sample label or ID</label><input id="pair-review-query" name="q" type="search" maxlength="100" autocomplete="off" placeholder="e.g. synthetic-alpha or demo-001"></div>
+      <div class="pair-review-search-field"><label for="pair-review-status-filter">Sample state</label><select id="pair-review-status-filter" name="status"><option value="">All sample states</option><option value="evidence_candidate">Demo evidence-lead state</option><option value="no_interaction_found_in_specified_sources">Demo no-finding state</option><option value="blocked">Demo blocked state</option><option value="conflicting_evidence">Demo conflict state</option></select></div>
+      <button type="submit">Search records</button>
+    </form>
+    <p class="pair-review-status" id="pair-review-status" role="status" aria-live="polite" aria-atomic="true">Open this tab to load the fictional preview records.</p>
+    <div class="pair-review-results" id="pair-review-results" aria-live="off"></div>
+    <nav class="pair-review-pagination" id="pair-review-pagination" aria-label="Pair research pages" hidden>
+      <button type="button" id="pair-review-previous" aria-label="Previous page">Previous</button><span id="pair-review-page" aria-live="polite"></span><button type="button" id="pair-review-next" aria-label="Next page">Next</button>
+    </nav>
   </section>
   <section class="staff-tab-panel staff-test-panel" role="tabpanel" id="staff-medication-tests-panel" aria-labelledby="staff-medication-tests-tab" hidden>
     <div id="staff-medication-tests-app"></div>
@@ -104,6 +124,7 @@
 </body>
   <script src="/staff-grants.js?v=3"></script>
   <script defer src="/staff-medication-tests.js?v=3"></script>
-  <script src="/staff-review.js?v=2" defer></script>
+  <script src="/staff-review.js?v=3" defer></script>
+  <script src="/staff-pair-review.js?v=1" defer></script>
   <script src="/staff-ideas.js?v=2" defer></script>
 </html>

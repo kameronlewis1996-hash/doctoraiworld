@@ -13,7 +13,10 @@ const medicationTests = fs.readFileSync(path.join(root, 'staff-medication-tests.
 const ideasScript = fs.readFileSync(path.join(root, 'staff-ideas.js'), 'utf8');
 const ideasStyles = fs.readFileSync(path.join(root, 'staff-ideas.css'), 'utf8');
 const api = fs.readFileSync(path.join(root, 'api/staff/medication-review.js'), 'utf8');
+const pairReviewApi = fs.readFileSync(path.join(root, 'api/staff/pair-review.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'staff-review.css'), 'utf8');
+const pairReviewScript = fs.readFileSync(path.join(root, 'staff-pair-review.js'), 'utf8');
+const pairReviewStyles = fs.readFileSync(path.join(root, 'staff-pair-review.css'), 'utf8');
 const vercelIgnore = fs.readFileSync(path.join(root, '.vercelignore'), 'utf8');
 const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 
@@ -64,19 +67,23 @@ async function main() {
   for (const [id, label] of [
     ['staff-tools-tab', 'Site tools'],
     ['staff-medication-review-tab', 'Medication review'],
+    ['staff-pair-review-tab', 'Pair research'],
     ['staff-medication-tests-tab', 'Testing lab'],
     ['staff-ideas-tab', 'Ideas lab']
   ]) {
     assert.match(html, new RegExp(`role="tab" id="${id}"[^>]*>${label}</button>`));
   }
-  for (const id of ['staff-tools-panel', 'staff-review-panel', 'staff-medication-tests-panel', 'staff-ideas-panel']) {
+  for (const id of ['staff-tools-panel', 'staff-review-panel', 'staff-pair-review-panel', 'staff-medication-tests-panel', 'staff-ideas-panel']) {
     assert.match(html, new RegExp(`role="tabpanel" id="${id}"[^>]*`));
   }
   assert.match(html, /data-staff-hash="#medication-tests"/);
+  assert.match(html, /data-staff-hash="#pair-review"/);
   assert.match(html, /data-staff-hash="#ideas-lab"/);
   assert.match(html, /Sign in through Health Hub/);
   assert.match(html, /staff-review\.css\?v=2/);
-  assert.match(html, /staff-review\.js\?v=2/);
+  assert.match(html, /staff-review\.js\?v=3/);
+  assert.match(html, /staff-pair-review\.css\?v=1/);
+  assert.match(html, /staff-pair-review\.js\?v=1/);
   assert.match(html, /staff-medication-tests\.css\?v=1/);
   assert.match(html, /staff-medication-tests\.js\?v=3/);
   assert.match(html, /staff-ideas\.css\?v=4/);
@@ -119,11 +126,26 @@ async function main() {
   assert.match(api, /identityFromRequest/);
   assert.match(api, /core\.isAdmin\(session\)/);
   assert.match(api, /core\.noStore\(response\)/);
+  assert.match(pairReviewApi, /identityFromRequest/);
+  assert.match(pairReviewApi, /core\.isAdmin\(session\)/);
+  assert.match(pairReviewApi, /core\.noStore\(response\)/);
+  assert.match(pairReviewApi, /require\('\.\.\/\.\.\/server-src\/staff\/pair-review-demo\.v1\.json'\)/);
+  assert.match(pairReviewApi, /dataset\.demoOnly !== true/);
+  assert.match(pairReviewApi, /dataset\.researchPerformed !== false/);
+  assert.match(pairReviewApi, /metadata: \{ \.\.\.dataset\.metadata, filteredCount/);
+  assert.match(pairReviewApi, /maximumPageSize = 50/);
+  assert.match(pairReviewScript, /credentials:\s*'same-origin'/);
+  assert.match(pairReviewScript, /cache:\s*'no-store'/);
+  assert.match(pairReviewScript, /textContent/);
+  assert.doesNotMatch(pairReviewScript, /innerHTML|localStorage|sessionStorage|review-workspace/);
+  assert.match(pairReviewStyles, /@media\(max-width:700px\)/);
+  assert.match(pairReviewStyles, /prefers-reduced-motion/);
+  assert.match(html, /Synthetic preview only[\s\S]*no research findings or source material are included/);
   assert.match(html, /id="staff-content" hidden/);
 
   await require('./verify-staff-ideas.cjs')();
 
-  console.log('Staff review workspaces passed: 405/401/403/200 access gates, four keyboard tabs, fixed fictional tests, account-scoped browser ideas, and Vercel exclusion contract.');
+  console.log('Staff review workspaces passed: 405/401/403/200 access gates, five keyboard tabs, synthetic-only pair preview contract, fixed fictional tests, account-scoped browser ideas, and Vercel exclusion contract.');
 }
 
 main().catch(error => {
