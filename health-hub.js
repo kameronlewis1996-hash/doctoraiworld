@@ -383,6 +383,7 @@
   let entitlementReady = false;
   let entitlementTimer = null;
   let medicationScanBusy = false;
+  let medicationScanController = null;
   let medicationScannerActive = false;
   let medicationScannerStream = null;
   let cloudSyncTimer = null;
@@ -717,6 +718,18 @@
     if (open) { closeProfile(); requestAnimationFrame(() => (document.querySelector('#category-bar [aria-current="page"]') || document.querySelector('#category-bar [data-view]'))?.focus({ preventScroll: true })); }
     else if (restoreFocus) button?.focus({ preventScroll: true });
   }
+  // Presentation-only filtering: alerts and loading/error status remain visible.
+  function selectTodaySection(value) {
+    const panels = [...document.querySelectorAll('#view-today [data-today-section]')];
+    const selected = value === 'all' || panels.some(panel => panel.dataset.todaySection === value) ? value : 'all';
+    panels.forEach(panel => { panel.hidden = selected !== 'all' && panel.dataset.todaySection !== selected; });
+    document.querySelectorAll('[data-today-section-select]').forEach(select => { select.value = selected; });
+    document.querySelectorAll('[data-today-section-target]').forEach(button => {
+      const active = button.dataset.todaySectionTarget === selected;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'true'); else button.removeAttribute('aria-current');
+    });
+  }
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
     const next = route.view; currentView = next; currentHubPanel = route.panel;
@@ -748,7 +761,11 @@
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
     const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
-    if (breadcrumb) breadcrumb.hidden = next === 'today';
+    if (breadcrumb) {
+      breadcrumb.hidden = false;
+      breadcrumb.querySelector('[data-view="today"]').hidden = next === 'today';
+      breadcrumb.querySelector('span[aria-hidden]').hidden = next === 'today';
+    }
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');
     if (parentDivider) parentDivider.hidden = !parentView;
@@ -1870,7 +1887,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
-    if (previousEmail !== nextEmail) medicationAccountDataReady = false;
+    if (previousEmail !== nextEmail) {
+      medicationAccountDataReady = false;
+      medicationScanController?.abort();
+      closeMedicationScanner();
+    }
     const healthOwnerChanged = activateHealthDataOwner(user, localScope, allowAnonymousLegacy);
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
@@ -3036,19 +3057,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.medicationCaptureButton) els.medicationCaptureButton.disabled = Boolean(busy) || !medicationScannerActive || !medicationScannerStream;
   }
 
-  async function submitMedicationScan(image) {
-    if (medicationScanBusy) return;
+  async function submitMedicationScan(image, scanScope = accountSyncScope()) {
+    // A label belongs to the account that selected it, including while image
+    // preparation or the provider request is pending.
+    const isCurrentScan = () => Boolean(scanScope && scanScope === accountSyncScope());
+    if (medicationScanBusy || !isCurrentScan()) return;
     if (!image || image.length > MAX_SCAN_DATA_URL) {
       openMedicationModal({ __scanAttempted: true, __scanError: 'The prepared image was too large to send.' });
       return;
     }
     setMedicationScanBusy(true);
     const controller = new AbortController();
+    medicationScanController = controller;
     const timeout = window.setTimeout(() => controller.abort(), 50_000);
     try {
       showToast('Reading only the visible medicine label…');
       const response = await fetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true }), signal: controller.signal });
       const payload = await response.json().catch(() => ({}));
+      if (!isCurrentScan()) return;
       if (!response.ok) {
         if (response.status === 401) { accountSessionReady = false; renderAccountSession(null); }
         if (response.status === 403) { entitlementReady = false; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); }
@@ -3061,11 +3087,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       openMedicationModal({ ...medication, __scanned: extracted, __scanAttempted: true, __missing: payload.review?.missing || [] });
       showToast(extracted ? 'Details copied. Check every field against the label.' : 'The label text was not clear. Enter the details from the label.');
     } catch (error) {
+      if (!isCurrentScan()) return;
       const message = error?.name === 'AbortError' ? 'The scan took too long. Please check your connection and try again.' : String(error?.message || 'The image could not be read.');
       openMedicationModal({ __scanAttempted: true, __scanError: message });
       showToast('Scan not completed. Manual entry is ready.');
     } finally {
       clearTimeout(timeout);
+      if (medicationScanController === controller) medicationScanController = null;
       setMedicationScanBusy(false);
     }
   }
@@ -3093,6 +3121,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function openMedicationScanner() {
     if (medicationScanBusy || !await medicationScanAccess()) return;
+    const scanScope = accountSyncScope();
     closeMedicationScanner();
     if (!els.medicationScannerModal || !els.medicationScannerVideo) {
       document.getElementById('medication-scan')?.click();
@@ -3105,15 +3134,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       medicationScannerStatus('Live camera access is unavailable here. Choose a label photo instead.', 'error');
       return;
     }
+    let stream = null;
+    const discardStream = () => {
+      if (stream && medicationScannerStream === stream) stopMedicationScannerCamera();
+      else stream?.getTracks().forEach(track => track.stop());
+    };
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
-      if (!els.medicationScannerModal.open) { stream.getTracks().forEach(track => track.stop()); return; }
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+      if (!els.medicationScannerModal.open || !scanScope || scanScope !== accountSyncScope()) { discardStream(); return; }
       medicationScannerStream = stream;
       els.medicationScannerVideo.srcObject = stream;
       await els.medicationScannerVideo.play();
+      if (scanScope !== accountSyncScope() || medicationScannerStream !== stream) { discardStream(); return; }
       medicationScannerActive = true;
       medicationScannerStatus('Camera ready. Frame the medicine label, then choose Capture label.', 'scanning');
     } catch (error) {
+      if (scanScope !== accountSyncScope()) { discardStream(); return; }
       stopMedicationScannerCamera();
       const message = error?.name === 'NotAllowedError'
         ? 'Camera permission is off. Allow camera access in your browser settings or choose a label photo.'
@@ -3126,6 +3162,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function scanMedicationPhoto(file) {
     if (!file || medicationScanBusy || !await medicationScanAccess()) return;
+    const scanScope = accountSyncScope();
     if (els.medicationImageConsent?.checked !== true) {
       showToast('Check the image-sharing consent before sending a label photo. No image has been sent.');
       return;
@@ -3138,8 +3175,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     try {
       showToast('Preparing a smaller private label image…');
       const image = await prepareScanImage(file);
-      await submitMedicationScan(image);
+      await submitMedicationScan(image, scanScope);
     } catch (error) {
+      if (!scanScope || scanScope !== accountSyncScope()) return;
       const message = String(error?.message || 'The image could not be prepared.');
       openMedicationModal({ __scanError: message });
       showToast('Photo not read. Manual entry is ready.');
@@ -4172,6 +4210,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       }
       return;
     }
+    const todaySection = event.target.closest('[data-today-section-target]');
+    if (todaySection) { selectTodaySection(todaySection.dataset.todaySectionTarget); return; }
     const nestedTarget = event.target.closest('[data-hub-panel-target]');
     if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, true, nestedTarget.dataset.hubPanelTarget); return; }
     const viewTarget = event.target.closest('[data-view]');
@@ -4833,6 +4873,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
   else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
+    if (event.target.matches('[data-today-section-select]')) { selectTodaySection(event.target.value); return; }
     if (event.target.matches('[data-hub-section-select]')) { showView('health', true, true, event.target.value); return; }
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });

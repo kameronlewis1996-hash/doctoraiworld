@@ -28,7 +28,7 @@ check('empty records never imply clearance', () => assert.equal(describe(evaluat
 check('incomplete records need review rather than green', () => assert.equal(describe(evaluate({ medications: [label('one', 'paracetamol')] })).level, 'orange'));
 check('uncertain allergy needs review even without a matching alert', () => {
   const status = describe(evaluate({ medications: [label('one','paracetamol')], profile: { allergies: 'possible penicillin allergy', conditions: 'No known conditions' }, timeline: [{id:'old-symptom',type:'symptom',source:'symptom-diary',title:'Old headache',date:'2026-10-01'}] }));
-  assert.equal(status.level, 'orange'); assert.equal(status.title, 'Some details need review');
+  assert.equal(status.level, 'orange'); assert.equal(status.title, 'Review needed');
 });
 check('unrecognised medicine needs review', () => assert.equal(describe(evaluate({ medications: [{id:'unknown',name:'Invented unmapped medicine'}] })).level, 'orange'));
 check('retained interaction keeps professional-review status', () => {

@@ -100,6 +100,8 @@ const routeViews = Object.fromEntries(views.map(view => [view, {
 const routeLocation = { hash:'' };
 const routeHistory = { state:null, pushState(state, title, hash) { this.state=state; routeLocation.hash=hash; }, replaceState(state, title, hash) { this.state=state; routeLocation.hash=hash; } };
 const breadcrumbNodes = Object.fromEntries(['hub-breadcrumb','hub-parent-link','hub-parent-divider','hub-current-location'].map(id=>[id,{hidden:false,dataset:{},textContent:''}]));
+const breadcrumbStart = { hidden: false }, breadcrumbSeparator = { hidden: false };
+breadcrumbNodes['hub-breadcrumb'].querySelector = selector => selector === '[data-view="today"]' ? breadcrumbStart : breadcrumbSeparator;
 const navigationContext = {
   currentView:'today', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
   els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
@@ -116,6 +118,9 @@ const canonicalFixtures = [
 ];
 for (const [name, hash] of canonicalFixtures) {
   navigationContext.routeNavigate(name, true, false);
+  assert.equal(breadcrumbNodes['hub-breadcrumb'].hidden, false, 'Every destination has a visible breadcrumb.');
+  assert.equal(breadcrumbStart.hidden, name === 'today', 'Today omits a redundant self link.');
+  assert.equal(breadcrumbSeparator.hidden, name === 'today', 'Today omits the unused separator.');
   assert.equal(routeLocation.hash, hash, `The actual ${name} navigation writes a copyable section alias.`);
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
 }

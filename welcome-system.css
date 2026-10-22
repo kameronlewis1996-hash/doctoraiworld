@@ -1,0 +1,236 @@
+/* Shared visual language from the live welcome page (index.html).
+   Load after route styles. Layout, clinical severity, auth and data states remain
+   owned by their existing components. Screen-only rules preserve print tools. */
+:root {
+  --welcome-ink: #061639;
+  --welcome-copy: #3e5676;
+  --welcome-action: #0664ed;
+  --welcome-hover: #0759b6;
+  --welcome-line: #cbdcf5;
+  --welcome-wash: #e8f2ff;
+  --welcome-surface: #ffffffed;
+  --welcome-radius: 20px;
+  --welcome-control-radius: 13px;
+  --welcome-shadow: 0 8px 28px #173b670b;
+  --welcome-font: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+/* Resolve the colour variables on the body so live alert state overrides apply. */
+body {
+  --welcome-atmosphere: radial-gradient(ellipse at 49% 33%, #ffffffc7, transparent 41%),
+    radial-gradient(ellipse 12% 13% at 20% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 13% 13% at 80% 39%, #ffffffa8, transparent 96%),
+    radial-gradient(ellipse 19% 15% at -1% 0%, var(--aurora-lilac, #b9b8f9ad), transparent 92%),
+    radial-gradient(ellipse 19% 16% at -2% 31%, var(--aurora-side, #8dacfac4), transparent 88%),
+    radial-gradient(ellipse 22% 18% at 27% 23%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 23% 19% at 103% 31%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 18% 18% at -3% 49%, var(--aurora-blush, #f4c9f1ae), transparent 88%),
+    radial-gradient(ellipse 22% 20% at 102% 49%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
+    radial-gradient(ellipse 20% 18% at 16% 77%, var(--aurora-lilac, #b9b8f9ad), transparent 90%),
+    radial-gradient(ellipse 24% 19% at 83% 79%, var(--aurora-cyan, #95dffbc4), transparent 90%),
+    radial-gradient(ellipse 35% 27% at 0% 36%, var(--aurora-side, #8dacfac4), transparent 90%),
+    radial-gradient(ellipse 34% 30% at 100% 46%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
+    radial-gradient(ellipse at 6% 28%, var(--aurora-cyan, #95dffbc4), transparent 44%),
+    radial-gradient(ellipse at 96% 32%, var(--aurora-cyan, #95dffbc4), transparent 45%),
+    radial-gradient(ellipse at 7% 53%, var(--aurora-blush, #f4c9f1ae), transparent 40%),
+    radial-gradient(ellipse at 88% 55%, var(--aurora-lilac, #b9b8f9ad), transparent 44%),
+    radial-gradient(ellipse at 48% 84%, var(--aurora-cyan, #95dffbc4), transparent 47%);
+}
+
+@media screen {
+  /* The welcome and clinical Hub already own this exact atmosphere. Extend it
+     to the remaining routes, without selecting the Hub's alert-level body. */
+  html body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page) {
+    background-color: #f5f8ff;
+    background-image: var(--welcome-atmosphere);
+    background-size: 100% 1120px;
+    background-repeat: no-repeat;
+    color: var(--welcome-ink);
+    font-family: var(--welcome-font);
+  }
+
+  /* A later legacy category layer repaints the Hub solid grey. Restore the
+     welcome atmosphere using the existing semantic variables: orange and red
+     still come from health-alert-status, never from a decorative category. */
+  html body[data-hub-layout="reference"][data-hub-theme] {
+    background-color: var(--aurora-base, #f5f8ff);
+    background-image: var(--welcome-atmosphere);
+    background-size: 100% 1120px;
+    background-repeat: no-repeat;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell { background: transparent; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.sidebar, .hub-topbar) {
+    background: var(--aurora-glass, #ffffffb8);
+  }
+
+  /* Typography follows the welcome's navy headings and comfortable body copy.
+     Editorial serif emphasis on About and pricing is retained from the welcome. */
+  body:is(.doctorai-public-page, .doctorai-system-page, .appointment-guide,
+    .medication-guide, .aurora-demo-page) :is(button, input, select, textarea) {
+    font-family: inherit;
+  }
+  body.doctorai-public-page :is(.research-hero, .hero-copy, .panel, main.shell) h1,
+  body.doctorai-system-page .panel h1 {
+    color: var(--welcome-ink);
+    font-weight: 700;
+    letter-spacing: -.055em;
+  }
+
+  /* Header surfaces and the blue primary action are shared across public pages.
+     Keep the native mobile menu, route links and accessible names intact. */
+  body.doctorai-public-page .doctorai-site-header {
+    border-bottom-color: #ffffffc9;
+    background: #ffffffb8;
+    box-shadow: none;
+  }
+  body.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary,
+  body.doctorai-about .home-nav > .home-button,
+  body.appointment-guide .page-header nav .nav-cta,
+  body.medication-guide .guide-header .guide-nav-cta {
+    min-height: 46px;
+    border: 1px solid transparent;
+    border-radius: var(--welcome-control-radius);
+    background: var(--welcome-action);
+    color: #fff;
+    box-shadow: 0 8px 26px #0877f529;
+  }
+
+  /* Only known primary actions are selected. Delete, warning, authentication,
+     billing availability and severity controls retain their existing treatment. */
+  body.doctorai-public-page :is(.install, .primary-cta, .plan-primary),
+  body.doctorai-public-page.subscription-page :is(.primary-cta, .plan-primary),
+  body.doctorai-public-page main.shell .install,
+  body.doctorai-public-page .search-row > button,
+  body.doctorai-about .about-next .home-button,
+  body.appointment-guide .button:not(.button-secondary),
+  body.medication-guide .guide-button:not(.guide-button-secondary),
+  body.staff-page .apply,
+  body.staff-page .staff-idea-form > button,
+  body.subscription-page .pro-access-panel button {
+    min-height: 46px;
+    border-color: transparent;
+    border-radius: var(--welcome-control-radius);
+    background: var(--welcome-action);
+    color: #fff;
+    box-shadow: 0 8px 26px #0877f529;
+    font-weight: 700;
+  }
+  body.doctorai-public-page .doctorai-site-menu > .doctorai-site-primary:hover,
+  body.doctorai-about :is(.home-nav > .home-button, .about-next .home-button):hover,
+  body.appointment-guide :is(.nav-cta, .button:not(.button-secondary)):hover,
+  body.medication-guide :is(.guide-nav-cta, .guide-button:not(.guide-button-secondary)):hover,
+  body.doctorai-public-page :is(.install, .primary-cta, .plan-primary, .search-row > button):hover:not(:disabled),
+  body.doctorai-public-page.subscription-page :is(.primary-cta, .plan-primary):hover:not(:disabled),
+  body.doctorai-public-page main.shell .install:hover,
+  body.staff-page :is(.apply, .staff-idea-form > button):hover,
+  body.subscription-page .pro-access-panel button:hover:not(:disabled) {
+    background: var(--welcome-hover);
+    color: #fff;
+  }
+
+  /* Task actions in the Hub use the same blue and geometry. Alert surfaces,
+     badges and alert-level atmosphere are intentionally outside these selectors. */
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-health, #view-visit-prep, #view-profile, #view-add, #view-diary)
+    .primary-button {
+    border-color: var(--welcome-action);
+    border-radius: var(--welcome-control-radius);
+    background: var(--welcome-action);
+    color: #fff;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-health, #view-visit-prep, #view-profile, #view-add, #view-diary)
+    .primary-button:hover:not(:disabled) {
+    border-color: var(--welcome-hover);
+    background: var(--welcome-hover);
+  }
+
+  /* Match the welcome's white cards; maintain reading widths and page grids. */
+  body.doctorai-public-page :is(main > .panel, main.shell, .research-hero,
+    .highlight-card, .paper-card, .feature-card, .plan-card),
+  body.doctorai-about :is(.about-hero, .about-story-copy, .about-next),
+  body.appointment-guide :is(.hero, .visit-fields, .checklist-section),
+  body.medication-guide :is(.guide-hero, .medicine-sheet),
+  body.doctorai-system-page :is(.panel, .card),
+  body.staff-page :is(.staff-review-card, .staff-idea-form, .staff-idea-card),
+  body.aurora-demo-page .brief-sheet {
+    border-color: var(--welcome-line);
+    border-radius: var(--welcome-radius);
+    background: var(--welcome-surface);
+    box-shadow: var(--welcome-shadow);
+  }
+  body.staff-page .staff-review-card.review-candidate { border-left-color: #cf7a16; }
+  body.doctorai-public-page main > .panel::before { background: var(--welcome-action); }
+  body.doctorai-public-page main > .panel .grid section:nth-child(n) {
+    border-left-color: #4d8bea;
+  }
+
+  /* Blue decorative icons. Clinical, warning and evidence-status icons keep
+     their semantic colours and are not selected here. */
+  body.doctorai-about :is(.about-founder-initials, .about-bridge-symbol),
+  body.appointment-guide :is(.resource-mark, .section-icon, .item-icon),
+  body.medication-guide :is(.guide-hero-mark, .guide-section-icon),
+  body.doctorai-public-page :is(.method-icon, .research-share-icon) {
+    background: var(--welcome-wash);
+    color: var(--welcome-hover);
+    border-color: var(--welcome-line);
+  }
+
+  /* The dynamically inserted staff grant/stats cards have legacy inline paint.
+     Override presentation only; do not alter grant actions or access checks. */
+  body.staff-page #staff-tools-panel > section {
+    border: 1px solid var(--welcome-line) !important;
+    border-radius: var(--welcome-radius) !important;
+    background: var(--welcome-surface) !important;
+    color: var(--welcome-ink) !important;
+    box-shadow: var(--welcome-shadow);
+  }
+  body.staff-page #staff-tools-panel > section :is(p, small, [role="status"], code) {
+    color: var(--welcome-copy) !important;
+  }
+  body.staff-page #staff-tools-panel > section a { color: var(--welcome-hover) !important; }
+  body.staff-page #staff-tools-panel > section form > button {
+    border-radius: var(--welcome-control-radius) !important;
+    background: var(--welcome-action) !important;
+    color: #fff !important;
+  }
+
+  /* Form controls share readable text, clear boundaries and keyboard focus.
+     Native checkbox/radio geometry and validation state colours are preserved. */
+  body:is(.doctorai-public-page, .doctorai-system-page, .appointment-guide, .medication-guide)
+    :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="file"]), select, textarea) {
+    max-width: 100%;
+    min-height: 46px;
+    border-radius: var(--welcome-control-radius);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  body.staff-page #staff-content input { border-radius: var(--welcome-control-radius) !important; }
+  body.staff-page .staff-tabs [role="tab"] {
+    border-radius: var(--welcome-control-radius);
+    font-weight: 700;
+  }
+  body.staff-page .staff-tabs [aria-selected="true"] {
+    border-color: #b9d2f5;
+    background: var(--welcome-wash);
+    color: var(--welcome-hover);
+  }
+  body:is(.doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page)
+    :is(a, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--welcome-hover);
+    outline-offset: 3px;
+  }
+  body:is(.doctorai-public-page, .doctorai-system-page, .appointment-guide, .medication-guide)
+    button:disabled { box-shadow: none; }
+
+  @media (max-width: 700px) {
+    body.doctorai-public-page :is(main > .panel, main.shell, .research-hero),
+    body.doctorai-about .about-hero,
+    body.appointment-guide .hero,
+    body.medication-guide .guide-hero,
+    body.doctorai-system-page .panel { border-radius: 20px; }
+    body.staff-page .staff-tabs [role="tab"] { padding: 10px 12px; }
+    body.staff-page .staff-ideas-manage > select { min-width: 0; flex: 1 1 180px; }
+  }
+}

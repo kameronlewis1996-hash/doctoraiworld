@@ -36,6 +36,7 @@
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:staff-review": "node scripts/verify-staff-medication-review.cjs",
+    "verify:public-copy": "node scripts/verify-public-copy-consistency.cjs",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
     "verify:today-diary": "node scripts/verify-today-diary.cjs",
     "verify:today-records": "node scripts/verify-today-records-browser.cjs"

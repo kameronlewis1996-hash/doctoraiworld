@@ -1,0 +1,226 @@
+{
+  "mode": "axe-core on local render; CSP bypass used solely to inject test library; product CSP unchanged; Google Fonts unavailable",
+  "pages": [
+    {
+      "width": 1440,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/about",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/appointment-checklist",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/medication-list-template",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/research",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/subscription",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/download",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/terms",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/privacy",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/mobile-auth",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/professional-brief-demo",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#today",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#health",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#medications",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#diary",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#profile",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/health-hub#visit-prep",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/staff",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/staff#ideas-lab",
+      "violations": [
+        {
+          "id": "list",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "#staff-idea-list"
+              ],
+              "summary": "Fix all of the following:\n  List element has direct children that are not allowed: [role=note]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/about",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/appointment-checklist",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/medication-list-template",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/research",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/subscription",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/download",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/terms",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/privacy",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/mobile-auth",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/professional-brief-demo",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#today",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#health",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#medications",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#diary",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#profile",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/health-hub#visit-prep",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/staff",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/staff#ideas-lab",
+      "violations": [
+        {
+          "id": "list",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "#staff-idea-list"
+              ],
+              "summary": "Fix all of the following:\n  List element has direct children that are not allowed: [role=note]"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "states": 38,
+    "statesWithoutViolations": 36,
+    "remaining": "Preexisting staff Ideas empty-list role issue; reproduced baseline. Contrast findings in staff grants/stats fixed."
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "route": "download",
+    "width": 1440,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  },
+  {
+    "route": "subscription",
+    "width": 1440,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  },
+  {
+    "route": "download",
+    "width": 390,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  },
+  {
+    "route": "subscription",
+    "width": 390,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  },
+  {
+    "route": "download",
+    "width": 320,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  },
+  {
+    "route": "subscription",
+    "width": 320,
+    "result": "passed",
+    "styles": {
+      "image": "none",
+      "color": "rgb(6, 100, 237)"
+    }
+  }
+]

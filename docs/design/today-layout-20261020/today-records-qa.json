@@ -1,0 +1,29 @@
+{
+  "result": "passed",
+  "checks": [
+    "1440: keyboard Add, save/edit/remove medicine, nested Manage, targeted condition/allergy forms and Scan sign-in gate",
+    "empty-1440: real renderer, full medicine identity, current records and layout",
+    "populated-1440: real renderer, full medicine identity, current records and layout",
+    "390: keyboard Add, save/edit/remove medicine, nested Manage, targeted condition/allergy forms and Scan sign-in gate",
+    "empty-390: real renderer, full medicine identity, current records and layout",
+    "populated-390: real renderer, full medicine identity, current records and layout",
+    "320: keyboard Add, save/edit/remove medicine, nested Manage, targeted condition/allergy forms and Scan sign-in gate",
+    "empty-320: real renderer, full medicine identity, current records and layout",
+    "populated-320: real renderer, full medicine identity, current records and layout",
+    "Signed accounts A/B and anonymous records stay isolated; account error is explicit; retry loads the current account",
+    "Pending identity shows loading without false empty records or editable stale content"
+  ],
+  "axe": [],
+  "errors": [],
+  "screenshots": [
+    "after-empty-1440.png",
+    "after-populated-1440.png",
+    "after-zoom-200.png",
+    "after-empty-390.png",
+    "after-populated-390.png",
+    "after-empty-320.png",
+    "after-populated-320.png",
+    "after-account-unavailable-390.png",
+    "after-loading-390.png"
+  ]
+}

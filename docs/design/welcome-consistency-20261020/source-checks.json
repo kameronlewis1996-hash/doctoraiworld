@@ -1,0 +1,152 @@
+[
+  {
+    "script": "check-js.js",
+    "exit": 0,
+    "summary": "JavaScript syntax passed (102 files), including the new visual-state verifier."
+  },
+  {
+    "script": "verify-about-route.cjs",
+    "exit": 0,
+    "summary": "About route and homepage, Health Hub, and About footer links verified."
+  },
+  {
+    "script": "verify-alert-status.cjs",
+    "exit": 1,
+    "summary": " Node.js v24.19.0"
+  },
+  {
+    "script": "verify-alerts-presentation.cjs",
+    "exit": 0,
+    "summary": "\u2713 throwing engine clears stale alert list and coverage controls Alert presentation verified: 12 checks passed using the actual renderer and synthetic local fixtures."
+  },
+  {
+    "script": "verify-device-health-storage.cjs",
+    "exit": 0,
+    "summary": "Device health storage verification passed (synthetic session choice, cancellation, owner-scoped check removal, account deletion, cloud failure and blocked browser cleanup)."
+  },
+  {
+    "script": "verify-five-tabs.cjs",
+    "exit": 0,
+    "summary": "Shared task navigation verified: Today, My Health, Visit Prep and Profile; medicines and scanning inside My Health; retained diary/appointment routes; privacy, account isolation, consent and clinical alert boundaries."
+  },
+  {
+    "script": "verify-health-alerts.cjs",
+    "exit": 0,
+    "summary": "\u2502 6       \u2502 'Saved detail contradiction'     \u2502 'detail-blood-type-conflict / detail-allergy-conflict' \u2502 true    \u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
+  },
+  {
+    "script": "verify-health-state-contract.cjs",
+    "exit": 0,
+    "summary": "Health-state contract verification passed (actual browser serializer, API and validator; synthetic providers, structured terminology, diary questions, legacy data, roundtrips, rejection and account/storage guards)."
+  },
+  {
+    "script": "verify-local-medication-ui.cjs",
+    "exit": 0,
+    "summary": "UI\u2192API\u2192local rules passed: generic/brand interaction warnings first with alert role/icon/severity styling, source text, state-specific footer, unknown and unavailable presentation, explicit persistent consent, private payload and sign-in/Pro gates."
+  },
+  {
+    "script": "verify-medication-catalog-search.cjs",
+    "exit": 0,
+    "summary": "Medication catalogue search passed: partial brand/generic queries, exact combination selection, long-name preservation, incomplete mapping and empty result."
+  },
+  {
+    "script": "verify-medication-check-controller.cjs",
+    "exit": 0,
+    "summary": "Medication check controller passed: generic/brand warnings, unknown coverage, explicit consent, activation, change-triggered checks, reload/staleness, Pro/account/profile isolation, revocation, errors, duplicate requests and stale-response races."
+  },
+  {
+    "script": "verify-medication-database.cjs",
+    "exit": 0,
+    "summary": "Rights-filtered medication database verified: 5 retained prompts; excluded pairs and incomplete coverage remain unknown."
+  },
+  {
+    "script": "verify-medication-evidence.cjs",
+    "exit": 0,
+    "summary": "Medication rights, retained-data provenance, Pharmac attribution, Coenzyme Q10 importer regression, incomplete-product handling, chat boundaries and cache versions verified."
+  },
+  {
+    "script": "verify-medication-login.cjs",
+    "exit": 0,
+    "summary": "Medication login verification passed: one check per session, new login refresh, prior warning while updating, fresh time, failure/reload, consent/account/profile isolation, stale-response races, non-credential marker and duplicate auth callbacks."
+  },
+  {
+    "script": "verify-medication-pipeline.cjs",
+    "exit": 0,
+    "summary": "Synthetic scan\u2192review\u2192confirmed label\u2192save gate\u2192local rules pipeline passed. OCR confidence remains unknown; unverified strength and name/label mismatch states are preserved."
+  },
+  {
+    "script": "verify-medication-provenance-policy.cjs",
+    "exit": 0,
+    "summary": "Medication provenance policy verification passed."
+  },
+  {
+    "script": "verify-medication-record-cautions.cjs",
+    "exit": 0,
+    "summary": "Medication record cautions verified: 20 focused synthetic checks passed."
+  },
+  {
+    "script": "verify-medication-safety.js",
+    "exit": 0,
+    "summary": "Limited local medication check verified with synthetic names, allergies and conditions; uncovered scope stays unknown."
+  },
+  {
+    "script": "verify-medication-scan.js",
+    "exit": 0,
+    "summary": "Medication scan verification passed: 5 synthetic OCR service failures returned no-store 502/503/502/422/504 responses; consent, image bounds, parse/refusal/timeout handling and per-field uncertainty also passed."
+  },
+  {
+    "script": "verify-medication-staff-test.cjs",
+    "exit": 0,
+    "summary": "Staff medication test endpoint: access-control cases passed; 8/8 synthetic scenarios matched expected rule-scope behavior."
+  },
+  {
+    "script": "verify-open-catalogues.cjs",
+    "exit": 0,
+    "summary": "Open catalogue provenance, search, migration and offline import checks passed."
+  },
+  {
+    "script": "verify-pwa-install.cjs",
+    "exit": 0,
+    "summary": "PWA install assets passed: manifest, 192px and 512px PNGs, app entry route, and install pages."
+  },
+  {
+    "script": "verify-record-preparation.cjs",
+    "exit": 0,
+    "summary": "Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; medicine history provenance and deletion; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network."
+  },
+  {
+    "script": "verify-retired-medication-providers.cjs",
+    "exit": 0,
+    "summary": "Medication provider retirement verified: retired routes are no-store 410s with zero outbound calls; the local endpoint, scan route, and inert legacy record preservation remain."
+  },
+  {
+    "script": "verify-server-core.js",
+    "exit": 0,
+    "summary": "Server core verification passed (durable limits, health-state validation and isolated Preview storage)."
+  },
+  {
+    "script": "verify-staff-ideas.cjs",
+    "exit": 0,
+    "summary": "Staff Ideas persistence checks passed: pre-auth isolation, per-admin browser scope, reload data, category filter, and clear."
+  },
+  {
+    "script": "verify-staff-medication-review.cjs",
+    "exit": 0,
+    "summary": "Staff review workspaces passed: 405/401/403/200 access gates, four keyboard tabs, fixed fictional tests, account-scoped browser ideas, and Vercel exclusion contract."
+  },
+  {
+    "script": "verify-stripe-pricing.js",
+    "exit": 0,
+    "summary": "Stripe pricing verification passed (server source of truth, plan validation, mode guard, and safe unavailable states)."
+  },
+  {
+    "script": "verify-today-diary.cjs",
+    "exit": 0,
+    "summary": "Today diary question validation and duplicate checks passed."
+  },
+  {
+    "script": "verify-zero-medication-alerts.cjs",
+    "exit": 0,
+    "summary": "Zero-medicine lifecycle verified: neutral empty/allergy/condition/stopped states, no empty coverage warnings, independent alerts retained, first/pair/delete transitions, unresolved identities and stale-cache/account isolation."
+  }
+]

@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="/accessibility.css?v=15">
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
   <script defer src="/feature-icons.js?v=8"></script>
+  <link rel="stylesheet" href="/welcome-system.css?v=1">
 </head>
 <body class="doctorai-public-page" data-subscription="free">
   <header class="research-header">
@@ -48,7 +49,7 @@
       <p class="eyebrow">DoctorAI evidence library</p>
       <h1 id="research-title">Research, without<br><em>the overload.</em></h1>
       <p class="hero-copy">A simpler way to find useful medical research, see what is gaining attention and save better questions for your care team.</p>
-      <div class="research-trust"><span data-doctorai-icon="shield" aria-hidden="true"></span><span><b>Learn, don’t self-diagnose.</b> Every paper keeps its source, date and limitations visible.</span></div>
+      <div class="research-trust"><span data-doctorai-icon="shield" aria-hidden="true"></span><span><b>Learn, don’t self-diagnose.</b> Cards show the source and publication date. Study-specific limitations are not assessed here; read the full paper.</span></div>
     </section>
 
     <nav class="research-tabs" aria-label="Research sections" role="tablist">
@@ -59,14 +60,14 @@
 
     <section class="research-panel active" id="research-panel-highlights" role="tabpanel" aria-labelledby="tab-highlights" data-research-panel="highlights">
       <div class="panel-heading">
-        <div><p class="eyebrow">Curated starting points</p><h2>Today’s evidence at a glance</h2><p>Three simple entry points, refreshed from the live Europe PMC index.</p></div>
+        <div><p class="eyebrow">Selected research</p><h2>Research at a glance</h2><p>Three automated starting points from the live Europe PMC index.</p></div>
         <button class="quiet-action" id="refresh-highlights" type="button">Refresh picks <span data-doctorai-icon="refresh" aria-hidden="true"></span></button>
       </div>
-      <div class="highlight-note"><span data-doctorai-icon="info" aria-hidden="true"></span><p><b>How picks are selected.</b> DoctorAI uses recency, citation signals, access and available study detail to surface a useful starting point. “Best” is not a medical recommendation.</p></div>
+      <div class="highlight-note"><span data-doctorai-icon="info" aria-hidden="true"></span><p><b>How selections work.</b> Each selection uses up to 30 returned Europe PMC records for its time window. An automated score favors citation counts, abstract length, open access and available author details; publication date breaks ties. This is not a study-quality rating or clinical review. The recent window is seven days, expanding to 30 days if empty.</p></div>
       <div class="highlight-grid" id="highlight-grid" aria-live="polite" aria-busy="true">
-        <article class="highlight-card" data-period-card="day"><div class="highlight-card-head"><div><p class="card-kicker">Best paper of the day</p><h3>Today’s pick</h3></div><span class="period-pill">Daily</span></div><div class="highlight-content" id="highlight-day">Finding today’s pick…</div></article>
-        <article class="highlight-card" data-period-card="month"><div class="highlight-card-head"><div><p class="card-kicker">Best paper of the month</p><h3>This month’s pick</h3></div><span class="period-pill">Monthly</span></div><div class="highlight-content" id="highlight-month">Finding this month’s pick…</div></article>
-        <article class="highlight-card" data-period-card="year"><div class="highlight-card-head"><div><p class="card-kicker">Best paper of the year</p><h3>This year’s pick</h3></div><span class="period-pill">Yearly</span></div><div class="highlight-content" id="highlight-year">Finding this year’s pick…</div></article>
+        <article class="highlight-card" data-period-card="day"><div class="highlight-card-head"><div><p class="card-kicker">Selected recent research</p><h3>Recent selection</h3></div><span class="period-pill">Past seven days</span></div><div class="highlight-content" id="highlight-day">Finding a recent selection…</div></article>
+        <article class="highlight-card" data-period-card="month"><div class="highlight-card-head"><div><p class="card-kicker">Selected research this month</p><h3>This month’s selection</h3></div><span class="period-pill">Monthly</span></div><div class="highlight-content" id="highlight-month">Finding this month’s selection…</div></article>
+        <article class="highlight-card" data-period-card="year"><div class="highlight-card-head"><div><p class="card-kicker">Selected research this year</p><h3>This year’s selection</h3></div><span class="period-pill">Yearly</span></div><div class="highlight-content" id="highlight-year">Finding this year’s selection…</div></article>
       </div>
     </section>
 
@@ -117,7 +118,7 @@
 
   <script src="/branding.js?v=10"></script>
   <script src="/logo-loader.js?v=10"></script>
-  <script src="/research.js?v=9"></script>
+  <script src="/research.js?v=10"></script>
   <script src="/resource-share.js?v=1"></script>
 </body>
 </html>
