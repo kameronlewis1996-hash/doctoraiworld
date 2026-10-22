@@ -58,5 +58,5 @@ assert.match(template, /href="\/privacy">medication-check privacy and coverage d
 assert.match(read('privacy.html'), /DoctorAI-hosted curated rules/);
 assert.match(read('subscription.js'), /item\.amount === 2900 && item\.currency === 'NZD'/);
 assert.match(read('server-src/stripe/plan-catalog.cjs'), /currency: 'nzd', unitAmount: 2900/);
-assert.match(read('staff.html'), /four fictional sample records/);
+assert.doesNotMatch(read('staff.html'), /four fictional sample records/, 'The production release excludes the separate fictional staff-pair demo.');
 console.log('Public copy consistency passed: fictional highlight/search cards retain source/date and visible unassessed-limitations notices; selection scope, blank list date, catalogue date, curated-rule consent and unchanged price gates agree.');

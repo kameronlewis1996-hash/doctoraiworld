@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { 'Content-Type': types[path.extname(file)], 'Cache-Control': 'no-store' });
   if (pathname === '/service-worker.js') {
-    let body = fs.readFileSync(file, 'utf8').replace('doctorai-shell-v178', legacyMode ? 'doctorai-shell-v168' : `doctorai-shell-${workerVersion}`);
+    let body = fs.readFileSync(file, 'utf8').replace('doctorai-shell-v179', legacyMode ? 'doctorai-shell-v168' : `doctorai-shell-${workerVersion}`);
     if (legacyMode) body = body.replace('event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));', 'event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))); self.skipWaiting();').replace('/pwa.js?v=16', '/pwa.js?v=15');
     res.end(body);
   } else if (pathname === '/pwa.js' && legacyMode) {
