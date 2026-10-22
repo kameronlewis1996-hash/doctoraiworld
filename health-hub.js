@@ -3130,7 +3130,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function openMedicationScanner() {
-    if (medicationScanBusy || !await medicationScanAccess()) return;
+    if (medicationScanBusy) return;
+    const scanEntry = document.querySelector('#view-medications [data-open-medication-scanner]');
+    if (scanEntry?.getClientRects().length) scanEntry.focus({ preventScroll: true });
+    if (!await medicationScanAccess()) return;
     const scanScope = accountSyncScope();
     closeMedicationScanner();
     if (!els.medicationScannerModal || !els.medicationScannerVideo) {

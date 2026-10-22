@@ -313,6 +313,42 @@ async function keyboardFocus(page, selector) {
     await interruptedPage.waitForFunction(()=>document.querySelector('#view-profile > .page-heading h1')===document.activeElement);
     check(await visibleFocus(interruptedPage),true,'interrupted first use: accepting on a deep link returns focus to the current view');
     await interruptedContext.close();
+
+    const scannerContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    await scannerContext.route('**/*',route=>{
+      const url=new URL(route.request().url());
+      if(url.origin!==base)return route.abort();
+      if(url.pathname==='/api/auth/google')return route.fulfill({json:{authenticated:true,user:{email:'synthetic@example.invalid',name:'Synthetic Test'}}});
+      if(url.pathname==='/api/stripe/entitlement')return route.fulfill({json:{active:true}});
+      if(url.pathname.startsWith('/api/'))return route.fulfill({json:{active:false,authenticated:true}});
+      return route.continue();
+    });
+    await scannerContext.addInitScript(()=>{
+      localStorage.setItem('doctorai-health-hub-device-storage-consent','yes');
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:()=>Promise.reject(new DOMException('Synthetic camera denial','NotAllowedError'))}});
+    });
+    const scannerPage=await scannerContext.newPage();
+    scannerPage.on('pageerror',e=>report.errors.push(e.message));
+    await scannerPage.goto(base+'/health-hub#today',{waitUntil:'networkidle'});
+    await keyboardFocus(scannerPage,'#view-today [data-open-medication-scanner]');
+    check(await scannerPage.locator('#view-today [data-open-medication-scanner]').evaluate(e=>e===document.activeElement),true,'scanner: keyboard can focus the Today scan action');
+    await scannerPage.keyboard.press('Enter');
+    await scannerPage.waitForFunction(()=>document.querySelector('#medication-scanner-modal')?.open);
+    await scannerPage.waitForFunction(()=>/permission|photo/i.test(document.querySelector('#medication-scanner-status')?.textContent||''));
+    const scannerDialog=scannerPage.locator('#medication-scanner-modal');
+    check(await scannerDialog.evaluate(e=>[e.getAttribute('aria-labelledby'),e.getAttribute('aria-describedby')]),['medication-scanner-title','medication-scanner-intro'],'scanner: dialog has a name and description');
+    check(await scannerDialog.evaluate(e=>e.contains(document.activeElement)),true,'scanner: opening moves keyboard focus into the dialog');
+    check(await scannerPage.locator('[data-medication-image-consent]').isChecked(),false,'scanner: no label-image consent is selected');
+    check(await scannerPage.locator('#medication-scanner-status').textContent().then(text=>/choose a label photo/i.test(text)),true,'scanner: denied camera access explains the photo alternative');
+    const scannerRing=await ring(scannerPage,'#medication-scanner-modal [data-close-medication-scanner]');
+    check(scannerRing.width>=3&&scannerRing.style==='solid'&&contrastAgainstWhite(scannerRing.color)>=3,true,'scanner: close control has a visible high-contrast focus ring');
+    await scannerPage.keyboard.press('Escape');
+    await scannerPage.waitForFunction(()=>!document.querySelector('#medication-scanner-modal').open);
+    await scannerPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    check(await scannerPage.locator('#view-medications [data-open-medication-scanner]').first().evaluate(e=>e===document.activeElement&&!!e.getClientRects().length),true,'scanner: Escape restores focus to the visible scan action after its view change');
+    check(await visibleFocus(scannerPage),true,'scanner: dismissal leaves a visible keyboard focus position');
+    await scannerContext.close();
+
     check(report.errors,[],'No browser exceptions');
   } finally {await browser.close();server.close();if(out)fs.writeFileSync(path.join(out,'accessibility-interactions.json'),JSON.stringify(report,null,2));}
   console.log(JSON.stringify({suite:'accessibility-browser',result:report.failures.length?'baseline defects recorded':'passed',checks:report.checks.length,failures:report.failures,errors:report.errors,screenshots:report.screenshots},null,2));
