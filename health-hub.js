@@ -383,6 +383,7 @@
   let entitlementReady = false;
   let entitlementTimer = null;
   let medicationScanBusy = false;
+  let medicationScanController = null;
   let medicationScannerActive = false;
   let medicationScannerStream = null;
   let cloudSyncTimer = null;
@@ -1886,7 +1887,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
-    if (previousEmail !== nextEmail) medicationAccountDataReady = false;
+    if (previousEmail !== nextEmail) {
+      medicationAccountDataReady = false;
+      medicationScanController?.abort();
+      closeMedicationScanner();
+    }
     const healthOwnerChanged = activateHealthDataOwner(user, localScope, allowAnonymousLegacy);
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
@@ -3052,19 +3057,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (els.medicationCaptureButton) els.medicationCaptureButton.disabled = Boolean(busy) || !medicationScannerActive || !medicationScannerStream;
   }
 
-  async function submitMedicationScan(image) {
-    if (medicationScanBusy) return;
+  async function submitMedicationScan(image, scanScope = accountSyncScope()) {
+    // A label belongs to the account that selected it, including while image
+    // preparation or the provider request is pending.
+    const isCurrentScan = () => Boolean(scanScope && scanScope === accountSyncScope());
+    if (medicationScanBusy || !isCurrentScan()) return;
     if (!image || image.length > MAX_SCAN_DATA_URL) {
       openMedicationModal({ __scanAttempted: true, __scanError: 'The prepared image was too large to send.' });
       return;
     }
     setMedicationScanBusy(true);
     const controller = new AbortController();
+    medicationScanController = controller;
     const timeout = window.setTimeout(() => controller.abort(), 50_000);
     try {
       showToast('Reading only the visible medicine label…');
       const response = await fetch('/api/medication/scan', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ image, consent: true }), signal: controller.signal });
       const payload = await response.json().catch(() => ({}));
+      if (!isCurrentScan()) return;
       if (!response.ok) {
         if (response.status === 401) { accountSessionReady = false; renderAccountSession(null); }
         if (response.status === 403) { entitlementReady = false; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); }
@@ -3077,11 +3087,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       openMedicationModal({ ...medication, __scanned: extracted, __scanAttempted: true, __missing: payload.review?.missing || [] });
       showToast(extracted ? 'Details copied. Check every field against the label.' : 'The label text was not clear. Enter the details from the label.');
     } catch (error) {
+      if (!isCurrentScan()) return;
       const message = error?.name === 'AbortError' ? 'The scan took too long. Please check your connection and try again.' : String(error?.message || 'The image could not be read.');
       openMedicationModal({ __scanAttempted: true, __scanError: message });
       showToast('Scan not completed. Manual entry is ready.');
     } finally {
       clearTimeout(timeout);
+      if (medicationScanController === controller) medicationScanController = null;
       setMedicationScanBusy(false);
     }
   }
@@ -3109,6 +3121,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function openMedicationScanner() {
     if (medicationScanBusy || !await medicationScanAccess()) return;
+    const scanScope = accountSyncScope();
     closeMedicationScanner();
     if (!els.medicationScannerModal || !els.medicationScannerVideo) {
       document.getElementById('medication-scan')?.click();
@@ -3121,15 +3134,22 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       medicationScannerStatus('Live camera access is unavailable here. Choose a label photo instead.', 'error');
       return;
     }
+    let stream = null;
+    const discardStream = () => {
+      if (stream && medicationScannerStream === stream) stopMedicationScannerCamera();
+      else stream?.getTracks().forEach(track => track.stop());
+    };
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
-      if (!els.medicationScannerModal.open) { stream.getTracks().forEach(track => track.stop()); return; }
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+      if (!els.medicationScannerModal.open || !scanScope || scanScope !== accountSyncScope()) { discardStream(); return; }
       medicationScannerStream = stream;
       els.medicationScannerVideo.srcObject = stream;
       await els.medicationScannerVideo.play();
+      if (scanScope !== accountSyncScope() || medicationScannerStream !== stream) { discardStream(); return; }
       medicationScannerActive = true;
       medicationScannerStatus('Camera ready. Frame the medicine label, then choose Capture label.', 'scanning');
     } catch (error) {
+      if (scanScope !== accountSyncScope()) { discardStream(); return; }
       stopMedicationScannerCamera();
       const message = error?.name === 'NotAllowedError'
         ? 'Camera permission is off. Allow camera access in your browser settings or choose a label photo.'
@@ -3142,6 +3162,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function scanMedicationPhoto(file) {
     if (!file || medicationScanBusy || !await medicationScanAccess()) return;
+    const scanScope = accountSyncScope();
     if (els.medicationImageConsent?.checked !== true) {
       showToast('Check the image-sharing consent before sending a label photo. No image has been sent.');
       return;
@@ -3154,8 +3175,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     try {
       showToast('Preparing a smaller private label image…');
       const image = await prepareScanImage(file);
-      await submitMedicationScan(image);
+      await submitMedicationScan(image, scanScope);
     } catch (error) {
+      if (!scanScope || scanScope !== accountSyncScope()) return;
       const message = String(error?.message || 'The image could not be prepared.');
       openMedicationModal({ __scanError: message });
       showToast('Photo not read. Manual entry is ready.');
