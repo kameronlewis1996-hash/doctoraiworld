@@ -510,6 +510,11 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2800);
   };
+  function revealStorageConsentChoice() {
+    if (!storageConsent) return;
+    storageConsent.hidden = false;
+    storageConsent.focus({ preventScroll: true });
+  }
   function setDeviceStorage(allowed) {
     if (allowed && localStorageRemovalFailed && !removeDeviceHealthData()) {
       showToast('Old browser health data still could not be removed. Clear this site\'s browser data before enabling device storage again.');
@@ -531,7 +536,9 @@
       deviceStorageChoice = 'session-cleanup-incomplete';
       try { localStorage.setItem(storageConsentKey, deviceStorageChoice); } catch {}
     }
+    const consentWasVisible = Boolean(storageConsent && !storageConsent.hidden);
     if (storageConsent) storageConsent.hidden = true;
+    if (consentWasVisible) requestAnimationFrame(() => focusCurrentViewHeading());
     if (allowed) saveState();
     setSyncStatus(localStorageRemovalFailed ? 'Session only requested - old browser data may remain' : allowed ? 'Saved in this browser' : 'Device storage off · session only');
     refreshMedicationCheckContext().catch(() => {});
@@ -2614,17 +2621,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const disclosure = event.target.closest('details');
         if (disclosure) disclosure.open = true;
         const error = medicationForm.querySelector('#medication-form-error');
-        if (error && !error.textContent) error.textContent = event.target.name === 'name'
-          ? 'Medication name is required. Copy it from your label.'
-          : 'Check the required confirmation against your label before saving.';
-        event.target.setAttribute('aria-invalid', 'true');
+        if (error && !error.textContent) error.textContent = medicationForm.querySelectorAll(':invalid').length > 1
+          ? 'Complete each required field before saving.'
+          : event.target.name === 'name' ? 'Medication name is required. Copy it from your label.'
+            : 'Check the required confirmation against your label before saving.';
+        markFieldInvalid(event.target, error);
       }, true);
       medicationForm.addEventListener('input', event => {
-        event.target.removeAttribute?.('aria-invalid');
         const error = medicationForm.querySelector('#medication-form-error');
-        if (error) error.textContent = '';
+        clearFieldInvalid(event.target, error, medicationForm);
       });
-      medicationForm.addEventListener('change', event => event.target.removeAttribute?.('aria-invalid'));
+      medicationForm.addEventListener('change', event => clearFieldInvalid(event.target, medicationForm.querySelector('#medication-form-error'), medicationForm));
     }
     if (medicationForm && editing) {
       els.modalTitle.textContent = 'Edit medication';
@@ -2740,13 +2747,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const form = els.modalBody.querySelector('form');
     form.addEventListener('invalid', event => {
       const error = form.querySelector('#medication-form-error');
-      if (!error.textContent) error.textContent = event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
-      event.target.setAttribute('aria-invalid', 'true');
+      if (!error.textContent) error.textContent = form.querySelectorAll(':invalid').length > 1
+        ? 'Complete each required field before saving.'
+        : event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
+      markFieldInvalid(event.target, error);
     }, true);
     form.addEventListener('input', event => {
-      event.target.removeAttribute('aria-invalid');
-      form.querySelector('#medication-form-error').textContent = '';
+      const error = form.querySelector('#medication-form-error');
+      clearFieldInvalid(event.target, error, form);
     });
+    form.addEventListener('change', event => clearFieldInvalid(event.target, form.querySelector('#medication-form-error'), form));
   }
 
   function attachLocalMedicineSuggestions(form, savedMatch = null) {
@@ -3120,7 +3130,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function openMedicationScanner() {
-    if (medicationScanBusy || !await medicationScanAccess()) return;
+    if (medicationScanBusy) return;
+    const scanEntry = document.querySelector('#view-medications [data-open-medication-scanner]');
+    if (scanEntry?.getClientRects().length) scanEntry.focus({ preventScroll: true });
+    if (!await medicationScanAccess()) return;
     const scanScope = accountSyncScope();
     closeMedicationScanner();
     if (!els.medicationScannerModal || !els.medicationScannerVideo) {
@@ -3705,10 +3718,29 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     showToast(authUser ? 'Your device and account health data have been deleted.' : 'Health data was deleted from this session/device. Sign in to delete any account copy.');
   }
 
+  function markFieldInvalid(field, error) {
+    if (!field) return;
+    field.setAttribute('aria-invalid', 'true');
+    if (!error?.id) return;
+    const descriptions = new Set((field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    descriptions.add(error.id);
+    field.setAttribute('aria-describedby', [...descriptions].join(' '));
+  }
+
+  function clearFieldInvalid(field, error, form) {
+    if (!field) return;
+    field.removeAttribute('aria-invalid');
+    if (!error?.id) return;
+    const descriptions = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== error.id);
+    if (descriptions.length) field.setAttribute('aria-describedby', descriptions.join(' '));
+    else field.removeAttribute('aria-describedby');
+    if (form && !form.querySelector('[aria-invalid="true"]')) error.textContent = '';
+  }
+
   function rejectMedicationForm(form, message, field) {
     const error = form.querySelector('#medication-form-error');
     if (error) error.textContent = message;
-    field?.setAttribute('aria-invalid', 'true');
+    markFieldInvalid(field, error);
     field?.focus();
     showToast(message);
   }
@@ -4867,7 +4899,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   const initialView = location.hash.slice(1);
   const termsQuery = new URLSearchParams(location.search).get('terms') === '1';
   renderAll();
-  try { if (storageConsent && !localStorage.getItem(storageConsentKey)) storageConsent.hidden = false; } catch { if (storageConsent) storageConsent.hidden = false; }
+  try { if (storageConsent && !localStorage.getItem(storageConsentKey)) revealStorageConsentChoice(); } catch { revealStorageConsentChoice(); }
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('profile', false); openPrivacy(); }
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
