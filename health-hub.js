@@ -2755,7 +2755,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const results = form.querySelector('#medication-name-results');
     const status = form.querySelector('#medication-search-status');
     const selectedPanel = form.querySelector('#medication-selected-product');
-    if (!input || !search || !results || !status || !selectedPanel) return;
+    if (!input || !results || !status || !selectedPanel) return;
+    if (!search) {
+      status.textContent = 'Catalogue search is unavailable. Reload the page to try again, or enter the name from your package.';
+      return;
+    }
     const dose = form.elements.dose;
     let catalogue = null;
     let selected = null;
@@ -2763,6 +2767,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     let activeIndex = -1;
     let requestId = 0;
     let applyingSelection = false;
+    let choosingOption = false;
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'secondary-button medication-search-retry';
+    retry.textContent = 'Retry catalogue search';
+    retry.hidden = true;
+    status.after(retry);
 
     const closeResults = () => {
       results.hidden = true;
@@ -2775,6 +2786,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       form.catalogueSelection = null;
       selectedPanel.replaceChildren();
       selectedPanel.hidden = true;
+    };
+    const dismiss = () => {
+      requestId++;
+      input.setAttribute('aria-busy', 'false');
+      closeResults();
     };
     const setActive = index => {
       if (!matches.length) return;
@@ -2861,7 +2877,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
           ? product.chemical : '';
         meta.textContent = [distinctChemical, product.formulation].filter(Boolean).join(' · ') || 'Product details limited';
         option.append(name, meta);
-        option.addEventListener('pointerdown', event => { if (event.pointerType === 'mouse') event.preventDefault(); });
+        option.addEventListener('pointerdown', event => {
+          choosingOption = true;
+          if (event.pointerType === 'mouse') event.preventDefault();
+        });
+        option.addEventListener('pointerup', () => window.setTimeout(() => { choosingOption = false; }, 0));
+        option.addEventListener('pointercancel', () => { choosingOption = false; });
         option.addEventListener('click', () => selectRecord(record));
         results.append(option);
       });
@@ -2875,6 +2896,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     };
     const update = async () => {
       const thisRequest = ++requestId;
+      retry.hidden = true;
       const query = input.value.trim();
       if (!selected || selected.productName !== query) clearSelection();
       activeIndex = -1;
@@ -2883,16 +2905,19 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       results.hidden = true;
       input.setAttribute('aria-expanded', 'false');
       if (query.length < 2) {
+        input.setAttribute('aria-busy', 'false');
         matches = [];
         closeResults();
-        status.textContent = '';
+        status.textContent = 'Type at least 2 letters to see medicine suggestions.';
         return;
       }
       status.textContent = 'Searching the local Pharmac catalogue…';
       try {
+        input.setAttribute('aria-busy', 'true');
         catalogue ||= await search.load();
         if (thisRequest !== requestId || !form.isConnected) return;
         const found = search.search(catalogue, query, 8);
+        input.setAttribute('aria-busy', 'false');
         renderMatches(found.matches, found.totalMatches, query);
       } catch {
         if (thisRequest !== requestId || !form.isConnected) return;
@@ -2900,20 +2925,26 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         results.replaceChildren();
         closeResults();
         status.textContent = 'Catalogue search is unavailable. Enter the name from your package; no product was selected.';
+        input.setAttribute('aria-busy', 'false');
+        retry.hidden = false;
       }
     };
     input.addEventListener('input', () => { if (!applyingSelection) update(); });
+    input.addEventListener('focus', () => {
+      if (!selected || selected.productName !== input.value.trim()) update();
+    });
+    retry.addEventListener('click', () => { input.focus(); update(); });
     input.addEventListener('keydown', event => {
       if (event.key === 'ArrowDown' && !results.hidden) { event.preventDefault(); setActive(activeIndex + 1); }
       else if (event.key === 'ArrowUp' && !results.hidden) { event.preventDefault(); setActive(activeIndex <= 0 ? matches.length - 1 : activeIndex - 1); }
       else if (event.key === 'Enter' && !results.hidden && activeIndex >= 0) { event.preventDefault(); selectRecord(matches[activeIndex]); }
-      else if (event.key === 'Escape' && !results.hidden) { event.preventDefault(); closeResults(); status.textContent = 'Search suggestions closed. No product was selected.'; }
+      else if (event.key === 'Escape' && (!results.hidden || input.getAttribute('aria-busy') === 'true')) { event.preventDefault(); dismiss(); status.textContent = 'Search suggestions closed. Focus the name field again or keep typing to search.'; }
     });
     input.addEventListener('blur', () => window.setTimeout(() => {
-      if (!results.contains(document.activeElement)) closeResults();
+      if (!choosingOption && document.activeElement !== input && !results.contains(document.activeElement)) dismiss();
     }, 150));
     input.closest('.medication-name-search')?.addEventListener('focusout', () => window.setTimeout(() => {
-      if (!input.closest('.medication-name-search')?.contains(document.activeElement)) closeResults();
+      if (!choosingOption && !input.closest('.medication-name-search')?.contains(document.activeElement)) dismiss();
     }, 150));
 
     if (savedMatch && savedMatch.productId && savedMatch.productName === input.value) {
