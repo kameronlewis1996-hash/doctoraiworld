@@ -151,7 +151,16 @@ body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destinat
 .home-aurora-meta .home-motion-control { font-size: 12px; color: #465f73; }
 .doctorai-homepage .home-topics { margin-top: 20px; }
 
-\n@media (max-width: 800px) {\n  /* Keep the home shortcuts easy to read at narrow widths. */\n  .doctorai-homepage .home-aurora-dock a { min-height: 96px; font-size: 14px; line-height: 1.35; padding: 8px 6px; }\n  .doctorai-homepage .home-aurora-meta { flex-wrap: wrap; justify-content: center; text-align: center; gap: 8px 18px; }\n  .doctorai-homepage .home-aurora-meta .home-hero-limit,\n  .doctorai-homepage .home-aurora-meta .home-motion-control { font-size: 14px; }\n}\n\n/* Health Hub: keep text on readable surfaces; tint the surroundings, not data.
+
+@media (max-width: 800px) {
+  /* Keep the home shortcuts easy to read at narrow widths. */
+  .doctorai-homepage .home-aurora-dock a { min-height: 96px; font-size: 14px; line-height: 1.35; padding: 8px 6px; }
+  .doctorai-homepage .home-aurora-meta { flex-wrap: wrap; justify-content: center; text-align: center; gap: 8px 18px; }
+  .doctorai-homepage .home-aurora-meta .home-hero-limit,
+  .doctorai-homepage .home-aurora-meta .home-motion-control { font-size: 14px; }
+}
+
+/* Health Hub: keep text on readable surfaces; tint the surroundings, not data.
    Orange also covers unassessed/limited checks, not just a known risk. */
 body[data-hub-layout="reference"] #hub-shell { background: transparent; }
 body[data-hub-layout="reference"] #hub-shell .sidebar {
