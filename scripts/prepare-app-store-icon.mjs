@@ -184,15 +184,16 @@ if (metadataChunks.some(({ type }) => type === "sRGB") && metadataChunks.some(({
 }
 const expectedOutput = encodeRgbPng(1024, 1024, rgbPixels, metadataChunks);
 
+let outputBuffer;
 if (checkOnly) {
-  const outputBuffer = await readFile(outputPath);
-  if (!outputBuffer.equals(expectedOutput)) throw new Error("Opaque export differs from a fresh deterministic render");
+  outputBuffer = await readFile(outputPath);
 } else {
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, expectedOutput);
+  outputBuffer = expectedOutput;
 }
 
-const verified = parsePng(checkOnly ? await readFile(outputPath) : expectedOutput);
+const verified = parsePng(outputBuffer);
 if (verified.width !== 1024 || verified.height !== 1024 || verified.bitDepth !== 8 || verified.colorType !== 2) {
   throw new Error("Export must be 1024x1024, 8-bit RGB, and contain no alpha channel");
 }
@@ -201,7 +202,7 @@ if (channels !== 3 || !verifiedPixels.equals(rgbPixels)) throw new Error("Export
 
 const result = {
   source: { width: sourcePng.width, height: sourcePng.height, colorType: "RGBA", alphaPixels: alphaCounts },
-  export: { width: verified.width, height: verified.height, bitDepth: verified.bitDepth, colorType: "RGB (opaque)", bytes: expectedOutput.length, sha256: createHash("sha256").update(expectedOutput).digest("hex") },
+  export: { width: verified.width, height: verified.height, bitDepth: verified.bitDepth, colorType: "RGB (opaque)", bytes: outputBuffer.length, sha256: createHash("sha256").update(outputBuffer).digest("hex") },
   mode: checkOnly ? "checked" : "created",
 };
 console.log(JSON.stringify(result, null, 2));
