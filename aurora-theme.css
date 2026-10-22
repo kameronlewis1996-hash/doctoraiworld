@@ -449,9 +449,9 @@ body[data-hub-layout="reference"] #view-profile :is(.secondary-button, .text-but
     margin-bottom: -28px;
   }
   .doctorai-homepage .home-aurora-hero h1 {
-    font-size: clamp(36px, 10.3vw, 42px);
+    font-size: clamp(36px, 9.2vw, 42px);
     line-height: 1.12;
-    letter-spacing: -.045em;
+    letter-spacing: -.055em;
   }
   .doctorai-homepage .home-aurora-meta {
     margin-top: 4px;
