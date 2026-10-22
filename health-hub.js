@@ -2621,17 +2621,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         const disclosure = event.target.closest('details');
         if (disclosure) disclosure.open = true;
         const error = medicationForm.querySelector('#medication-form-error');
-        if (error && !error.textContent) error.textContent = event.target.name === 'name'
-          ? 'Medication name is required. Copy it from your label.'
-          : 'Check the required confirmation against your label before saving.';
+        if (error && !error.textContent) error.textContent = medicationForm.querySelectorAll(':invalid').length > 1
+          ? 'Complete each required field before saving.'
+          : event.target.name === 'name' ? 'Medication name is required. Copy it from your label.'
+            : 'Check the required confirmation against your label before saving.';
         markFieldInvalid(event.target, error);
       }, true);
       medicationForm.addEventListener('input', event => {
         const error = medicationForm.querySelector('#medication-form-error');
-        clearFieldInvalid(event.target, error);
-        if (error) error.textContent = '';
+        clearFieldInvalid(event.target, error, medicationForm);
       });
-      medicationForm.addEventListener('change', event => clearFieldInvalid(event.target, medicationForm.querySelector('#medication-form-error')));
+      medicationForm.addEventListener('change', event => clearFieldInvalid(event.target, medicationForm.querySelector('#medication-form-error'), medicationForm));
     }
     if (medicationForm && editing) {
       els.modalTitle.textContent = 'Edit medication';
@@ -2747,14 +2747,16 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const form = els.modalBody.querySelector('form');
     form.addEventListener('invalid', event => {
       const error = form.querySelector('#medication-form-error');
-      if (!error.textContent) error.textContent = event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
+      if (!error.textContent) error.textContent = form.querySelectorAll(':invalid').length > 1
+        ? 'Complete each required field before saving.'
+        : event.target.name === 'reaction' ? 'Describe what you noticed.' : 'Confirm that you want to record your observation as a possible reaction.';
       markFieldInvalid(event.target, error);
     }, true);
     form.addEventListener('input', event => {
       const error = form.querySelector('#medication-form-error');
-      clearFieldInvalid(event.target, error);
-      if (error) error.textContent = '';
+      clearFieldInvalid(event.target, error, form);
     });
+    form.addEventListener('change', event => clearFieldInvalid(event.target, form.querySelector('#medication-form-error'), form));
   }
 
   function attachLocalMedicineSuggestions(form, savedMatch = null) {
@@ -3722,13 +3724,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     field.setAttribute('aria-describedby', [...descriptions].join(' '));
   }
 
-  function clearFieldInvalid(field, error) {
+  function clearFieldInvalid(field, error, form) {
     if (!field) return;
     field.removeAttribute('aria-invalid');
     if (!error?.id) return;
     const descriptions = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== error.id);
     if (descriptions.length) field.setAttribute('aria-describedby', descriptions.join(' '));
     else field.removeAttribute('aria-describedby');
+    if (form && !form.querySelector('[aria-invalid="true"]')) error.textContent = '';
   }
 
   function rejectMedicationForm(form, message, field) {

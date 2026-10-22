@@ -107,7 +107,7 @@ async function keyboardFocus(page, selector) {
       check(await page.locator('#quick-modal').evaluate(e=>e.contains(document.activeElement)),true,width+': dialog receives focus');
       await keyboardFocus(page,'#quick-modal [data-close-modal]');
       const dialogRing = await ring(page,'#quick-modal [data-close-modal]');
-      check(dialogRing.color,'rgb(7, 89, 182)',width+': dialog focus ring is opaque');
+      check(dialogRing.width>=3 && dialogRing.style==='solid' && contrastAgainstWhite(dialogRing.color)>=3,true,width+': dialog focus ring is visible and high contrast');
       await shot(page,'dialog-focus-'+width);
       const tabSteps = Math.min(30, await page.locator('#quick-modal :is(input, select, textarea, button, a, summary)').count()+1);
       const obscured = [];
@@ -149,22 +149,41 @@ async function keyboardFocus(page, selector) {
       await page.keyboard.press('Enter');
       await page.locator('#quick-modal').waitFor({state:'visible'});
       const reaction = page.locator('#quick-modal [name="reaction"]');
+      const reactionDeclared = page.locator('#quick-modal [name="reactionDeclared"]');
       await page.locator('#quick-modal button[type="submit"]').click();
       check(await reaction.getAttribute('aria-invalid'),'true',width+': missing reaction details are marked invalid');
       check(await reaction.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': reaction field references the announced error');
       check(await reaction.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-reaction-help')),true,width+': reaction field keeps its original help text');
+      check(await reactionDeclared.getAttribute('aria-invalid'),'true',width+': missing reaction confirmation is marked invalid');
+      check(await reactionDeclared.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': confirmation field references the announced error');
       check(await page.locator('#medication-form-error').getAttribute('role'),'alert',width+': reaction validation error is announced to screen readers');
-      check((await page.locator('#medication-form-error').textContent()).trim(),'Describe what you noticed.',width+': reaction validation explains what is missing');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Complete each required field before saving.',width+': reaction validation explains what is missing');
       await reaction.fill('Synthetic observation only');
       check(await reaction.getAttribute('aria-invalid'),null,width+': editing clears the reaction error state');
       check(await reaction.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')&&e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-reaction-help')),true,width+': editing removes only the error description');
+      check(await reactionDeclared.getAttribute('aria-invalid'),'true',width+': remaining invalid confirmation stays marked');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Complete each required field before saving.',width+': remaining invalid field keeps its announcement');
+      check(await reactionDeclared.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': remaining invalid field keeps its error description');
+      await reactionDeclared.check();
+      check(await reactionDeclared.getAttribute('aria-invalid'),null,width+': confirming clears the final invalid state');
+      check(await reactionDeclared.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': confirming removes the final error description');
       check((await page.locator('#medication-form-error').textContent()).trim(),'',width+': editing clears the reaction validation alert');
       await page.keyboard.press('Escape');
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      check(await reactionAction.evaluate(e=>e===document.activeElement),true,width+': dismissing reaction entry restores focus to its trigger');
 
       const edit = '#medication-library [data-edit-medication]';
-      await keyboardFocus(page,edit);await page.keyboard.press('Enter');
-      await page.locator('#quick-modal [name="dose"]').fill('Edited fictional strength');
+      await keyboardFocus(page,edit);
+      check(await page.locator(edit).evaluate(e=>e===document.activeElement),true,width+': edit action receives keyboard focus');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(()=>document.querySelector('#quick-modal').open,{timeout:3000});
+      await page.waitForTimeout(100);
+      const editDose = page.locator('#quick-modal [name="dose"]');
+      await editDose.waitFor({state:'visible',timeout:3000});
+      await editDose.focus();
+      await page.keyboard.press('Control+A');
+      await page.keyboard.insertText('Edited fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
       check(await visibleFocus(page),true,width+': edit save restores focus after list rerender');
@@ -178,8 +197,7 @@ async function keyboardFocus(page, selector) {
       await keyboardFocus(page,'#health-memory-toggle');
       const switchRing = await ring(page,'#health-memory-toggle + span');
       await shot(page,'memory-switch-focus-'+width);
-      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch');
-      check(switchRing.width>=3,true,width+': switch focus ring width');
+      check(switchRing.width>=3 && switchRing.style==='solid' && contrastAgainstWhite(switchRing.color)>=3,true,width+': hidden checkbox paints a high-contrast focus ring on the visible switch');
       const switchTarget = await page.locator('#health-memory-toggle').evaluate(e=>{const r=e.closest('label').getBoundingClientRect();return r.width>=44&&r.height>=44;});
       check(switchTarget,true,width+': switch has 44px touch target');
 
@@ -210,7 +228,8 @@ async function keyboardFocus(page, selector) {
 
       await page.goto(base+'/health-hub#ask',{waitUntil:'networkidle'});
       await keyboardFocus(page,'.response-length-picker input:checked');
-      check((await ring(page,'.response-length-picker input:checked + span')).color,'rgb(7, 89, 182)',width+': answer length focus ring is opaque');
+      const answerRing=await ring(page,'.response-length-picker input:checked + span');
+      check(answerRing.width>=3 && answerRing.style==='solid' && contrastAgainstWhite(answerRing.color)>=3,true,width+': answer length focus ring is visible and high contrast');
       check(await page.locator('.response-length-picker label').first().evaluate(e=>e.getBoundingClientRect().height>=44),true,width+': answer length touch target');
       await page.keyboard.press('ArrowRight');
       check(await page.locator('.response-length-picker input[value="detailed"]').isChecked(),true,width+': answer length supports native arrow keys');
@@ -220,7 +239,7 @@ async function keyboardFocus(page, selector) {
       if (width<=800) {await page.locator('.doctorai-site-menu-button').click();await page.keyboard.press('Escape');}
       await keyboardFocus(page,width<=800?'.doctorai-site-menu-button':'.doctorai-site-menu a:first-child');
       const publicRing = await ring(page,width<=800?'.doctorai-site-menu-button':'.doctorai-site-menu a:first-child');
-      check(publicRing.color.startsWith('rgb(') && publicRing.width>=3 && publicRing.style==='solid',true,width+': public navigation has a solid opaque focus ring');
+      check(publicRing.width>=3 && publicRing.style==='solid' && contrastAgainstWhite(publicRing.color)>=3,true,width+': public navigation has a visible high-contrast focus ring');
       await shot(page,'public-navigation-focus-'+width);
       if (width===320) {
         await page.goto(base+'/',{waitUntil:'networkidle'});
@@ -260,7 +279,7 @@ async function keyboardFocus(page, selector) {
       check(await page.locator('#storage-consent').evaluate(e=>[e.getAttribute('role'),e.getAttribute('aria-labelledby'),e.getAttribute('aria-describedby'),e.getAttribute('tabindex')]),['dialog','storage-consent-title','storage-consent-description','-1'],label+': choice is a named, described focus target');
       check(await page.locator('#storage-consent').evaluate(e=>e===document.activeElement),true,label+': focus enters the storage choice when it appears');
       const consentRing = await ring(page,'#storage-consent');
-      check(consentRing.color,'rgb(7, 89, 182)',label+': focused storage choice has a visible blue outline');
+      check(contrastAgainstWhite(consentRing.color)>=3,true,label+': focused storage choice has a high-contrast outline');
       check(consentRing.width>=3 && consentRing.style==='solid',true,label+': storage-choice focus outline is at least 3px and solid');
       check(await page.locator('#storage-consent [data-device-storage-allow], #storage-consent [data-device-storage-session]').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,label+': both storage choices meet 44px touch targets');
       await shot(page,'first-use-storage-choice-'+viewport.name);
