@@ -442,3 +442,19 @@ body[data-hub-layout="reference"] #view-profile :is(.secondary-button, .text-but
   html :is(.doctorai-homepage, body[data-hub-layout="reference"]) { background: white; }
   .home-aurora-hero::before, .home-motion-control { display: none; }
 }
+/* Homepage first-use layout: keep the purpose and safety note in reach on phones. */
+@media (max-width: 680px) {
+  .doctorai-homepage .home-aurora-mark {
+    width: clamp(180px, 52vw, 210px);
+    margin-bottom: -28px;
+  }
+  .doctorai-homepage .home-aurora-hero h1 {
+    font-size: clamp(36px, 10.3vw, 42px);
+    line-height: 1.12;
+    letter-spacing: -.045em;
+  }
+  .doctorai-homepage .home-aurora-meta {
+    margin-top: 4px;
+    gap: 4px 18px;
+  }
+}
