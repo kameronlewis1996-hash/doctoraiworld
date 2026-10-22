@@ -62,6 +62,11 @@ async function keyboardFocus(page, selector) {
       page.on('pageerror',e=>report.errors.push(e.message));
       page.on('dialog',d=>d.accept());
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      if(width<=800){
+        check(await page.locator('[data-mobile-menu]').getAttribute('aria-label'),'Open Health Hub menu',width+': mobile menu has a clear accessible name');
+        check(await page.locator('[data-mobile-menu]').evaluate(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;}),true,width+': mobile menu meets the 44px touch target');
+        check(await page.locator('.mobile-bottom-nav-item').evaluateAll(items=>items.length===4&&items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': all four mobile destinations meet 44px touch targets');
+      }
       await page.keyboard.press('Tab');
       check(await page.locator('.skip-link').evaluate(e=>e===document.activeElement),true,width+': skip link is first keyboard stop');
       await page.keyboard.press('Enter');
@@ -97,8 +102,15 @@ async function keyboardFocus(page, selector) {
       }
       check(obscured,[],width+': dialog Tab traversal never completely obscures a focused control');
       await page.locator('#quick-modal button[type="submit"]').click();
-      check(await page.locator('#quick-modal [name="name"]').evaluate(e=>e===document.activeElement),true,width+': missing required medicine name receives focus');
-      await page.locator('#quick-modal [name="name"]').fill('Synthetic accessibility record');
+      const medicineName = page.locator('#quick-modal [name="name"]');
+      check(await medicineName.evaluate(e=>e===document.activeElement),true,width+': missing required medicine name receives focus');
+      check(await medicineName.getAttribute('aria-invalid'),'true',width+': missing medicine name is announced as invalid');
+      check(await medicineName.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': field description includes its validation error');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Medication name is required. Copy it from your label.',width+': validation alert explains the required field');
+      await medicineName.fill('Synthetic accessibility record');
+      check(await medicineName.getAttribute('aria-invalid'),null,width+': editing clears the invalid state');
+      check(await medicineName.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': editing removes the stale field error association');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'',width+': editing clears the stale validation alert');
       await page.locator('#quick-modal [name="dose"]').fill('Fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
@@ -183,6 +195,50 @@ async function keyboardFocus(page, selector) {
       }
       await c.close();
     }
+    const firstUseContext = await browser.newContext({viewport:{width:320,height:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    await firstUseContext.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==base)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({json:url.pathname==='/api/auth/google'?{authenticated:false}:{active:false,authenticated:false}});return route.continue();});
+    const firstUsePage = await firstUseContext.newPage();
+    firstUsePage.on('pageerror',e=>report.errors.push(e.message));
+    firstUsePage.on('dialog',d=>d.accept());
+    await firstUsePage.goto(base+'/health-hub',{waitUntil:'networkidle'});
+    check(await firstUsePage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'first use: storage choice reflows at 320px without horizontal overflow');
+    check(await firstUsePage.locator('#storage-consent').isVisible(),true,'first use: storage choice is visible');
+    check(await firstUsePage.locator('#storage-consent').evaluate(e=>[e.getAttribute('role'),e.getAttribute('aria-labelledby'),e.getAttribute('aria-describedby'),e.getAttribute('tabindex')]),['dialog','storage-consent-title','storage-consent-description','-1'],'first use: choice is a named, described focus target');
+    check(await firstUsePage.locator('#storage-consent').evaluate(e=>e===document.activeElement),true,'first use: focus enters the storage choice when it appears');
+    const consentRing = await ring(firstUsePage,'#storage-consent');
+    check(consentRing.color,'rgb(7, 89, 182)','first use: focused storage choice has a visible blue outline');
+    check(consentRing.width>=3 && consentRing.style==='solid',true,'first use: storage-choice focus outline is at least 3px and solid');
+    check(await firstUsePage.locator('#storage-consent [data-device-storage-allow], #storage-consent [data-device-storage-session]').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,'first use: both mobile storage choices meet 44px touch targets');
+    await shot(firstUsePage,'first-use-storage-choice-320');
+    await firstUsePage.keyboard.press('Tab');
+    check(await firstUsePage.locator('#storage-consent [data-device-storage-allow]').evaluate(e=>e===document.activeElement),true,'first use: Tab reaches the device storage choice');
+    await firstUsePage.keyboard.press('Tab');
+    check(await firstUsePage.locator('#storage-consent [data-device-storage-session]').evaluate(e=>e===document.activeElement),true,'first use: Tab reaches the session-only choice');
+    await firstUsePage.keyboard.press('Enter');
+    await firstUsePage.waitForFunction(()=>document.querySelector('#storage-consent').hidden);
+    await firstUsePage.waitForFunction(()=>document.querySelector('#view-today > .page-heading h1')===document.activeElement);
+    check(await visibleFocus(firstUsePage),true,'first use: choosing storage returns focus to the active page heading');
+    const headingRing = await ring(firstUsePage,'#view-today > .page-heading h1');
+    check(headingRing.color,'rgb(7, 89, 182)','first use: restored page heading has a visible focus indicator');
+    check(headingRing.width>=3 && headingRing.style==='solid',true,'first use: restored heading focus outline is at least 3px and solid');
+    await firstUsePage.reload({waitUntil:'networkidle'});
+    check(await firstUsePage.locator('#storage-consent').isHidden(),true,'repeat visit: accepted storage choice does not reopen');
+    await firstUseContext.close();
+
+    const interruptedContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    await interruptedContext.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==base)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({json:url.pathname==='/api/auth/google'?{authenticated:false}:{active:false,authenticated:false}});return route.continue();});
+    const interruptedPage = await interruptedContext.newPage();
+    interruptedPage.on('pageerror',e=>report.errors.push(e.message));
+    interruptedPage.on('dialog',d=>d.accept());
+    await interruptedPage.goto(base+'/health-hub#profile',{waitUntil:'networkidle'});
+    check(await interruptedPage.locator('#storage-consent').isVisible(),true,'interrupted first use: storage choice remains available on a deep-linked view');
+    await interruptedPage.keyboard.press('Tab');
+    check(await interruptedPage.locator('#storage-consent [data-device-storage-allow]').evaluate(e=>e===document.activeElement),true,'interrupted first use: keyboard can choose device storage');
+    await interruptedPage.keyboard.press('Enter');
+    await interruptedPage.waitForFunction(()=>document.querySelector('#storage-consent').hidden);
+    await interruptedPage.waitForFunction(()=>document.querySelector('#view-profile > .page-heading h1')===document.activeElement);
+    check(await visibleFocus(interruptedPage),true,'interrupted first use: accepting on a deep link returns focus to the current view');
+    await interruptedContext.close();
     check(report.errors,[],'No browser exceptions');
   } finally {await browser.close();server.close();if(out)fs.writeFileSync(path.join(out,'accessibility-interactions.json'),JSON.stringify(report,null,2));}
   console.log(JSON.stringify({suite:'accessibility-browser',result:report.failures.length?'baseline defects recorded':'passed',checks:report.checks.length,failures:report.failures,errors:report.errors,screenshots:report.screenshots},null,2));

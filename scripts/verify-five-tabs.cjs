@@ -8,6 +8,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('health-hub.html');
 const js = read('health-hub.js');
 const css = read('health-hub.css');
+const accessibilityCss = read('accessibility.css');
 const categoryCss = read('hub-category-themes.css');
 const auroraCss = read('aurora-theme.css');
 const homeCss = read('welcome.css');
@@ -53,6 +54,12 @@ assert.deepEqual([...mobile.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1
 const category = html.match(/<nav class="category-bar"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
 assert.ok(category, 'Compact main navigation exists.');
 assert.deepEqual([...category.matchAll(/data-view="([^"]+)"/g)].map(match=>match[1]), [...main, 'alerts'], 'The full menu retains the four main destinations and separate Alerts.');
+const storageConsent = extractElement('id="storage-consent"', 'section');
+assert.match(storageConsent, /role="dialog"/, 'The first-use storage choice has dialog semantics.');
+assert.match(storageConsent, /aria-labelledby="storage-consent-title"[^>]*aria-describedby="storage-consent-description"[^>]*tabindex="-1"/, 'The first-use storage choice has a spoken name, explanation and programmatic focus target.');
+assert.match(js, /function revealStorageConsentChoice\(\)[\s\S]*?storageConsent\.focus\(\{ preventScroll: true \}\)/, 'A newly visible first-use storage choice receives focus.');
+assert.match(js, /const consentWasVisible = Boolean\(storageConsent && !storageConsent\.hidden\);[\s\S]*?if \(consentWasVisible\) requestAnimationFrame\(\(\) => focusCurrentViewHeading\(\)\);/, 'Dismissing first-use storage choices returns focus to the active view.');
+assert.match(accessibilityCss, /body\[data-hub-layout="reference"\] #hub-shell \.view\.active > \.page-heading h1\[tabindex="-1"\]:focus\s*\{\s*outline: 3px solid #0759b6 !important;\s*outline-offset: 3px;/, 'The restored page heading keeps a visible focus indicator in the Aurora theme.');
 for (const nested of ['ask','medications','documents','symptoms','appointments','results','timeline']) {
   assert.ok(html.includes(`data-hub-panel="${nested}"`), `Useful ${nested} feature remains accessible inside its destination.`);
 }
