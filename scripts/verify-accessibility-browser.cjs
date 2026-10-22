@@ -69,6 +69,7 @@ async function keyboardFocus(page, selector) {
       page.on('dialog',d=>d.accept());
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
       check(await page.locator('#today-record-status').evaluate(e=>[e.getAttribute('role'),e.getAttribute('aria-live')]),['status','polite'],width+': loading and sync status is announced politely');
+      check(await page.locator('#medication-library').evaluate(e=>e.textContent.includes('No current medicines recorded')),true,width+': first-use medicine list explains its empty state');
       if(width<=800){
         check(await page.locator('[data-mobile-menu]').getAttribute('aria-label'),'Open Health Hub menu',width+': mobile menu has a clear accessible name');
         check(await page.locator('[data-mobile-menu]').evaluate(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;}),true,width+': mobile menu meets the 44px touch target');
