@@ -154,7 +154,7 @@ body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destinat
 
 @media (max-width: 800px) {
   /* Keep the home shortcuts easy to read at narrow widths. */
-  .doctorai-homepage .home-aurora-dock a { min-height: 96px; font-size: 14px; line-height: 1.35; padding: 8px 6px; }
+  .doctorai-homepage .home-aurora-dock a { min-height: 96px; font-size: 14px; line-height: 1.35; padding: 8px 0; }
   .doctorai-homepage .home-aurora-meta { flex-wrap: wrap; justify-content: center; text-align: center; gap: 8px 18px; }
   .doctorai-homepage .home-aurora-meta .home-hero-limit,
   .doctorai-homepage .home-aurora-meta .home-motion-control { font-size: 14px; }
