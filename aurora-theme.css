@@ -458,3 +458,12 @@ body[data-hub-layout="reference"] #view-profile :is(.secondary-button, .text-but
     gap: 4px 18px;
   }
 }
+
+
+/* Keep the hero headline to two lines on the narrowest phones. */
+@media (max-width: 359px) {
+  .doctorai-homepage .home-aurora-hero h1 {
+    font-size: 32px;
+    line-height: 1.12;
+  }
+}
