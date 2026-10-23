@@ -35,6 +35,9 @@ on:
       - 'scripts/csp-hashes.js'
       - 'service-worker.js'
       - 'package.json'
+      - '.node-version'
+      - 'scripts/verify-node-runtime.cjs'
+      - 'scripts/dev-node.ps1'
       - 'subscription.html'
   workflow_dispatch:
 
@@ -48,7 +51,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version-file: '.node-version'
+          check-latest: true
+      - name: Verify patched development/build runtime
+        run: node scripts/verify-node-runtime.cjs
       - name: Verify changed JavaScript syntax
         run: |
           node scripts/check-js.js
