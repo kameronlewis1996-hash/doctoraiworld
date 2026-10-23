@@ -7,6 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
+    "verify:node-runtime": "node scripts/verify-node-runtime.cjs",
     "check:js": "node scripts/check-js.js",
     "verify:scan": "node scripts/verify-medication-scan.js",
     "verify:server": "node scripts/verify-server-core.js",
