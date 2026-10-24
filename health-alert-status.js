@@ -5,10 +5,10 @@
   else root.DoctorAIAlertStatus = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const limited = 'Limited checks. No alert does not mean safe.';
+  const limited = 'No warning was identified in the checks completed. This is not a guarantee that a medicine or combination is safe.';
   function describe(result) {
     if (!result || !Array.isArray(result.alerts) || !result.coverage || typeof result.coverage !== 'object') {
-      return { level: 'neutral', symbol: '?', title: 'Checks unavailable', note: 'Open Alerts for details. Your records are not cleared.' };
+      return { level: 'neutral', symbol: '?', title: 'Unable to verify', note: 'A current safety result could not be verified. Open Alerts for details; your records have not been cleared.' };
     }
     const alerts = result.alerts;
     const count = alerts.length;
@@ -32,7 +32,7 @@
       Array.isArray(medicationMedication.unassessed) && medicationMedication.unassessed.length <= medicationMedication.unassessedPairs &&
       Number.isSafeInteger(medicationMedication.omittedUnassessedPairs) && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length;
     if (validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
-      return { level: 'orange', symbol: '?', title: 'Some medicine pairs not checked', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
+      return { level: 'orange', symbol: '?', title: 'Unable to verify all medicine pairs', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
     }
     if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
     const allergies = coverage.allergyMedication;
@@ -57,7 +57,7 @@
       conditions?.status === 'limited' && symptoms?.status === 'limited' && results?.status === 'not_assessed' &&
       Array.isArray(medicines?.unknown) && Array.isArray(conditions?.unmatched) && Array.isArray(symptoms?.unmatched) &&
       validCounters && allergies.recorded === allergies.affirmative + allergies.excludedOrUncertain;
-    if (!validCoverage) return { level: 'neutral', symbol: '?', title: 'Checks are limited', note: 'A complete current result is not available. Open Alerts for details.' };
+    if (!validCoverage) return { level: 'neutral', symbol: '?', title: 'Unable to verify', note: 'A complete current result is not available. Open Alerts for details before relying on this check.' };
     const activeMedicines = Number.isSafeInteger(medicines.active) ? medicines.active : Math.max(0, medicines.requested - (medicines.excludedInactiveOrOutOfDate || 0));
     if (activeMedicines === 0) return { level: 'neutral', symbol: '?', title: 'No current medicines', note: 'Add a current medicine to use medicine checks. Independent health notices still appear in Alerts.' };
     const recorded = medicines.requested > 0 || symptoms.recorded > 0 || results.recorded > 0 ||
@@ -71,9 +71,9 @@
       symptoms.undated > 0 || symptoms.unmatched.length > 0 || symptoms.omittedByLimit > 0 ||
       results.recorded > 0 ||
       Object.values(coverage).some(part => part && typeof part === 'object' && Number(part.omittedByLimit) > 0);
-    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Some details need review', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
+    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Unable to verify everything', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
     // Green describes only a recognised, fully supplied local medication check, never overall health.
-    return { level: 'green', symbol: '✓', title: 'No flagged notices', note: limited };
+    return { level: 'green', symbol: '✓', title: 'No identified warnings', note: limited };
   }
   function render(result, documentRoot) {
     const doc = documentRoot || (typeof document !== 'undefined' ? document : null);
