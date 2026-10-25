@@ -843,7 +843,7 @@ function verifyPreparationOwnerTransition() {
   const context = {
     observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { dataset: {}, classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
-    activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
+    activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++, renderAuthStatus() {},
     medicationScanController: null, closeMedicationScanner() {},
     clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), renderEntitlementStatus() {}, applyBrandTheme() {}, renderStorageStatus() {}, setAccountSyncState() {},
     setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAvatar() {}, loadCloudState() {},

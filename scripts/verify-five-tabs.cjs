@@ -278,7 +278,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
+    return {nodes, renderCompactToday() {}, renderAuthStatus() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -490,6 +490,7 @@ async function verifySignOutResponseHandling() {
     const context = vm.createContext({
       accountSessionRevision: 5, authUser: { email: 'fictional@example.test' }, medicationLoginId: 'fictional-login-id',
       localHealthAccountScope: 'fictional-scope', fetch: fixture.fetch,
+      renderAuthStatus: () => events.push(['auth-status', 'pending']),
       renderAccountSession: (...args) => events.push(['render', ...args]),
       renderHomePrescriptionAlert:() => events.push(['home-alert-hidden']), renderMedicationCheckState:() => events.push(['check-hidden']),
       renderHealthAlerts:() => events.push(['alerts-hidden']), renderStorageStatus:() => events.push(['storage-status']),

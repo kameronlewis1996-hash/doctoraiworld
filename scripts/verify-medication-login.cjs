@@ -76,15 +76,16 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
 
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
-  let finishGet, finishPost, posts = 0; const rendered = [], storageStates = [];
+  let finishGet, finishPost, posts = 0; const rendered = [], storageStates = [], authStatusStates = [];
   const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'verified', accountSessionRequestPromise: null, entitlementRequestPromise: null, entitlementReady: false, authUser: null, googleCredentialInFlight: false, deriveLocalHealthScope: async user => user?.email ? 'fictional-local-scope' : '',
-    renderStorageStatus: () => storageStates.push(sandbox.accountSessionVerification), renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
+    renderAuthStatus: () => authStatusStates.push(sandbox.accountSessionVerification), renderStorageStatus: () => storageStates.push(sandbox.accountSessionVerification), renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
     closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });
   vm.runInContext(source.slice(source.indexOf('  async function loadAccountSession('), source.indexOf('  async function loadEntitlement(')) + source.slice(source.indexOf('  async function handleGoogleCredential('), source.indexOf('  function openGoogleSignIn(')), sandbox);
   const oldGet = sandbox.loadAccountSession();
   assert.equal(typeof finishGet, 'function', 'The pending session request reaches its fetch fixture');
   assert.deepEqual(storageStates, ['pending'], 'The session loader publishes a pending verification status');
+  assert.deepEqual(authStatusStates, ['pending'], 'The header publishes a pending verification status before waiting on the session request');
   const login = sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' });
   await sandbox.handleGoogleCredential({ credential: 'fictional-not-a-google-credential' }); assert.equal(posts, 1);
   finishPost({ ok: true, json: async () => ({ user: { email: 'new-fictional@example.invalid' }, medicationLoginId: 'b'.repeat(64) }) }); await login;

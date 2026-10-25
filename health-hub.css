@@ -6642,3 +6642,97 @@ body[data-active-feature="visit-prep"] #hub-shell .mobile-bottom-nav .mobile-bot
   #hub-shell #view-medications .library-meta { grid-column: 2; width: 100%; text-align: left; }
   #hub-shell #view-medications .library-meta .library-item-actions { justify-content: flex-start; }
 }
+
+/* Keep the verified account state visible in the app header at every width. */
+#hub-shell .auth-status-control {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #b7ccda;
+  border-radius: 12px;
+  background: #f1f6f9;
+  color: #29485f;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(23, 53, 80, .06);
+  transition: none;
+}
+#hub-shell .profile-trigger.auth-status-control { min-width: 122px; }
+#hub-shell .auth-status-control[data-auth-state="signed-out"] {
+  border-color: #075a98;
+  background: #0e6eb7;
+  color: #fff;
+}
+#hub-shell .auth-status-control[data-auth-state="signed-in"] {
+  border-color: #9bcdbf;
+  background: #eaf8f3;
+  color: #173550;
+}
+#hub-shell .auth-status-control[data-auth-state="unavailable"] {
+  border-color: #d6a257;
+  background: #fff4df;
+  color: #62400e;
+}
+#hub-shell .auth-status-control[data-auth-state="checking"] {
+  border-color: #b7ccda;
+  background: #f1f6f9;
+  color: #29485f;
+}
+#hub-shell .auth-status-control:disabled { cursor: progress; opacity: 1; }
+#hub-shell .auth-status-indicator {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+}
+#hub-shell .auth-status-control[data-auth-state="signed-out"] .auth-status-indicator {
+  border-color: #fff;
+  background: #fff;
+}
+#hub-shell .auth-status-control[data-auth-state="signed-in"] .auth-status-indicator {
+  border-color: #237a61;
+  background: #237a61;
+}
+#hub-shell .auth-status-control[data-auth-state="unavailable"] .auth-status-indicator {
+  border-color: #9a5c20;
+  background: #d6a257;
+}
+#hub-shell .auth-status-control:focus-visible,
+#hub-shell .account-link:focus-visible {
+  outline: 3px solid #0759b6;
+  outline-offset: 3px;
+}
+#hub-shell .account-link { min-height: 52px; border-radius: 10px; }
+#hub-shell .account-link:disabled { cursor: progress; opacity: 1; }
+@media (max-width: 620px) {
+  #hub-shell .mobile-brand-wrap {
+    grid-template-columns: 44px minmax(0, 1fr) max-content;
+    gap: 4px;
+  }
+  #hub-shell .mobile-brand .brand-lockup { width: min(103px, 100%); }
+  #hub-shell .mobile-notifications-button.auth-status-control {
+    width: auto;
+    min-width: 44px;
+    max-width: 136px;
+    height: 44px;
+    justify-self: end;
+    padding: 0 9px;
+    gap: 6px;
+    font-size: 11px;
+  }
+  #hub-shell .mobile-notifications-button .auth-status-label {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+@media (max-width: 360px) {
+  #hub-shell .mobile-brand .brand-lockup { width: 90px; }
+}

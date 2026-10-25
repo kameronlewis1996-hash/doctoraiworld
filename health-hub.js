@@ -1924,6 +1924,94 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.src = signedIn ? initialsAvatar(user) : profileSurface && window.DoctorAIIcons?.userAvatarSource ? window.DoctorAIIcons.userAvatarSource(24) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
+  function renderAuthStatus() {
+    const state = accountSessionVerification === 'pending' ? 'checking'
+      : accountSessionVerification !== 'verified' ? 'unavailable'
+      : authUser ? 'signed-in' : 'signed-out';
+    const labels = {
+      checking: 'Checking sign-in',
+      unavailable: 'Status unavailable',
+      'signed-out': 'Sign in',
+      'signed-in': 'Signed in'
+    };
+    const announcements = {
+      checking: 'Checking sign-in status.',
+      unavailable: 'Sign-in status is unavailable. Your account state is not confirmed. Choose Retry sign-in to reopen the existing sign-in flow.',
+      'signed-out': 'You are signed out. Sign in with Google to use account features.',
+      'signed-in': 'You are signed in. Open profile and settings.'
+    };
+    document.querySelectorAll('[data-auth-status-control]').forEach(control => {
+      const label = control.querySelector('[data-auth-status-label]');
+      if (label) label.textContent = labels[state];
+      control.dataset.authState = state;
+      control.disabled = state === 'checking';
+      control.setAttribute('aria-busy', String(state === 'checking'));
+      control.removeAttribute('data-google-signin');
+      control.removeAttribute('data-view');
+      control.removeAttribute('data-open-profile');
+      if (state === 'signed-out' || state === 'unavailable') {
+        control.setAttribute('data-google-signin', '');
+        control.setAttribute('aria-label', state === 'signed-out' ? 'Sign in with Google' : 'Sign-in status unavailable. Try sign in again.');
+      } else if (state === 'signed-in') {
+        if (control.classList.contains('mobile-notifications-button')) {
+          control.dataset.view = 'profile';
+          control.setAttribute('aria-label', 'Signed in. Open profile and settings.');
+        } else {
+          control.setAttribute('data-open-profile', '');
+          control.setAttribute('aria-label', 'Signed in. Open your account profile.');
+          control.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        control.setAttribute('aria-label', 'Checking sign-in status');
+      }
+    });
+    const liveStatus = $('#auth-status-live');
+    if (liveStatus && liveStatus.textContent !== announcements[state]) liveStatus.textContent = announcements[state];
+
+    const accountLink = $('.account-link');
+    if (accountLink) {
+      const title = accountLink.querySelector('b');
+      const note = accountLink.querySelector('small');
+      if (title) title.textContent = state === 'checking' ? 'Checking sign-in' : state === 'unavailable' ? 'Sign-in unavailable' : state === 'signed-in' ? 'Signed in' : 'Sign in with Google';
+      if (note) note.textContent = state === 'checking' ? 'Account details are hidden while checking' : state === 'unavailable' ? 'Try the sign-in flow again' : state === 'signed-in' ? 'Open your private account' : 'Keep your health hub private';
+      accountLink.disabled = state === 'checking';
+      accountLink.toggleAttribute('data-google-signin', state === 'signed-out' || state === 'unavailable');
+      accountLink.toggleAttribute('data-open-profile', state === 'signed-in');
+      setAvatar(accountLink.querySelector('.avatar'), state === 'signed-in' ? authUser : null, state === 'signed-in');
+    }
+
+    if (state === 'checking' || state === 'unavailable') {
+      const genericName = state === 'checking' ? 'Checking sign-in' : 'Sign-in status unavailable';
+      const genericNote = state === 'checking' ? 'Account details stay hidden until your sign-in is confirmed.' : 'Your account state could not be confirmed. Try sign in again.';
+      const profileName = $('.profile-trigger-name');
+      if (profileName) profileName.textContent = genericName;
+      if (els.todayGreeting) {
+        const hour = new Date().getHours();
+        els.todayGreeting.textContent = `${hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'}.`;
+      }
+      const welcome = $('#today-welcome');
+      if (welcome) welcome.textContent = 'Welcome to DoctorAI. Your health stays in your hands.';
+      if (els.profilePageName) els.profilePageName.textContent = genericName;
+      if (els.profilePageEmail) els.profilePageEmail.textContent = genericNote;
+      const drawerProfile = $('.drawer-profile');
+      if (drawerProfile) {
+        drawerProfile.querySelector('b').textContent = genericName;
+        drawerProfile.querySelector('small').textContent = genericNote;
+        drawerProfile.querySelector('button').textContent = state === 'checking' ? 'Checking sign-in' : 'Try sign in';
+        setAvatar(drawerProfile.querySelector('.avatar'), null, false);
+      }
+      const accountAction = $('.drawer-signout');
+      if (accountAction) {
+        accountAction.disabled = state === 'checking';
+        accountAction.toggleAttribute('data-google-signout', false);
+        accountAction.toggleAttribute('data-google-signin', state === 'unavailable');
+        accountAction.textContent = state === 'checking' ? 'Checking sign-in' : 'Try sign in again';
+      }
+    } else {
+      const accountAction = $('.drawer-signout');
+      if (accountAction) accountAction.disabled = false;
+    }
+  }
   function renderAccountSession(user, loginId = '', localScope = '', allowGuest = false) {
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
@@ -1988,6 +2076,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (signedIn) loadCloudState().catch(() => {});
     else setSyncStatus(deviceStorageStatus());
     renderStorageStatus();
+    renderAuthStatus();
   }
   function renderEntitlementStatus() {
     refreshMedicationCheckContext().catch(() => {});
@@ -2024,6 +2113,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const revision = ++accountSessionRevision;
     accountSessionReady = false;
     accountSessionVerification = 'pending';
+    renderAuthStatus();
     if (revalidate) {
       entitlementReady = false;
       entitlementExpiresAt = null;
@@ -2098,6 +2188,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   async function signOut() {
     const revision = ++accountSessionRevision;
+    accountSessionReady = false;
+    accountSessionVerification = 'pending';
+    renderAuthStatus();
     try {
       const response = await fetch('/api/auth/google', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign-out could not be confirmed.');
@@ -2105,6 +2198,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (revision !== accountSessionRevision) return;
       accountSessionReady = false;
       accountSessionVerification = 'failed';
+      renderAuthStatus();
       renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
       showToast('Could not confirm sign-out. Saved health notices are hidden while DoctorAI checks your sign-in.');
       loadAccountSession({ revalidate: true }).catch(() => {});
@@ -2164,6 +2258,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     googleCredentialInFlight = true;
     const startingRevision = accountSessionRevision;
+    const previousVerification = accountSessionVerification;
+    const previousSessionReady = accountSessionReady;
+    accountSessionReady = false;
+    accountSessionVerification = 'pending';
+    renderAuthStatus();
     try {
       const result = await fetch('/api/auth/google', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
       const payload = await result.json().catch(() => ({}));
@@ -2185,6 +2284,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('Signed in to your private DoctorAI workspace.');
     } catch (error) {
       if (startingRevision !== accountSessionRevision) return;
+      accountSessionReady = previousSessionReady;
+      accountSessionVerification = previousVerification;
+      renderAuthStatus();
       if (error?.status === 401) {
         setGoogleSigninStatus('Google sign-in could not be verified. Please try again and choose your Google account once more.', 'setup');
       } else if (error?.status === 429) {
@@ -4425,7 +4527,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const promptTarget = event.target.closest('[data-chat-prompt]');
     if (promptTarget) { event.preventDefault(); fillChat(promptTarget.dataset.chatPrompt); return; }
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
-    if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
+    if (event.target.closest('[data-google-signin]')) { event.preventDefault(); accountSessionVerification === 'verified' && authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
     const summaryOpener = event.target.closest('[data-open-summary]');
     if (summaryOpener) { event.preventDefault(); preparationReturnFocus = !summaryOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }

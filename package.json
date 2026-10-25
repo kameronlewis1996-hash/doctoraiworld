@@ -34,6 +34,7 @@
     "verify:zero-medications": "node scripts/verify-zero-medication-alerts.cjs",
     "verify:zero-medications-browser": "node scripts/verify-zero-medication-browser.cjs",
     "verify:signedout-alert-browser": "node scripts/verify-signedout-alert-privacy-browser.cjs",
+    "verify:auth-status-browser": "node scripts/verify-auth-status-browser.cjs",
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
     "verify:staff-review": "node scripts/verify-staff-medication-review.cjs",
