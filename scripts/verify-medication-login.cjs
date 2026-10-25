@@ -77,7 +77,7 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   // Duplicate Google callback events coalesce; an older session GET cannot undo a successful login.
   const source = fs.readFileSync(require.resolve('../health-hub.js'), 'utf8');
   let finishGet, finishPost, posts = 0; const rendered = [], storageStates = [];
-  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'verified', entitlementReady: false, authUser: null, googleCredentialInFlight: false, deriveLocalHealthScope: async user => user?.email ? 'fictional-local-scope' : '',
+  const sandbox = vm.createContext({ accountSessionRevision: 0, accountSessionReady: false, accountSessionVerification: 'verified', accountSessionRequestPromise: null, entitlementRequestPromise: null, entitlementReady: false, authUser: null, googleCredentialInFlight: false, deriveLocalHealthScope: async user => user?.email ? 'fictional-local-scope' : '',
     renderStorageStatus: () => storageStates.push(sandbox.accountSessionVerification), renderAccountSession: user => rendered.push(user?.email || ''), refreshMedicationCheckContext: async () => {}, loadEntitlement: async () => {},
     closeGoogleSignIn() {}, showToast() {}, setGoogleSigninStatus() {},
     fetch: async (url, options) => { assert.equal(url, '/api/auth/google'); if (options.method === 'POST') { posts++; return new Promise(resolve => { finishPost = resolve; }); } return new Promise(resolve => { finishGet = resolve; }); } });

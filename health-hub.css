@@ -5828,6 +5828,19 @@ html body[data-hub-theme] { background:#f7f9fc; }
   font-size: 13px;
   line-height: 1.55;
 }
+#hub-shell .hub-unassigned-legacy-note {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid #c7dce8;
+  border-left: 3px solid #5f9fbc;
+  border-radius: 10px;
+  background: #f1f8fb;
+  color: #28485d;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+#hub-shell #view-profile .hub-unassigned-legacy-note { margin-top: 12px; }
 @media (max-width: 800px) {
   #hub-shell #view-alerts .alerts-summary { align-items: flex-start; flex-wrap: wrap; }
   #hub-shell #view-alerts [data-refresh-alerts] { width: 100%; }

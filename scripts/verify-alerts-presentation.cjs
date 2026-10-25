@@ -50,6 +50,7 @@ function harness({ result, evaluate, missingEngine = false } = {}) {
       DoctorAIIcons: { hydrate() {} }
     },
     document: {},
+    accountSessionVerification: 'verified',
     state: { profile: {}, medications: [], timeline: [], measurements: [], memoryDetails: [] },
     medicationCheckController: { snapshot: () => null },
     $: selector => nodes[selector] || null,
@@ -137,6 +138,17 @@ check('real renderer reports the count, title, trigger, and next action', () => 
   const html = nodes['#alerts-list'].innerHTML;
   for (const text of ['hub-alert-title', 'What triggered this', 'Next step']) assert.ok(html.includes(text));
   for (const key of ['title', 'triggerValue', 'nextAction']) assert.ok(html.includes(context.escapeHTML(payloads[key])), `${key} must appear in escaped alert content.`);
+});
+
+check('pending and failed sign-in states hide account-derived alert rows', () => {
+  for (const verification of ['pending', 'failed']) {
+    const { render, nodes, context } = harness({ result: adversarialResult });
+    context.accountSessionVerification = verification;
+    render();
+    assert.equal(nodes['#alerts-count'].textContent, verification === 'pending' ? 'Checking sign-in' : 'Sign-in not confirmed');
+    assert.equal(nodes['#alerts-list'].innerHTML, '');
+    assert.equal(nodes['#alerts-controls'].innerHTML, '');
+  }
 });
 
 check('severity is allowlisted before it reaches markup or icon selection', () => {

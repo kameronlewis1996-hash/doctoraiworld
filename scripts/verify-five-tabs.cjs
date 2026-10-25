@@ -204,7 +204,7 @@ for (const fixture of [
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { throw new Error('Status must use current app state, not reread storage.'); }} };
+  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { return null; }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
@@ -278,7 +278,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, renderCompactToday() {}, $:selector => nodes[selector] || null, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : ''};
+    return {nodes, renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -397,7 +397,7 @@ async function verifyAccountStateIsolation() {
     renderCompactToday() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
     cloudSyncRevision: 0, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
     medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
-    $: selector => storageNodes[selector] || null,
+    $: selector => storageNodes[selector] || null, $$: () => [],
     setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAccountSyncState: undefined,
     serialiseHealthState: undefined, hasHealthState: undefined, applyCloudState() {}, renderAll() {}, queueCloudSave() { this.queuedSaves = (this.queuedSaves || 0) + 1; },
     fetch: async () => ({ ok: true, json: async () => ({ state: null, updatedAt: 0 }) }), queuedSaves: 0
@@ -437,7 +437,10 @@ async function verifyAccountStateIsolation() {
   assert.equal(storageNodes['#hub-device-storage-state'].textContent, 'Keep between visits');
 
   context.isolation.activateHealthDataOwner(null, '', true);
-  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['legacy-only'], 'Signing out restores the separate unowned legacy device data.');
+  assert.deepEqual(Array.from(context.isolation.state.medications), [], 'Signing out does not import unowned legacy device data into the guest space.');
+  assert.equal(context.isolation.localStorageKey('medications'), 'doctorai-health-hub-guest-medications', 'Signed-out records use a dedicated guest storage namespace.');
+  context.isolation.state.medications = [{ id: 'guest-only', name: 'Synthetic guest medicine' }];
+  context.isolation.write('medications', context.isolation.state.medications);
   context.isolation.activateHealthDataOwner({ email: 'account-b@example.test', sub: 'fictional-secret-sub-b' }, localScopeB);
   assert.deepEqual(Array.from(context.isolation.state.medications), [], 'Account B starts blank and cannot see account A or legacy records.');
   context.authUser = { email: 'account-b@example.test', sub: 'fictional-secret-sub-b' };
@@ -467,7 +470,8 @@ async function verifyAccountStateIsolation() {
   context.authUser = null;
   context.accountSessionRevision += 1;
   context.isolation.activateHealthDataOwner(null, '', true);
-  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['legacy-only'], 'Signing out from B returns to the legacy device state.');
+  assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['guest-only'], 'Signing out from B returns to the intentional guest space, not legacy or account data.');
+  assert.deepEqual(JSON.parse(local.get('doctorai-health-hub-medications')), [{ id: 'legacy-only', name: 'Synthetic legacy medication' }], 'Legacy device data remains unchanged after guest use.');
   context.isolation.sessionHealthStateCache.clear();
   context.isolation.activateHealthDataOwner({ email: 'account-a@example.test', sub: 'fictional-secret-sub-a' }, localScopeA);
   assert.deepEqual(Array.from(context.isolation.state.medications).map(item => item.id), ['a-only'], 'Returning to A recovers A’s own persisted state even after the in-memory session cache is cleared.');
@@ -487,6 +491,9 @@ async function verifySignOutResponseHandling() {
       accountSessionRevision: 5, authUser: { email: 'fictional@example.test' }, medicationLoginId: 'fictional-login-id',
       localHealthAccountScope: 'fictional-scope', fetch: fixture.fetch,
       renderAccountSession: (...args) => events.push(['render', ...args]),
+      renderHomePrescriptionAlert:() => events.push(['home-alert-hidden']), renderMedicationCheckState:() => events.push(['check-hidden']),
+      renderHealthAlerts:() => events.push(['alerts-hidden']), renderStorageStatus:() => events.push(['storage-status']),
+      loadAccountSession:options => { events.push(['revalidate', options]); return Promise.resolve(); },
       closeProfile: () => events.push(['close-profile']), showToast: message => events.push(['toast', message])
     });
     vm.runInContext(`${js.slice(start, end)}\nthis.runSignOut = signOut;`, context, { timeout: 1000 });
@@ -497,10 +504,13 @@ async function verifySignOutResponseHandling() {
       assert.ok(events.some(event => event[0] === 'close-profile'), 'Successful revocation closes the account panel.');
       assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /Signed out\./);
     } else {
-      assert.equal(sessionRender?.[1]?.email, 'fictional@example.test', `A ${fixture.label} keeps the account visible.`);
-      assert.equal(sessionRender?.[2], 'fictional-login-id');
+      assert.equal(sessionRender, undefined, `A ${fixture.label} does not restore an unverified account render.`);
+      assert.equal(context.accountSessionVerification, 'failed', `A ${fixture.label} marks sign-in unverified.`);
+      assert.equal(context.accountSessionReady, false, `A ${fixture.label} keeps account access pending.`);
+      assert.ok(events.some(event => event[0] === 'alerts-hidden'), `A ${fixture.label} hides account-derived health notices.`);
+      assert.ok(events.some(event => event[0] === 'revalidate' && event[1]?.revalidate === true), `A ${fixture.label} rechecks the session.`);
       assert.ok(!events.some(event => event[0] === 'close-profile'), `A ${fixture.label} does not close the signed-in account panel.`);
-      assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /still signed in/);
+      assert.match(events.find(event => event[0] === 'toast')?.[1] || '', /Could not confirm sign-out/);
     }
   }
 }

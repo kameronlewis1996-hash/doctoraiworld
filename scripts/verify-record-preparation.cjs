@@ -470,9 +470,10 @@ async function verifyMeasurementHistory() {
 
 function verifyMeasurementOwnerScopedMigration() {
   const prefix = 'doctorai-health-hub-';
-  const key = (scope, item) => scope === null ? prefix + item : prefix + 'account-' + scope + '-' + item;
+  const key = (scope, item) => scope === null ? prefix + item : scope === 'guest' ? prefix + 'guest-' + item : prefix + 'account-' + scope + '-' + item;
   const memory = new Map([
-    [key(null, 'measurements'), JSON.stringify([{ type: 'weight', value: 'anonymous-only', date: '2026-10-01', legacyMarker: 'anonymous' }])],
+    [key(null, 'measurements'), JSON.stringify([{ type: 'weight', value: 'unassigned-only', date: '2026-10-01', legacyMarker: 'unassigned' }])],
+    [key('guest', 'measurements'), JSON.stringify([{ type: 'weight', value: 'guest-only', date: '2026-10-04', legacyMarker: 'guest' }])],
     [key('scope-a', 'measurements'), JSON.stringify([{ type: 'weight', value: 'account-a-only', date: '2026-10-02', legacyMarker: 'account-a' }])],
     [key('scope-b', 'measurements'), JSON.stringify([{ type: 'weight', value: 'account-b-only', date: '2026-10-03', legacyMarker: 'account-b' }])]
   ]);
@@ -510,24 +511,27 @@ function verifyMeasurementOwnerScopedMigration() {
   assert.ok(accountAId, 'Account A legacy records receive an ID in the account A namespace.');
   assert.equal(context.state.measurements[0].legacyMarker, 'account-a');
   context.activateHealthDataOwner(null, '', true);
-  const anonymousId = String(context.state.measurements[0].id);
-  assert.ok(anonymousId && anonymousId !== accountAId, 'Sign-out restores and migrates only the anonymous legacy record.');
-  assert.equal(context.state.measurements[0].legacyMarker, 'anonymous');
+  const guestId = String(context.state.measurements[0].id);
+  assert.ok(guestId && guestId !== accountAId, 'Verified signed-out mode restores only the intentionally guest-scoped record.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'guest');
+  assert.equal(JSON.parse(memory.get(key(null, 'measurements')))[0].id, undefined, 'Unassigned legacy records remain unchanged and are never migrated into guest storage.');
   context.activateHealthDataOwner({ email: 'owner-b@example.invalid' }, 'scope-b', false);
   const accountBId = String(context.state.measurements[0].id);
-  assert.ok(accountBId && accountBId !== accountAId && accountBId !== anonymousId, 'Account B receives its own stable migration ID.');
+  assert.ok(accountBId && accountBId !== accountAId && accountBId !== guestId, 'Account B receives its own stable migration ID.');
   assert.equal(context.state.measurements[0].legacyMarker, 'account-b');
   context.activateHealthDataOwner({ email: 'owner-a@example.invalid' }, 'scope-a', false);
   assert.equal(String(context.state.measurements[0].id), accountAId, 'Switching back restores the account A session record with its same ID.');
-  assert.equal(context.state.measurements[0].legacyMarker, 'account-a', 'Account A cannot receive anonymous or account B records.');
+  assert.equal(context.state.measurements[0].legacyMarker, 'account-a', 'Account A cannot receive guest or account B records.');
 
   const savedA = JSON.parse(memory.get(key('scope-a', 'measurements')));
   const savedB = JSON.parse(memory.get(key('scope-b', 'measurements')));
-  const savedAnonymous = JSON.parse(memory.get(key(null, 'measurements')));
+  const savedGuest = JSON.parse(memory.get(key('guest', 'measurements')));
+  const savedUnassigned = JSON.parse(memory.get(key(null, 'measurements')));
   assert.equal(String(savedA[0].id), accountAId);
   assert.equal(String(savedB[0].id), accountBId);
-  assert.equal(String(savedAnonymous[0].id), anonymousId);
-  assert.deepEqual(writes.map(write => write.key), [key('scope-a', 'measurements'), key(null, 'measurements'), key('scope-b', 'measurements')], 'Migration writes are limited to the currently active owner namespace.');
+  assert.equal(String(savedGuest[0].id), guestId);
+  assert.equal(savedUnassigned[0].id, undefined);
+  assert.deepEqual(writes.map(write => write.key), [key('scope-a', 'measurements'), key('guest', 'measurements'), key('scope-b', 'measurements')], 'Migration writes are limited to the currently active owner namespace.');
 }
 
 async function verifyAppointments() {
@@ -837,11 +841,11 @@ function verifyPreparationOwnerTransition() {
     'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus });'
   ].join('\n');
   const context = {
-    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
+    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { dataset: {}, classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
     activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++,
     medicationScanController: null, closeMedicationScanner() {},
-    clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), setAccountSyncState() {},
+    clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), renderEntitlementStatus() {}, applyBrandTheme() {}, renderStorageStatus() {}, setAccountSyncState() {},
     setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAvatar() {}, loadCloudState() {},
     Date: FixtureDate
   };

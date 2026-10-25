@@ -58,8 +58,8 @@
   }
   const storagePrefix = 'doctorai-health-hub-';
   const accountScopedStorageKeys = new Set(['medications', 'appointments', 'providers', 'timeline', 'documents', 'measurements', 'tasks', 'profile', 'memory-enabled', 'memory-details', 'updated-at', 'medication-check']);
-  // null means anonymous legacy device data; an empty string means an account is
-  // active but a safe persistent namespace could not be derived.
+  // "guest" is a verified signed-out workspace. An empty scope means account
+  // ownership is not confirmed or a safe account namespace could not be derived.
   let localHealthAccountScope = '';
   const sessionHealthStateCache = new Map();
   let activeHealthDataOwner = 'pending';
@@ -72,9 +72,28 @@
 
   const localStorageKey = key => {
     if (!accountScopedStorageKeys.has(key)) return storagePrefix + key;
-    if (localHealthAccountScope === null) return storagePrefix + key;
+    if (localHealthAccountScope === 'guest') return `${storagePrefix}guest-${key}`;
     if (!localHealthAccountScope) return '';
     return `${storagePrefix}account-${localHealthAccountScope}-${key}`;
+  };
+  const hasUnassignedLegacyHealthData = () => {
+    const hasValue = value => {
+      if (value === null || value === undefined || value === false) return false;
+      if (typeof value === 'string') return value.trim().length > 0;
+      if (typeof value === 'number') return value !== 0 && Number.isFinite(value);
+      if (Array.isArray(value)) return value.some(hasValue);
+      if (typeof value === 'object') return Object.values(value).some(hasValue);
+      return Boolean(value);
+    };
+    try {
+      return [...accountScopedStorageKeys].some(key => {
+        if (key === 'memory-enabled' || key === 'updated-at') return false;
+        const raw = localStorage.getItem(storagePrefix + key);
+        if (raw === null) return false;
+        try { return hasValue(JSON.parse(raw)); }
+        catch { return raw.trim().length > 0; }
+      });
+    } catch { return false; }
   };
   const deviceHealthStorageKeys = () => {
     const keys = [];
@@ -83,7 +102,8 @@
       if (typeof key !== 'string' || !key.startsWith(storagePrefix)) continue;
       const suffix = key.slice(storagePrefix.length);
       const accountSuffix = /^account-[a-f0-9]{64}-(.+)$/.exec(suffix)?.[1];
-      if (accountScopedStorageKeys.has(suffix) || (accountSuffix && accountScopedStorageKeys.has(accountSuffix))) keys.push(key);
+      const guestSuffix = /^guest-(.+)$/.exec(suffix)?.[1];
+      if (accountScopedStorageKeys.has(suffix) || (accountSuffix && accountScopedStorageKeys.has(accountSuffix)) || (guestSuffix && accountScopedStorageKeys.has(guestSuffix))) keys.push(key);
     }
     return keys;
   };
@@ -234,10 +254,10 @@
       updatedAt: read('updated-at', 0)
     });
   }
-  function activateHealthDataOwner(user, storageScope = '', allowAnonymousLegacy = true) {
+  function activateHealthDataOwner(user, storageScope = '', allowGuest = false) {
     const email = String(user?.email || '').trim().toLowerCase();
-    const nextOwner = email ? `account:${email}` : allowAnonymousLegacy ? 'anonymous' : 'unverified';
-    const nextStorageScope = email ? String(storageScope || '') : allowAnonymousLegacy ? null : '';
+    const nextOwner = email ? `account:${email}` : allowGuest ? 'guest' : 'unverified';
+    const nextStorageScope = email ? String(storageScope || '') : allowGuest ? 'guest' : '';
     if (nextOwner === activeHealthDataOwner && nextStorageScope === localHealthAccountScope) return false;
 
     // Keep the outgoing view in memory for this page session. Persisted account
@@ -399,6 +419,8 @@
   let medicationAccountDataReady = false;
   let medicationLoginId = '';
   let accountSessionRevision = 0;
+  let accountSessionRequestPromise = null;
+  let entitlementRequestPromise = null;
   let googleCredentialInFlight = false;
   let medicationRulesVersion = '';
   let medicationContextPromise = Promise.resolve();
@@ -587,6 +609,8 @@
   }
   function renderStorageStatus() {
     renderCompactToday(true);
+    const hasUnassignedRecords = hasUnassignedLegacyHealthData();
+    $$('[data-unassigned-legacy-note]').forEach(note => { note.hidden = !hasUnassignedRecords; });
     const device = $('#hub-device-storage-state');
     const deviceNote = $('#hub-device-storage-note');
     if (device) device.textContent = localStorageRemovalFailed ? 'Old browser data may remain' : localStorageWriteFailed ? 'Could not save on this device' : localStorageAllowed ? 'Keep between visits' : deviceStorageChoice === 'session' ? 'This session only' : 'Choose storage';
@@ -596,7 +620,7 @@
     const syncState = !cloudSyncEnabled ? 'unavailable' : accountSyncState === 'ready' && !medicationAccountDataReady ? 'unconfirmed' : accountSyncState;
     const labels = { checking: 'Checking private account sync', saving: 'Syncing saved details', ready: 'Private account sync active', unavailable: 'Account sync unavailable', unconfirmed: 'Account sync not confirmed' };
     account.textContent = accountSessionVerification === 'pending' ? 'Checking sign-in' : accountSessionVerification === 'failed' ? 'Sign-in not confirmed' : authUser ? (labels[syncState] || 'Account sync not confirmed') : 'Not signed in';
-    note.textContent = accountSessionVerification === 'pending' ? 'Confirming account access. Account syncing is separate from device storage.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Entries follow your device choice until sign-in succeeds.' : !authUser ? 'Sign in to use private account sync. It is separate from browser storage.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
+    note.textContent = accountSessionVerification === 'pending' ? 'Confirming sign-in. Health notices are hidden until account access is confirmed.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Saved health records stay hidden until sign-in is confirmed.' : !authUser ? 'Guest records use a separate browser space. Sign in to use private account sync.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
   }
   function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
   function setAccountSyncState(value, scope = null) { if (scope !== null && scope !== accountSyncScope()) return; accountSyncState = value; renderStorageStatus(); }
@@ -1247,6 +1271,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderHomePrescriptionAlert() {
     if (!els.homePrescriptionAlert) return;
+    if (accountSessionVerification !== 'verified') {
+      const checking = accountSessionVerification === 'pending';
+      els.homePrescriptionAlert.className = 'prescription-alert-status status-note';
+      els.homePrescriptionAlert.innerHTML = `<span class="prescription-alert-icon" aria-hidden="true">i</span><div><b>${checking ? 'Checking sign-in' : 'Sign-in not confirmed'}</b><p>${checking ? 'Saved medicine notices are hidden while we confirm your sign-in.' : 'Saved medicine notices are hidden because sign-in could not be confirmed.'}</p><small>No current medicine result is available.</small></div>`;
+      if (els.homePrescriptionLastChecked) els.homePrescriptionLastChecked.textContent = 'No current interaction check';
+      closeMedicationSafetyAlert(false);
+      return;
+    }
     const alerts = currentMedicationRecords().flatMap(medication => medicationSafetyAlerts(medication));
     const concern = alerts.find(alert => alert.severity === 'critical') || alerts.find(alert => alert.severity === 'caution');
     const check = medicationCheckController.snapshot();
@@ -1741,6 +1773,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderHealthAlerts() {
     const list = $('#alerts-list'), status = $('#alerts-status'), count = $('#alerts-count'), controls = $('#alerts-controls');
     if (!list || !status || !count) return;
+    if (accountSessionVerification !== 'verified') {
+      const checking = accountSessionVerification === 'pending';
+      count.textContent = checking ? 'Checking sign-in' : 'Sign-in not confirmed';
+      status.textContent = checking ? 'Saved-detail notices are hidden while we confirm your sign-in.' : 'Saved-detail notices are hidden because sign-in could not be confirmed.';
+      list.replaceChildren();
+      controls?.replaceChildren();
+      window.DoctorAIAlertStatus?.render(null);
+      return;
+    }
     if (!window.DoctorAIHealthAlerts?.evaluate) {
       count.textContent = 'Checks unavailable';
       status.textContent = 'Local alert rules could not load. Your records have not been assessed. Reload or discuss your concerns with a healthcare professional.';
@@ -1883,7 +1924,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.src = signedIn ? initialsAvatar(user) : profileSurface && window.DoctorAIIcons?.userAvatarSource ? window.DoctorAIIcons.userAvatarSource(24) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
-  function renderAccountSession(user, loginId = '', localScope = '', allowAnonymousLegacy = true) {
+  function renderAccountSession(user, loginId = '', localScope = '', allowGuest = false) {
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
     if (previousEmail && previousEmail !== nextEmail) clearChat({ confirm: false, notify: false });
@@ -1892,11 +1933,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       medicationScanController?.abort();
       closeMedicationScanner();
     }
-    const healthOwnerChanged = activateHealthDataOwner(user, localScope, allowAnonymousLegacy);
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
+    const healthOwnerChanged = activateHealthDataOwner(authUser, localScope, allowGuest);
+    if (!authUser) {
+      entitlementExpiresAt = null;
+      entitlementReady = true;
+      subscriptionTier = 'free';
+      document.body.dataset.subscription = 'free';
+      applyBrandTheme();
+      renderEntitlementStatus();
+    }
     refreshMedicationCheckContext().catch(() => {});
     if (healthOwnerChanged) { discardPreparationDrafts(true); renderAll(); }
+    else { renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); }
     const signedIn = Boolean(authUser);
     setAccountSyncState(signedIn ? 'checking' : 'not-signed-in');
     const displayName = String(authUser?.name || authUser?.email || 'Your account');
@@ -1937,6 +1987,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (signedIn) loadCloudState().catch(() => {});
     else setSyncStatus(deviceStorageStatus());
+    renderStorageStatus();
   }
   function renderEntitlementStatus() {
     refreshMedicationCheckContext().catch(() => {});
@@ -1967,42 +2018,83 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
     } catch { return ''; }
   }
-  async function loadAccountSession() {
+  async function loadAccountSession(options = {}) {
+    const revalidate = options.revalidate === true;
+    if (!revalidate && accountSessionRequestPromise) return accountSessionRequestPromise;
     const revision = ++accountSessionRevision;
-    accountSessionVerification = 'pending'; renderStorageStatus();
-    try {
-      const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
-      const payload = await response.json().catch(() => ({}));
-      const authenticatedUser = response.ok && payload.authenticated === true && typeof payload.user?.email === 'string' && payload.user.email.trim().length > 0;
-      const user = authenticatedUser ? payload.user : null;
-      const localScope = user ? await deriveLocalHealthScope(user) : '';
-      if (revision !== accountSessionRevision) return;
-      const verifiedAnonymous = payload.authenticated === false && (response.ok || response.status === 401);
-      accountSessionVerification = authenticatedUser || verifiedAnonymous ? 'verified' : 'failed';
-      renderAccountSession(user, payload.medicationLoginId, localScope, verifiedAnonymous);
-    } catch {
-      if (revision === accountSessionRevision) { accountSessionVerification = 'failed'; renderAccountSession(null, '', '', false); }
-    } finally { if (revision === accountSessionRevision) { accountSessionReady = true; renderStorageStatus(); refreshMedicationCheckContext().catch(() => {}); } }
+    accountSessionReady = false;
+    accountSessionVerification = 'pending';
+    if (revalidate) {
+      entitlementReady = false;
+      entitlementExpiresAt = null;
+      subscriptionTier = 'free';
+      document.body.dataset.subscription = 'free';
+      accountSyncState = authUser ? 'checking' : 'not-signed-in';
+      applyBrandTheme();
+      const proStatus = $('#drawer-pro-status');
+      const proNote = $('#drawer-pro-countdown');
+      if (proStatus) proStatus.textContent = 'Checking access';
+      if (proNote) proNote.textContent = 'Confirming your sign-in before showing account-specific features.';
+      renderHomePrescriptionAlert();
+      renderMedicationCheckState();
+      renderHealthAlerts();
+    }
+    renderStorageStatus();
+    const request = (async () => {
+      try {
+        const response = await fetch('/api/auth/google', { headers: { accept: 'application/json' } });
+        const payload = await response.json().catch(() => ({}));
+        const authenticatedUser = response.ok && payload.authenticated === true && typeof payload.user?.email === 'string' && payload.user.email.trim().length > 0;
+        const user = authenticatedUser ? payload.user : null;
+        const localScope = user ? await deriveLocalHealthScope(user) : '';
+        if (revision !== accountSessionRevision) return;
+        const verifiedAnonymous = payload.authenticated === false && (response.ok || response.status === 401);
+        accountSessionVerification = authenticatedUser || verifiedAnonymous ? 'verified' : 'failed';
+        renderAccountSession(user, payload.medicationLoginId, localScope, verifiedAnonymous);
+      } catch {
+        if (revision === accountSessionRevision) { accountSessionVerification = 'failed'; renderAccountSession(null, '', '', false); }
+      } finally {
+        if (revision === accountSessionRevision) {
+          accountSessionReady = true;
+          renderStorageStatus();
+          refreshMedicationCheckContext().catch(() => {});
+          if (authUser && accountSessionVerification === 'verified') loadEntitlement({ force: true }).catch(() => {});
+          else entitlementReady = true;
+        }
+      }
+    })();
+    accountSessionRequestPromise = request;
+    try { return await request; }
+    finally { if (accountSessionRequestPromise === request) accountSessionRequestPromise = null; }
   }
-  async function loadEntitlement() {
+  async function loadEntitlement(options = {}) {
+    const force = options.force === true;
+    if (!force && entitlementRequestPromise) return entitlementRequestPromise;
     const revision = accountSessionRevision;
-    try {
-      const response = await fetch('/api/stripe/entitlement', { headers: { accept: 'application/json' } });
-      if (!response.ok) throw new Error('Pro access could not be verified.');
-      const payload = await response.json();
-      if (revision !== accountSessionRevision) return;
-      if (payload.active === true) {
-        entitlementExpiresAt = Number(payload.expiresAt) || null;
-        subscriptionTier = 'pro';
-        document.body.dataset.subscription = 'pro';
-        applyBrandTheme();
-        renderAll();
-        showToast('DoctorAI Pro is active on this device.');
-      } else { entitlementExpiresAt = null; subscriptionTier = 'free'; applyBrandTheme(); }
-      renderEntitlementStatus();
-      refreshMedicationCheckContext().catch(() => {});
-      if (!entitlementTimer) entitlementTimer = window.setInterval(renderEntitlementStatus, 60000);
-    } catch { if (revision === accountSessionRevision) { entitlementExpiresAt = null; subscriptionTier = 'free'; renderEntitlementStatus(); } } finally { if (revision === accountSessionRevision) { entitlementReady = true; refreshMedicationCheckContext().catch(() => {}); } }
+    entitlementReady = false;
+    const request = (async () => {
+      try {
+        const response = await fetch('/api/stripe/entitlement', { headers: { accept: 'application/json' } });
+        if (!response.ok) throw new Error('Pro access could not be verified.');
+        const payload = await response.json();
+        if (revision !== accountSessionRevision) return;
+        if (payload.active === true && authUser && accountSessionVerification === 'verified' && accountSessionReady) {
+          entitlementExpiresAt = Number(payload.expiresAt) || null;
+          subscriptionTier = 'pro';
+          document.body.dataset.subscription = 'pro';
+          applyBrandTheme();
+          renderAll();
+          showToast('DoctorAI Pro is active on this device.');
+        } else { entitlementExpiresAt = null; subscriptionTier = 'free'; document.body.dataset.subscription = 'free'; applyBrandTheme(); }
+        renderEntitlementStatus();
+        refreshMedicationCheckContext().catch(() => {});
+        if (!entitlementTimer) entitlementTimer = window.setInterval(renderEntitlementStatus, 60000);
+      } catch { if (revision === accountSessionRevision) { entitlementExpiresAt = null; subscriptionTier = 'free'; document.body.dataset.subscription = 'free'; renderEntitlementStatus(); } }
+      finally { if (revision === accountSessionRevision) { entitlementReady = true; refreshMedicationCheckContext().catch(() => {}); } }
+    })();
+    entitlementRequestPromise = request;
+    try { return await request; }
+    finally { if (entitlementRequestPromise === request) entitlementRequestPromise = null; }
   }
   async function signOut() {
     const revision = ++accountSessionRevision;
@@ -2011,12 +2103,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (!response.ok) throw new Error('Sign-out could not be confirmed.');
     } catch {
       if (revision !== accountSessionRevision) return;
-      renderAccountSession(authUser, medicationLoginId, localHealthAccountScope, false);
-      showToast('Could not confirm sign-out. You are still signed in; please retry when connected.');
+      accountSessionReady = false;
+      accountSessionVerification = 'failed';
+      renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
+      showToast('Could not confirm sign-out. Saved health notices are hidden while DoctorAI checks your sign-in.');
+      loadAccountSession({ revalidate: true }).catch(() => {});
       return;
     }
     if (revision !== accountSessionRevision) return;
-    renderAccountSession(null);
+    accountSessionReady = true;
+    accountSessionVerification = 'verified';
+    renderAccountSession(null, '', '', true);
     closeProfile();
     showToast('Signed out. Health information saved on this device was not deleted.');
   }
@@ -2081,7 +2178,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const loginRevision = ++accountSessionRevision; accountSessionReady = true; accountSessionVerification = 'verified';
       const sameAccount = String(authUser?.email || '').toLowerCase() === String(payload.user?.email || '').toLowerCase();
       if (!sameAccount) { entitlementReady = false; renderAccountSession(payload.user || null, payload.medicationLoginId, localScope); }
-      await loadEntitlement();
+      await loadEntitlement({ force: true });
       if (loginRevision !== accountSessionRevision) return;
       if (sameAccount) renderAccountSession(payload.user || null, payload.medicationLoginId, localScope);
       closeGoogleSignIn();
@@ -3107,7 +3204,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const payload = await response.json().catch(() => ({}));
       if (!isCurrentScan()) return;
       if (!response.ok) {
-        if (response.status === 401) { accountSessionReady = false; renderAccountSession(null); }
+        if (response.status === 401) { accountSessionReady = false; accountSessionVerification = 'failed'; renderAccountSession(null, '', '', false); loadAccountSession({ revalidate: true }).catch(() => {}); }
         if (response.status === 403) { entitlementReady = false; subscriptionTier = 'free'; applyBrandTheme(); renderEntitlementStatus(); }
         const error = new Error(String(payload.error || (response.status === 413 ? 'That image was too large to scan.' : 'Medication scanning is temporarily unavailable.')));
         error.status = response.status;
@@ -4127,6 +4224,21 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const button = panel.querySelector('[data-run-local-medication-safety-check]');
     const checked = panel.querySelector('[data-medication-check-time]');
     const summary = panel.querySelector('.clash-status');
+    if (accountSessionVerification !== 'verified') {
+      const checking = accountSessionVerification === 'pending';
+      if (summary) summary.textContent = checking ? 'Checking sign-in. Medicine check results are hidden until access is confirmed.' : 'Sign-in could not be confirmed. Medicine check results are hidden.';
+      if (consent) { consent.checked = false; consent.disabled = true; }
+      if (button) { button.disabled = true; button.textContent = 'Check saved medicines'; }
+      if (checked) checked.textContent = 'No current check available';
+      if (output) {
+        output.setAttribute('aria-busy', 'false');
+        const notice = document.createElement('p'); notice.className = 'medication-db-summary is-incomplete';
+        notice.textContent = checking ? 'Results are hidden while we confirm your sign-in.' : 'No current medication check is available.';
+        output.replaceChildren(notice);
+      }
+      return;
+    }
+    if (consent) consent.disabled = false;
     if (summary) summary.textContent = view.status === 'complete' ? (window.DoctorAIMedicationCheck.issues(view.result).length ? 'Interaction or medicine warning found — review the result below.' : view.result.coverage?.unknown ? 'Check incomplete — some medicines could not be assessed.' : 'No interaction alert found within covered rules; this does not confirm safety.') : view.status === 'pending' ? (view.result ? 'Updating after login — previous warning shown; no fresh result yet.' : 'Checking the current medicine list…') : view.status === 'unavailable' ? 'Check unavailable — no current assessment.' : 'Interaction check not run.';
     if (consent) consent.checked = view.consent;
     if (button) { button.disabled = view.status === 'pending'; button.textContent = view.status === 'pending' ? 'Checking…' : 'Check saved medicines'; }
@@ -4884,7 +4996,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   });
   window.matchMedia('(min-width: 801px)').addEventListener('change', event => { if (event.matches) setMobileMenuOpen(false); });
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) refreshAppointmentDateViews();
+    if (!document.hidden) {
+      refreshAppointmentDateViews();
+      loadAccountSession({ revalidate: true }).catch(() => {});
+    }
     if (document.hidden && els.medicationScannerModal?.open) {
       stopMedicationScannerCamera();
       medicationScannerStatus('Scanner paused when DoctorAI moved to the background. Close and reopen it to continue.', 'idle');
@@ -4909,5 +5024,4 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });
   loadAccountSession();
-  loadEntitlement();
 })();
