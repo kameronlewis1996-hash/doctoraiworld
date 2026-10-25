@@ -276,7 +276,7 @@ body {
     border-color: var(--welcome-line);
   }
   /* Public content uses the same blue glass as the six-tool landing. */
-  body.doctorai-homepage :is(.home-universe, .home-brief, .home-destination, .home-invitation, .home-aurora-dock),
+  body.doctorai-homepage :is(.home-universe, .home-brief, .home-destination, .home-invitation, .home-control, .home-aurora-dock),
   body.doctorai-public-page :is(.research-hero, .research-tabs, .research-controls, .highlight-card, .paper-card, .research-community, .discussion-card, .forum-compose, .research-share, .research-trust, .feature-card, .feature-card.featured, .plan-card, .pro-plan, .pro-section-nav, .care-pack-preview, .comparison-table, .pro-access-panel),
   body.doctorai-public-page main > .panel .grid section,
   body.subscription-page .preview-grid > div,
