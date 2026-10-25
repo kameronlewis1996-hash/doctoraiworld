@@ -2,6 +2,7 @@
 // Local-only visual regression review. APIs are unavailable or explicitly mocked
 // with fictional fixtures; no credentials, production records or paid calls.
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
@@ -11,6 +12,8 @@ const out = process.env.WELCOME_EVIDENCE_DIR || path.join(require('node:os').tmp
 fs.mkdirSync(out, { recursive: true });
 const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json')));
 const types = { '.html':'text/html', '.css':'text/css', '.js':'application/javascript', '.json':'application/json', '.png':'image/png', '.svg':'image/svg+xml', '.webmanifest':'application/manifest+json' };
+const alertFixtureEmail = 'visual-review@example.invalid';
+const alertFixtureScope = crypto.createHash('sha256').update(`doctorai:health-hub-local:v1:${alertFixtureEmail}`).digest('hex');
 const server = http.createServer((req, res) => {
   let route = new URL(req.url, 'http://localhost').pathname;
   const redirect = config.redirects.find(r => r.source === route);
@@ -115,20 +118,33 @@ async function layout(page, label) {
       for(const expected of ['orange','red']) {
         const alertContext=await browser.newContext({viewport:{width,height:width===1440?960:844},serviceWorkers:'block',reducedMotion:'reduce'});
         await alertContext.route('https://**/*',r=>r.abort());
-        await alertContext.route('**/api/**',r=>r.fulfill({json:{authenticated:false,active:false}}));
-        await alertContext.addInitScript(level=>{
+        await alertContext.route('**/api/**',r=>r.fulfill({status:200,json:{}}));
+        await alertContext.route('**/api/auth/google',r=>r.fulfill({status:200,json:{authenticated:true,user:{email:alertFixtureEmail,name:'Synthetic Visual Reviewer',sub:'synthetic-visual-reviewer'},medicationLoginId:''}}));
+        await alertContext.route('**/api/health/state',r=>r.fulfill({status:200,json:{state:null,updatedAt:0}}));
+        await alertContext.route('**/api/stripe/entitlement',r=>r.fulfill({status:200,json:{active:false,expiresAt:null}}));
+        await alertContext.addInitScript(({level,scope})=>{
           const prefix='doctorai-health-hub-';
           localStorage.setItem(prefix+'device-storage-consent','yes');
-          localStorage.setItem(prefix+'medications',JSON.stringify(level==='red'?[{id:'one',name:'Marevan'},{id:'two',name:'Trisul'}]:[{id:'one',name:'Fictional unmatched medicine'}]));
-        },expected);
+          const medications=level==='red'
+            ? [{id:'synthetic-marevan',name:'Marevan'},{id:'synthetic-trisul',name:'Trisul'}]
+            : [{id:'synthetic-orange-one',name:'Fictional unmatched medicine alpha'},{id:'synthetic-orange-two',name:'Fictional unmatched medicine beta'}];
+          localStorage.setItem(prefix+'account-'+scope+'-medications',JSON.stringify(medications));
+        },{level:expected,scope:alertFixtureScope});
         const alertPage=await alertContext.newPage();
         alertPage.on('pageerror',e=>report.errors.push(e.message));
         await alertPage.goto(base+'/health-hub#health',{waitUntil:'networkidle'});
-        await alertPage.waitForFunction(level=>document.body.dataset.healthAlertLevel===level,expected);
+        const expectedTitle=expected==='red'?'Contact a professional':'Some medicine pairs not checked';
+        await alertPage.waitForFunction(title=>{
+          const banner=document.querySelector('[data-alert-summary][data-alert-theme-banner]');
+          return banner && !banner.hidden && banner.getAttribute('aria-label')?.includes(title);
+        },expectedTitle);
+        const banner=alertPage.locator('[data-alert-summary][data-alert-theme-banner]');
+        assert.equal(await banner.getAttribute('data-alert-level'),expected,'rendered alert level');
+        assert.ok((await banner.getAttribute('aria-label')).startsWith(`Alerts: ${expectedTitle}.`),'accessible alert name');
         const bg=await alertPage.locator('body').evaluate(e=>getComputedStyle(e).backgroundImage);
         backgrounds.push(bg);
         assert.ok(bg.includes(expected==='red'?'248, 180, 185':'255, 207, 139'),'semantic atmosphere '+expected);
-        assert.equal(await alertPage.locator('.hub-severity-banner').isVisible(),true);
+        assert.equal(await banner.isVisible(),true);
         await layout(alertPage,'semantic '+expected+' '+width);
         if(width!==320) await capture(alertPage,'hub-'+expected+'-'+width);
         await alertContext.close();
