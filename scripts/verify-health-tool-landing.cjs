@@ -32,5 +32,12 @@ assert.match(html, /data-health-landing-account="signed-out" hidden/);
 assert.match(html, /data-health-landing-account="signed-in" hidden/);
 const bottom = html.match(/<nav class="mobile-bottom-nav"[\s\S]*?<\/nav>/)[0];
 assert.deepEqual([...bottom.matchAll(/data-view="([^"]+)"/g)].map(m=>m[1]),['today','health','visit-prep','profile']);
-assert.match(fs.readFileSync(path.join(root,'service-worker.js'),'utf8'), /health-tool-landing\.css\?v=1/);
+assert.match(fs.readFileSync(path.join(root,'service-worker.js'),'utf8'), /health-tool-landing\.css\?v=2/);
 console.log('Health tool landing: actual account presentation checked in four states; six existing routes/icons, four bottom tabs, touch/focus CSS and cache inclusion verified. Source/VM checks only, not browser QA.');
+
+assert.match(html, /health-tool-landing\.css\?v=2/);
+assert.match(css, /background-size: 100% 100%/);
+assert.match(css, /--aurora-glass: #d9edfa80/);
+assert.match(css, /@media \(forced-colors: active\)/);
+assert.doesNotMatch(css, /background: #ffffffed/);
+console.log('Aurora revision: transparent landing, blue glass tokens, full-height atmosphere and versioned assets verified.');
