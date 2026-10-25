@@ -4551,6 +4551,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     const todaySection = event.target.closest('[data-today-section-target]');
     if (todaySection) { selectTodaySection(todaySection.dataset.todaySectionTarget); return; }
+    if (event.target.closest('[data-open-today-question]')) {
+      event.preventDefault();
+      if (!currentSessionOwnerVerified()) { showToast('Confirm your sign-in before opening a private diary note.'); return; }
+      setMobileMenuOpen(false);
+      closeProfile();
+      closeModal();
+      showView('today', true, false);
+      const disclosure = $('#view-today .today-question-disclosure');
+      const questionInput = $('#today-question');
+      if (disclosure && questionInput) {
+        disclosure.open = true;
+        requestAnimationFrame(() => {
+          questionInput.focus({ preventScroll: true });
+          questionInput.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+        });
+      }
+      return;
+    }
     const nestedTarget = event.target.closest('[data-hub-panel-target]');
     if (nestedTarget) { event.preventDefault(); showView(nestedTarget.closest('[data-view-panel]')?.dataset.viewPanel || currentView, true, true, nestedTarget.dataset.hubPanelTarget); return; }
     const viewTarget = event.target.closest('[data-view]');

@@ -13,6 +13,7 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 const medicineName = 'Synthetic medicine record alpha';
 const conditionName = 'Synthetic saved condition';
 const allergyName = 'Synthetic saved allergy';
+let stableBrowserClock = null;
 
 function startServer() {
   const contentTypes = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2' };
@@ -61,7 +62,7 @@ function populatedData(date) {
 async function preparePage(browser, base, width, guestData = {}, legacyData = {}, session = {}) {
   const context = await browser.newContext({ viewport: { width, height: width <= 620 ? 844 : 960 }, timezoneId: 'Pacific/Auckland', serviceWorkers: 'block', reducedMotion: 'reduce' });
   const page = await context.newPage();
-  if (session.clockAt) await page.clock.install({ time: new Date(session.clockAt) });
+  if (session.clockAt || stableBrowserClock) await page.clock.install({ time: new Date(session.clockAt || stableBrowserClock) });
   page.setDefaultTimeout(10000);
   const errors = [];
   const chatRequests = [];
@@ -116,6 +117,8 @@ async function checkLayout(testCase, label) {
   const report = { result: 'passed', checks: [], screenshots: [], syntheticOnly: true };
   try {
     const localToday = todayIn('Pacific/Auckland');
+    // Keep the suite on one local calendar day if the run crosses midnight.
+    stableBrowserClock = `${localToday}T00:00:00.000Z`;
     const populated = populatedData(localToday);
     for (const width of [1440, 390, 320]) {
       const testCase = await preparePage(browser, base, width, populated);
@@ -178,6 +181,40 @@ async function checkLayout(testCase, label) {
     assert.doesNotMatch(await emptyToday.page.locator('#view-today').innerText(), /No medicines|No conditions|No allergies/);
     report.checks.push('empty signed-out profile has honest optional focus and appointment states without fabricated personal details');
     await emptyToday.context.close();
+
+    for (const width of [1440, 390, 320]) {
+      const questionShortcut = await preparePage(browser, base, width);
+      const page = questionShortcut.page;
+      await page.locator('#view-today [data-view="health"]').click();
+      await page.waitForFunction(() => document.body.dataset.hubTheme === 'health');
+      await page.locator('#view-health .health-page-actions [data-view="add"]').click();
+      await page.waitForFunction(() => document.body.dataset.hubTheme === 'add');
+      const shortcut = page.locator('#view-add [data-open-today-question]');
+      const shortcutBox = await shortcut.boundingBox();
+      assert.ok(shortcutBox && shortcutBox.width >= 44 && shortcutBox.height >= 44, `${width}px question shortcut is a usable touch target`);
+      assert.match(await shortcut.innerText(), /Save a question[\s\S]*no appointment details needed/i);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${width}px Add view has no horizontal overflow`);
+      if (width === 390) {
+        const screenshot = path.join(evidenceDir, 'add-question-shortcut-390.png');
+        await page.screenshot({ path: screenshot, fullPage: true });
+        report.screenshots.push(screenshot);
+      }
+      await shortcut.focus();
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(() => document.body.dataset.hubTheme === 'today' && document.querySelector('.today-question-disclosure')?.open === true);
+      await page.waitForFunction(() => document.activeElement?.id === 'today-question');
+      if (width === 390) {
+        await page.locator('#today-question').fill('Synthetic question saved without an appointment');
+        page.once('dialog', dialog => dialog.accept());
+        await page.locator('[data-diary-question-form="today"] button[type="submit"]').click();
+        assert.match(await page.locator('#view-today [data-diary-question-form="today"] [data-diary-question-status]').innerText(), /Added to your diary/);
+        const entries = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-timeline') || '[]'));
+        assert.ok(entries.some(entry => entry.source === 'user-question' && entry.description === 'Synthetic question saved without an appointment'));
+      }
+      assert.deepEqual(questionShortcut.errors, [], `${width}px question shortcut has no browser errors`);
+      report.checks.push(`${width}px Add shortcut opens the existing diary question form, moves focus, and remains usable without appointment details`);
+      await questionShortcut.context.close();
+    }
 
     const myHealth = await preparePage(browser, base, 390, { profile: {} });
     await myHealth.page.locator('#view-today [data-view="health"]').click();
