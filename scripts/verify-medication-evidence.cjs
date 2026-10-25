@@ -139,17 +139,17 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=109/);
+  assert.match(hubHtml, /health-hub\.js\?v=110/);
   assert.match(hubHtml, /term-catalogues\.js\?v=3/);
   assert.match(hubHtml, /medicine-catalog-search\.js\?v=2/);
   assert.match(hubHtml, /hub-aurora-secondary\.css\?v=6/);
-  assert.match(hubHtml, /health-hub\.css\?v=91/);
+  assert.match(hubHtml, /health-hub\.css\?v=92/);
   assert.match(hubHtml, /health-alert-status\.js\?v=5/);
   assert.match(hubHtml, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /doctorai-shell-v180/);
+  assert.match(serviceWorker, /doctorai-shell-v181/);
   assert.match(serviceWorker, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /health-hub\.js\?v=109/);
-  assert.match(serviceWorker, /health-hub\.css\?v=91/);
+  assert.match(serviceWorker, /health-hub\.js\?v=110/);
+  assert.match(serviceWorker, /health-hub\.css\?v=92/);
   assert.match(serviceWorker, /health-alert-status\.js\?v=5/);
   assert.match(serviceWorker, /term-catalogues\.js\?v=3/);
   assert.match(serviceWorker, /medicine-catalog-search\.js\?v=2/);
