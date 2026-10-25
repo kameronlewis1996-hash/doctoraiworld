@@ -1866,7 +1866,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     window.DoctorAIAlertStatus?.render(result);
     const alerts = result.alerts || [], coverage = result.coverage || {};
     count.textContent = alerts.length ? `${alerts.length} ${alerts.length === 1 ? 'notice' : 'notices'} to review` : 'No current notices';
-    status.textContent = coverage.medications?.active === 0 ? 'No current medicines are recorded. Medicine checks have nothing to assess; any independent health notice below is based on the saved inputs shown with it.' : `Recalculated from current saved details. ${coverage.medications?.resolved || 0} of ${coverage.medications?.active ?? coverage.medications?.requested ?? 0} current medicine entries matched the local catalogue. Coverage remains limited.`;
+    const urgentCount = alerts.filter(alert => alert.severity === 'urgent').length;
+    const highCount = alerts.filter(alert => alert.severity === 'high').length;
+    const priorityParts = [
+      urgentCount ? `${urgentCount} urgent ${urgentCount === 1 ? 'notice' : 'notices'}` : '',
+      highCount ? `${highCount} high-priority ${highCount === 1 ? 'notice' : 'notices'}` : ''
+    ].filter(Boolean);
+    const prioritySummary = priorityParts.length ? ` ${priorityParts.join(' and ')} ${priorityParts.length === 1 ? 'is' : 'are'} listed below.` : '';
+    status.textContent = (coverage.medications?.active === 0 ? 'No current medicines are recorded. Medicine checks have nothing to assess; any independent health notice below is based on the saved inputs shown with it.' : `Recalculated from current saved details. ${coverage.medications?.resolved || 0} of ${coverage.medications?.active ?? coverage.medications?.requested ?? 0} current medicine entries matched the local catalogue. Coverage remains limited.`) + prioritySummary;
     list.innerHTML = alerts.length ? alerts.map(alert => {
       const severity = ['urgent', 'high', 'moderate', 'low', 'info'].includes(alert.severity) ? alert.severity : 'info';
       const sources = (alert.sources || []).map(source => {

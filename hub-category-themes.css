@@ -238,8 +238,25 @@ body[data-hub-layout="reference"] #hub-shell .profile-simple-links { display: fl
 body[data-hub-layout="reference"] #hub-shell .profile-simple-links button { min-height: 44px; }
 body[data-hub-layout="reference"] #hub-shell #view-medications .medication-scan-button,
 body[data-hub-layout="reference"] #hub-shell #view-medications .medication-scan-button > span { color: #0759b6; }
-body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card { --notice-ink: #934407; --notice-surface: #fff5e8; border-left: 4px solid var(--notice-ink); }
-body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) { --notice-ink: #b42318; --notice-surface: #fff1f0; }
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card {
+  --notice-ink: #0759b6;
+  --notice-surface: #eef6ff;
+  border-color: #bfd6ec;
+  border-left: 4px solid var(--notice-ink);
+  background: linear-gradient(110deg, var(--notice-surface), #fff 58%);
+}
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card[data-severity="moderate"] {
+  --notice-ink: #934407;
+  --notice-surface: #fff5e8;
+  border-color: #efc18e;
+  border-left-color: var(--notice-ink);
+}
+body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card:is([data-severity="urgent"], [data-severity="high"]) {
+  --notice-ink: #b42318;
+  --notice-surface: #fff1f0;
+  border-color: #e8aab0;
+  border-left-color: var(--notice-ink);
+}
 body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card .hub-alert-icon { color: var(--notice-ink); background: var(--notice-surface); }
 body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-card .card-kicker { color: var(--notice-ink); }
 body[data-hub-layout="reference"] #hub-shell #view-alerts .hub-alert-about { margin-block: 16px; color: #465f73; font-size: 14px; line-height: 1.6; }
