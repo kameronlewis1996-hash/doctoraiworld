@@ -23,8 +23,11 @@ const scopeB = 'b'.repeat(64);
 const healthKeys = [
   prefix + 'medications',
   prefix + 'profile',
+  prefix + 'guest-medications',
+  prefix + 'guest-medication-check',
   prefix + 'account-' + scopeA + '-medications',
   prefix + 'account-' + scopeA + '-medication-check',
+  prefix + 'account-' + scopeB + '-medications',
   prefix + 'account-' + scopeB + '-allergies', // Unknown keys must be preserved.
   prefix + 'account-' + scopeB + '-medication-check',
   prefix + 'account-' + scopeB + '-profile'
@@ -76,13 +79,33 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   vm.runInContext(storageSource + choiceSource + deletionSource + `
     let medicationCheckStorageKey = '';
     const removeMedicationCheck = ${controllerRemove[1]};
-    this.api = { setDeviceStorage, deleteHealthData, removeMedicationCheck, deviceHealthStorageKeys, removeDeviceHealthData, read,
+    this.api = { setDeviceStorage, deleteHealthData, removeMedicationCheck, deviceHealthStorageKeys, removeDeviceHealthData, read, write, localStorageKey, hasUnassignedLegacyHealthData,
       status: () => ({ deviceStorageChoice, localStorageAllowed, localStorageRemovalFailed, cacheSize: sessionHealthStateCache.size }) };
   `, context, { timeout: 1000, filename: 'health-hub-device-storage.js' });
   return { context, memory, calls, state, api: context.api };
 }
 
 (async () => {
+  const guest = fixture();
+  vm.runInContext("localHealthAccountScope = 'guest';", guest.context);
+  guest.api.write('medications', [{ id: 'guest-only', name: 'Fictional guest medicine' }]);
+  assert.deepEqual(JSON.parse(guest.memory.get(prefix + 'guest-medications')), [{ id: 'guest-only', name: 'Fictional guest medicine' }], 'Intentional signed-out records use a dedicated guest namespace.');
+  assert.ok(guest.memory.has(prefix + 'medications'), 'Older unassigned records are preserved in their original legacy key.');
+  assert.deepEqual(JSON.parse(JSON.stringify(guest.api.read('medications', []))), [{ id: 'guest-only', name: 'Fictional guest medicine' }], 'A verified guest reads only the guest namespace.');
+  assert.equal(guest.api.hasUnassignedLegacyHealthData(), true, 'Unassigned legacy records are detectable without reading their contents into the guest state.');
+  vm.runInContext(`localHealthAccountScope = '${scopeB}';`, guest.context);
+  assert.equal(guest.api.localStorageKey('medications'), prefix + 'account-' + scopeB + '-medications', 'A signed-in account uses its own namespace.');
+  assert.deepEqual(JSON.parse(JSON.stringify(guest.api.read('medications', []))), { fictional: prefix + 'account-' + scopeB + '-medications' }, 'An account cannot read guest or legacy records.');
+  assert.ok(guest.api.deviceHealthStorageKeys().includes(prefix + 'guest-medications'), 'Explicit browser-data cleanup includes guest records.');
+
+  const emptyLegacy = fixture();
+  for (const [key, value] of Object.entries({ medications: [], appointments: [], providers: [], timeline: [], documents: [], measurements: [], tasks: [], profile: { name: '', bloodType: '', allergies: '', conditions: '', notes: '' }, 'memory-enabled': false, 'memory-details': [], 'updated-at': 0, 'medication-check': null })) {
+    emptyLegacy.memory.set(prefix + key, JSON.stringify(value));
+  }
+  assert.equal(emptyLegacy.api.hasUnassignedLegacyHealthData(), false, 'Empty legacy placeholders and timestamps do not create a saved-health notice.');
+  emptyLegacy.memory.set(prefix + 'medications', '{unreadable legacy bytes');
+  assert.equal(emptyLegacy.api.hasUnassignedLegacyHealthData(), true, 'Unparseable non-empty legacy data remains discoverable without loading it into state.');
+
   const session = fixture();
   session.api.setDeviceStorage(false);
   assert.equal(session.calls.confirmations.length, 1, 'Existing saved health records require an explicit removal confirmation.');
