@@ -1,6 +1,6 @@
 # Today saved-overview privacy follow-up
 
-Date: 2026-10-25  
+Date: 2026-10-25
 Scope: the Today “Review saved info” action. Synthetic account identity and health records only.
 
 ## Finding
