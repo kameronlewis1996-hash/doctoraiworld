@@ -647,6 +647,8 @@
     if (locked) {
       const checking = !accountSessionReady || accountSessionVerification === 'pending';
       if (!sessionSurfaceLocked) {
+        medicationScanController?.abort();
+        closeMedicationScanner();
         discardPreparationDrafts(true, true);
         $$('[data-diary-question-form]', viewStack).forEach(form => form.reset());
         sessionSurfaceLocked = true;

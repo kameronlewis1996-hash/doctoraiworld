@@ -47,10 +47,17 @@ async function installApi(page, initial = {}) {
   let nextAuthGate = null;
   let nextLoginGate = null;
   let nextLogoutGate = null;
+  let nextMedicationScanGate = null;
   await page.route('https://**/*', route => route.abort());
   await page.route('**/api/**', route => route.fulfill({ status: 200, json: {} }));
   await page.route('**/api/auth/config', route => route.fulfill({ status: 200, json: { googleClientId: 'synthetic-client-id' } }));
-  await page.route('**/api/stripe/entitlement', route => route.fulfill({ status: 200, json: { active: false, expiresAt: null } }));
+  await page.route('**/api/stripe/entitlement', route => route.fulfill({ status: 200, json: { active: initial.entitlementActive === true, expiresAt: initial.entitlementActive === true ? Math.floor(Date.now() / 1000) + 3600 : null } }));
+  await page.route('**/api/medication/scan', async route => {
+    const gate = nextMedicationScanGate;
+    nextMedicationScanGate = null;
+    if (gate) { gate.started.resolve(); await gate.response.promise; }
+    try { await route.fulfill({ status: 200, json: { medication: {}, review: { missing: [] } } }); } catch { /* The synthetic client may abort after session loss. */ }
+  });
   await page.route('**/api/health/state', route => {
     if (route.request().method() === 'PUT') {
       healthStateWrites++;
@@ -89,13 +96,25 @@ async function installApi(page, initial = {}) {
     await route.fulfill({ status: 405, json: { error: 'method-not-allowed' } });
   });
 
-  await page.addInitScript(() => {
+  await page.addInitScript(cameraStub => {
     localStorage.setItem('doctorai-health-hub-device-storage-consent', 'yes');
     window.google = { accounts: { id: {
       initialize(options) { window.__syntheticGoogleCallback = options.callback; },
       renderButton(host) { host.dataset.syntheticGoogleReady = 'true'; }
     } } };
-  });
+    if (cameraStub) {
+      const track = { readyState: 'live', stop() { this.readyState = 'ended'; this.stopCount = (this.stopCount || 0) + 1; } };
+      const stream = { getTracks() { return [track]; }, getVideoTracks() { return [track]; } };
+      Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => stream } });
+      Object.defineProperty(HTMLMediaElement.prototype, 'srcObject', { configurable: true, get() { return this.__syntheticSrcObject || null; }, set(value) { this.__syntheticSrcObject = value; } });
+      Object.defineProperty(HTMLMediaElement.prototype, 'play', { configurable: true, value: function() { return Promise.resolve(); } });
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoWidth', { configurable: true, get() { return 640; } });
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoHeight', { configurable: true, get() { return 480; } });
+      Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ fillRect() {}, drawImage() {} }) });
+      Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', { configurable: true, value: () => 'data:image/jpeg;base64,c3ludGhldGljLW9ubHk=' });
+      window.__syntheticCameraTrack = track;
+    }
+  }, initial.cameraStub === true);
   return {
     setAuth(value) { auth = value; },
     setLoginUser(value) { loginUser = value; },
@@ -104,7 +123,8 @@ async function installApi(page, initial = {}) {
     failNextAuth() { failNextAuth = true; },
     delayNextAuth() { nextAuthGate = { started: deferred(), response: deferred() }; return nextAuthGate; },
     delayNextLogin() { nextLoginGate = { started: deferred(), response: deferred() }; return nextLoginGate; },
-    delayNextLogout() { nextLogoutGate = { started: deferred(), response: deferred() }; return nextLogoutGate; }
+    delayNextLogout() { nextLogoutGate = { started: deferred(), response: deferred() }; return nextLogoutGate; },
+    delayNextMedicationScan() { nextMedicationScanGate = { started: deferred(), response: deferred() }; return nextMedicationScanGate; }
   };
 }
 
@@ -697,6 +717,87 @@ async function runAdverse(browser, base) {
     assert.equal(await testCase.page.locator('#session-verification-gate').isHidden(), true);
     reports.push({ case: 'unavailable-session-keeps-records-hidden-until-explicit-retry-succeeds', result: 'passed' });
     await finish(testCase, reports, 'unavailable-session-record-retry');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
+    await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
+    assert.equal(await testCase.page.evaluate(() => window.__syntheticCameraTrack.readyState), 'live');
+
+    testCase.api.setAuth(null);
+    const gate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await gate.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'session revalidation closes the camera dialog immediately');
+    assert.equal(await testCase.page.evaluate(() => window.__syntheticCameraTrack.readyState), 'ended', 'session revalidation stops the active camera stream');
+    assert.ok(await testCase.page.evaluate(() => window.__syntheticCameraTrack.stopCount >= 1));
+    gate.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    reports.push({ case: 'expired-session-tab-return-stops-live-camera-and-closes-scanner', result: 'passed', camera: 'synthetic MediaStreamTrack; no device camera used' });
+    await finish(testCase, reports, 'expired-session-scanner-cleanup');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, entitlementActive: true, cameraStub: true });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-panel-target="medications"]').click();
+    await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
+    await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
+    const logout = testCase.api.delayNextLogout();
+    await testCase.page.evaluate(() => document.querySelector('.profile-trigger[data-auth-status-control]').click());
+    await testCase.page.locator('#profile-drawer:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.evaluate(() => document.querySelector('.drawer-signout[data-google-signout]').click());
+    await logout.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'pending logout closes the camera dialog immediately');
+    assert.equal(await testCase.page.evaluate(() => window.__syntheticCameraTrack.readyState), 'ended', 'pending logout stops the active camera stream');
+    logout.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    reports.push({ case: 'delayed-logout-stops-live-camera-before-server-response', result: 'passed', camera: 'synthetic MediaStreamTrack; no device camera used' });
+    await finish(testCase, reports, 'logout-scanner-cleanup');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
+    await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
+    const scanGate = testCase.api.delayNextMedicationScan();
+    const scanFailed = testCase.page.waitForEvent('requestfailed', request => request.url().includes('/api/medication/scan'));
+    await testCase.page.locator('[data-medication-image-consent]').check();
+    await testCase.page.locator('[data-medication-capture]').click();
+    await scanGate.started.promise;
+
+    testCase.api.setAuth(null);
+    const authGate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await authGate.started.promise;
+    await waitForState(testCase, 'checking');
+    const failedRequest = await scanFailed;
+    assert.match(failedRequest.failure()?.errorText || '', /aborted|cancelled/i, 'the pending label extraction request is cancelled during session revalidation');
+    scanGate.response.resolve();
+    authGate.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Details copied|Scan not completed/);
+    reports.push({ case: 'pending-consented-label-request-cancelled-on-session-expiry', result: 'passed', image: 'synthetic canvas bytes; local mocked endpoint only' });
+    await finish(testCase, reports, 'expired-session-scan-request');
   }
   return reports;
 }
