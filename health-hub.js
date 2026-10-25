@@ -2034,6 +2034,15 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
         control.setAttribute('aria-label', 'Checking sign-in status');
       }
     });
+    // Presentation only: use the existing verified account state, never cached identity.
+    document.querySelectorAll('[data-health-landing-account]').forEach(group => {
+      group.hidden = group.dataset.healthLandingAccount !== state;
+    });
+    const landingStatus = $('[data-health-landing-status]');
+    if (landingStatus) {
+      landingStatus.hidden = state === 'signed-in' || state === 'signed-out';
+      landingStatus.textContent = state === 'checking' ? 'Checking sign-in…' : 'Sign-in status is unavailable. Use the account control to retry.';
+    }
     const liveStatus = $('#auth-status-live');
     if (liveStatus && liveStatus.textContent !== announcements[state]) liveStatus.textContent = announcements[state];
 

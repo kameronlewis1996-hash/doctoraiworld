@@ -1,0 +1,118 @@
+/* Reference-inspired tool landing. Existing routes, icons and account gates stay authoritative. */
+body[data-hub-layout="reference"] #hub-shell .health-tool-welcome { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell .health-tool-welcome { display: grid; justify-items: center; gap: 16px; max-width: 620px; margin: 0 auto 26px; text-align: center; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-brand { display: block; width: 235px; height: 126px; object-fit: contain; object-position: center; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-tagline { margin: 0; color: #294665; font-size: clamp(18px, 2vw, 23px); line-height: 1.45; letter-spacing: -.025em; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account { display: grid; gap: 10px; width: min(100%, 420px); }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account[hidden],
+body[data-hub-layout="reference"] #hub-shell .health-tool-account-state[hidden] { display: none; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > button { justify-content: center; width: 100%; min-height: 50px; border-radius: 13px; font-size: 16px; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > .primary-button { background: #0759b6; border: 1px solid #0759b6; color: #fff; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > .secondary-button { background: #fff; border: 1px solid #8baaca; color: #153c66; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account small,
+body[data-hub-layout="reference"] #hub-shell .health-tool-account-state { margin: 0; color: #52677f; font-size: 12px; line-height: 1.5; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading { display: flex; align-items: center; gap: 12px; margin: 0 auto 14px; padding: 0; width: 100%; max-width: 620px; border: 0; background: transparent; box-shadow: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .eyebrow,
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .page-subtitle { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading h1 { margin: 0; font-size: 22px; line-height: 1.3; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .primary-button { min-height: 44px; padding: 8px 12px; font-size: 12px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-section-picker { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 620px; margin: 0 auto 30px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { display: flex; flex-direction: column; justify-content: center; gap: 12px; min-width: 0; min-height: 112px; padding: 15px 10px; border: 1px solid #dae7f4; border-radius: 17px; background: #edf5fc; color: #153c66; font-size: 14px; font-weight: 600; line-height: 1.35; text-align: center; box-shadow: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(3n + 2) { background: #eef9fa; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(3n) { background: #f2f4fc; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] { border: 2px solid #0759b6; padding: 14px 9px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button > span,
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav svg { width: 32px; height: 32px; color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > button:focus-visible,
+body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > button:focus-visible { outline: 3px solid #0759b6; outline-offset: 4px; }
+@media (hover: hover) {
+  body[data-hub-layout="reference"] #hub-shell .health-tool-account > button:hover,
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:hover { border-color: #0759b6; box-shadow: 0 3px 10px #153c6612; }
+}
+@media (max-width: 600px) {
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell .health-tool-welcome { gap: 12px; margin-bottom: 22px; }
+  body[data-hub-layout="reference"] #hub-shell .health-tool-brand { width: 210px; height: 112px; }
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav { gap: 10px; }
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { min-height: 105px; font-size: 13px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] { outline: 2px solid Highlight; }
+}
+
+/* Keep the supplied logo uncropped and the landing hierarchy above legacy hero overrides. */
+body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health { background: transparent; border: 1px solid transparent; border-radius: 24px; padding: 24px; }
+body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading { padding: 0 !important; margin: 0 auto 14px !important; border: 0 !important; background: transparent !important; box-shadow: none !important; min-height: 0 !important; }
+body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading h1 { font-size: 22px !important; line-height: 1.3 !important; }
+body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health .health-tool-tagline { font-size: 19px !important; line-height: 1.45 !important; }
+@media (max-width: 600px) {
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health { padding: 16px 12px; border-radius: 20px; }
+}
+
+/* Aurora-only frame: reuse the existing atmosphere, with cyan/blue tokens.
+   Keep clinical notices, emergency details, forms and auth state rules untouched. */
+@media screen {
+  html body[data-hub-layout="reference"][data-hub-theme] {
+    --aurora-base: #dceefa;
+    --aurora-lilac: #96c9efad;
+    --aurora-blush: #9edfeaae;
+    --aurora-side: #8dbcf4c4;
+    --aurora-glow: #8eccefae;
+    --aurora-glass: #d9edfa80;
+    background-size: 100% 100%;
+    background-attachment: scroll;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.hub-main, .view-stack) {
+    background: transparent;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.sidebar, .hub-topbar),
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav,
+  body[data-hub-layout="reference"][data-hub-theme] #storage-consent {
+    background: #d9edfac9;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(n) {
+    background: #d9edfa99;
+    border-color: #8db3d5;
+    color: #153c66;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] {
+    background: #c8e5f5b3;
+    border-color: #0759b6;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure, .care-visit-card),
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card) {
+    background: #d9edfa99 !important;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-account > .secondary-button {
+    background: #d9edfa80;
+    color: #153c66;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-tagline,
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-account small,
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-account-state {
+    color: #294665;
+  }
+}
+/* No animation is introduced; system high-contrast colours remain authoritative. */
+@media (forced-colors: active) {
+  html body[data-hub-layout="reference"][data-hub-theme] { background: Canvas; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.sidebar, .hub-topbar),
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav,
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure, .care-visit-card),
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card),
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(n),
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-account > .secondary-button {
+    background: Canvas !important; color: CanvasText; border-color: CanvasText;
+  }
+}
