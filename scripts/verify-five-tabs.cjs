@@ -253,7 +253,7 @@ scopeContext.authUser = null;
 scopeContext.accountSyncState = 'not-signed-in';
 scopeContext.responseStatus('ready', revisedScope);
 assert.equal(scopeContext.accountSyncState, 'not-signed-in', 'A late signed-in response cannot restore status after sign-out.');
-assert.ok(sections.today.includes('data-today-focus-open') && sections.today.includes('data-open-today-plan'), 'Today offers a user chosen focus and the existing saved information briefing.');
+assert.ok(sections.today.includes('data-today-focus-open') && sections.today.includes('data-open-personal-overview'), 'Today offers a user chosen focus and a local saved-information overview.');
 assert.ok(sections.today.includes('data-view="health"') && sections.today.includes('data-view="medications"') && sections.today.includes('data-view="appointments"'), 'Today links to the detailed record views in My Health.');
 assert.doesNotMatch(sections.today, /data-modal="medication"|data-open-medication-scanner|today-compact-medicine-list/, 'Today does not repeat the detailed medication list or scanner entry point.');
 assert.ok(sections['visit-prep'].includes('data-open-summary'), 'Visit prep opens the existing brief builder.');
