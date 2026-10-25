@@ -64,6 +64,7 @@ async function preparePage(browser, base, width, guestData = {}, legacyData = {}
   if (session.clockAt) await page.clock.install({ time: new Date(session.clockAt) });
   page.setDefaultTimeout(10000);
   const errors = [];
+  const chatRequests = [];
   let authUser = session.authUser || null;
   let cloudState = session.cloudState || null;
   page.on('pageerror', error => errors.push(error.message));
@@ -74,7 +75,8 @@ async function preparePage(browser, base, width, guestData = {}, legacyData = {}
     if (url.pathname === '/api/auth/google') return route.fulfill({ status: 200, json: authUser ? { authenticated: true, user: authUser, medicationLoginId: '' } : { authenticated: false } });
     if (url.pathname === '/api/health/state') return route.fulfill({ status: 200, json: { state: cloudState, updatedAt: cloudState ? Date.now() + 60000 : 0 } });
     if (url.pathname === '/api/stripe/entitlement') return route.fulfill({ status: 200, json: { active: false, expiresAt: null } });
-    if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 200, json: { active: false, authenticated: false } });
+    if (url.pathname === '/api/chat') chatRequests.push(route.request().postData() || '');
+    if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 200, json: { active: false, authenticated: false, answer: 'Synthetic response' } });
     return route.continue();
   });
   await page.addInitScript(({ guestData, legacyData, storageChoice }) => {
@@ -88,13 +90,13 @@ async function preparePage(browser, base, width, guestData = {}, legacyData = {}
   }, { guestData, legacyData, storageChoice: session.storageChoice || 'yes' });
   await page.goto(`${base}/health-hub.html#today`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.querySelector('#today-record-status')?.hidden === true);
-  return { context, page, errors, width, api: { setAuth(value) { authUser = value; }, setCloudState(value) { cloudState = value; } } };
+  return { context, page, errors, width, api: { setAuth(value) { authUser = value; }, setCloudState(value) { cloudState = value; }, chatRequests } };
 }
 
 async function checkLayout(testCase, label) {
   const { page, width } = testCase;
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: horizontal overflow`);
-  for (const selector of ['[data-today-focus-open]', '[data-open-today-plan]', '[data-modal="symptom"]', '[data-view="health"]', '.today-question-disclosure summary']) {
+  for (const selector of ['[data-today-focus-open]', '[data-open-personal-overview]', '[data-modal="symptom"]', '[data-view="health"]', '.today-question-disclosure summary']) {
     const target = page.locator(`#view-today ${selector}`).first();
     const box = await target.boundingBox();
     assert.ok(box && box.width >= 44 && box.height >= 44, `${label}: target ${selector} is smaller than 44px`);
@@ -135,6 +137,25 @@ async function checkLayout(testCase, label) {
       assert.deepEqual(testCase.errors, [], `${width}px browser errors`);
       await testCase.context.close();
     }
+
+    const overview = await preparePage(browser, base, 390, {}, {}, {
+      authUser: { sub: 'synthetic-overview-account', email: 'overview@example.invalid', name: 'Synthetic Overview Account' },
+      cloudState: populated
+    });
+    await overview.page.locator('#view-today [data-open-personal-overview]').click();
+    await overview.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
+    assert.equal(await overview.page.locator('#modal-title').textContent(), 'Your personal overview');
+    const overviewText = await overview.page.locator('#modal-body').innerText();
+    assert.match(overviewText, /Synthetic saved condition/);
+    assert.match(overviewText, new RegExp(medicineName));
+    assert.equal(await overview.page.locator('#today-ai-output').count(), 0, 'Today saved overview stays local and does not open an AI briefing');
+    assert.equal(overview.api.chatRequests.length, 0, 'opening the Today saved overview sends no chat request');
+    const overviewScreenshot = path.join(evidenceDir, 'today-saved-overview-390.png');
+    await overview.page.screenshot({ path: overviewScreenshot, fullPage: false });
+    report.screenshots.push(overviewScreenshot);
+    report.checks.push('Today saved overview displays existing notes locally and sends no chat request');
+    assert.deepEqual(overview.errors, [], 'saved overview browser errors');
+    await overview.context.close();
 
     for (const [label, data, count] of [
       ['zero', { medications: [], profile: {} }, 0],
