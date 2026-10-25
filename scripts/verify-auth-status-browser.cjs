@@ -96,16 +96,18 @@ async function installApi(page, initial = {}) {
     await route.fulfill({ status: 405, json: { error: 'method-not-allowed' } });
   });
 
-  await page.addInitScript(cameraStub => {
+  await page.addInitScript(cameraConfig => {
     localStorage.setItem('doctorai-health-hub-device-storage-consent', 'yes');
     window.google = { accounts: { id: {
       initialize(options) { window.__syntheticGoogleCallback = options.callback; },
       renderButton(host) { host.dataset.syntheticGoogleReady = 'true'; }
     } } };
-    if (cameraStub) {
+    if (cameraConfig.enabled) {
       const track = { readyState: 'live', stop() { this.readyState = 'ended'; this.stopCount = (this.stopCount || 0) + 1; } };
       const stream = { getTracks() { return [track]; }, getVideoTracks() { return [track]; } };
-      Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => stream } });
+      let releaseCamera;
+      const delayedCamera = new Promise(resolve => { releaseCamera = resolve; });
+      Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => cameraConfig.delayed ? delayedCamera : stream } });
       Object.defineProperty(HTMLMediaElement.prototype, 'srcObject', { configurable: true, get() { return this.__syntheticSrcObject || null; }, set(value) { this.__syntheticSrcObject = value; } });
       Object.defineProperty(HTMLMediaElement.prototype, 'play', { configurable: true, value: function() { return Promise.resolve(); } });
       Object.defineProperty(HTMLVideoElement.prototype, 'videoWidth', { configurable: true, get() { return 640; } });
@@ -113,8 +115,9 @@ async function installApi(page, initial = {}) {
       Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ fillRect() {}, drawImage() {} }) });
       Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', { configurable: true, value: () => 'data:image/jpeg;base64,c3ludGhldGljLW9ubHk=' });
       window.__syntheticCameraTrack = track;
+      window.__releaseSyntheticCamera = () => releaseCamera(stream);
     }
-  }, initial.cameraStub === true);
+  }, { enabled: initial.cameraStub === true, delayed: initial.cameraStubDelay === true });
   return {
     setAuth(value) { auth = value; },
     setLoginUser(value) { loginUser = value; },
@@ -736,6 +739,7 @@ async function runAdverse(browser, base) {
     await simulateTabReturn(testCase.page);
     await gate.started.promise;
     await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.evaluate(() => document.activeElement === document.querySelector('#session-verification-title')), true, 'focus moves to the session gate after the scanner closes');
     assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'session revalidation closes the camera dialog immediately');
     assert.equal(await testCase.page.evaluate(() => window.__syntheticCameraTrack.readyState), 'ended', 'session revalidation stops the active camera stream');
     assert.ok(await testCase.page.evaluate(() => window.__syntheticCameraTrack.stopCount >= 1));
@@ -798,6 +802,32 @@ async function runAdverse(browser, base) {
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Details copied|Scan not completed/);
     reports.push({ case: 'pending-consented-label-request-cancelled-on-session-expiry', result: 'passed', image: 'synthetic canvas bytes; local mocked endpoint only' });
     await finish(testCase, reports, 'expired-session-scan-request');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true, cameraStubDelay: true });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
+    await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Checking camera access'));
+
+    testCase.api.setAuth(null);
+    const authGate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await authGate.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'revalidation closes the dialog while camera permission is pending');
+    await testCase.page.evaluate(() => window.__releaseSyntheticCamera());
+    await testCase.page.waitForFunction(() => window.__syntheticCameraTrack.readyState === 'ended');
+    authGate.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false);
+    reports.push({ case: 'late-camera-permission-result-stopped-after-session-expiry', result: 'passed', camera: 'delayed synthetic MediaStream only' });
+    await finish(testCase, reports, 'expired-session-pending-camera-start');
   }
   return reports;
 }
