@@ -238,7 +238,7 @@ body {
 /* Whole-site aurora system. Presentation only: no content, routing or state changes.
    Screen-only so printable lists, briefs and legal print layouts retain their paper. */
 @media screen {
-  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page,
+  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-system-page.staff-page,
     .doctorai-about, .appointment-guide, .medication-guide, .aurora-demo-page,
     [data-hub-layout="reference"]) {
     --aurora-base: #dceefa;
@@ -348,7 +348,7 @@ body {
 }
 /* Static atmosphere adds no motion. Respect system accessibility and paper output. */
 @media (forced-colors: active) {
-  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page,
+  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-system-page.staff-page,
     .doctorai-about, .appointment-guide, .medication-guide, .aurora-demo-page,
     [data-hub-layout="reference"]) {
     --welcome-surface: Canvas;
