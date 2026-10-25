@@ -1,0 +1,41 @@
+/* Reference-inspired tool landing. Existing routes, icons and account gates stay authoritative. */
+body[data-hub-layout="reference"] #hub-shell .health-tool-welcome { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell .health-tool-welcome { display: grid; justify-items: center; gap: 16px; max-width: 620px; margin: 0 auto 26px; text-align: center; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-brand { display: block; width: 235px; height: 126px; object-fit: cover; object-position: center; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-tagline { margin: 0; color: #294665; font-size: clamp(18px, 2vw, 23px); line-height: 1.45; letter-spacing: -.025em; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account { display: grid; gap: 10px; width: min(100%, 420px); }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account[hidden],
+body[data-hub-layout="reference"] #hub-shell .health-tool-account-state[hidden] { display: none; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > button { justify-content: center; width: 100%; min-height: 50px; border-radius: 13px; font-size: 16px; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > .primary-button { background: #0759b6; border: 1px solid #0759b6; color: #fff; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > .secondary-button { background: #fff; border: 1px solid #8baaca; color: #153c66; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account small,
+body[data-hub-layout="reference"] #hub-shell .health-tool-account-state { margin: 0; color: #52677f; font-size: 12px; line-height: 1.5; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading { display: flex; align-items: center; gap: 12px; margin: 0 auto 14px; padding: 0; width: 100%; max-width: 620px; border: 0; background: transparent; box-shadow: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .eyebrow,
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .page-subtitle { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading h1 { margin: 0; font-size: 22px; line-height: 1.3; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading .primary-button { min-height: 44px; padding: 8px 12px; font-size: 12px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-section-picker { display: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 620px; margin: 0 auto 30px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { display: flex; flex-direction: column; justify-content: center; gap: 12px; min-width: 0; min-height: 112px; padding: 15px 10px; border: 1px solid #dae7f4; border-radius: 17px; background: #edf5fc; color: #153c66; font-size: 14px; font-weight: 600; line-height: 1.35; text-align: center; box-shadow: none; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(3n + 2) { background: #eef9fa; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(3n) { background: #f2f4fc; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] { border: 2px solid #0759b6; padding: 14px 9px; }
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button > span,
+body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav svg { width: 32px; height: 32px; color: #0759b6; }
+body[data-hub-layout="reference"] #hub-shell .health-tool-account > button:focus-visible,
+body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > button:focus-visible { outline: 3px solid #0759b6; outline-offset: 4px; }
+@media (hover: hover) {
+  body[data-hub-layout="reference"] #hub-shell .health-tool-account > button:hover,
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:hover { border-color: #0759b6; box-shadow: 0 3px 10px #153c6612; }
+}
+@media (max-width: 600px) {
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell .health-tool-welcome { gap: 12px; margin-bottom: 22px; }
+  body[data-hub-layout="reference"] #hub-shell .health-tool-brand { width: 210px; height: 112px; }
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav { gap: 10px; }
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { min-height: 105px; font-size: 13px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] { outline: 2px solid Highlight; }
+}
