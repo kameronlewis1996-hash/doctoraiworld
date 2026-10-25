@@ -291,7 +291,8 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, renderCompactToday() {}, renderAuthStatus() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', todayFocusSyncPending:false, cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
+    const guardedRenders = [];
+    return {nodes, guardedRenders, renderCompactToday() {}, renderAuthStatus() {}, renderHomePrescriptionAlert:() => guardedRenders.push('home-alert'), renderMedicationCheckState:() => guardedRenders.push('medication-check'), renderHealthAlerts:() => guardedRenders.push('health-alerts'), renderStorageStatus:() => guardedRenders.push('storage-status'), $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', todayFocusSyncPending:false, cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -308,6 +309,7 @@ async function verifyAccountResponseBoundaries() {
     assert.equal(context.accountSessionVerification, 'verified', `${fixture.id}: the accepted current credential clears a pending or failed sign-in status.`);
     assert.equal(context.nodes['#hub-account-sync-state'].textContent, 'Checking private account sync', `${fixture.id}: the actual renderer shows account sync, rather than the previous sign-in warning.`);
     assert.equal(context.accountSessionReady, true);
+    assert.deepEqual(context.guardedRenders.slice(0, 3), ['home-alert', 'medication-check', 'health-alerts'], `${fixture.id}: private health notices are gated before the account response settles.`);
     assert.equal(context.googleCredentialInFlight, false);
     assert.equal(context.closed, 1, `${fixture.id}: successful sign-in closes its dialog.`);
     assert.equal(context.toasts.length, 1);

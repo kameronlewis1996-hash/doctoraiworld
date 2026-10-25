@@ -63,6 +63,7 @@
   let localHealthAccountScope = '';
   const sessionHealthStateCache = new Map();
   let activeHealthDataOwner = 'pending';
+  let healthOwnerRevision = 0;
   const storageConsentKey = storagePrefix + 'device-storage-consent';
   let deviceStorageChoice = '';
   let localStorageAllowed = false;
@@ -270,6 +271,7 @@
     cloudSyncEnabled = true;
     activeHealthDataOwner = nextOwner;
     localHealthAccountScope = nextStorageScope;
+    healthOwnerRevision++;
 
     const cached = sessionHealthStateCache.get(nextOwner);
     if (cached) restoreHealthStateSnapshot(cached);
@@ -624,6 +626,12 @@
     note.textContent = accountSessionVerification === 'pending' ? 'Confirming sign-in. Health notices are hidden until account access is confirmed.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Saved health records stay hidden until sign-in is confirmed.' : !authUser ? 'Guest records use a separate browser space. Sign in to use private account sync.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
   }
   function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
+  function currentHealthOwnerReady() {
+    if (!accountSessionReady || accountSessionVerification !== 'verified') return false;
+    if (!authUser) return activeHealthDataOwner === 'guest' && localHealthAccountScope === 'guest';
+    const email = String(authUser.email || '').trim().toLowerCase();
+    return Boolean(email && activeHealthDataOwner === `account:${email}` && cloudSyncEnabled && medicationAccountDataReady && !['checking', 'unconfirmed', 'unavailable', 'not-signed-in'].includes(accountSyncState));
+  }
   function updateTodayFocusSyncFeedback(value) {
     if (!todayFocusSyncPending) return;
     const target = $('#today-focus-save-status');
@@ -1181,8 +1189,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   function renderCompactToday(statusOnly = false) {
-    const loading = accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
-    const unavailable = accountSessionVerification === 'failed' || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
+    const loading = !accountSessionReady || accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
+    const unavailable = accountSessionVerification === 'failed' || Boolean(!loading && accountSessionVerification === 'verified' && !currentHealthOwnerReady()) || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
     const view = $('#view-today');
     const availability = loading ? 'loading' : unavailable ? 'unavailable' : 'ready';
     if (statusOnly && view?.dataset.recordsAvailability === availability) return;
@@ -1195,9 +1203,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       $('[data-today-retry]', status).hidden = loading || Boolean(authUser && !cloudSyncEnabled);
     }
     const focusButton = $('[data-today-focus-open]');
-    if (focusButton) focusButton.disabled = loading || unavailable;
+    if (focusButton) focusButton.disabled = loading || unavailable || !currentHealthOwnerReady();
+    $$('[data-open-personal-overview]').forEach(button => { button.disabled = loading || unavailable || !currentHealthOwnerReady(); });
     const focusForm = $('[data-today-focus-form]');
-    if (focusForm && (loading || unavailable)) focusForm.hidden = true;
+    if (focusForm && (loading || unavailable || !currentHealthOwnerReady())) {
+      focusForm.hidden = true;
+      focusForm.reset();
+      delete focusForm.dataset.editingTaskId;
+      delete focusForm.dataset.sessionRevision;
+      delete focusForm.dataset.healthOwnerRevision;
+    }
+    if ((loading || unavailable || !currentHealthOwnerReady()) && els.modal?.open) discardPreparationDrafts(true, true);
     const focusCopy = $('#today-focus-copy');
     const focus = !loading && !unavailable ? currentTodayFocus() : null;
     if (focusCopy) {
@@ -2201,6 +2217,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     accountSessionReady = false;
     accountSessionVerification = 'pending';
     renderAuthStatus();
+    renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
     try {
       const response = await fetch('/api/auth/google', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign-out could not be confirmed.');
@@ -2273,6 +2290,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     accountSessionReady = false;
     accountSessionVerification = 'pending';
     renderAuthStatus();
+    renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
     try {
       const result = await fetch('/api/auth/google', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
       const payload = await result.json().catch(() => ({}));
@@ -2297,6 +2315,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       accountSessionReady = previousSessionReady;
       accountSessionVerification = previousVerification;
       renderAuthStatus();
+      renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
       if (error?.status === 401) {
         setGoogleSigninStatus('Google sign-in could not be verified. Please try again and choose your Google account once more.', 'setup');
       } else if (error?.status === 429) {
@@ -2371,6 +2390,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     form.querySelector('[data-brief-count]').textContent = `${selected} of ${available} saved records selected for your brief. Saved medicine details are shown separately from dated notes; check which medicines you still take.`;
   }
   function openPersonalOverview() {
+    if (!currentHealthOwnerReady()) return;
     const oneLine = (value, limit = 420) => {
       const text = String(value || '').replace(/\s+/g, ' ').trim();
       return text.length > limit ? `${text.slice(0, limit - 1).trimEnd()}…` : text;
@@ -4400,11 +4420,13 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (focusOpen) {
       const form = $('[data-today-focus-form]');
       const input = $('#today-focus-input');
-      if (!form || !input || focusOpen.disabled) return;
+      if (!form || !input || focusOpen.disabled || !currentHealthOwnerReady()) return;
       const focus = currentTodayFocus();
       input.value = focus?.label || '';
       if (focus) form.dataset.editingTaskId = String(focus.id || '');
       else delete form.dataset.editingTaskId;
+      form.dataset.sessionRevision = String(accountSessionRevision);
+      form.dataset.healthOwnerRevision = String(healthOwnerRevision);
       const status = $('#today-focus-save-status');
       if (status) status.textContent = '';
       form.hidden = false;
@@ -4413,7 +4435,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     if (event.target.closest('[data-today-focus-cancel]')) {
       const form = $('[data-today-focus-form]');
-      if (form) { form.hidden = true; form.reset(); delete form.dataset.editingTaskId; }
+      if (form) { form.hidden = true; form.reset(); delete form.dataset.editingTaskId; delete form.dataset.sessionRevision; delete form.dataset.healthOwnerRevision; }
       $('[data-today-focus-open]')?.focus();
       return;
     }
@@ -4505,7 +4527,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     if (event.target.closest('[data-open-today-plan]')) { event.preventDefault(); openTodayPlan(); return; }
-    if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); openPersonalOverview(); return; }
+    if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); if (currentHealthOwnerReady()) openPersonalOverview(); return; }
     const openChat = event.target.closest('[data-open-chat]');
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }
     if (event.target.closest('[data-open-medication-scanner]')) { event.preventDefault(); setMobileMenuOpen(false); showView('scan'); await openMedicationScanner(); return; }
@@ -5014,9 +5036,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const focusForm = event.target.closest('[data-today-focus-form]');
     if (focusForm) {
       event.preventDefault();
+      const status = $('#today-focus-save-status');
+      if (!currentHealthOwnerReady() || focusForm.dataset.sessionRevision !== String(accountSessionRevision) || focusForm.dataset.healthOwnerRevision !== String(healthOwnerRevision)) {
+        focusForm.hidden = true;
+        focusForm.reset();
+        delete focusForm.dataset.editingTaskId;
+        delete focusForm.dataset.sessionRevision;
+        delete focusForm.dataset.healthOwnerRevision;
+        if (status) status.textContent = accountSessionVerification === 'pending' || !accountSessionReady
+          ? 'Your sign-in is being checked. Your focus was not changed.'
+          : 'Your saved information changed. Your focus was not changed.';
+        return;
+      }
       const input = focusForm.elements.focus;
       const label = String(input?.value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
-      const status = $('#today-focus-save-status');
       if (!label) { if (status) status.textContent = 'Write a focus before saving.'; input?.focus(); return; }
       const today = briefLocalDate(new Date());
       const editingId = focusForm.dataset.editingTaskId;
@@ -5037,6 +5070,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       focusForm.hidden = true;
       focusForm.reset();
       delete focusForm.dataset.editingTaskId;
+      delete focusForm.dataset.sessionRevision;
+      delete focusForm.dataset.healthOwnerRevision;
       if (status) status.textContent = todayFocusSyncPending
         ? 'Your focus is on Today; private account sync is pending.'
         : localStorageWriteFailed
