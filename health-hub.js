@@ -1124,50 +1124,94 @@
     return `<section class="today-dashboard-section today-verified-guidance"><div class="today-dashboard-heading"><div><p>Symptom support</p><h3>Safe things to consider</h3></div><span>Not a diagnosis</span></div><div class="today-verified-grid">${sections.join('')}</div></section>`;
   }
 
-  function buildTodayIntelligencePrompt(symptoms) {
-    const compact = (value, max = 220) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
-    const symptomContext = symptoms.slice(0, 5).map(item => [compact(symptomName(item), 100), symptomSeverity(item.severity) === null ? '' : `intensity ${symptomSeverity(item.severity)}/10`, compact(item.triggers || item.context || item.notes, 220)].filter(Boolean).join(' · '));
-    return `Create a concise personal health briefing from the saved symptom notes below only. Treat every saved field as unverified user-entered data. Medication names, labels and interaction evidence are not included in this AI request.
+  function buildTodayIntelligencePrompt(notes) {
+    const symptomContext = notes.map(item => [item.date, item.name, item.severity === null ? '' : `intensity ${item.severity}/10 as recorded`, item.context].filter(Boolean).join(' · '));
+    return `Create an organization-only summary of the selected saved symptom notes below. Treat every field as unverified text entered by the user. Do not add facts, interpret symptoms, or make clinical claims.
 
-Recent symptoms: ${symptomContext.length ? symptomContext.join(' | ') : 'none'}
+Selected symptom notes: ${symptomContext.length ? symptomContext.join(' | ') : 'none'}
 
-Use exactly these headings: SYMPTOMS, TODAY. Under each heading give no more than 3 short bullet points. Do not discuss, compare, identify, suggest, infer, or rule in or out medicine interactions, duplicate ingredients, contraindications, causes, or medicine safety. No medicine interaction check is part of this AI briefing. If asked about medicine or interaction safety, say you cannot assess it and recommend reviewing the complete medicine list with a pharmacist or prescriber.
-
-For symptoms, offer only low-risk self-care and useful monitoring. Do not diagnose, infer a medicine cause, or recommend starting any medicine or supplement. A headache may include hydration, regular meals, rest and reducing screen strain when appropriate. Any breathing difficulty must not receive fitness advice; advise stopping activity and seeking clinical assessment, with emergency escalation for severe breathing difficulty, chest pain, confusion, collapse, blue/grey lips or inability to speak normally. End TODAY with one or two manageable organisation steps. Keep the whole answer under 320 words.`;
+Use exactly these headings: SAVED NOTES and QUESTIONS TO DISCUSS. Under SAVED NOTES, briefly restate only what the person recorded. Under QUESTIONS TO DISCUSS, provide at most two neutral, open questions they could choose to discuss with a healthcare professional. Do not give clinical advice, self-care instructions, diagnosis, cause, urgency or triage assessment, treatment or medication guidance, or claims about safety. Do not infer progress or recommend a goal. No profile details, medicines, appointments, documents, or Health Memory are included. If there are no selected notes, state that there are no notes to organize. Keep the answer under 180 words.`;
   }
 
-  async function loadTodayIntelligence(symptoms) {
-    const output = $('#today-ai-output');
-    if (!output) return;
-    if (!authUser) {
-      output.classList.remove('loading');
-      output.innerHTML = '<p>Sign in to generate an AI briefing from the health information you chose to save.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
-      return;
-    }
+  function validateTodayIntelligenceAnswer(answer) {
+    const text = String(answer || '').trim();
+    const hasSavedNotes = /^\s*(?:#{1,3}\s*)?SAVED NOTES\s*:?[ \t]*$/im.test(text);
+    const hasQuestions = /^\s*(?:#{1,3}\s*)?QUESTIONS TO DISCUSS\s*:?[ \t]*$/im.test(text);
+    const clinicalAdvice = /\b(?:diagnos|treat|medic|drug|dose|interact|cause|safe|danger|urgent|emergency|call|seek|contact|drink|hydration|water|rest|exercise|diet|supplement|should|must|need to|take|stop|start|increase|decrease|reduce|avoid|recommend|advice|prescri|symptom\s+(?:indicates|suggests|means))\b/i;
+    return text.length > 0 && text.length <= 1800 && hasSavedNotes && hasQuestions && !clinicalAdvice.test(text);
+  }
+
+  let todayIntelligenceController = null;
+  let todayIntelligenceRequestId = 0;
+  let todayIntelligencePreview = null;
+  function cancelTodayIntelligence() {
+    todayIntelligenceRequestId += 1;
+    todayIntelligenceController?.abort();
+    todayIntelligenceController = null;
+    todayIntelligencePreview = null;
+  }
+
+  function todayIntelligenceChoiceMarkup(symptoms) {
+    const notes = symptoms.slice(0, 4).map(item => ({
+      date: formatDate(item.date),
+      name: String(symptomName(item) || 'Saved symptom').replace(/\s+/g, ' ').trim().slice(0, 100),
+      severity: symptomSeverity(item.severity),
+      context: String(item.triggers || item.context || item.notes || '').replace(/\s+/g, ' ').trim().slice(0, 160)
+    }));
+    todayIntelligencePreview = { ownerToken: `${accountSessionRevision}:${healthOwnerRevision}`, notes };
+    const preview = notes.length
+      ? `<ul class="today-dashboard-list today-ai-note-preview">${notes.map(item => {
+          const detail = [item.date, item.severity === null ? '' : `${item.severity}/10 recorded intensity`, item.context ? `Context: ${item.context}` : 'No context recorded'].filter(Boolean).join(' · ');
+          return `<li><span class="today-dashboard-list-icon symptom" aria-hidden="true">${iconMarkup('pulse')}</span><span><b>${escapeHTML(item.name)}</b><small>${escapeHTML(detail)}</small></span></li>`;
+        }).join('')}</ul>`
+      : '<p class="today-ai-no-notes">No recent symptom notes are available to include.</p>';
+    const accountNotice = authUser
+      ? `<p>If you check the optional box and then choose Generate, the recent symptom notes shown here (up to four) will be sent through DoctorAI to OpenAI to organize them into a short summary and neutral questions. If the box stays unchecked, no symptom notes are sent. OpenAI may retain API content in abuse-monitoring logs for up to 30 days by default; DoctorAI has not confirmed a shorter retention exception. Your profile, medicines, appointments, documents and Health Memory are not included. Nothing is sent until you choose Generate. <a href="/privacy">Read the Privacy Notice</a>.</p>`
+      : '<p>Sign in to generate an optional AI organizer summary. No health notes are sent while signed out.</p><button type="button" class="secondary-button" data-google-signin>Sign in securely</button>';
+    const choices = authUser && notes.length
+      ? `<label class="today-ai-include-choice"><input type="checkbox" id="today-ai-include-symptoms"> <span>Include these symptom notes in my request (optional)</span></label><p class="modal-help">You can generate a summary without notes. The AI output is an organizer draft, not medical advice, and is not saved to your health records.</p><div class="modal-actions"><button type="button" class="primary-button" id="today-ai-generate" data-generate-today-intelligence>Generate without symptom notes</button><button type="button" class="secondary-button" data-close-modal>Cancel</button></div>`
+      : authUser
+        ? '<p>No recent symptom notes are available for an AI summary. No request will be sent.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button></div>'
+      : '<div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button></div>';
+    return `<div class="today-ai-consent" role="group" aria-labelledby="today-ai-consent-title" data-session-revision="${accountSessionRevision}" data-health-owner-revision="${healthOwnerRevision}"><p><strong id="today-ai-consent-title">Optional AI organizer summary</strong></p>${accountNotice}<div class="today-ai-preview"><b>Notes available for this request (${symptoms.length})</b>${preview}</div>${choices}<p class="today-ai-safety">DoctorAI cannot verify or interpret these notes. Do not use generated text to make health decisions; check with a qualified professional.</p></div>`;
+  }
+
+  async function loadTodayIntelligence(notes, output, ownerToken) {
+    if (!output || !authUser || !currentHealthOwnerReady() || ownerToken !== `${accountSessionRevision}:${healthOwnerRevision}` || todayIntelligenceController) return;
+    const ownerEmail = String(authUser.email || '').trim().toLowerCase();
+    const requestId = ++todayIntelligenceRequestId;
     const controller = new AbortController();
+    todayIntelligenceController = controller;
     const timeout = window.setTimeout(() => controller.abort(), 45_000);
+    const stillCurrent = () => requestId === todayIntelligenceRequestId && els.modal.open && output.isConnected && currentHealthOwnerReady() && ownerToken === `${accountSessionRevision}:${healthOwnerRevision}` && ownerEmail === String(authUser?.email || '').trim().toLowerCase();
+    output.innerHTML = '<div role="status" aria-live="polite" aria-busy="true"><p>Sending the selected request to OpenAI through DoctorAI…</p><p class="modal-help">Your saved health records are not being changed.</p></div><button type="button" class="secondary-button" data-close-modal>Cancel request</button>';
+    output.classList.remove('error');
+    output.setAttribute('tabindex', '-1');
+    output.focus({ preventScroll: true });
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: buildTodayIntelligencePrompt(symptoms) }], responseLength: 'medium', stream: false }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: buildTodayIntelligencePrompt(notes) }], responseLength: 'medium', stream: false }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || 'The personalised briefing is unavailable right now.');
+      if (!response.ok) throw new Error('unavailable');
       const answer = String(payload.answer || '').trim();
-      if (!answer) throw new Error('The personalised briefing returned no information.');
-      if (!output.isConnected) return;
-      output.classList.remove('loading');
-      output.textContent = answer;
+      if (!validateTodayIntelligenceAnswer(answer)) throw new Error('unreviewed-output');
+      if (!stillCurrent()) return;
+      output.innerHTML = `<div role="status" aria-live="polite"><p><strong>AI-generated organizer draft — not saved</strong></p><p class="today-ai-response">${escapeHTML(answer)}</p><p class="modal-help">This summary may be wrong. It does not provide clinical advice.</p></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button></div>`;
     } catch (error) {
-      if (!output.isConnected) return;
-      output.classList.remove('loading');
+      if (!stillCurrent()) return;
       output.classList.add('error');
-      output.textContent = error?.name === 'AbortError' ? 'The personalised briefing took too long. Close this window and try again.' : String(error?.message || 'The personalised briefing is unavailable right now.');
+      const message = error?.message === 'unreviewed-output'
+        ? 'The AI response did not follow the organizer-only format, so it was hidden. Your saved health records were not changed.'
+        : 'The organizer summary could not be generated. Your saved health records were not changed.';
+      output.innerHTML = `<div role="status" aria-live="polite"><p>${message}</p></div><div class="modal-actions"><button type="button" class="primary-button" data-retry-today-intelligence>Review and try again</button><button type="button" class="secondary-button" data-close-modal>Close</button></div>`;
     } finally {
       window.clearTimeout(timeout);
+      if (todayIntelligenceController === controller) todayIntelligenceController = null;
     }
   }
 
@@ -1196,11 +1240,20 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderTasks() {
     if (!els.taskList) return;
     const today = briefLocalDate(new Date());
-    els.taskList.innerHTML = state.tasks.length ? state.tasks.map(task => `<div class="task-row ${task.done ? 'done' : ''}">
-      <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : briefDate(task.date) ? (briefDate(task.date) === today ? 'Today' : formatShortDate(task.date)) : 'Saved'}</span>
-    </div>`).join('') : '<div class="empty-state">No health tasks yet. Add a small next step when you need one.</div>';
-    const complete = state.tasks.filter(task => task.done).length;
-    if (els.taskCount) els.taskCount.textContent = state.tasks.length ? `${complete} of ${state.tasks.length} complete` : 'No tasks yet';
+    const actionTokens = `data-session-revision="${accountSessionRevision}" data-health-owner-revision="${healthOwnerRevision}"`;
+    els.taskList.innerHTML = state.tasks.length ? state.tasks.map(task => {
+      const archivedFocus = task?.source === 'today-focus' && Boolean(task.archivedAt);
+      const action = archivedFocus
+        ? `<button class="task-restore" type="button" data-task-restore="${escapeHTML(task.id)}" ${actionTokens} aria-label="Restore ${escapeHTML(task.label || 'saved focus')} to Today">Restore</button>`
+        : `<button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" ${actionTokens} aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button>`;
+      const label = escapeHTML(task.label || 'Saved task');
+      const detail = [task.detail, archivedFocus ? 'Removed from Today; still saved' : ''].filter(Boolean).join(' · ');
+      const dateLabel = archivedFocus ? 'Cleared' : task.done ? 'Done' : briefDate(task.date) ? (briefDate(task.date) === today ? 'Today' : formatShortDate(task.date)) : 'Saved';
+      return `<div class="task-row ${task.done ? 'done' : ''} ${archivedFocus ? 'archived' : ''}">${action}<span><b>${label}</b><small>${escapeHTML(detail)}</small></span><span>${dateLabel}</span></div>`;
+    }).join('') : '<div class="empty-state">No health tasks yet. Add a small next step when you need one.</div>';
+    const activeTasks = state.tasks.filter(task => !(task?.source === 'today-focus' && task.archivedAt));
+    const complete = activeTasks.filter(task => task.done).length;
+    if (els.taskCount) els.taskCount.textContent = activeTasks.length ? `${complete} of ${activeTasks.length} complete` : 'No tasks yet';
   }
 
   function renderActivity() {
@@ -1225,8 +1278,35 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function currentTodayFocus() {
     const today = briefLocalDate(new Date());
-    return state.tasks.filter(task => task?.source === 'today-focus' && briefDate(task.date) === today)
+    return state.tasks.filter(task => task?.source === 'today-focus' && !task.archivedAt && briefDate(task.date) === today)
       .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0] || null;
+  }
+
+  function mostRecentlyClearedTodayFocus() {
+    return state.tasks.filter(task => task?.source === 'today-focus' && task.archivedAt)
+      .sort((left, right) => Number(right.archivedAt || 0) - Number(left.archivedAt || 0))[0] || null;
+  }
+
+  function todayFocusActionMessage(action) {
+    const message = action === 'cleared' ? 'Focus cleared from Today.' : 'Saved focus restored to Today.';
+    if (todayFocusSyncPending) return `${message} Private account sync is pending.`;
+    if (localStorageWriteFailed) return `${message} This browser did not confirm saving the change; it is available for this session.`;
+    if (localStorageAllowed) return action === 'cleared' ? `${message} It remains saved and can be restored.` : message;
+    if (deviceStorageChoice === 'session' || deviceStorageChoice === 'session-cleanup-incomplete') return `${message} This change is available for this session only.`;
+    return `${message} Choose a storage option in Profile if you want to keep this change after leaving.`;
+  }
+
+  function renderTodayFocusMarkup({ loading, unavailable, focus, clearedFocus }) {
+    if (loading) return '<p>Checking your saved information…</p>';
+    if (unavailable) return '<p>Your personal focus is hidden while saved account data is unavailable.</p>';
+    const tokens = `data-session-revision="${accountSessionRevision}" data-health-owner-revision="${healthOwnerRevision}"`;
+    const restore = clearedFocus && clearedFocus.id !== focus?.id
+      ? `<details class="today-focus-previous"><summary>Previously cleared focus</summary><p>${escapeHTML(clearedFocus.label || 'Saved focus')}</p><button type="button" class="secondary-button today-focus-restore" data-task-restore="${escapeHTML(clearedFocus.id)}" ${tokens}>Restore to Today</button></details>`
+      : '';
+    if (focus) return `<article class="today-focus-item"><p>${escapeHTML(focus.label || 'Personal focus not recorded')}</p><small>${focus.done ? 'Marked complete today' : 'Chosen by you'}</small><div class="today-focus-item-actions"><button type="button" class="text-button" data-task-toggle="${escapeHTML(focus.id)}" ${tokens} aria-label="${focus.done ? 'Mark personal focus incomplete' : 'Mark personal focus complete'}">${focus.done ? 'Mark incomplete' : 'Mark complete'}</button><button type="button" class="secondary-button today-focus-clear" data-today-focus-clear="${escapeHTML(focus.id)}" ${tokens}>Clear focus</button></div>${restore}</article>`;
+    return clearedFocus
+      ? `<p>No focus set for today. Your previous focus remains saved.</p><p class="today-focus-cleared-label">${escapeHTML(clearedFocus.label || 'Saved focus')}</p><button type="button" class="secondary-button today-focus-restore" data-task-restore="${escapeHTML(clearedFocus.id)}" ${tokens}>Restore to Today</button>`
+      : '<p>No focus saved for today. Choose one small thing if it would help.</p>';
   }
 
   function renderCompactToday(statusOnly = false) {
@@ -1257,15 +1337,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if ((loading || unavailable || !currentHealthOwnerReady()) && els.modal?.open) discardPreparationDrafts(true, true);
     const focusCopy = $('#today-focus-copy');
     const focus = !loading && !unavailable ? currentTodayFocus() : null;
-    if (focusCopy) {
-      focusCopy.innerHTML = loading
-        ? '<p>Checking your saved information…</p>'
-        : unavailable
-          ? '<p>Your personal focus is hidden while saved account data is unavailable.</p>'
-          : focus
-            ? `<article class="today-focus-item"><p>${escapeHTML(focus.label || 'Personal focus not recorded')}</p><small>${focus.done ? 'Marked complete today' : 'Chosen by you'}</small><div class="today-focus-item-actions"><button type="button" class="text-button" data-task-toggle="${escapeHTML(focus.id)}" aria-label="${focus.done ? 'Mark personal focus incomplete' : 'Mark personal focus complete'}">${focus.done ? 'Mark incomplete' : 'Mark complete'}</button></div></article>`
-            : '<p>No focus saved for today. Choose one small thing if it would help.</p>';
-    }
+    const clearedFocus = !loading && !unavailable ? mostRecentlyClearedTodayFocus() : null;
+    if (focusCopy) focusCopy.innerHTML = renderTodayFocusMarkup({ loading, unavailable, focus, clearedFocus });
     if (focusButton) focusButton.textContent = focus ? 'Change focus' : 'Choose a focus';
     const appointmentCopy = $('#today-next-up-copy');
     if (appointmentCopy) {
@@ -1957,7 +2030,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function openPrivacy() {
     if (!els.privacyModal.open) els.privacyModal.showModal();
   }
-  function closeModal() { if (els.modal.open) els.modal.close(); }
+  function closeModal() { cancelTodayIntelligence(); if (els.modal.open) els.modal.close(); }
   function closePrivacy() { if (els.privacyModal.open) els.privacyModal.close(); }
   function focusCurrentViewHeading() {
     const heading = document.querySelector('.view.active > .page-heading h1') || $('#main-content');
@@ -2570,8 +2643,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const verifiedMedicationGuidance = verifiedMedicationEducationMarkup(currentMedications);
     const verifiedSymptomGuidance = verifiedSymptomEducationMarkup(recentSymptoms);
     const savedCount = currentMedications.length + recentSymptoms.length + profileDetails.length + (nextAppointment ? 1 : 0);
-    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">${iconMarkup('overview', 26)}</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Personalised points to review</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output loading" role="status" aria-live="polite"><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><p>Reviewing only the recent symptom notes you chose to save…</p></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></div>`);
-    void loadTodayIntelligence(recentSymptoms);
+    cancelTodayIntelligence();
+    setModal('Your health briefing', 'Private daily overview', `<div class="today-dashboard"><section class="today-dashboard-summary"><div><p>Updated ${escapeHTML(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h3>${savedCount ? 'Everything important, in one view' : 'Start building your health briefing'}</h3><span>${savedCount ? `${savedCount} saved detail${savedCount === 1 ? '' : 's'} brought together privately.` : 'Add the information you want DoctorAI to organise.'}</span></div><span class="today-dashboard-summary-mark" aria-hidden="true">${iconMarkup('overview', 26)}</span></section><div class="today-dashboard-grid"><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Current routine</p><h3>Medications and timings</h3></div><button type="button" data-today-view="medications">View all</button></div>${medicationMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Recent notes</p><h3>Symptoms</h3></div><button type="button" data-today-view="symptoms">View diary</button></div>${symptomMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Your saved information</p><h3>About you</h3></div><button type="button" data-modal="health">Edit</button></div>${profileMarkup}</section><section class="today-dashboard-section"><div class="today-dashboard-heading"><div><p>Coming up</p><h3>Next appointment</h3></div><button type="button" data-today-view="appointments">View all</button></div>${appointmentMarkup}</section></div>${verifiedMedicationGuidance}${verifiedSymptomGuidance}<section class="today-dashboard-section today-ai-briefing"><div class="today-dashboard-heading"><div><p>DoctorAI briefing</p><h3>Optional symptom note summary</h3></div><span>AI assisted</span></div><div id="today-ai-output" class="today-ai-output"></div></section><section class="today-dashboard-section today-medication-guidance"><div class="today-dashboard-heading"><div><p>Medication support</p><h3>Tips from your saved labels</h3></div><span>Review first</span></div>${medicationGuidance}</section><section class="today-dashboard-section today-dashboard-plan"><div class="today-dashboard-heading"><div><p>Your plan for today</p><h3>Small, useful next steps</h3></div><span>Ready now</span></div><ol>${planMarkup}</ol></section><p class="today-dashboard-safety"><strong>Education and organisation—not diagnosis or a treatment plan.</strong> DoctorAI does not prescribe, recommend starting medication, or confirm that medicines are safe together. Verify medicine advice and possible interactions with a pharmacist or prescriber. If a symptom is sudden, severe or rapidly worsening, contact an appropriate healthcare or emergency service.</p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button><button type="button" class="primary-button" data-open-summary>Build a visit brief <span aria-hidden="true">${iconMarkup('arrow')}</span></button></div></div>`);
+    const aiOutput = $('#today-ai-output');
+    if (aiOutput) aiOutput.innerHTML = todayIntelligenceChoiceMarkup(recentSymptoms);
   }
 
   function buildTodayPlanPrompt(values) {
@@ -4567,7 +4642,35 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (viewTarget.dataset.chatPrompt) fillChat(viewTarget.dataset.chatPrompt);
       return;
     }
-    if (event.target.closest('[data-open-today-plan]')) { event.preventDefault(); openTodayPlan(); return; }
+    const generateTodayIntelligence = event.target.closest('[data-generate-today-intelligence]');
+    if (generateTodayIntelligence) {
+      event.preventDefault();
+      const output = $('#today-ai-output');
+      const consent = generateTodayIntelligence.closest('.today-ai-consent');
+      const ownerToken = `${accountSessionRevision}:${healthOwnerRevision}`;
+      if (!authUser || !currentHealthOwnerReady() || !els.modal.open || !consent || consent.dataset.sessionRevision !== String(accountSessionRevision) || consent.dataset.healthOwnerRevision !== String(healthOwnerRevision)) return;
+      if (!todayIntelligencePreview || todayIntelligencePreview.ownerToken !== ownerToken) return;
+      const includeSymptoms = $('#today-ai-include-symptoms')?.checked === true;
+      const notes = includeSymptoms ? todayIntelligencePreview.notes : [];
+      generateTodayIntelligence.disabled = true;
+      void loadTodayIntelligence(notes, output, ownerToken);
+      return;
+    }
+    const retryTodayIntelligence = event.target.closest('[data-retry-today-intelligence]');
+    if (retryTodayIntelligence) {
+      event.preventDefault();
+      if (!authUser || !currentHealthOwnerReady()) return;
+      const output = $('#today-ai-output');
+      const symptoms = state.timeline.filter(item => item.type === 'symptom').sort((left, right) => symptomDateValue(right).localeCompare(symptomDateValue(left))).slice(0, 4);
+      if (output) output.innerHTML = todayIntelligenceChoiceMarkup(symptoms);
+      return;
+    }
+    if (event.target.closest('[data-open-today-plan]')) {
+      event.preventDefault();
+      if (!currentHealthOwnerReady()) { showToast('Confirm your sign-in before opening saved health information.'); return; }
+      openTodayPlan();
+      return;
+    }
     if (event.target.closest('[data-open-personal-overview]')) { event.preventDefault(); if (currentHealthOwnerReady()) openPersonalOverview(); return; }
     const openChat = event.target.closest('[data-open-chat]');
     if (openChat) { event.preventDefault(); fillChat(openChat.dataset.chatPrompt || ''); return; }
@@ -4876,8 +4979,42 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (medication) { medication.status = 'missed'; saveState(); renderTodayMedications(); renderMedicationLibrary(); showToast(`${medication.name} marked as missed. Consider contacting a pharmacist if you are unsure what to do next.`); }
       return;
     }
+    const clearTodayFocus = event.target.closest('[data-today-focus-clear]');
+    if (clearTodayFocus) {
+      event.preventDefault();
+      if (!currentHealthOwnerReady() || clearTodayFocus.dataset.sessionRevision !== String(accountSessionRevision) || clearTodayFocus.dataset.healthOwnerRevision !== String(healthOwnerRevision)) return;
+      const focus = state.tasks.find(item => String(item?.id || '') === String(clearTodayFocus.dataset.todayFocusClear || '') && item?.source === 'today-focus' && !item.archivedAt && briefDate(item.date) === briefLocalDate(new Date()));
+      if (!focus || !window.confirm('Clear this focus from Today? It will remain saved and can be restored.')) return;
+      focus.archivedAt = Date.now();
+      todayFocusSyncPending = Boolean(authUser && cloudSyncEnabled);
+      saveState(); renderTasks(); renderCompactToday();
+      showToast(todayFocusActionMessage('cleared'));
+      return;
+    }
+    const restoreTodayFocus = event.target.closest('[data-task-restore]');
+    if (restoreTodayFocus) {
+      event.preventDefault();
+      if (!currentHealthOwnerReady() || restoreTodayFocus.dataset.sessionRevision !== String(accountSessionRevision) || restoreTodayFocus.dataset.healthOwnerRevision !== String(healthOwnerRevision)) return;
+      const focus = state.tasks.find(item => String(item?.id || '') === String(restoreTodayFocus.dataset.taskRestore || '') && item?.source === 'today-focus' && item.archivedAt);
+      if (!focus) return;
+      const current = currentTodayFocus();
+      if (current && current.id !== focus.id && !window.confirm('Move the current focus to saved history and restore this focus to Today?')) return;
+      if (current && current.id !== focus.id) current.archivedAt = Date.now();
+      delete focus.archivedAt;
+      focus.date = briefLocalDate(new Date());
+      focus.createdAt = Date.now();
+      todayFocusSyncPending = Boolean(authUser && cloudSyncEnabled);
+      saveState(); renderTasks(); renderCompactToday();
+      showToast(todayFocusActionMessage('restored'));
+      return;
+    }
     const taskToggle = event.target.closest('[data-task-toggle]');
-    if (taskToggle) { const task = state.tasks.find(item => item.id === taskToggle.dataset.taskToggle); if (task) { task.done = !task.done; saveState(); renderTasks(); renderCompactToday(); showToast(task.done ? 'Task complete.' : 'Task returned to today.'); } return; }
+    if (taskToggle) {
+      if (!currentHealthOwnerReady() || taskToggle.dataset.sessionRevision !== String(accountSessionRevision) || taskToggle.dataset.healthOwnerRevision !== String(healthOwnerRevision)) return;
+      const task = state.tasks.find(item => String(item?.id || '') === String(taskToggle.dataset.taskToggle || '') && !item.archivedAt);
+      if (task) { task.done = !task.done; saveState(); renderTasks(); renderCompactToday(); showToast(task.done ? 'Task complete.' : 'Task returned to today.'); }
+      return;
+    }
     const timelineFilterTarget = event.target.closest('[data-timeline-filter]');
     if (timelineFilterTarget) { timelineFilter = timelineFilterTarget.dataset.timelineFilter; $$('[data-timeline-filter]').forEach(button => button.classList.toggle('active', button === timelineFilterTarget)); renderTimeline(); return; }
     const symptomModeTarget = event.target.closest('[data-symptom-mode]');
@@ -5072,6 +5209,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       setChatStatus(`${input.value[0].toUpperCase()}${input.value.slice(1)} answers selected.`, false);
     });
   });
+  document.addEventListener('change', event => {
+    const includeSymptoms = event.target.closest('#today-ai-include-symptoms');
+    if (!includeSymptoms) return;
+    const generateButton = $('#today-ai-generate');
+    if (generateButton) generateButton.textContent = includeSymptoms.checked ? 'Generate with selected symptom notes' : 'Generate without symptom notes';
+  });
   document.addEventListener('click', handleClick);
   document.addEventListener('submit', event => {
     const focusForm = event.target.closest('[data-today-focus-form]');
@@ -5095,7 +5238,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const today = briefLocalDate(new Date());
       const editingId = focusForm.dataset.editingTaskId;
       const existing = editingId ? state.tasks.find(item => String(item?.id || '') === editingId && item?.source === 'today-focus') : null;
-      const priorFocus = state.tasks.filter(item => item?.source === 'today-focus').sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0];
+      const priorFocus = state.tasks.filter(item => item?.source === 'today-focus' && !item.archivedAt).sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0];
       if (existing || priorFocus) {
         const task = existing || priorFocus;
         task.label = label; task.detail = 'Personal focus'; task.date = today; task.done = false; task.createdAt = Date.now();
@@ -5192,6 +5335,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
   els.modal.addEventListener('close', () => {
+    cancelTodayIntelligence();
     if (els.modal.open) return;
     const returnToVisitPrep = preparationReturnFocus;
     const returnFocus = modalReturnFocus;

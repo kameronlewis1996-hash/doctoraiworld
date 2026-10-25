@@ -862,14 +862,15 @@ function verifyPreparationOwnerTransition() {
 }
 
 function verifyPreparationCloseFocus() {
-  const observed = { focused: 0, printClassRemoved: 0, onClose: null };
+  const observed = { focused: 0, printClassRemoved: 0, cancelledTodayAi: 0, onClose: null };
   const heading = { closest: () => null, setAttribute() {}, focus: () => observed.focused++ };
   const context = vm.createContext({
     observed,
     els: { modal: { open: false, addEventListener: (_type, listener) => { observed.onClose = listener; } }, modalBody: { innerHTML: 'fictional reviewed brief' } },
     document: { body: { classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#visit-prep-title' ? heading : null,
-    requestAnimationFrame: callback => callback(), closeModal() {}, focusCurrentViewHeading() {}
+    requestAnimationFrame: callback => callback(), closeModal() {}, focusCurrentViewHeading() {},
+    cancelTodayIntelligence: () => observed.cancelledTodayAi++
   });
   vm.runInContext([
     'let careSummaryDraft = { html: "fictional reviewed brief" };',
@@ -879,6 +880,7 @@ function verifyPreparationCloseFocus() {
   ].join('\n'), context, { timeout: 1000, filename: 'health-hub-preparation-close-focus.js' });
   assert.equal(typeof observed.onClose, 'function', 'The production modal close handler is registered.');
   observed.onClose();
+  assert.equal(observed.cancelledTodayAi, 1, 'Closing the modal cancels any in-flight Today AI request.');
   const result = vm.runInContext('({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus })', context);
   assert.equal(result.careSummaryDraft, null, 'Closing removes the reviewed brief from memory.');
   assert.equal(context.els.modalBody.innerHTML, '', 'Closing removes private review text from the hidden dialog.');

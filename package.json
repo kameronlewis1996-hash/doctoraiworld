@@ -41,7 +41,8 @@
     "verify:public-copy": "node scripts/verify-public-copy-consistency.cjs",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",
     "verify:today-diary": "node scripts/verify-today-diary.cjs",
-    "verify:today-records": "node scripts/verify-today-records-browser.cjs"
+    "verify:today-records": "node scripts/verify-today-records-browser.cjs",
+    "verify:today-privacy-focus-browser": "node scripts/verify-today-privacy-and-focus-browser.cjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

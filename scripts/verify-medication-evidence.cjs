@@ -118,7 +118,10 @@ const dailyPromptStart = hubSource.indexOf('  function buildTodayIntelligencePro
 const dailyPromptEnd = hubSource.indexOf('  async function loadTodayIntelligence(', dailyPromptStart);
 assert.ok(dailyPromptStart >= 0 && dailyPromptEnd > dailyPromptStart);
 const dailyPrompt = hubSource.slice(dailyPromptStart, dailyPromptEnd);
-assert.match(dailyPrompt, /Medication names, labels and interaction evidence are not included/i);
+assert.match(dailyPrompt, /No profile details, medicines, appointments, documents, or Health Memory are included/i);
+assert.match(dailyPrompt, /Do not give clinical advice, self-care instructions, diagnosis/i);
+assert.match(hubSource, /If you check the optional box and then choose Generate, the recent symptom notes shown here \(up to four\) will be sent through DoctorAI to OpenAI/i);
+assert.match(hubSource, /todayIntelligencePreview\.ownerToken !== ownerToken/);
 assert.doesNotMatch(dailyPrompt, /POSSIBLE OVERLAPS TO CHECK|medicineContext/);
 assert.match(hubSource, /Very limited check: .*pairwise/);
 assert.match(hubSource, /No alert does not mean safe/);
@@ -139,18 +142,18 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=114/);
+  assert.match(hubHtml, /health-hub\.js\?v=115/);
   assert.match(hubHtml, /term-catalogues\.js\?v=3/);
   assert.match(hubHtml, /medicine-catalog-search\.js\?v=2/);
   assert.match(hubHtml, /hub-aurora-secondary\.css\?v=6/);
-  assert.match(hubHtml, /health-hub\.css\?v=95/);
+  assert.match(hubHtml, /health-hub\.css\?v=96/);
   assert.match(hubHtml, /doctorai-layout\.css\?v=3/);
   assert.match(hubHtml, /health-alert-status\.js\?v=5/);
   assert.match(hubHtml, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /doctorai-shell-v186/);
+  assert.match(serviceWorker, /doctorai-shell-v187/);
   assert.match(serviceWorker, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /health-hub\.js\?v=114/);
-  assert.match(serviceWorker, /health-hub\.css\?v=95/);
+  assert.match(serviceWorker, /health-hub\.js\?v=115/);
+  assert.match(serviceWorker, /health-hub\.css\?v=96/);
   assert.match(serviceWorker, /doctorai-layout\.css\?v=3/);
   assert.match(serviceWorker, /health-alert-status\.js\?v=5/);
   assert.match(serviceWorker, /term-catalogues\.js\?v=3/);

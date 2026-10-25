@@ -5380,6 +5380,29 @@ body[data-hub-theme] #view-medications > .page-heading .secondary-button {
 .today-ai-output.loading p { margin: 0; }
 .today-ai-output.error { border-color: #efcdc7; background: #fff8f6; color: #81534c; }
 .today-ai-output .secondary-button { margin-top: 10px; }
+.today-ai-consent { display: grid; gap: 10px; color: #35576e; font-size: 14px; line-height: 1.55; }
+.today-ai-consent > p { margin: 0; }
+.today-ai-preview { padding: 12px; border: 1px solid #d6e9f2; border-radius: 12px; background: #fff; }
+.today-ai-preview > b { display: block; margin-bottom: 8px; color: #173550; font-size: 14px; }
+.today-ai-note-preview { margin-top: 8px; }
+.today-ai-note-preview li { padding-block: 8px; }
+.today-ai-note-preview small { font-size: 12px; }
+.today-ai-no-notes { margin: 4px 0 0; }
+.today-ai-include-choice { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 10px; border: 1px solid #bddce9; border-radius: 10px; background: #f3fbff; color: #173550; font-size: 14px; font-weight: 700; cursor: pointer; }
+.today-ai-include-choice input { width: 20px; height: 20px; flex: 0 0 auto; margin: 1px 0 0; accent-color: #0877c9; }
+.today-ai-safety { padding: 10px 12px; border-left: 3px solid #7aaac2; background: #f4f9fc; color: #476578; font-size: 12px; }
+.today-ai-output > p { margin: 0 0 10px; }
+.today-ai-response { white-space: pre-wrap; }
+.today-focus-item-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.today-focus-item-actions .text-button { min-height: 44px; padding-inline: 10px; font-size: 14px; }
+.today-focus-clear, .today-focus-restore, .task-restore { min-height: 44px; padding: 0 12px; font-size: 14px; }
+.today-focus-previous { margin-top: 10px; color: #476578; font-size: 13px; }
+.today-focus-previous summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.today-focus-cleared-label { color: #173550; font-weight: 700; }
+.task-restore { flex: 0 0 auto; border: 1px solid #bddce9; border-radius: 9px; background: #fff; color: #13639c; font-weight: 700; cursor: pointer; }
+.task-restore:hover { background: #f3fbff; }
+.task-row.archived small, .task-row.archived > span:last-child { color: #6d8798; }
+
 
 @media (max-width: 520px) {
   #view-today .hub-ask-prompt-copy small { display: block; font-size: 11px; line-height: 1.35; }
