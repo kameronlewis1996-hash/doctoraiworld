@@ -39,6 +39,9 @@ function startServer() {
 
 async function installApi(page, initial = {}) {
   let auth = initial.auth || null;
+  let loginUser = initial.loginUser || signedInUser;
+  let healthState = initial.healthState || null;
+  let healthStateWrites = 0;
   let failNextAuth = false;
   let nextAuthGate = null;
   let nextLoginGate = null;
@@ -47,7 +50,13 @@ async function installApi(page, initial = {}) {
   await page.route('**/api/**', route => route.fulfill({ status: 200, json: {} }));
   await page.route('**/api/auth/config', route => route.fulfill({ status: 200, json: { googleClientId: 'synthetic-client-id' } }));
   await page.route('**/api/stripe/entitlement', route => route.fulfill({ status: 200, json: { active: false, expiresAt: null } }));
-  await page.route('**/api/health/state', route => route.fulfill({ status: 200, json: { state: null, updatedAt: 0 } }));
+  await page.route('**/api/health/state', route => {
+    if (route.request().method() === 'PUT') {
+      healthStateWrites++;
+      return route.fulfill({ status: 200, json: { updatedAt: Date.now() + 60000 } });
+    }
+    return route.fulfill({ status: 200, json: { state: healthState, updatedAt: healthState ? Date.now() + 60000 : 0 } });
+  });
   await page.route('**/api/auth/google', async route => {
     const method = route.request().method();
     if (method === 'GET') {
@@ -71,7 +80,7 @@ async function installApi(page, initial = {}) {
       const gate = nextLoginGate;
       nextLoginGate = null;
       if (gate) { gate.started.resolve(); await gate.response.promise; }
-      auth = signedInUser;
+      auth = loginUser;
       await route.fulfill({ status: 200, json: { authenticated: true, user: auth, medicationLoginId: '' } });
       return;
     }
@@ -87,11 +96,42 @@ async function installApi(page, initial = {}) {
   });
   return {
     setAuth(value) { auth = value; },
+    setLoginUser(value) { loginUser = value; },
+    setHealthState(value) { healthState = value; },
+    healthStateWriteCount() { return healthStateWrites; },
     failNextAuth() { failNextAuth = true; },
     delayNextAuth() { nextAuthGate = { started: deferred(), response: deferred() }; return nextAuthGate; },
     delayNextLogin() { nextLoginGate = { started: deferred(), response: deferred() }; return nextLoginGate; },
     delayNextLogout() { nextLogoutGate = { started: deferred(), response: deferred() }; return nextLogoutGate; }
   };
+}
+
+function todayDate() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function syntheticHealthState(label) {
+  const date = todayDate();
+  return {
+    profile: { name: `${label} profile` },
+    appointments: [{ id: `${label}-appointment`, title: `${label} appointment`, date, time: '10:30' }],
+    tasks: [{ id: `${label}-focus`, source: 'today-focus', date, label: `${label} focus`, detail: 'Personal focus', done: false, createdAt: 1 }]
+  };
+}
+
+async function waitForTodayRecords(testCase, focusText, appointmentText) {
+  await testCase.page.waitForFunction(({ focusText, appointmentText }) =>
+    document.querySelector('#today-focus-copy')?.textContent.includes(focusText) &&
+    document.querySelector('#today-next-up-copy')?.textContent.includes(appointmentText),
+  { focusText, appointmentText });
+}
+
+async function taskStorageSnapshot(page) {
+  return page.evaluate(() => Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index))
+    .filter(key => /doctorai-health-hub-(?:guest|account-.+)-tasks$/.test(key || ''))
+    .sort()
+    .map(key => [key, localStorage.getItem(key)]));
 }
 
 async function createCase(browser, base, options = {}) {
@@ -315,13 +355,109 @@ async function runVisual(browser, base) {
 async function runAdverse(browser, base) {
   const reports = [];
   {
-    const testCase = await createCase(browser, base, { width: 1440, auth: accountA });
+    const accountAState = syntheticHealthState('Synthetic Account A');
+    const accountBState = syntheticHealthState('Synthetic Account B');
+    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: accountAState });
     await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
+    await testCase.page.locator('[data-today-focus-open]').click();
+    await testCase.page.locator('#today-focus-input').fill('Unsaved focus during delayed logout');
+    const accountATasks = await taskStorageSnapshot(testCase.page);
+
+    await testCase.page.locator('.profile-trigger[data-auth-status-control]').click();
+    await testCase.page.locator('#profile-drawer:not([hidden])').waitFor({ state: 'visible' });
+    assert.equal(await testCase.page.locator('#view-today').isVisible(), true, 'Today remains the active page while the desktop profile drawer is open');
+    const logout = testCase.api.delayNextLogout();
+    await testCase.page.locator('.drawer-signout[data-google-signout]').click();
+    await logout.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'logout immediately hides the open focus form');
+    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
+    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
+    assert.match(await testCase.page.locator('#today-next-up-copy').innerText(), /Checking saved appointments/);
+    assert.doesNotMatch(await testCase.page.locator('#today-next-up-copy').innerText(), /Synthetic Account A appointment/);
+    assert.equal(await testCase.page.locator('#view-today [data-open-personal-overview]').isDisabled(), true, 'saved overview is disabled during logout');
+
+    const accountWritesBeforeSubmit = testCase.api.healthStateWriteCount();
+    await testCase.page.evaluate(() => {
+      const form = document.querySelector('#today-focus-form');
+      form.elements.focus.value = 'Injected synthetic focus during delayed logout';
+      form.requestSubmit();
+    });
+    assert.deepEqual(await taskStorageSnapshot(testCase.page), accountATasks, 'a focus submit during logout cannot change account A task storage');
+    assert.equal(testCase.api.healthStateWriteCount(), accountWritesBeforeSubmit, 'a focus submit during logout cannot write account state');
+
+    await testCase.page.evaluate(() => {
+      const button = document.querySelector('#view-today [data-open-personal-overview]');
+      button.disabled = false;
+      button.click();
+    });
+    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'the overview handler refuses an account read during logout');
+    logout.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    await testCase.page.waitForFunction(() => document.querySelector('#today-focus-copy')?.textContent.includes('No focus saved for today') && document.querySelector('#today-next-up-copy')?.textContent.includes('No upcoming appointment saved'));
+    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
+
+    const guestTasks = await taskStorageSnapshot(testCase.page);
+    const guestWritesBeforeSubmit = testCase.api.healthStateWriteCount();
+    await testCase.page.evaluate(() => {
+      const form = document.querySelector('#today-focus-form');
+      form.elements.focus.value = 'Injected stale focus into guest after logout';
+      form.requestSubmit();
+    });
+    assert.deepEqual(await taskStorageSnapshot(testCase.page), guestTasks, 'a stale account A form cannot write into the guest workspace after logout');
+    assert.equal(testCase.api.healthStateWriteCount(), guestWritesBeforeSubmit);
+
+    testCase.api.setHealthState(accountBState);
+    testCase.api.setLoginUser(accountB);
+    await testCase.page.locator(activeStatusSelector(testCase.width)).click();
+    await testCase.page.locator('#google-signin-modal[open]').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => typeof window.__syntheticGoogleCallback === 'function');
+    const login = testCase.api.delayNextLogin();
+    await testCase.page.evaluate(() => { window.__syntheticGoogleCallback({ credential: 'synthetic-account-b-credential' }); });
+    await login.started.promise;
+    login.response.resolve();
+    await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account B focus', 'Synthetic Account B appointment');
+    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
+    const accountBTasks = await taskStorageSnapshot(testCase.page);
+    const writesBeforeStaleSubmit = testCase.api.healthStateWriteCount();
+    await testCase.page.evaluate(() => {
+      const form = document.querySelector('#today-focus-form');
+      form.elements.focus.value = 'Injected stale focus into account B';
+      form.requestSubmit();
+    });
+    assert.deepEqual(await taskStorageSnapshot(testCase.page), accountBTasks, 'the cleared account A editor cannot write into account B');
+    assert.equal(testCase.api.healthStateWriteCount(), writesBeforeStaleSubmit);
+    reports.push({ case: 'delayed-logout-focus-gate-and-account-a-to-guest-to-b-isolation', result: 'passed' });
+    await finish(testCase, reports, 'logout-owner-transition');
+  }
+  {
+    const accountAState = syntheticHealthState('Synthetic Account A');
+    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: accountAState });
+    await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
+    await testCase.page.locator('[data-today-focus-open]').click();
+    await testCase.page.locator('#today-focus-input').fill('Unsaved synthetic focus before expiry');
+    const tasksBeforeExpiry = await taskStorageSnapshot(testCase.page);
     testCase.api.setAuth(null);
     const gate = testCase.api.delayNextAuth();
     await simulateTabReturn(testCase.page);
     await gate.started.promise;
     await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'expired-session revalidation hides and clears the focus editor');
+    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
+    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
+    assert.match(await testCase.page.locator('#today-next-up-copy').innerText(), /Checking saved appointments/);
+    assert.doesNotMatch(await testCase.page.locator('#today-next-up-copy').innerText(), /Synthetic Account A appointment/);
+    const writesBeforeExpirySubmit = testCase.api.healthStateWriteCount();
+    await testCase.page.evaluate(() => {
+      const form = document.querySelector('#today-focus-form');
+      form.elements.focus.value = 'Injected synthetic focus during expiry check';
+      form.requestSubmit();
+    });
+    assert.deepEqual(await taskStorageSnapshot(testCase.page), tasksBeforeExpiry, 'a submit during expiry revalidation cannot change account storage');
+    assert.equal(testCase.api.healthStateWriteCount(), writesBeforeExpirySubmit);
     const hiddenIdentity = await testCase.page.evaluate(() => ({
       header: document.querySelector('.hub-topbar').innerText,
       drawer: document.querySelector('.drawer-profile').innerText,
@@ -331,20 +467,31 @@ async function runAdverse(browser, base) {
     assert.doesNotMatch(JSON.stringify(hiddenIdentity), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
     gate.response.resolve();
     await waitForState(testCase, 'signed-out');
+    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
-    reports.push({ case: 'expired-session-tab-return-hides-stale-identity', result: 'passed', duringCheck: hiddenIdentity });
+    reports.push({ case: 'expired-session-tab-return-hides-identity-focus-and-appointment', result: 'passed', duringCheck: hiddenIdentity });
     await finish(testCase, reports, 'expired-session');
   }
   {
-    const testCase = await createCase(browser, base, { width: 390, auth: accountA });
+    const accountAState = syntheticHealthState('Synthetic Account A');
+    const accountBState = syntheticHealthState('Synthetic Account B');
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: accountAState });
     await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
+    await testCase.page.locator('[data-today-focus-open]').click();
+    await testCase.page.locator('#today-focus-input').fill('Unsaved synthetic focus before account switch');
     const stale = testCase.api.delayNextAuth();
     await simulateTabReturn(testCase.page);
     await stale.started.promise;
     await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'account revalidation immediately hides the focus editor');
+    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
+    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
     testCase.api.setAuth(accountB);
+    testCase.api.setHealthState(accountBState);
     await simulateTabReturn(testCase.page);
     await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account B focus', 'Synthetic Account B appointment');
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
     stale.response.resolve();
     await testCase.page.waitForTimeout(80);
@@ -358,6 +505,36 @@ async function runAdverse(browser, base) {
     assert.doesNotMatch(await testCase.page.locator('.drawer-profile').innerText(), /Synthetic Account A/);
     reports.push({ case: 'account-switch-and-late-prior-session-response', result: 'passed', visibleIdentity: 'synthetic account B only' });
     await finish(testCase, reports, 'account-switch-late-response');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
+    await testCase.page.locator('#view-today [data-open-personal-overview]').click();
+    await testCase.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
+    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
+    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A appointment/);
+
+    testCase.api.setAuth(null);
+    const gate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await gate.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'revalidation closes a saved overview already on screen');
+    assert.equal(await testCase.page.locator('#modal-body').textContent(), '', 'revalidation clears saved overview content from the modal');
+    assert.equal(await testCase.page.locator('#view-today [data-open-personal-overview]').isDisabled(), true);
+    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
+    await testCase.page.evaluate(() => {
+      const button = document.querySelector('#view-today [data-open-personal-overview]');
+      button.disabled = false;
+      button.click();
+    });
+    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'overview handler refuses retained account state during revalidation');
+    gate.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
+    reports.push({ case: 'held-expiry-revalidation-closes-and-clears-saved-overview', result: 'passed' });
+    await finish(testCase, reports, 'expired-overview-gate');
   }
   {
     const testCase = await createCase(browser, base, { width: 390 });

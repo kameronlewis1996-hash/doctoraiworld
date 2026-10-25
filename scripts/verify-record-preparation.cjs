@@ -23,6 +23,7 @@ function declaration(name) {
 }
 const production = [
   declaration('escapeHTML'),
+  between('  function currentHealthOwnerReady()', '  function updateTodayFocusSyncFeedback('),
   "let trendRange = 'blood-pressure';",
   "let timelineFilter = 'all';",
   between('  let measurementIdSequence =', '  const state = {'),
@@ -123,7 +124,8 @@ function fixture(initial = {}) {
   const forbidden = () => { observed.forbiddenCalls++; throw new Error('Browser, network and real storage access are forbidden in this synthetic check.'); };
   const context = vm.createContext({
     state, Date: FixtureDate, FormData: FixtureFormData,
-    accountSessionVerification: 'verified', authUser: null, accountSyncState: 'not-signed-in', medicationAccountDataReady: false, cloudSyncEnabled: true,
+    accountSessionReady: true, accountSessionVerification: 'verified', authUser: null, accountSyncState: 'not-signed-in', medicationAccountDataReady: false, cloudSyncEnabled: true,
+    activeHealthDataOwner: 'guest', localHealthAccountScope: 'guest',
     splitDetails: value => String(value || '').split(',').map(item => item.trim()).filter(Boolean),
     els: {
       appointmentsCount: {}, upcomingAppointments: {}, pastAppointments: {},
@@ -496,6 +498,7 @@ function verifyMeasurementOwnerScopedMigration() {
     'let localStateUpdatedAt = 0;',
     'const sessionHealthStateCache = new Map();',
     'let activeHealthDataOwner = "pending";',
+    'let healthOwnerRevision = 0;',
     'let cloudSyncTimer = 0; let cloudSyncDirty = false; let cloudSyncRevision = 0; let cloudSyncEnabled = true;',
     'const clearMedicationSafetyResults = () => {};',
     between('  function healthStateSnapshot()', '  const els = {')
