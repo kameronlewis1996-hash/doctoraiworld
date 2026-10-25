@@ -1,0 +1,36 @@
+name: Stripe subscription checks
+
+on:
+  pull_request:
+    paths:
+      - 'server-src/stripe/**'
+      - 'api/stripe/**'
+      - 'subscription.html'
+      - 'subscription.css'
+      - 'subscription.js'
+      - 'service-worker.js'
+      - 'scripts/verify-stripe-pricing.js'
+      - 'scripts/verify-subscription-plans.cjs'
+      - 'scripts/check-js.js'
+      - '.env.example'
+      - 'package.json'
+      - '.github/workflows/stripe-subscriptions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  subscription-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify JavaScript syntax
+        run: node scripts/check-js.js
+      - name: Verify pricing, checkout and subscription events offline
+        run: node scripts/verify-stripe-pricing.js
+      - name: Verify billing selection and review offline
+        run: node scripts/verify-subscription-plans.cjs

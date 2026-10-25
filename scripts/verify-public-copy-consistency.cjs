@@ -57,8 +57,10 @@ assert.match(template, /Unmatched medicines and risks outside these rules remain
 assert.match(template, /href="\/privacy">medication-check privacy and coverage details/);
 assert.match(read('privacy.html'), /DoctorAI-hosted curated rules/);
 assert.match(read('subscription.js'), /item\.amount === 2900 && item\.currency === 'NZD'/);
+assert.match(read('subscription.js'), /item\.amount === 699 && item\.currency === 'NZD'/);
 assert.match(read('server-src/stripe/plan-catalog.cjs'), /currency: 'nzd', unitAmount: 2900/);
 const subscription = read('subscription.html');
+assert.match(subscription, /data-plan="weekly"/);
 assert.match(subscription, /<h3>Files and label scanning<\/h3>/);
 assert.doesNotMatch(subscription, /<h3>Always-ready care<\/h3>/);
 assert.match(subscription, /DoctorAI does not diagnose, prescribe or replace professional care/);

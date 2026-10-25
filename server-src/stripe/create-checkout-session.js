@@ -25,8 +25,8 @@ module.exports = async function createCheckoutSession(req, res) {
     return json(res, 400, { error: 'Invalid checkout request.' });
   }
 
-  const plan = body.plan === 'monthly' ? 'monthly' : body.plan === 'annual' ? 'annual' : null;
-  if (!plan) return json(res, 400, { error: 'Choose an annual or monthly Pro plan.' });
+  const plan = typeof body.plan === 'string' && Object.hasOwn(plans, body.plan) ? body.plan : null;
+  if (!plan) return json(res, 400, { error: 'Choose a weekly, monthly or annual Pro plan.' });
 
   const priceId = process.env[plans[plan].env];
   const monthlyPriceId = process.env[plans.monthly.env];

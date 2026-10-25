@@ -5,6 +5,8 @@
   const price = document.querySelector('[data-price]');
   const period = document.querySelector('[data-period]');
   const equivalent = document.querySelector('[data-equivalent]');
+  const monthlyValueBadge = document.querySelector('[data-monthly-value]');
+  const planValueNote = document.querySelector('[data-plan-value]');
   const pricingStatus = document.querySelector('#pricing-status');
   const selectedPlan = document.querySelector('#selected-plan-price');
   const dialog = document.querySelector('#checkout-dialog');
@@ -22,7 +24,8 @@
   let planPricing = null;
   const initialQuery = new URLSearchParams(window.location.search);
   const accessCodeFromLink = initialQuery.get('access_code') || '';
-  const requestedBillingPlan = initialQuery.get('plan') === 'annual' ? 'annual' : 'monthly';
+  const requestedPlan = initialQuery.get('plan');
+  const requestedBillingPlan = ['weekly', 'annual'].includes(requestedPlan) ? requestedPlan : 'monthly';
 
   const accessPanel = document.createElement('section');
   accessPanel.className = 'pro-access-panel';
@@ -57,9 +60,10 @@
     return 'Unavailable';
   };
   const setPlan = plan => {
-    const selected = plan === 'annual' ? 'annual' : 'monthly';
+    const selected = ['weekly', 'monthly', 'annual'].includes(plan) ? plan : 'monthly';
     if (!planIsAvailable(selected)) return false;
     const annual = selected === 'annual';
+    if (selected !== selectedBillingPlan && termsConfirm) termsConfirm.checked = false;
     selectedBillingPlan = selected;
     toggleButtons.forEach(button => {
       const active = button.dataset.plan === selected;
@@ -67,8 +71,18 @@
       button.setAttribute('aria-pressed', String(active));
     });
     const current = planPricing[selected];
+    const weekly = planPricing.weekly;
     const monthly = planPricing.monthly;
     const yearly = planPricing.annual;
+    const monthlyBeatsWeekly = weekly?.available && monthly?.available
+      && weekly.currency === monthly.currency && monthly.amount * 12 < weekly.amount * 52;
+    if (monthlyValueBadge) monthlyValueBadge.hidden = !(selected === 'monthly' && monthlyBeatsWeekly);
+    if (planValueNote) {
+      planValueNote.hidden = !monthlyBeatsWeekly;
+      planValueNote.textContent = monthlyBeatsWeekly
+        ? `Monthly is better value than weekly: 12 monthly payments total ${formatPrice(monthly.amount * 12, monthly.currency)}; 52 weekly payments total ${formatPrice(weekly.amount * 52, weekly.currency)}.`
+        : '';
+    }
     const annualEquivalent = yearly?.available ? yearly.amount / 12 : 0;
     const sameCurrency = monthly?.available && yearly?.available && monthly.currency === yearly.currency;
     const savings = sameCurrency && annualEquivalent > 0 && annualEquivalent < monthly.amount
@@ -77,9 +91,11 @@
     const savingsBadge = document.querySelector('[data-annual-savings]');
     if (savingsBadge) savingsBadge.textContent = savings ? `Save ${savings}%` : '';
     if (price) price.textContent = formatPrice(current.amount, current.currency);
-    if (period) period.textContent = current.interval === 'year' ? '/ year' : '/ month';
+    if (period) period.textContent = `/ ${current.interval}`;
     if (equivalent) {
-      if (annual) {
+      if (selected === 'weekly') {
+        equivalent.textContent = 'Billed weekly. Renews every week until cancelled.';
+      } else if (annual) {
         equivalent.textContent = sameCurrency
           ? `Equivalent to ${formatPrice(annualEquivalent, yearly.currency)} a month${savings ? ` · save ${savings}%` : ''}`
           : 'Billed yearly';
@@ -89,7 +105,8 @@
     }
     const planSummary = `${formatPrice(current.amount, current.currency)} / ${current.interval}`;
     if (selectedPlan) selectedPlan.textContent = planSummary;
-    if (renewalNote) renewalNote.textContent = `You will be charged ${formatPrice(current.amount, current.currency)} ${current.interval === 'year' ? 'yearly' : 'monthly'}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
+    const renewalFrequency = { week: 'weekly', month: 'monthly', year: 'yearly' }[current.interval];
+    if (renewalNote) renewalNote.textContent = `You will be charged ${formatPrice(current.amount, current.currency)} ${renewalFrequency}. This plan renews automatically at that frequency until cancelled. You can cancel in Stripe billing management.`;
     syncPlanControls();
     return true;
   };
@@ -100,6 +117,8 @@
     if (price) price.textContent = 'Unavailable';
     if (period) period.textContent = 'for now';
     if (equivalent) equivalent.textContent = message;
+    if (monthlyValueBadge) monthlyValueBadge.hidden = true;
+    if (planValueNote) { planValueNote.hidden = true; planValueNote.textContent = ''; }
     if (selectedPlan) selectedPlan.textContent = 'Subscription pricing unavailable';
     if (renewalNote) renewalNote.textContent = 'Checkout cannot start until a valid Stripe subscription price is available.';
     if (pricingStatus) {
@@ -122,11 +141,12 @@
       }
       const raw = payload.plans || {};
       planPricing = {};
-      for (const [name, interval] of [['monthly', 'month'], ['annual', 'year']]) {
+      for (const [name, interval] of [['weekly', 'week'], ['monthly', 'month'], ['annual', 'year']]) {
         const item = raw[name];
         planPricing[name] = item?.available === true
           && Number.isSafeInteger(item.amount) && item.amount > 0
           && ['USD', 'NZD'].includes(item.currency) && item.interval === interval
+          && (name !== 'weekly' || (item.amount === 699 && item.currency === 'NZD'))
           && (name !== 'monthly' || (item.amount === 2900 && item.currency === 'NZD'))
           ? { available: true, amount: item.amount, currency: item.currency, interval }
           : { available: false, interval };
@@ -180,7 +200,7 @@
   };
 
   const startCheckout = async () => {
-    if (!subscribeButton || !planIsAvailable(selectedBillingPlan)) return;
+    if (!subscribeButton || !planIsAvailable(selectedBillingPlan) || !termsConfirm?.checked) return;
     subscribeButton.disabled = true;
     subscribeButton.innerHTML = 'Connecting to Stripe…';
     setCheckoutStatus('Preparing your secure Stripe checkout…');

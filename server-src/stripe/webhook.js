@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const core = require('../_lib/doctorai-core.cjs');
+const { subscriptionPeriodEnd } = require('./subscription-period.cjs');
 
 const readRawBody = req => new Promise((resolve, reject) => {
   const chunks = [];
@@ -8,12 +9,27 @@ const readRawBody = req => new Promise((resolve, reject) => {
   req.on('error', reject);
 });
 
+function invoiceSubscriptionId(invoice) {
+  const parentSubscription = invoice.parent?.type === 'subscription_details'
+    ? invoice.parent.subscription_details?.subscription
+    : null;
+  for (const reference of [parentSubscription, invoice.subscription]) {
+    const id = typeof reference === 'string' ? reference : reference?.id;
+    if (typeof id === 'string' && id) return id;
+  }
+  return null;
+}
+
 async function recordEntitlementEvent(event, stripe) {
   if (!core.storageConfigured()) return;
   const object = event.data.object || {};
   let subscription = event.type === 'checkout.session.completed' ? object.subscription : object;
+  if (event.type.startsWith('invoice.')) {
+    const subscriptionId = invoiceSubscriptionId(object);
+    if (!subscriptionId) return;
+    subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  }
   if (typeof subscription === 'string') subscription = await stripe.subscriptions.retrieve(subscription);
-  if (event.type.startsWith('invoice.') && object.subscription) subscription = await stripe.subscriptions.retrieve(object.subscription);
   if (!subscription || typeof subscription !== 'object') return;
   const metadata = { ...(object.metadata || {}), ...(subscription.metadata || {}) };
   if (metadata.product !== 'doctorai_pro') return;
@@ -21,8 +37,9 @@ async function recordEntitlementEvent(event, stripe) {
   if (!email) return;
   const account = { sub: String(metadata.account_sub || metadata.client_reference_id || ''), email };
   const status = String(subscription.status || 'inactive');
-  const active = status === 'active' || status === 'trialing';
-  const currentPeriodEnd = Number(subscription.current_period_end || 0);
+  const currentPeriodEnd = subscriptionPeriodEnd(subscription);
+  const active = (status === 'active' || status === 'trialing')
+    && (metadata.plan !== 'weekly' || currentPeriodEnd > core.nowSeconds());
   const exp = active ? Math.max(currentPeriodEnd, core.nowSeconds()) : core.nowSeconds();
   await core.saveEntitlement(account, {
     tier: active ? 'pro' : 'free', source: 'stripe', plan: metadata.plan || null, email,

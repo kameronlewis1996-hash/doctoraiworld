@@ -29,3 +29,11 @@ The static verification script uses PowerShell. Focused checks include `verify:s
 ## Secrets
 
 Copy the names from `.env.example` into your local environment or Vercel settings as needed. Never commit populated `.env` files, API keys, Stripe secrets, OAuth secrets, or user health data. Configure production and preview credentials separately in Vercel.
+
+## Subscription plans
+
+Configure `STRIPE_PRO_WEEKLY_PRICE_ID` for the optional NZ$6.99 weekly plan and `STRIPE_PRO_MONTHLY_PRICE_ID` for NZ$29 monthly. Each must reference an active recurring Price with the exact amount, NZD currency, billing interval and interval count of one. Production requires live Stripe prices and credentials; previews use test credentials and prices. The existing annual Price remains separately configured by `STRIPE_PRO_ANNUAL_PRICE_ID` and displays its verified currency.
+
+An absent or invalid weekly Price disables only the weekly choice. Adding a Price does not migrate existing subscriptions. New weekly subscriptions renew every week until cancelled; monthly subscriptions renew every month until cancelled. Twelve NZ$29 monthly payments total NZ$348, while 52 NZ$6.99 weekly payments total NZ$363.48.
+
+Run `pnpm run verify:stripe` and `pnpm run verify:subscription-ui` for offline pricing, checkout, subscription-event and plan-selection checks. These checks use synthetic data and make no Stripe requests or charges.

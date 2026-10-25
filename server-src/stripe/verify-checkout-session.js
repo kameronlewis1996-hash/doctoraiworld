@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const core = require('../_lib/doctorai-core.cjs');
+const { subscriptionPeriodEnd } = require('./subscription-period.cjs');
 
 const json = core.json;
 
@@ -29,16 +30,19 @@ module.exports = async function verifyCheckoutSession(req, res) {
 
     const subscription = session.subscription && typeof session.subscription === 'object' ? session.subscription : null;
     const status = subscription?.status || null;
-    const active = status === 'active' || status === 'trialing';
-    const subscriptionExpiry = Number(subscription?.current_period_end || 0) * 1000;
-    const fallbackExpiry = Date.now() + 1000 * 60 * 60 * 24 * 31;
+    const currentPeriodEnd = subscriptionPeriodEnd(subscription);
+    const subscriptionExpiry = currentPeriodEnd * 1000;
+    const active = (status === 'active' || status === 'trialing')
+      && (session.metadata?.plan !== 'weekly' || subscriptionExpiry > Date.now());
+    // Keep legacy plan behavior; weekly access must have a real Stripe period.
+    const fallbackExpiry = session.metadata?.plan === 'weekly' ? Date.now() : Date.now() + 1000 * 60 * 60 * 24 * 31;
     const expiry = Math.floor((subscriptionExpiry > Date.now() ? subscriptionExpiry : fallbackExpiry) / 1000);
     const entitlement = {
       tier: active ? 'pro' : 'free', source: 'stripe', plan: session.metadata?.plan || null,
       email: account.email, customerId: typeof session.customer === 'string' ? session.customer : session.customer?.id || null,
       subscriptionId: typeof session.subscription === 'string' ? session.subscription : session.subscription?.id || null,
       status, cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end),
-      renewalDate: subscription?.current_period_end ? new Date(Number(subscription.current_period_end) * 1000).toISOString() : null,
+      renewalDate: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
       exp: expiry
     };
     if (core.storageConfigured()) await core.saveEntitlement(account, entitlement);
