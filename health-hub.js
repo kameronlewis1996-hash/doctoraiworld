@@ -646,7 +646,10 @@
     const title = $('#session-verification-title', gate), copy = $('#session-verification-copy', gate), retry = $('[data-today-retry]', gate);
     if (locked) {
       const checking = !accountSessionReady || accountSessionVerification === 'pending';
+      const scannerWasOpen = Boolean(els.medicationScannerModal?.open);
       if (!sessionSurfaceLocked) {
+        medicationScanController?.abort();
+        closeMedicationScanner();
         discardPreparationDrafts(true, true);
         $$('[data-diary-question-form]', viewStack).forEach(form => form.reset());
         sessionSurfaceLocked = true;
@@ -655,7 +658,7 @@
       if (copy) copy.textContent = checking ? 'Saved health information is hidden while DoctorAI confirms your account.' : 'Your sign-in could not be confirmed. Saved health information stays hidden until you retry.';
       if (retry) retry.hidden = checking;
       gate.hidden = false;
-      const focusMovesToGate = viewStack.contains(document.activeElement);
+      const focusMovesToGate = scannerWasOpen || viewStack.contains(document.activeElement);
       viewStack.hidden = true;
       viewStack.inert = true;
       viewStack.setAttribute('aria-hidden', 'true');
