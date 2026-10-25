@@ -111,7 +111,7 @@ async function layout(page, label) {
       await layout(page,'staff testing '+width); await capture(page,'staff-testing-'+width);
       // Fresh fictional records exercise the real engine/renderer, without a
       // race between a display-only injection and an in-flight account check.
-      const backgrounds=[];
+      const shellStates=[];
       for(const expected of ['orange','red']) {
         const alertContext=await browser.newContext({viewport:{width,height:width===1440?960:844},serviceWorkers:'block',reducedMotion:'reduce'});
         await alertContext.route('https://**/*',r=>r.abort());
@@ -119,21 +119,27 @@ async function layout(page, label) {
         await alertContext.addInitScript(level=>{
           const prefix='doctorai-health-hub-';
           localStorage.setItem(prefix+'device-storage-consent','yes');
-          localStorage.setItem(prefix+'medications',JSON.stringify(level==='red'?[{id:'one',name:'Marevan'},{id:'two',name:'Trisul'}]:[{id:'one',name:'Fictional unmatched medicine'}]));
+          localStorage.setItem(prefix+'guest-medications',JSON.stringify(level==='red'?[{id:'one',name:'Marevan'},{id:'two',name:'Trisul'}]:[{id:'one',name:'Fictional unmatched medicine'}]));
         },expected);
         const alertPage=await alertContext.newPage();
         alertPage.on('pageerror',e=>report.errors.push(e.message));
         await alertPage.goto(base+'/health-hub#health',{waitUntil:'networkidle'});
-        await alertPage.waitForFunction(level=>document.body.dataset.healthAlertLevel===level,expected);
-        const bg=await alertPage.locator('body').evaluate(e=>getComputedStyle(e).backgroundImage);
-        backgrounds.push(bg);
-        assert.ok(bg.includes(expected==='red'?'248, 180, 185':'255, 207, 139'),'semantic atmosphere '+expected);
-        assert.equal(await alertPage.locator('.hub-severity-banner').isVisible(),true);
+        const expectedLevel=expected==='red'?'red':'orange';
+        await alertPage.waitForFunction(level=>document.querySelector('#view-medications [data-alert-summary]')?.dataset.alertLevel===level,expectedLevel);
+        assert.equal(await alertPage.locator('body').getAttribute('data-health-alert-level'),null,'alert state must not be written to the page shell');
+        assert.equal(await alertPage.locator('.hub-severity-banner').count(),0,'severity banner is not inserted into the global shell');
+        const shell=await alertPage.evaluate(()=>{const style=s=>{const e=document.querySelector(s);if(!e)return null;const c=getComputedStyle(e);return{backgroundColor:c.backgroundColor,backgroundImage:c.backgroundImage,borderTopWidth:c.borderTopWidth,borderTopColor:c.borderTopColor,borderBottomWidth:c.borderBottomWidth,borderBottomColor:c.borderBottomColor,borderRightColor:c.borderRightColor,boxShadow:c.boxShadow};};return{body:style('body'),main:style('#hub-shell .hub-main'),sidebar:style('#hub-shell .sidebar'),today:style('#view-today'),topbar:style('#hub-shell .hub-topbar'),mobileNav:style('.mobile-bottom-nav')};});
+        shellStates.push(shell);
         await layout(alertPage,'semantic '+expected+' '+width);
+        await alertPage.goto(base+'/health-hub#alerts',{waitUntil:'networkidle'});
+        const expectedCard=expected==='red'?'high':'info';
+        await alertPage.locator(`#alerts-list .hub-alert-card[data-severity="${expectedCard}"]`).first().waitFor({state:'visible'});
+        const cardPalette=await alertPage.locator(`#alerts-list .hub-alert-card[data-severity="${expectedCard}"]`).first().evaluate(e=>({background:getComputedStyle(e).backgroundImage,border:getComputedStyle(e).borderLeftColor,kicker:getComputedStyle(e.querySelector('.card-kicker')).color}));
+        assert.notEqual(cardPalette.background,'none','severity remains styled within its alert card');
         if(width!==320) await capture(alertPage,'hub-'+expected+'-'+width);
         await alertContext.close();
       }
-      assert.notEqual(backgrounds[0],backgrounds[1]);
+      assert.deepEqual(shellStates[0],shellStates[1],'severity leaves global theme and shell styling unchanged');
       // Print resource fields and checkboxes stay usable; printing is not invoked.
       await page.goto(base+'/appointment-checklist',{waitUntil:'networkidle'});
       await page.locator('#visit-details').check();

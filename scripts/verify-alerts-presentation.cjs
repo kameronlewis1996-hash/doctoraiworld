@@ -245,6 +245,17 @@ check('actual engine empty output is framed as limited and does not imply safety
   assert.match(nodes['#alerts-status'].textContent, /independent health notice/);
 });
 
+check('one polite summary announces urgent notices without making each card live', () => {
+  const actualEngine = createHealthAlertsEngine(medicationEngine);
+  const { render, nodes } = harness({ evaluate: () => actualEngine.evaluate({ timeline: [{ id: 'synthetic-urgent', type: 'symptom', source: 'symptom-diary', title: 'Severe difficulty breathing', date: '2026-10-25' }], now: '2026-10-25T12:00:00Z' }) });
+  render();
+  assert.match(nodes['#alerts-status'].textContent, /1 urgent notice is listed below/);
+  assert.match(nodes['#alerts-list'].innerHTML, /Urgent concern in a recent entry/);
+  const html = fs.readFileSync(path.join(root, 'health-hub.html'), 'utf8');
+  assert.match(html, /id="alerts-status" role="status" aria-live="polite"/);
+  assert.doesNotMatch(nodes['#alerts-list'].innerHTML, /\baria-live=|\brole="alert"/);
+});
+
 check('actual engine record values are escaped by the real renderer', () => {
   const actualEngine = createHealthAlertsEngine(medicationEngine);
   const { render, nodes, context } = harness({ evaluate: input => actualEngine.evaluate({ ...input, medications: [{ id: 'fake-1', name: payloads.unknownMedicine }] }) });
