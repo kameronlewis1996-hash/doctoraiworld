@@ -90,6 +90,11 @@ for (const [name, [view, panel]] of Object.entries(routeFixtures)) {
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('unknown-route'))), { view:'today', panel:'' }, 'An unknown route returns to Today.');
 assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute('profile','details'))), { view:'profile', panel:'' }, 'Profile cannot reopen the retired nested details route.');
 assert.ok(html.includes('id="hub-breadcrumb"') && html.includes('id="hub-parent-link"'), 'All sections share one visible location and parent path.');
+assert.match(html, /<section class="session-verification-gate panel-card" id="session-verification-gate" role="status" aria-live="polite"[^>]*hidden>/, 'An accessible session-check status can replace private records while identity is unknown.');
+assert.match(html, /<div class="view-stack" id="view-stack">/, 'All private hub destinations share the session-gated view stack.');
+assert.match(js, /function renderStorageStatus\(\)\s*\{\s*renderSessionAvailability\(\);/, 'Every storage/auth status render updates the private-surface gate.');
+assert.match(js, /function currentSessionOwnerVerified\(\)[\s\S]*?function currentHealthOwnerReady\(\)/, 'Identity verification is separate from cloud storage readiness.');
+assert.match(js, /viewStack\.inert = true;\s*viewStack\.setAttribute\('aria-hidden', 'true'\)/, 'An unverified record surface is hidden from keyboard and assistive technology.');
 const showStart = js.indexOf('function showView(');
 const showEnd = js.indexOf('function renderTodayMedications(', showStart);
 assert.ok(showStart >= 0 && showEnd > showStart, 'Actual navigation presentation and canonical links can be exercised.');
@@ -205,7 +210,7 @@ for (const fixture of [
   { id:'signed-in-storage-unavailable', allowed:false, choice:'session', user:{name:'Fictional user'}, sync:'ready', enabled:false, device:'This session only', account:'Account sync unavailable' }
 ]) {
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { return null; }} };
+  const context = { renderCompactToday() {}, renderSessionAvailability() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:fixture.allowed, localStorageWriteFailed:fixture.storageFailed === true, localStorageRemovalFailed:fixture.removalFailed === true, deviceStorageChoice:fixture.choice, authUser:fixture.user, accountSyncState:fixture.sync, cloudSyncEnabled:fixture.enabled, accountSessionVerification:fixture.verification || 'verified', medicationAccountDataReady:fixture.dataReady === true, localStorage:{getItem() { return null; }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(nodes['#hub-device-storage-state'].textContent, fixture.device, `${fixture.id}: the device status follows the current choice.`);
   if (fixture.storageFailed) assert.match(nodes['#hub-device-storage-note'].textContent, /may not persist/, 'Failed device saves explain the persistence risk.');
@@ -221,7 +226,7 @@ for (const fixture of [
 ]) {
   const note = { hidden: true };
   const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
-  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [note], hasUnassignedLegacyHealthData:() => true, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:fixture.user, accountSyncState:fixture.user ? 'checking' : 'not-signed-in', cloudSyncEnabled:true, accountSessionVerification:fixture.verification, medicationAccountDataReady:false, localStorage:{getItem() { return null; }} };
+  const context = { renderCompactToday() {}, renderSessionAvailability() {}, $:selector => nodes[selector] || null, $$:() => [note], hasUnassignedLegacyHealthData:() => true, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:fixture.user, accountSyncState:fixture.user ? 'checking' : 'not-signed-in', cloudSyncEnabled:true, accountSessionVerification:fixture.verification, medicationAccountDataReady:false, localStorage:{getItem() { return null; }} };
   vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
   assert.equal(note.hidden, !fixture.visible, `${fixture.id}: notice visibility follows verified ownership state.`);
 }
@@ -292,7 +297,7 @@ async function verifyAccountResponseBoundaries() {
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
     const guardedRenders = [];
-    return {nodes, guardedRenders, renderCompactToday() {}, renderAuthStatus() {}, renderHomePrescriptionAlert:() => guardedRenders.push('home-alert'), renderMedicationCheckState:() => guardedRenders.push('medication-check'), renderHealthAlerts:() => guardedRenders.push('health-alerts'), renderStorageStatus:() => guardedRenders.push('storage-status'), $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', todayFocusSyncPending:false, cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
+    return {nodes, guardedRenders, renderCompactToday() {}, renderSessionAvailability() {}, renderAuthStatus() {}, renderHomePrescriptionAlert:() => guardedRenders.push('home-alert'), renderMedicationCheckState:() => guardedRenders.push('medication-check'), renderHealthAlerts:() => guardedRenders.push('health-alerts'), renderStorageStatus:() => guardedRenders.push('storage-status'), $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', todayFocusSyncPending:false, cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -409,7 +414,7 @@ async function verifyAccountStateIsolation() {
   const context = vm.createContext({
     localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => { if (rejectLocalWrites) throw new Error('synthetic storage quota failure'); local.set(key, String(value)); } },
     window: { crypto: require('node:crypto').webcrypto, clearTimeout() {} },
-    renderCompactToday() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
+    renderCompactToday() {}, renderSessionAvailability() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
     cloudSyncRevision: 0, todayFocusSyncPending: false, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
     medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
     $: selector => storageNodes[selector] || null, $$: () => [],
