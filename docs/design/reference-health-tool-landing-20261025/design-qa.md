@@ -26,3 +26,10 @@ final result: blocked
 
 ## Completion gate
 Keep this PR draft. Inspect an authorized hosted preview on mobile and desktop; capture comparison screenshots, exercise all six tools and keyboard/auth transitions, resolve visual issues, run required CI on final head. Do not merge or describe as shipped until that gate is satisfied.
+
+## Hosted preview follow-up (2026-10-25 21:50 UTC)
+- Public draft PR #120 and Vercel preview were created after explicit user approval. Production remains unchanged.
+- Real hosted desktop rendering inspected in the cloud browser. All six existing tool destinations opened and returned to My Health correctly, with their current empty states.
+- Found and corrected legacy CSS overriding the compact heading, plus an uncropped-logo issue. Added a restrained white landing surface while retaining the existing pastel/blue brand edges.
+- The initial storage-choice banner was deliberately left untouched: clicking session-only was rejected because it can delete saved browser data. No retry or storage change performed.
+- DevTools viewport emulation is blocked by the browser's organization policy. No bypass attempted. Mobile320/390 screenshots and full signed-in/error interaction testing remain unverified; the draft is not merge-ready.
