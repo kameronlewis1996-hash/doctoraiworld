@@ -92,7 +92,7 @@ body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="detai
   }
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure, .care-visit-card),
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card) {
-    background: #d9edfa99;
+    background: #d9edfa99 !important;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-account > .secondary-button {
     background: #d9edfa80;
@@ -113,6 +113,6 @@ body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="detai
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card),
   body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(n),
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-account > .secondary-button {
-    background: Canvas; color: CanvasText; border-color: CanvasText;
+    background: Canvas !important; color: CanvasText; border-color: CanvasText;
   }
 }
