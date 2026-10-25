@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/health-hub.css?v=94">
+  <link rel="stylesheet" href="/health-hub.css?v=95">
   <link rel="stylesheet" href="/today-preview.css?v=3">
   <script src="/branding.js?v=10"></script>
   <script defer src="/logo-loader.js?v=10"></script>
@@ -80,7 +80,13 @@
 
       <nav class="category-bar" id="category-bar" aria-label="Health Hub menu"><p class="hub-menu-title">Your Health Hub</p><div class="category-bar-scroll"><button type="button" class="category-tab" data-view="today" aria-label="Today"><span class="main-tab-icon" data-doctorai-icon="hubHome" aria-hidden="true"></span><span>Today</span></button><button type="button" class="category-tab" data-view="health" aria-label="My Health"><span class="main-tab-icon" data-doctorai-icon="health" aria-hidden="true"></span><span>My Health</span></button><button type="button" class="category-tab" data-view="visit-prep" aria-label="Visit Prep"><span class="main-tab-icon" data-doctorai-icon="hubVisitPrep" aria-hidden="true"></span><span>Visit Prep</span></button><button type="button" class="category-tab" data-view="profile" aria-label="Profile"><span class="main-tab-icon" data-doctorai-icon="person" aria-hidden="true"></span><span>Profile</span></button></div><div class="hub-menu-utilities"><button type="button" class="category-tab" data-view="alerts" aria-label="Alerts"><span class="main-tab-icon" data-doctorai-icon="alerts" aria-hidden="true"></span><span>Alerts</span></button></div></nav>
 
-      <div class="view-stack">
+      <section class="session-verification-gate panel-card" id="session-verification-gate" role="status" aria-live="polite" aria-atomic="true" aria-labelledby="session-verification-title" hidden>
+        <h1 id="session-verification-title" tabindex="-1">Checking sign-in</h1>
+        <p id="session-verification-copy">Saved health information is hidden until your sign-in is confirmed.</p>
+        <button class="secondary-button" type="button" data-today-retry hidden>Retry sign-in check</button>
+      </section>
+
+      <div class="view-stack" id="view-stack">
 <nav class="hub-breadcrumb" id="hub-breadcrumb" aria-label="Your location" hidden><button type="button" data-view="today">Today</button><span aria-hidden="true">/</span><button type="button" id="hub-parent-link" hidden></button><span id="hub-parent-divider" aria-hidden="true" hidden>/</span><strong id="hub-current-location" aria-current="page"></strong></nav>
 <section class="storage-consent" id="storage-consent" role="dialog" aria-labelledby="storage-consent-title" aria-describedby="storage-consent-description" hidden>
     <div><b id="storage-consent-title">Choose where this browser keeps your health hub</b><p id="storage-consent-description">Keep entries in this browser between visits, or use this session only. Session-only use removes health-hub records already saved in this browser for every DoctorAI profile on this device. Signed-in account syncing is separate.</p></div>
@@ -297,6 +303,6 @@
   <script defer src="/term-catalogues.js?v=3"></script>
   <script defer src="/term-profile-ui.js?v=1"></script>
   <script defer src="/today-diary-core.js?v=1"></script>
-  <script defer src="health-hub.js?v=112"></script>
+  <script defer src="health-hub.js?v=113"></script>
 </body>
 </html>

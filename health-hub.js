@@ -611,6 +611,7 @@
     return 'Choose storage settings';
   }
   function renderStorageStatus() {
+    renderSessionAvailability();
     renderCompactToday(true);
     const hasUnassignedRecords = accountSessionVerification === 'verified' && Boolean(authUser) && hasUnassignedLegacyHealthData();
     $$('[data-unassigned-legacy-note]').forEach(note => { note.hidden = !hasUnassignedRecords; });
@@ -626,11 +627,48 @@
     note.textContent = accountSessionVerification === 'pending' ? 'Confirming sign-in. Health notices are hidden until account access is confirmed.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Saved health records stay hidden until sign-in is confirmed.' : !authUser ? 'Guest records use a separate browser space. Sign in to use private account sync.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
   }
   function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
-  function currentHealthOwnerReady() {
+  function currentSessionOwnerVerified() {
     if (!accountSessionReady || accountSessionVerification !== 'verified') return false;
     if (!authUser) return activeHealthDataOwner === 'guest' && localHealthAccountScope === 'guest';
     const email = String(authUser.email || '').trim().toLowerCase();
-    return Boolean(email && activeHealthDataOwner === `account:${email}` && cloudSyncEnabled && medicationAccountDataReady && !['checking', 'unconfirmed', 'unavailable', 'not-signed-in'].includes(accountSyncState));
+    return Boolean(email && activeHealthDataOwner === `account:${email}`);
+  }
+  function currentHealthOwnerReady() {
+    if (!currentSessionOwnerVerified()) return false;
+    if (!authUser) return true;
+    return Boolean(cloudSyncEnabled && medicationAccountDataReady && !['checking', 'unconfirmed', 'unavailable', 'not-signed-in'].includes(accountSyncState));
+  }
+  let sessionSurfaceLocked = false;
+  function renderSessionAvailability() {
+    const viewStack = $('#view-stack'), gate = $('#session-verification-gate');
+    if (!viewStack || !gate) return;
+    const locked = !currentSessionOwnerVerified();
+    const title = $('#session-verification-title', gate), copy = $('#session-verification-copy', gate), retry = $('[data-today-retry]', gate);
+    if (locked) {
+      const checking = !accountSessionReady || accountSessionVerification === 'pending';
+      if (!sessionSurfaceLocked) {
+        discardPreparationDrafts(true, true);
+        $$('[data-diary-question-form]', viewStack).forEach(form => form.reset());
+        sessionSurfaceLocked = true;
+      }
+      if (title) title.textContent = checking ? 'Checking sign-in' : 'Sign-in not confirmed';
+      if (copy) copy.textContent = checking ? 'Saved health information is hidden while DoctorAI confirms your account.' : 'Your sign-in could not be confirmed. Saved health information stays hidden until you retry.';
+      if (retry) retry.hidden = checking;
+      gate.hidden = false;
+      const focusMovesToGate = viewStack.contains(document.activeElement);
+      viewStack.hidden = true;
+      viewStack.inert = true;
+      viewStack.setAttribute('aria-hidden', 'true');
+      if (focusMovesToGate) title?.focus();
+      return;
+    }
+    const restoreFocus = document.activeElement === title;
+    viewStack.hidden = false;
+    viewStack.inert = false;
+    viewStack.removeAttribute('aria-hidden');
+    gate.hidden = true;
+    sessionSurfaceLocked = false;
+    if (restoreFocus) focusCurrentViewHeading();
   }
   function updateTodayFocusSyncFeedback(value) {
     if (!todayFocusSyncPending) return;

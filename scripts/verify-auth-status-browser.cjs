@@ -41,6 +41,7 @@ async function installApi(page, initial = {}) {
   let auth = initial.auth || null;
   let loginUser = initial.loginUser || signedInUser;
   let healthState = initial.healthState || null;
+  let healthStateUnavailable = initial.healthStateUnavailable === true;
   let healthStateWrites = 0;
   let failNextAuth = false;
   let nextAuthGate = null;
@@ -55,6 +56,7 @@ async function installApi(page, initial = {}) {
       healthStateWrites++;
       return route.fulfill({ status: 200, json: { updatedAt: Date.now() + 60000 } });
     }
+    if (healthStateUnavailable) return route.fulfill({ status: 503, json: { code: 'secure_storage_not_configured' } });
     return route.fulfill({ status: 200, json: { state: healthState, updatedAt: healthState ? Date.now() + 60000 : 0 } });
   });
   await page.route('**/api/auth/google', async route => {
@@ -114,7 +116,8 @@ function todayDate() {
 function syntheticHealthState(label) {
   const date = todayDate();
   return {
-    profile: { name: `${label} profile` },
+    profile: { name: `${label} profile`, conditions: `${label} condition`, allergies: `${label} allergy` },
+    medications: [{ id: `${label}-medicine`, name: `${label} medicine`, dose: '100 mg' }],
     appointments: [{ id: `${label}-appointment`, title: `${label} appointment`, date, time: '10:30' }],
     tasks: [{ id: `${label}-focus`, source: 'today-focus', date, label: `${label} focus`, detail: 'Personal focus', done: false, createdAt: 1 }]
   };
@@ -327,6 +330,71 @@ async function runVisual(browser, base) {
     reports.push({ case: 'verified-signed-in-label', width, result: 'passed', metrics: signedInMetrics });
     await finish(signedIn, reports, `visual-signed-in-${width}`);
   }
+  for (const width of [1440, 390, 320]) {
+    const checking = await createCase(browser, base, { width, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(checking, 'signed-in');
+    await checking.page.locator('#view-today [data-view="medications"]').click();
+    await checking.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await checking.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
+    await checking.page.locator('#view-medications button[data-modal="medication"]').first().focus();
+    const gate = checking.api.delayNextAuth();
+    await simulateTabReturn(checking.page);
+    await gate.started.promise;
+    await waitForState(checking, 'checking');
+    const gateMetrics = await checking.page.locator('#session-verification-gate').evaluate(element => {
+      const title = element.querySelector('h1');
+      const copy = element.querySelector('p');
+      const button = element.querySelector('button');
+      const titleStyle = getComputedStyle(title);
+      const copyStyle = getComputedStyle(copy);
+      return {
+        role: element.getAttribute('role'),
+        live: element.getAttribute('aria-live'),
+        labelledBy: element.getAttribute('aria-labelledby'),
+        title: title.textContent.trim(),
+        copy: copy.textContent.trim(),
+        titleFontSize: parseFloat(titleStyle.fontSize),
+        copyFontSize: parseFloat(copyStyle.fontSize),
+        copyColor: copyStyle.color,
+        background: getComputedStyle(element).backgroundColor,
+        buttonMinHeight: parseFloat(getComputedStyle(button).minHeight),
+        paragraphFontRules: Array.from(document.styleSheets).flatMap(sheet => { try { return Array.from(sheet.cssRules); } catch { return []; } }).filter(rule => rule.type === CSSRule.STYLE_RULE && rule.style.fontSize && rule.selectorText.split(',').some(selector => { try { return copy.matches(selector.trim()); } catch { return false; } })).map(rule => ({ selector: rule.selectorText, fontSize: rule.style.fontSize, important: rule.style.getPropertyPriority('font-size') })),
+        buttonHiddenWhileChecking: button.hidden,
+        focusedHeading: document.activeElement === title,
+        gateBounds: element.getBoundingClientRect().toJSON(),
+        viewStackHidden: document.querySelector('#view-stack').hidden,
+        viewStackInert: document.querySelector('#view-stack').inert,
+        viewStackAriaHidden: document.querySelector('#view-stack').getAttribute('aria-hidden'),
+        viewportWidth: innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        bodyText: document.body.innerText
+      };
+    });
+    assert.equal(gateMetrics.role, 'status');
+    assert.equal(gateMetrics.live, 'polite');
+    assert.equal(gateMetrics.labelledBy, 'session-verification-title');
+    assert.equal(gateMetrics.title, 'Checking sign-in');
+    assert.match(gateMetrics.copy, /saved health information is hidden/i);
+    assert.ok(gateMetrics.titleFontSize >= 24, `gate title is ${gateMetrics.titleFontSize}px`);
+    assert.ok(gateMetrics.copyFontSize >= 16, `gate copy is ${gateMetrics.copyFontSize}px; rules: ${JSON.stringify(gateMetrics.paragraphFontRules)}`);
+    assert.ok(gateMetrics.buttonMinHeight >= 44, `gate retry target is ${gateMetrics.buttonMinHeight}px tall`);
+    assert.equal(gateMetrics.buttonHiddenWhileChecking, true);
+    assert.equal(gateMetrics.focusedHeading, true, 'focus moves out of the private records when the session gate opens');
+    assert.equal(gateMetrics.viewStackHidden, true);
+    assert.equal(gateMetrics.viewStackInert, true);
+    assert.equal(gateMetrics.viewStackAriaHidden, 'true');
+    assert.doesNotMatch(gateMetrics.bodyText, /Synthetic Account A (?:medicine|condition|allergy)/);
+    assert.ok(gateMetrics.documentWidth <= gateMetrics.viewportWidth, `session gate overflows ${gateMetrics.viewportWidth}px viewport`);
+    assert.ok(contrastRatio(gateMetrics.copyColor, gateMetrics.background) >= 4.5, `session gate copy contrast is ${contrastRatio(gateMetrics.copyColor, gateMetrics.background).toFixed(2)}:1`);
+    await checking.page.screenshot({ path: path.join(auditDir, `session-gate-${width}.png`), fullPage: false });
+    gate.response.resolve();
+    await waitForState(checking, 'signed-in');
+    await checking.page.locator('#view-stack:not([hidden])').waitFor({ state: 'visible' });
+    assert.equal(await checking.page.locator('#session-verification-gate').isHidden(), true);
+    assert.match(await checking.page.locator('#medication-library').innerText(), /Synthetic Account A medicine/, 'same-account verification restores the retained view');
+    reports.push({ case: 'session-gate-accessibility-responsive-and-same-account-recovery', width, result: 'passed', metrics: gateMetrics });
+    await finish(checking, reports, `session-gate-visual-${width}`);
+  }
   const checking = await createCase(browser, base, { width: 390 });
   await waitForState(checking, 'signed-out');
   const gate = checking.api.delayNextAuth();
@@ -338,6 +406,17 @@ async function runVisual(browser, base) {
   gate.response.resolve();
   await waitForState(checking, 'signed-out');
   await finish(checking, reports, 'visual-checking-mobile');
+
+  const cloudUnavailable = await createCase(browser, base, { width: 390, auth: accountA, healthStateUnavailable: true, healthState: syntheticHealthState('Synthetic Account A') });
+  await waitForState(cloudUnavailable, 'signed-in');
+  await cloudUnavailable.page.locator('#view-today [data-view="health"]').click();
+  await cloudUnavailable.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+  await cloudUnavailable.page.waitForFunction(() => document.querySelector('#hub-account-sync-note')?.textContent.includes('Account storage is unavailable'));
+  assert.match(await cloudUnavailable.page.locator('#hub-account-sync-note').innerText(), /Account storage is unavailable/);
+  assert.equal(await cloudUnavailable.page.locator('#session-verification-gate').isHidden(), true, 'verified account data remains accessible when cloud storage is unavailable');
+  assert.equal(await cloudUnavailable.page.locator('#view-stack').isHidden(), false);
+  reports.push({ case: 'verified-account-remains-accessible-when-cloud-storage-is-unavailable', result: 'passed' });
+  await finish(cloudUnavailable, reports, 'cloud-unavailable-account-access');
 
   const unavailable = await createCase(browser, base, { width: 390 });
   await waitForState(unavailable, 'signed-out');
@@ -473,6 +552,30 @@ async function runAdverse(browser, base) {
     await finish(testCase, reports, 'expired-session');
   }
   {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(testCase, 'signed-in');
+    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
+
+    testCase.api.setAuth(null);
+    const gate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await gate.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.doesNotMatch(await testCase.page.locator('#main-content').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/, 'expired-session revalidation hides other saved My Health records while the GET is pending');
+    assert.equal(await testCase.page.locator('#view-stack').isHidden(), true, 'the private record surface is unavailable until session ownership is confirmed');
+    gate.response.resolve();
+    await waitForState(testCase, 'signed-out');
+    await testCase.page.locator('#view-stack').waitFor({ state: 'visible' });
+    assert.doesNotMatch(await testCase.page.locator('#main-content').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/);
+    reports.push({ case: 'expired-session-hides-all-my-health-records-while-revalidating', result: 'passed' });
+    await finish(testCase, reports, 'expired-record-surface');
+  }
+  {
     const accountAState = syntheticHealthState('Synthetic Account A');
     const accountBState = syntheticHealthState('Synthetic Account B');
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: accountAState });
@@ -537,6 +640,27 @@ async function runAdverse(browser, base) {
     await finish(testCase, reports, 'expired-overview-gate');
   }
   {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.locator('#view-today [data-open-personal-overview]').click();
+    await testCase.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
+    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
+    await testCase.page.keyboard.press('Escape');
+    await testCase.page.waitForFunction(() => !document.querySelector('#quick-modal')?.open);
+    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
+
+    const gate = testCase.api.delayNextAuth();
+    await simulateTabReturn(testCase.page);
+    await gate.started.promise;
+    await waitForState(testCase, 'checking');
+    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false);
+    assert.equal(await testCase.page.locator('#modal-body').textContent(), '', 'closed-dialog content is cleared from the previous account before revalidation');
+    gate.response.resolve();
+    await waitForState(testCase, 'signed-in');
+    reports.push({ case: 'closed-saved-overview-content-cleared-before-owner-revalidation', result: 'passed' });
+    await finish(testCase, reports, 'closed-overview-gate');
+  }
+  {
     const testCase = await createCase(browser, base, { width: 390 });
     await waitForState(testCase, 'signed-out');
     testCase.api.failNextAuth();
@@ -548,6 +672,31 @@ async function runAdverse(browser, base) {
     await testCase.page.locator('#google-signin-modal[open]').waitFor({ state: 'visible' });
     reports.push({ case: 'auth-endpoint-failure-does-not-claim-signed-out-and-can-retry', result: 'passed' });
     await finish(testCase, reports, 'unavailable-retry');
+  }
+  {
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.locator('#view-today [data-view="health"]').click();
+    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
+    testCase.api.failNextAuth();
+    await simulateTabReturn(testCase.page);
+    await waitForState(testCase, 'unavailable');
+    await testCase.page.locator('#session-verification-gate').waitFor({ state: 'visible' });
+    assert.match(await testCase.page.locator('#session-verification-title').innerText(), /sign-in not confirmed/i);
+    assert.equal(await testCase.page.locator('#view-stack').isHidden(), true);
+    assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/);
+    const retry = testCase.page.locator('#session-verification-gate [data-today-retry]');
+    await retry.waitFor({ state: 'visible' });
+    assert.ok(await retry.evaluate(element => element.getBoundingClientRect().height >= 44));
+    await retry.click();
+    await waitForState(testCase, 'signed-in');
+    await testCase.page.locator('#view-stack:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
+    assert.equal(await testCase.page.locator('#session-verification-gate').isHidden(), true);
+    reports.push({ case: 'unavailable-session-keeps-records-hidden-until-explicit-retry-succeeds', result: 'passed' });
+    await finish(testCase, reports, 'unavailable-session-record-retry');
   }
   return reports;
 }

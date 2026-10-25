@@ -23,6 +23,7 @@ function declaration(name) {
 }
 const production = [
   declaration('escapeHTML'),
+  between('  function currentSessionOwnerVerified()', '  function currentHealthOwnerReady()'),
   between('  function currentHealthOwnerReady()', '  function updateTodayFocusSyncFeedback('),
   "let trendRange = 'blood-pressure';",
   "let timelineFilter = 'all';",
