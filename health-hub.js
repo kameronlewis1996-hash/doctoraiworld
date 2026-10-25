@@ -412,6 +412,7 @@
   let cloudSyncBusy = false;
   let cloudSyncDirty = false;
   let cloudSyncRevision = 0;
+  let todayFocusSyncPending = false;
   let localStateUpdatedAt = Number(read('updated-at', 0)) || 0;
   let profileShortcutEditing = false;
   let medicationAlertFingerprint = '';
@@ -609,7 +610,7 @@
   }
   function renderStorageStatus() {
     renderCompactToday(true);
-    const hasUnassignedRecords = hasUnassignedLegacyHealthData();
+    const hasUnassignedRecords = accountSessionVerification === 'verified' && Boolean(authUser) && hasUnassignedLegacyHealthData();
     $$('[data-unassigned-legacy-note]').forEach(note => { note.hidden = !hasUnassignedRecords; });
     const device = $('#hub-device-storage-state');
     const deviceNote = $('#hub-device-storage-note');
@@ -623,7 +624,21 @@
     note.textContent = accountSessionVerification === 'pending' ? 'Confirming sign-in. Health notices are hidden until account access is confirmed.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Saved health records stay hidden until sign-in is confirmed.' : !authUser ? 'Guest records use a separate browser space. Sign in to use private account sync.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
   }
   function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
-  function setAccountSyncState(value, scope = null) { if (scope !== null && scope !== accountSyncScope()) return; accountSyncState = value; renderStorageStatus(); }
+  function updateTodayFocusSyncFeedback(value) {
+    if (!todayFocusSyncPending) return;
+    const target = $('#today-focus-save-status');
+    if (!target) return;
+    if (value === 'ready') {
+      target.textContent = 'Your focus is saved to your private account.';
+      todayFocusSyncPending = false;
+    } else if (value === 'unconfirmed' || value === 'unavailable') {
+      target.textContent = localStorageAllowed && !localStorageWriteFailed
+        ? 'Your focus is saved in this browser; account sync could not be confirmed.'
+        : 'Your focus is available for this session; account sync could not be confirmed.';
+      todayFocusSyncPending = false;
+    }
+  }
+  function setAccountSyncState(value, scope = null) { if (scope !== null && scope !== accountSyncScope()) return; accountSyncState = value; renderStorageStatus(); updateTodayFocusSyncFeedback(value); }
   function setSyncStatus(message) { const target = $('#last-synced'); if (target) target.textContent = message; renderStorageStatus(); }
   function queueCloudSave() {
     if (!authUser || !cloudSyncEnabled) return;
@@ -1131,8 +1146,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   function renderTasks() {
     if (!els.taskList) return;
+    const today = briefLocalDate(new Date());
     els.taskList.innerHTML = state.tasks.length ? state.tasks.map(task => `<div class="task-row ${task.done ? 'done' : ''}">
-      <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : 'Today'}</span>
+      <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : briefDate(task.date) ? (briefDate(task.date) === today ? 'Today' : formatShortDate(task.date)) : 'Saved'}</span>
     </div>`).join('') : '<div class="empty-state">No health tasks yet. Add a small next step when you need one.</div>';
     const complete = state.tasks.filter(task => task.done).length;
     if (els.taskCount) els.taskCount.textContent = state.tasks.length ? `${complete} of ${state.tasks.length} complete` : 'No tasks yet';
@@ -1158,6 +1174,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   const upcomingAppointments = () => appointmentGroups().upcoming;
 
+  function currentTodayFocus() {
+    const today = briefLocalDate(new Date());
+    return state.tasks.filter(task => task?.source === 'today-focus' && briefDate(task.date) === today)
+      .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0] || null;
+  }
+
   function renderCompactToday(statusOnly = false) {
     const loading = accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
     const unavailable = accountSessionVerification === 'failed' || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
@@ -1165,63 +1187,46 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const availability = loading ? 'loading' : unavailable ? 'unavailable' : 'ready';
     if (statusOnly && view?.dataset.recordsAvailability === availability) return;
     if (view) view.dataset.recordsAvailability = availability;
+
     const status = $('#today-record-status');
     if (status) {
       status.hidden = !loading && !unavailable;
-      $('#today-record-status-copy').textContent = loading ? 'Loading your saved records…' : accountSessionVerification === 'failed' ? 'Sign-in could not be confirmed. Only records available in this session are shown.' : 'Account sync is unavailable. Only records available in this browser are shown.';
+      $('#today-record-status-copy').textContent = loading ? 'Checking your saved information…' : accountSessionVerification === 'failed' ? 'Sign-in could not be confirmed. Account records are hidden until access is verified.' : 'Account sync is unavailable. Check your account status before relying on saved details.';
       $('[data-today-retry]', status).hidden = loading || Boolean(authUser && !cloudSyncEnabled);
     }
-    $$('#view-today [data-today-record-action]').forEach(button => { button.disabled = loading; });
-    const emptyRecord = (kind, text) => `<p class="today-record-empty">${loading ? 'Loading ' + kind + '…' : unavailable ? 'No ' + kind + ' available in this view.' : text}</p>`;
-    const medicines = $('#today-compact-medicine-list');
-    if (medicines) {
-      const active = currentMedicationRecords();
-      medicines.innerHTML = !loading && active.length
-         ? `<p class="today-record-count">${active.length} current medicine${active.length === 1 ? '' : 's'}${active.length > 5 ? ' · showing the first 5' : ''}</p><ul>${active.slice(0, 5).map(item => { const strength = medicationStrengthPresentation(item); const amount = item.doseAmount && item.doseUnit ? 'Amount per dose recorded: ' + item.doseAmount + ' ' + item.doseUnit : ''; return `<li><div class="today-medicine-copy"><b>${escapeHTML(item.name || 'Medicine name not recorded')}</b><span>${escapeHTML(strength.label)}${amount ? ' · ' + escapeHTML(amount) : ''}${item.time ? ' · ' + escapeHTML('Saved timing: ' + item.time) : ''}</span></div><button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}" aria-label="Edit ${escapeHTML(item.name || 'medicine')}">Edit</button></li>`; }).join('')}</ul>`
-        : emptyRecord('medicines', 'No current medicines saved. Add a medicine using the details on its label.');
+    const focusButton = $('[data-today-focus-open]');
+    if (focusButton) focusButton.disabled = loading || unavailable;
+    const focusForm = $('[data-today-focus-form]');
+    if (focusForm && (loading || unavailable)) focusForm.hidden = true;
+    const focusCopy = $('#today-focus-copy');
+    const focus = !loading && !unavailable ? currentTodayFocus() : null;
+    if (focusCopy) {
+      focusCopy.innerHTML = loading
+        ? '<p>Checking your saved information…</p>'
+        : unavailable
+          ? '<p>Your personal focus is hidden while saved account data is unavailable.</p>'
+          : focus
+            ? `<article class="today-focus-item"><p>${escapeHTML(focus.label || 'Personal focus not recorded')}</p><small>${focus.done ? 'Marked complete today' : 'Chosen by you'}</small><div class="today-focus-item-actions"><button type="button" class="text-button" data-task-toggle="${escapeHTML(focus.id)}" aria-label="${focus.done ? 'Mark personal focus incomplete' : 'Mark personal focus complete'}">${focus.done ? 'Mark incomplete' : 'Mark complete'}</button></div></article>`
+            : '<p>No focus saved for today. Choose one small thing if it would help.</p>';
     }
-    const conditions = window.DoctorAITerminology?.conditionEntries(state.profile) || splitDetails(state.profile.conditions).map(label => ({ label, status: 'unsure', source: 'legacy' }));
-    const currentConditions = conditions.filter(item => item.status !== 'historical');
-    const conditionList = $('#today-condition-list');
-    if (conditionList) conditionList.innerHTML = !loading && currentConditions.length
-      ? `<ul>${currentConditions.slice(0, 4).map(item => `<li><b>${escapeHTML(item.label)}</b><span>${item.source === 'legacy' ? 'Earlier entry · status not recorded' : item.status === 'current' ? 'Recorded as current' : 'Status unsure'}</span></li>`).join('')}</ul>${currentConditions.length > 4 ? `<p>${currentConditions.length - 4} more in your health details.</p>` : ''}`
-      : emptyRecord('conditions', conditions.length ? 'Only historical conditions are saved. View them in Manage conditions & history.' : 'No conditions saved yet.');
-    const allergies = window.DoctorAITerminology?.allergyEntries(state.profile) || splitDetails(state.profile.allergies).map(substance => ({ substance, certainty: 'legacy' }));
-    const allergyList = $('#today-allergy-list');
-    if (allergyList) allergyList.innerHTML = !loading && allergies.length
-      ? `<ul>${allergies.slice(0, 4).map(item => `<li><b>${escapeHTML(item.substance)}</b><span>${item.reaction ? escapeHTML(item.reaction) + ' · ' : ''}${escapeHTML(({ confirmed: 'Recorded allergy', suspected: 'Possible reaction', unsure: 'Unsure', legacy: 'Earlier entry · review certainty' })[item.certainty] || 'Certainty not recorded')}</span></li>`).join('')}</ul>${allergies.length > 4 ? `<p>${allergies.length - 4} more in your health details.</p>` : ''}`
-      : emptyRecord('allergies or reactions', 'No allergies or reactions recorded. This does not mean none.');
-    const next = $('#today-compact-appointment-copy');
-    if (next) {
-      const appointment = upcomingAppointments()[0];
-      next.innerHTML = !loading && appointment
-        ? `<p><b>${escapeHTML(appointment.title || 'Appointment')}</b><br>${escapeHTML(formatShortDate(appointment.date))}${appointment.time ? ' · ' + escapeHTML(formatTime(appointment.time)) : ''}<br><span>${escapeHTML(appointment.provider || 'Provider not recorded')}</span></p>`
-        : emptyRecord('appointments', 'No upcoming appointment saved.');
-    }
-    const recent = $('#today-compact-recent-note');
-    if (recent) {
-      const note = state.timeline.filter(item => item.source === 'symptom-diary' || item.source === 'user-question')
-        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
-      recent.textContent = loading ? 'Loading diary notes…' : note ? `${note.source === 'user-question' ? note.description : symptomName(note)} · ${formatShortDate(note.date)}` : unavailable ? 'No diary notes available in this view.' : 'No diary notes saved yet.';
-    }
-    const measurementLink = $('#today-measurements-link'), documentLink = $('#today-documents-link');
-    if (measurementLink) measurementLink.textContent = loading || unavailable ? 'Measurements' : `Measurements (${state.measurements.length})`;
-    if (documentLink) documentLink.textContent = loading || unavailable ? 'Documents' : `Documents (${state.documents.length})`;
-
-    const questions = $('#diary-question-list');
-    if (questions) {
-      const entries = state.timeline.filter(item => item.source === 'user-question' && item.type === 'question');
-      questions.innerHTML = entries.length
-        ? `<ul>${entries.slice(0, 6).map(item => `<li><span>${escapeHTML(item.description || '')}<small>${escapeHTML(formatDate(item.date))}</small></span><button type="button" class="text-button" data-delete-diary-question="${escapeHTML(item.id)}" aria-label="Delete question: ${escapeHTML(item.description || '')}">Delete</button></li>`).join('')}</ul>${entries.length > 6 ? `<p>${entries.length - 6} more question${entries.length - 6 === 1 ? '' : 's'} in History.</p>` : ''}`
-        : '<p>No questions saved yet. Write one on Today or your Medicines page.</p>';
+    if (focusButton) focusButton.textContent = focus ? 'Change focus' : 'Choose a focus';
+    const appointmentCopy = $('#today-next-up-copy');
+    if (appointmentCopy) {
+      const appointment = !loading && !unavailable ? upcomingAppointments()[0] : null;
+      appointmentCopy.innerHTML = loading
+        ? '<p>Checking saved appointments…</p>'
+        : unavailable
+          ? '<p>Appointments are unavailable while saved account data is unavailable.</p>'
+          : appointment
+            ? `<p><b>${escapeHTML(appointment.title || 'Appointment')}</b></p><p>${appointment.date === briefLocalDate(new Date()) ? 'Today' : escapeHTML(formatShortDate(appointment.date))}${appointment.time ? ` · ${escapeHTML(formatTime(appointment.time))}` : ''}</p>${appointment.provider ? `<small>${escapeHTML(appointment.provider)}</small>` : ''}`
+            : '<p>No upcoming appointment saved.</p>';
     }
   }
 
   function renderTodayOverview() {
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    const displayName = String(authUser?.name || state.profile.name || '').trim().split(/\s+/)[0];
-    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}${displayName ? `, ${displayName}` : ''}.`;
+    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}.`;
     const tracked = currentMedicationRecords().filter(item => item.status === 'taken').length;
     if (els.medOverview) els.medOverview.textContent = currentMedicationRecords().length ? `${tracked} of ${currentMedicationRecords().length} taken` : 'No medicines logged';
     const medOverviewMeta = $('#med-overview-meta');
@@ -1924,6 +1929,94 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     image.src = signedIn ? initialsAvatar(user) : profileSurface && window.DoctorAIIcons?.userAvatarSource ? window.DoctorAIIcons.userAvatarSource(24) : 'google-g-logo.svg';
     image.alt = signedIn ? 'Account initials' : '';
   }
+  function renderAuthStatus() {
+    const state = accountSessionVerification === 'pending' ? 'checking'
+      : accountSessionVerification !== 'verified' ? 'unavailable'
+      : authUser ? 'signed-in' : 'signed-out';
+    const labels = {
+      checking: 'Checking sign-in',
+      unavailable: 'Status unavailable',
+      'signed-out': 'Sign in',
+      'signed-in': 'Signed in'
+    };
+    const announcements = {
+      checking: 'Checking sign-in status.',
+      unavailable: 'Sign-in status is unavailable. Your account state is not confirmed. Choose Retry sign-in to reopen the existing sign-in flow.',
+      'signed-out': 'You are signed out. Sign in with Google to use account features.',
+      'signed-in': 'You are signed in. Open profile and settings.'
+    };
+    document.querySelectorAll('[data-auth-status-control]').forEach(control => {
+      const label = control.querySelector('[data-auth-status-label]');
+      if (label) label.textContent = labels[state];
+      control.dataset.authState = state;
+      control.disabled = state === 'checking';
+      control.setAttribute('aria-busy', String(state === 'checking'));
+      control.removeAttribute('data-google-signin');
+      control.removeAttribute('data-view');
+      control.removeAttribute('data-open-profile');
+      if (state === 'signed-out' || state === 'unavailable') {
+        control.setAttribute('data-google-signin', '');
+        control.setAttribute('aria-label', state === 'signed-out' ? 'Sign in with Google' : 'Sign-in status unavailable. Try sign in again.');
+      } else if (state === 'signed-in') {
+        if (control.classList.contains('mobile-notifications-button')) {
+          control.dataset.view = 'profile';
+          control.setAttribute('aria-label', 'Signed in. Open profile and settings.');
+        } else {
+          control.setAttribute('data-open-profile', '');
+          control.setAttribute('aria-label', 'Signed in. Open your account profile.');
+          control.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        control.setAttribute('aria-label', 'Checking sign-in status');
+      }
+    });
+    const liveStatus = $('#auth-status-live');
+    if (liveStatus && liveStatus.textContent !== announcements[state]) liveStatus.textContent = announcements[state];
+
+    const accountLink = $('.account-link');
+    if (accountLink) {
+      const title = accountLink.querySelector('b');
+      const note = accountLink.querySelector('small');
+      if (title) title.textContent = state === 'checking' ? 'Checking sign-in' : state === 'unavailable' ? 'Sign-in unavailable' : state === 'signed-in' ? 'Signed in' : 'Sign in with Google';
+      if (note) note.textContent = state === 'checking' ? 'Account details are hidden while checking' : state === 'unavailable' ? 'Try the sign-in flow again' : state === 'signed-in' ? 'Open your private account' : 'Keep your health hub private';
+      accountLink.disabled = state === 'checking';
+      accountLink.toggleAttribute('data-google-signin', state === 'signed-out' || state === 'unavailable');
+      accountLink.toggleAttribute('data-open-profile', state === 'signed-in');
+      setAvatar(accountLink.querySelector('.avatar'), state === 'signed-in' ? authUser : null, state === 'signed-in');
+    }
+
+    if (state === 'checking' || state === 'unavailable') {
+      const genericName = state === 'checking' ? 'Checking sign-in' : 'Sign-in status unavailable';
+      const genericNote = state === 'checking' ? 'Account details stay hidden until your sign-in is confirmed.' : 'Your account state could not be confirmed. Try sign in again.';
+      const profileName = $('.profile-trigger-name');
+      if (profileName) profileName.textContent = genericName;
+      if (els.todayGreeting) {
+        const hour = new Date().getHours();
+        els.todayGreeting.textContent = `${hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'}.`;
+      }
+      const welcome = $('#today-welcome');
+      if (welcome) welcome.textContent = 'Welcome to DoctorAI. Your health stays in your hands.';
+      if (els.profilePageName) els.profilePageName.textContent = genericName;
+      if (els.profilePageEmail) els.profilePageEmail.textContent = genericNote;
+      const drawerProfile = $('.drawer-profile');
+      if (drawerProfile) {
+        drawerProfile.querySelector('b').textContent = genericName;
+        drawerProfile.querySelector('small').textContent = genericNote;
+        drawerProfile.querySelector('button').textContent = state === 'checking' ? 'Checking sign-in' : 'Try sign in';
+        setAvatar(drawerProfile.querySelector('.avatar'), null, false);
+      }
+      const accountAction = $('.drawer-signout');
+      if (accountAction) {
+        accountAction.disabled = state === 'checking';
+        accountAction.toggleAttribute('data-google-signout', false);
+        accountAction.toggleAttribute('data-google-signin', state === 'unavailable');
+        accountAction.textContent = state === 'checking' ? 'Checking sign-in' : 'Try sign in again';
+      }
+    } else {
+      const accountAction = $('.drawer-signout');
+      if (accountAction) accountAction.disabled = false;
+    }
+  }
   function renderAccountSession(user, loginId = '', localScope = '', allowGuest = false) {
     const previousEmail = String(authUser?.email || '').trim().toLowerCase();
     const nextEmail = String(user?.email || '').trim().toLowerCase();
@@ -1936,6 +2029,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     authUser = user || null;
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
     const healthOwnerChanged = activateHealthDataOwner(authUser, localScope, allowGuest);
+    if (healthOwnerChanged) {
+      todayFocusSyncPending = false;
+      const focusStatus = $('#today-focus-save-status');
+      if (focusStatus) focusStatus.textContent = '';
+    }
     if (!authUser) {
       entitlementExpiresAt = null;
       entitlementReady = true;
@@ -1953,7 +2051,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const firstName = displayName.split(/\s+/)[0];
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}${signedIn ? `, ${firstName}` : ''}.`;
+    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}.`;
     const accountLink = $('.account-link');
     if (accountLink) {
       accountLink.querySelector('b').textContent = signedIn ? displayName : 'Sign in with Google';
@@ -1988,6 +2086,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (signedIn) loadCloudState().catch(() => {});
     else setSyncStatus(deviceStorageStatus());
     renderStorageStatus();
+    renderAuthStatus();
   }
   function renderEntitlementStatus() {
     refreshMedicationCheckContext().catch(() => {});
@@ -2024,6 +2123,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const revision = ++accountSessionRevision;
     accountSessionReady = false;
     accountSessionVerification = 'pending';
+    renderAuthStatus();
     if (revalidate) {
       entitlementReady = false;
       entitlementExpiresAt = null;
@@ -2098,6 +2198,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
   async function signOut() {
     const revision = ++accountSessionRevision;
+    accountSessionReady = false;
+    accountSessionVerification = 'pending';
+    renderAuthStatus();
     try {
       const response = await fetch('/api/auth/google', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign-out could not be confirmed.');
@@ -2105,6 +2208,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (revision !== accountSessionRevision) return;
       accountSessionReady = false;
       accountSessionVerification = 'failed';
+      renderAuthStatus();
       renderHomePrescriptionAlert(); renderMedicationCheckState(); renderHealthAlerts(); renderStorageStatus();
       showToast('Could not confirm sign-out. Saved health notices are hidden while DoctorAI checks your sign-in.');
       loadAccountSession({ revalidate: true }).catch(() => {});
@@ -2164,6 +2268,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     }
     googleCredentialInFlight = true;
     const startingRevision = accountSessionRevision;
+    const previousVerification = accountSessionVerification;
+    const previousSessionReady = accountSessionReady;
+    accountSessionReady = false;
+    accountSessionVerification = 'pending';
+    renderAuthStatus();
     try {
       const result = await fetch('/api/auth/google', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ credential: response.credential }) });
       const payload = await result.json().catch(() => ({}));
@@ -2185,6 +2294,9 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       showToast('Signed in to your private DoctorAI workspace.');
     } catch (error) {
       if (startingRevision !== accountSessionRevision) return;
+      accountSessionReady = previousSessionReady;
+      accountSessionVerification = previousVerification;
+      renderAuthStatus();
       if (error?.status === 401) {
         setGoogleSigninStatus('Google sign-in could not be verified. Please try again and choose your Google account once more.', 'setup');
       } else if (error?.status === 429) {
@@ -4284,6 +4396,27 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       document.activeElement.scrollIntoView({ block: 'start', behavior: 'auto' });
       return;
     }
+    const focusOpen = event.target.closest('[data-today-focus-open]');
+    if (focusOpen) {
+      const form = $('[data-today-focus-form]');
+      const input = $('#today-focus-input');
+      if (!form || !input || focusOpen.disabled) return;
+      const focus = currentTodayFocus();
+      input.value = focus?.label || '';
+      if (focus) form.dataset.editingTaskId = String(focus.id || '');
+      else delete form.dataset.editingTaskId;
+      const status = $('#today-focus-save-status');
+      if (status) status.textContent = '';
+      form.hidden = false;
+      input.focus();
+      return;
+    }
+    if (event.target.closest('[data-today-focus-cancel]')) {
+      const form = $('[data-today-focus-form]');
+      if (form) { form.hidden = true; form.reset(); delete form.dataset.editingTaskId; }
+      $('[data-today-focus-open]')?.focus();
+      return;
+    }
     if (event.target.closest('[data-today-retry]')) {
       if (accountSessionVerification === 'failed') await loadAccountSession();
       else if (authUser && cloudSyncEnabled) await loadCloudState();
@@ -4425,7 +4558,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const promptTarget = event.target.closest('[data-chat-prompt]');
     if (promptTarget) { event.preventDefault(); fillChat(promptTarget.dataset.chatPrompt); return; }
     if (event.target.closest('[data-google-signout]')) { event.preventDefault(); signOut(); return; }
-    if (event.target.closest('[data-google-signin]')) { event.preventDefault(); authUser ? openProfile() : openGoogleSignIn(); return; }
+    if (event.target.closest('[data-google-signin]')) { event.preventDefault(); accountSessionVerification === 'verified' && authUser ? openProfile() : openGoogleSignIn(); return; }
     if (event.target.closest('[data-google-start]')) { event.preventDefault(); configureGoogleSignIn(); return; }
     const summaryOpener = event.target.closest('[data-open-summary]');
     if (summaryOpener) { event.preventDefault(); preparationReturnFocus = !summaryOpener.closest('#view-visit-prep'); setMobileMenuOpen(false); showView('visit-prep'); openCareSummary(); return; }
@@ -4681,7 +4814,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     const taskToggle = event.target.closest('[data-task-toggle]');
-    if (taskToggle) { const task = state.tasks.find(item => item.id === taskToggle.dataset.taskToggle); if (task) { task.done = !task.done; saveState(); renderTasks(); showToast(task.done ? 'Task complete.' : 'Task returned to today.'); } return; }
+    if (taskToggle) { const task = state.tasks.find(item => item.id === taskToggle.dataset.taskToggle); if (task) { task.done = !task.done; saveState(); renderTasks(); renderCompactToday(); showToast(task.done ? 'Task complete.' : 'Task returned to today.'); } return; }
     const timelineFilterTarget = event.target.closest('[data-timeline-filter]');
     if (timelineFilterTarget) { timelineFilter = timelineFilterTarget.dataset.timelineFilter; $$('[data-timeline-filter]').forEach(button => button.classList.toggle('active', button === timelineFilterTarget)); renderTimeline(); return; }
     const symptomModeTarget = event.target.closest('[data-symptom-mode]');
@@ -4878,6 +5011,44 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   });
   document.addEventListener('click', handleClick);
   document.addEventListener('submit', event => {
+    const focusForm = event.target.closest('[data-today-focus-form]');
+    if (focusForm) {
+      event.preventDefault();
+      const input = focusForm.elements.focus;
+      const label = String(input?.value || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+      const status = $('#today-focus-save-status');
+      if (!label) { if (status) status.textContent = 'Write a focus before saving.'; input?.focus(); return; }
+      const today = briefLocalDate(new Date());
+      const editingId = focusForm.dataset.editingTaskId;
+      const existing = editingId ? state.tasks.find(item => String(item?.id || '') === editingId && item?.source === 'today-focus') : null;
+      const priorFocus = state.tasks.filter(item => item?.source === 'today-focus').sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0];
+      if (existing || priorFocus) {
+        const task = existing || priorFocus;
+        task.label = label; task.detail = 'Personal focus'; task.date = today; task.done = false; task.createdAt = Date.now();
+      }
+      else {
+        const id = typeof window.crypto?.randomUUID === 'function' ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        state.tasks.push({ id, label, detail: 'Personal focus', done: false, date: today, source: 'today-focus', createdAt: Date.now() });
+      }
+      todayFocusSyncPending = Boolean(authUser && cloudSyncEnabled);
+      saveState();
+      renderTasks();
+      renderCompactToday();
+      focusForm.hidden = true;
+      focusForm.reset();
+      delete focusForm.dataset.editingTaskId;
+      if (status) status.textContent = todayFocusSyncPending
+        ? 'Your focus is on Today; private account sync is pending.'
+        : localStorageWriteFailed
+          ? 'Your focus is available for this session; this browser did not confirm a save.'
+          : localStorageAllowed
+            ? 'Your focus is saved in this browser.'
+            : deviceStorageChoice === 'session' || deviceStorageChoice === 'session-cleanup-incomplete'
+              ? 'Your focus is available for this session only.'
+              : 'Your focus is available for this session. Choose a storage option in Profile to keep it after leaving.';
+      showToast('Your personal focus is ready for today.');
+      return;
+    }
     const form = event.target.closest('[data-diary-question-form]');
     if (!form) return;
     event.preventDefault();

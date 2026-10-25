@@ -14,7 +14,7 @@ body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .nav-item.act
 body[data-hub-layout="reference"] #hub-shell .sidebar .primary-nav .nav-item.active > span svg { color: #0069ed; }
 body[data-hub-layout="reference"] #hub-shell .nav-item:hover { background: #f0f7fd; }
 body[data-hub-layout="reference"] #hub-shell .hub-main { width: calc(100% - 244px); margin-left: 244px; background: transparent; }
-body[data-hub-layout="reference"] #hub-shell .hub-topbar { display: none !important; }
+body[data-hub-layout="reference"] #hub-shell .hub-topbar { display: flex !important; }
 body[data-hub-layout="reference"] #hub-shell .category-bar { display: none !important; }
 body[data-hub-layout="reference"] #hub-shell .view-stack { width: min(1040px, calc(100% - 48px)); margin: 18px auto 0; overflow: visible; }
 body[data-hub-layout="reference"] #storage-consent:not([hidden]) { position: relative; inset: auto; transform: none; z-index: 1; display: block; margin: 0 0 18px; padding: 20px 24px; border: 1px solid #d8f0fb; border-radius: 16px; background: #ecfaff; box-shadow: none; }
@@ -109,6 +109,69 @@ body[data-hub-layout="reference"] :is(button, a):focus-visible { outline: 3px so
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-hub-layout="reference"] #hub-shell .view.active { animation: none; }
+}
+
+/* The selected reference layout keeps the verified account state in its app header. */
+body[data-hub-layout="reference"] #hub-shell .hub-topbar { display: flex !important; }
+body[data-hub-layout="reference"] #hub-shell .auth-status-control {
+  min-height: 44px !important;
+  border: 1px solid #b7ccda !important;
+  border-radius: 12px !important;
+  background: #f1f6f9 !important;
+  color: #29485f !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  transition: none !important;
+}
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="signed-out"] {
+  border-color: #075a98 !important;
+  background: #0e6eb7 !important;
+  color: #fff !important;
+}
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="signed-in"] {
+  border-color: #9bcdbf !important;
+  background: #eaf8f3 !important;
+  color: #173550 !important;
+}
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="unavailable"] {
+  border-color: #d6a257 !important;
+  background: #fff4df !important;
+  color: #62400e !important;
+}
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="checking"] {
+  border-color: #b7ccda !important;
+  background: #f1f6f9 !important;
+  color: #29485f !important;
+}
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="signed-out"] .auth-status-indicator { border-color: #fff !important; background: #fff !important; }
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="signed-in"] .auth-status-indicator { border-color: #237a61 !important; background: #237a61 !important; }
+body[data-hub-layout="reference"] #hub-shell .auth-status-control[data-auth-state="unavailable"] .auth-status-indicator { border-color: #9a5c20 !important; background: #d6a257 !important; }
+body[data-hub-layout="reference"] #hub-shell .profile-trigger.auth-status-control { min-width: 122px !important; }
+@media (max-width: 800px) {
+  body[data-hub-layout="reference"] #hub-shell .mobile-brand-wrap {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) max-content;
+    gap: 8px;
+    justify-content: normal;
+    grid-template-rows: 1fr;
+    align-items: center;
+  }
+  body[data-hub-layout="reference"] #hub-shell .mobile-brand { min-width: 0; justify-self: center; }
+  body[data-hub-layout="reference"] #hub-shell .mobile-brand .brand-lockup { width: min(160px, 100%); }
+  body[data-hub-layout="reference"] #hub-shell .mobile-notifications-button.auth-status-control {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 82px !important;
+    max-width: 136px !important;
+    height: 44px !important;
+    justify-self: end;
+    padding: 0 9px !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+  }
+  body[data-hub-layout="reference"] #hub-shell .mobile-notifications-button .auth-status-label { display: inline !important; }
 }
 
 /* Unified DoctorAI theme, navigation paths and storage status. */

@@ -185,25 +185,33 @@ async function run() {
       assert.equal(await page.locator('#alerts-count').textContent(), 'No current notices');
       assert.equal(await page.locator('#alerts-list .hub-alert-card').count(), 0);
       assert.equal(await page.locator('#alerts-list').getByText(/36 of 36/i).count(), 0);
-      const visibleNote = page.locator('#view-alerts [data-unassigned-legacy-note]');
-      await visibleNote.waitFor({ state: 'visible' });
-      const noticeText = await visibleNote.textContent();
-      assert.match(noticeText, /not linked to a confirmed guest or account/i);
-      assert.doesNotMatch(noticeText, /LEGACY_[A-Z_]+_SENTINEL/);
+      const legacyNote = page.locator('#view-alerts [data-unassigned-legacy-note]');
+      assert.equal(await legacyNote.isVisible(), false, 'signed-out Alerts do not show an account/legacy ownership notice');
       const beforeRefresh = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, localStorage.getItem(`doctorai-health-hub-${key}`)])), Object.keys(allLegacy));
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => document.querySelector('#alerts-count')?.textContent.trim() === 'No current notices');
       assert.equal(await page.locator('#medications-count').textContent(), '0 current');
-      assert.equal(await page.locator('#view-alerts [data-unassigned-legacy-note]:visible').count(), 1);
+      assert.equal(await page.locator('#view-alerts [data-unassigned-legacy-note]:visible').count(), 0);
       const afterRefresh = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, localStorage.getItem(`doctorai-health-hub-${key}`)])), Object.keys(allLegacy));
       assert.deepEqual(afterRefresh, beforeRefresh, 'legacy records changed during signed-out refresh');
       const metrics = await assertNoOverflow(page, width);
       if (width === 390) {
-        assert.equal(metrics.noteHidden, false);
-        assert.ok(metrics.noteFontSize >= 14, `legacy notice font was too small: ${metrics.noteFontSize}px`);
-        assert.ok(metrics.noteWidth >= 280, `legacy notice was too narrow: ${metrics.noteWidth}px`);
+        assert.equal(metrics.noteHidden, true, 'legacy ownership notice stays hidden while signed out');
       }
-      reports.push({ case: 'unowned-legacy-hidden-and-preserved', width, result: 'passed', legacyKeysPreserved: Object.keys(allLegacy).length, metrics });
+      reports.push({ case: 'signed-out-unowned-legacy-hidden-and-preserved', width, result: 'passed', legacyKeysPreserved: Object.keys(allLegacy).length, metrics });
+      await closeCase(testCase);
+    }
+
+    {
+      const auth = { sub: 'synthetic-legacy-review', email: 'legacy-review@example.invalid', name: 'Synthetic Legacy Review' };
+      const testCase = await openCase(browser, base, { width: 390, local: allLegacy, auth });
+      const note = testCase.page.locator('#view-alerts [data-unassigned-legacy-note]');
+      await note.waitFor({ state: 'visible' });
+      assert.match(await note.textContent(), /not linked to a confirmed guest or account/i);
+      assert.doesNotMatch(await note.textContent(), /LEGACY_[A-Z_]+_SENTINEL/);
+      assert.equal(await testCase.page.locator('#medications-count').textContent(), '0 current');
+      assert.deepEqual(testCase.pageErrors, []);
+      reports.push({ case: 'signed-in-unowned-legacy-explained-without-adoption', width: 390, result: 'passed' });
       await closeCase(testCase);
     }
 

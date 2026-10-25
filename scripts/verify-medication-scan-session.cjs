@@ -38,7 +38,7 @@ function fixture() {
     AbortController,
     window: { isSecureContext: true, setTimeout(fn) { calls.timers.add(fn); return fn; } },
     clearTimeout(timer) { calls.timers.delete(timer); },
-    document: { getElementById: () => null }, navigator: { mediaDevices: {} },
+    document: { body: { dataset: {} }, getElementById: () => null }, navigator: { mediaDevices: {} },
     els: {
       medicationImageConsent: { checked: true }, medicationCaptureButton: { disabled: false },
       medicationScannerStatus: { textContent: '' },
@@ -48,6 +48,7 @@ function fixture() {
     $: () => null, $$: () => [],
     showToast: text => calls.toasts.push(text), openMedicationModal: value => calls.modals.push(value),
     clearChat() {}, activateHealthDataOwner: () => true, refreshMedicationCheckContext: async () => {},
+    renderAuthStatus() {}, renderStorageStatus() {},
     discardPreparationDrafts() {}, renderAll() {}, setAccountSyncState() {}, setAvatar() {},
     loadCloudState: async () => {}, setSyncStatus() {}, deviceStorageStatus: () => '',
     applyBrandTheme() {}, renderEntitlementStatus() {}, medicationScanAccess: async () => true,
@@ -84,7 +85,7 @@ async function settleUntil(condition) {
       assert.equal(calls.modals.length, 0, `${outcome} cannot open a stale scan modal`);
       assert.equal(calls.toasts.length, toastCount, `${outcome} cannot publish stale status`);
       assert.equal(context.authUser, next, 'Old rejection cannot sign out the new account');
-      assert.equal(context.subscriptionTier, 'pro', 'Old rejection cannot downgrade new account');
+      assert.equal(context.subscriptionTier, next ? 'pro' : 'free', 'Old rejection cannot downgrade the new account entitlement state');
       assert.equal(context.medicationScanBusy, false, 'Completion releases scan controls');
       assert.equal(context.medicationScanController, null);
       assert.equal(calls.timers.size, 0);
