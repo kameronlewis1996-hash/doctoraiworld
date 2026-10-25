@@ -234,3 +234,126 @@ body {
     body.staff-page .staff-ideas-manage > select { min-width: 0; flex: 1 1 180px; }
   }
 }
+
+/* Whole-site aurora system. Presentation only: no content, routing or state changes.
+   Screen-only so printable lists, briefs and legal print layouts retain their paper. */
+@media screen {
+  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-system-page.staff-page,
+    .doctorai-about, .appointment-guide, .medication-guide, .aurora-demo-page,
+    [data-hub-layout="reference"]) {
+    --aurora-base: #dceefa;
+    --aurora-cyan: #95dffbc4;
+    --aurora-lilac: #96c9efad;
+    --aurora-blush: #9edfeaae;
+    --aurora-side: #8dbcf4c4;
+    --aurora-glow: #8eccefae;
+    --aurora-glass: #d9edfac9;
+    --welcome-surface: #d9edfab8;
+    --welcome-line: #8db3d5;
+    --welcome-radius: 18px;
+    --welcome-control-radius: 13px;
+    background-color: var(--aurora-base);
+    background-image: var(--welcome-atmosphere);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    min-height: 100vh;
+  }
+  /* Remove page-sized paint without changing their layout or content widths. */
+  body.doctorai-public-page :is(main.shell, main > .panel, .pro-shell),
+  body.doctorai-homepage :is(.home-shell, .home-main),
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.hub-main, .view-stack, .view) {
+    background: transparent !important;
+    box-shadow: none;
+  }
+  /* Shared navigation frame; existing active/pressed states remain distinct. */
+  body.doctorai-public-page :is(.doctorai-site-header, .doctorai-site-footer),
+  body.doctorai-homepage :is(.home-header, .home-mobile-menu nav),
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.sidebar, .hub-topbar),
+  body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav {
+    background: var(--aurora-glass);
+    border-color: var(--welcome-line);
+  }
+  /* Public content uses the same blue glass as the six-tool landing. */
+  body.doctorai-homepage :is(.home-universe, .home-brief, .home-destination, .home-invitation, .home-control, .home-aurora-dock),
+  body.doctorai-public-page :is(.research-hero, .research-tabs, .research-controls, .highlight-card, .paper-card, .research-community, .discussion-card, .forum-compose, .research-share, .research-trust, .feature-card, .feature-card.featured, .plan-card, .pro-plan, .pro-section-nav, .care-pack-preview, .comparison-table, .pro-access-panel),
+  body.doctorai-public-page main > .panel .grid section,
+  body.subscription-page .preview-grid > div,
+  body.doctorai-about :is(.about-hero, .about-story-copy, .about-next),
+  body.doctorai-system-page :is(.panel, .card),
+  body.appointment-guide :is(.hero, .visit-fields, .checklist-section),
+  body.medication-guide :is(.guide-hero, .medicine-sheet),
+  body.aurora-demo-page .brief-sheet {
+    background: var(--welcome-surface) !important;
+    border-color: var(--welcome-line);
+    border-radius: var(--welcome-radius);
+    box-shadow: var(--welcome-shadow);
+  }
+  /* Explicit non-clinical app surfaces; alert/severity and emergency cards are excluded. */
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-health, #view-visit-prep, #view-profile, #view-add, #view-diary,
+        #view-documents, #view-results, #view-timeline, #view-appointments, #view-ask)
+    :is(.page-heading, .reference-intro, .reference-brief-card, .profile-page-hero,
+        .memory-card, .profile-shortcuts-card, .profile-shortcut-card, .profile-shortcut-add,
+        .today-focus-card, .today-next-up-card, .today-actions-card, .today-compact-panel,
+        .health-snapshot, .health-reminders-disclosure, .care-visit-card, .document-card, .document-drop,
+        .result-list-card, .measurements-card, .timeline-card, .timeline-entry,
+        .diary-question-panel, .symptom-log-card, .symptom-summary-card,
+        .upcoming-card, .past-appointments, .appointment-large, .past-item, .add-detail-choice):not(.hub-alert-card):not(.emergency-card) {
+    background: var(--welcome-surface) !important;
+    border-color: var(--welcome-line);
+    border-radius: var(--welcome-radius);
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-profile .hub-storage-status article,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-ask .quick-asks button,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications :is(.library-card, .refill-card, .history-card),
+  body[data-hub-layout="reference"][data-hub-theme] #storage-consent {
+    background: var(--welcome-surface);
+    border-color: var(--welcome-line);
+    border-radius: var(--welcome-radius);
+  }
+  /* Keep the My Health hero open to the atmosphere, not inside a new card. */
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .health-page-heading {
+    background: transparent !important;
+    border: 0;
+  }
+  /* Shared shape/typography, without overwriting destructive/semantic button colours. */
+  body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page, [data-hub-layout="reference"])
+    :is(.home-button, .primary-button, .secondary-button, .primary-cta, .plan-primary,
+        .plan-secondary, .button, .guide-button, .doctorai-site-primary) {
+    border-radius: var(--welcome-control-radius);
+    min-height: 44px;
+    font-family: var(--welcome-font);
+    line-height: 1.4;
+  }
+  body.doctorai-public-page :is(.feature-icon, .method-icon, .research-share-icon),
+  body.doctorai-homepage :is(.home-dock-icon, .home-destination > .home-feature-icon) {
+    color: var(--welcome-hover);
+    background: #c8e5f5b3;
+    border-color: var(--welcome-line);
+    border-radius: 12px;
+  }
+  body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page) :is(h1, h2, h3) {
+    font-family: var(--welcome-font);
+    line-height: 1.2;
+  }
+  body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-about,
+    .appointment-guide, .medication-guide, .aurora-demo-page) :is(a, button, summary):focus-visible {
+    outline: 3px solid var(--welcome-hover);
+    outline-offset: 3px;
+  }
+}
+/* Static atmosphere adds no motion. Respect system accessibility and paper output. */
+@media (forced-colors: active) {
+  html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-system-page.staff-page,
+    .doctorai-about, .appointment-guide, .medication-guide, .aurora-demo-page,
+    [data-hub-layout="reference"]) {
+    --welcome-surface: Canvas;
+    --aurora-glass: Canvas;
+    --welcome-line: CanvasText;
+    background: Canvas;
+  }
+}
