@@ -25,4 +25,4 @@
 
 The Chromium identity and API responses are synthetic; no request reached OpenAI. The output keyword/format check is a fail-closed filter, not clinical validation or a guarantee about model content. Provider retention wording mirrors the current Privacy Notice. No real production account, device camera, AI response or saved health record was used.
 
-This is an isolated draft based on deployed main `91b774d0e64e05f4dd5a144b56cef0294338c39d`. Do not mark ready, merge or deploy in this task; the parent owns any release decision. PR #116 remains a separate draft.
+This is an isolated branch based on deployed main `91b774d0e64e05f4dd5a144b56cef0294338c39d`. The branch is published at `cc541a05cd664b98da95b694870557704656b469`. Draft PR creation was rejected twice by automatic approval review: it classified these changes as outside the narrowly authorized signed-out-alert scope. PR #118 does not exist. Do not use another path to create it, mark it ready, merge or deploy in this task. The parent owns any further authorization. PR #116 remains a separate draft.
