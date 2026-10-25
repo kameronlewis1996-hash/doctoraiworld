@@ -37,6 +37,7 @@
     "verify:auth-status-browser": "node scripts/verify-auth-status-browser.cjs",
     "verify:about": "node scripts/verify-about-route.cjs",
     "verify:stripe": "node scripts/verify-stripe-pricing.js",
+    "verify:subscription-ui": "node scripts/verify-subscription-plans.cjs",
     "verify:staff-review": "node scripts/verify-staff-medication-review.cjs",
     "verify:public-copy": "node scripts/verify-public-copy-consistency.cjs",
     "verify:open-catalogues": "node scripts/verify-open-catalogues.cjs",

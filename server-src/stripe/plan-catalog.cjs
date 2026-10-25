@@ -1,6 +1,7 @@
 'use strict';
 
 const plans = Object.freeze({
+  weekly: Object.freeze({ env: 'STRIPE_PRO_WEEKLY_PRICE_ID', interval: 'week', currency: 'nzd', unitAmount: 699 }),
   monthly: Object.freeze({ env: 'STRIPE_PRO_MONTHLY_PRICE_ID', interval: 'month', currency: 'nzd', unitAmount: 2900 }),
   annual: Object.freeze({ env: 'STRIPE_PRO_ANNUAL_PRICE_ID', interval: 'year' })
 });
