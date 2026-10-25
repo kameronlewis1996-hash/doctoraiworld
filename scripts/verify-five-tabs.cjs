@@ -9,6 +9,7 @@ const html = read('health-hub.html');
 const js = read('health-hub.js');
 const css = read('health-hub.css');
 const categoryCss = read('hub-category-themes.css');
+const todayCss = read('today-records.css');
 const auroraCss = read('aurora-theme.css');
 const homeCss = read('welcome.css');
 const worker = read('service-worker.js');
@@ -172,8 +173,8 @@ for (const [theme, tokens] of Object.entries(mainRoutePalettes)) {
 assert.equal(new Set(Object.values(mainRoutePalettes).map(tokens => tokens.accent)).size, 1, 'Every main category shares the same brand-blue navigation/page accent.');
 assert.match(categoryCss, /\[data-view\]:focus-visible\s*\{[^}]*outline:\s*3px solid/, 'Keyboard users keep a visible navigation outline.');
 assert.match(categoryCss, /@media \(max-width: 800px\)[\s\S]*?\.mobile-bottom-nav\s*\{[^}]*background:\s*#fff/, 'Mobile navigation uses the same calm surface.');
-assert.match(categoryCss, /\.today-compact-grid\s*\{\s*align-items:\s*start/, 'Empty Today cards no longer stretch to the height of the diary form.');
-assert.match(categoryCss, /\.today-compact-panel\s*\{[^}]*border-top-color:\s*#0759b6/, 'Today summary cards use the same blue accent.');
+assert.match(todayCss, /\.today-focus-layout\s*\{\s*display:\s*grid/, 'Today keeps the daily focus and event summary in a responsive layout.');
+assert.match(todayCss, /\.today-focus-card\s*\{[^}]*border-left:\s*4px solid #0870db/, 'The user chosen focus has a clear blue visual anchor.');
 for (const [level, ink] of [['green', '#166534'], ['orange', '#934407'], ['red', '#b42318']]) {
   assert.ok(categoryCss.includes(`data-alert-level="${level}"] { --alert-ink: ${ink}`), `${level} clinical alert colour remains semantic.`);
 }
@@ -212,10 +213,22 @@ for (const fixture of [
   assert.equal(nodes['#hub-account-sync-state'].textContent, fixture.account, `${fixture.id}: signed-in and unconfirmed sync states stay distinct.`);
   assert.ok(nodes['#hub-account-sync-note'].textContent, `${fixture.id}: account sync has explanatory text.`);
 }
+for (const fixture of [
+  { id: 'signed-out-hides-unassigned-legacy-notice', verification: 'verified', user: null, visible: false },
+  { id: 'signed-in-explains-unassigned-legacy-notice', verification: 'verified', user: { name: 'Synthetic user' }, visible: true },
+  { id: 'pending-session-hides-unassigned-legacy-notice', verification: 'pending', user: { name: 'Synthetic user' }, visible: false },
+  { id: 'unconfirmed-session-hides-unassigned-legacy-notice', verification: 'failed', user: null, visible: false }
+]) {
+  const note = { hidden: true };
+  const nodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
+  const context = { renderCompactToday() {}, $:selector => nodes[selector] || null, $$:() => [note], hasUnassignedLegacyHealthData:() => true, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:fixture.user, accountSyncState:fixture.user ? 'checking' : 'not-signed-in', cloudSyncEnabled:true, accountSessionVerification:fixture.verification, medicationAccountDataReady:false, localStorage:{getItem() { return null; }} };
+  vm.runInNewContext(js.slice(storageStart, storageEnd) + '\nrenderStorageStatus();', context, { timeout:1000 });
+  assert.equal(note.hidden, !fixture.visible, `${fixture.id}: notice visibility follows verified ownership state.`);
+}
 const scopeStart = js.indexOf('function accountSyncScope(');
 const scopeEnd = js.indexOf('function setSyncStatus(', scopeStart);
 assert.ok(scopeStart >= 0 && scopeEnd > scopeStart, 'Actual account response status guard is available.');
-const scopeContext = { authUser:{sub:'fictional-a',email:'A@example.test'}, accountSessionRevision:1, accountSyncState:'checking', renderCount:0 };
+const scopeContext = { authUser:{sub:'fictional-a',email:'A@example.test'}, accountSessionRevision:1, accountSyncState:'checking', todayFocusSyncPending:false, localStorageAllowed:false, localStorageWriteFailed:false, $:() => null, renderCount:0 };
 scopeContext.renderStorageStatus = () => { scopeContext.renderCount += 1; };
 vm.createContext(scopeContext);
 vm.runInContext(js.slice(scopeStart, scopeEnd) + '\nthis.responseScope=accountSyncScope;this.responseStatus=setAccountSyncState;', scopeContext, { timeout:1000 });
@@ -240,9 +253,9 @@ scopeContext.authUser = null;
 scopeContext.accountSyncState = 'not-signed-in';
 scopeContext.responseStatus('ready', revisedScope);
 assert.equal(scopeContext.accountSyncState, 'not-signed-in', 'A late signed-in response cannot restore status after sign-out.');
-assert.ok(sections.today.includes('data-modal="medication"') && sections.today.includes('data-open-medication-scanner'), 'Today exposes actual manual medication entry and the existing scanner action.');
-assert.match(sections.today, /<button\b[^>]*data-open-medication-scanner[^>]*>[\s\S]*?Pro[\s\S]*?<\/button>/, 'Today identifies the scanner as a Pro action.');
-assert.ok(sections.today.includes('data-view="medications"') && sections.today.includes('data-view="visit-prep"'), 'Today connects its medicine card and appointment preparation to the retained tools.');
+assert.ok(sections.today.includes('data-today-focus-open') && sections.today.includes('data-open-today-plan'), 'Today offers a user chosen focus and the existing saved information briefing.');
+assert.ok(sections.today.includes('data-view="health"') && sections.today.includes('data-view="medications"') && sections.today.includes('data-view="appointments"'), 'Today links to the detailed record views in My Health.');
+assert.doesNotMatch(sections.today, /data-modal="medication"|data-open-medication-scanner|today-compact-medicine-list/, 'Today does not repeat the detailed medication list or scanner entry point.');
 assert.ok(sections['visit-prep'].includes('data-open-summary'), 'Visit prep opens the existing brief builder.');
 for (const target of ['data-care-summary-form','care-summary-reviewed','data-print-care-summary','data-copy-care-summary']) assert.ok(js.includes(target), `The reviewed brief flow retains ${target}.`);
 assert.ok(sections.health.includes('id="view-scan"') && sections.health.includes('data-open-medication-scanner'), 'Scan remains a tool inside My Health medications.');
@@ -278,7 +291,7 @@ async function verifyAccountResponseBoundaries() {
   const account = {sub:'fictional-current',email:'current@example.test',name:'Fictional user'};
   const accountStatusContext = () => {
     const nodes = {'#hub-device-storage-state':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''}};
-    return {nodes, renderCompactToday() {}, renderAuthStatus() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
+    return {nodes, renderCompactToday() {}, renderAuthStatus() {}, $:selector => nodes[selector] || null, $$:() => [], hasUnassignedLegacyHealthData:() => false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session', authUser:null, accountSessionRevision:1, accountSessionRequestPromise:null, entitlementRequestPromise:null, accountSessionVerification:'verified', accountSyncState:'not-signed-in', todayFocusSyncPending:false, cloudSyncEnabled:true, medicationAccountDataReady:false, deriveLocalHealthScope:async user => user?.email ? 'fictional-local-scope' : '', loadEntitlement:async () => {}};
   };
   for (const fixture of [{id:'accepted-after-pending',verification:'pending',user:null}, {id:'accepted-after-failed-same-account',verification:'failed',user:account}]) {
     const context = accountStatusContext();
@@ -395,7 +408,7 @@ async function verifyAccountStateIsolation() {
     localStorage: { getItem: key => local.get(key) || null, setItem: (key, value) => { if (rejectLocalWrites) throw new Error('synthetic storage quota failure'); local.set(key, String(value)); } },
     window: { crypto: require('node:crypto').webcrypto, clearTimeout() {} },
     renderCompactToday() {}, TextEncoder, Uint8Array, $: () => null, state, localStateUpdatedAt: 0, cloudSyncTimer: null, cloudSyncDirty: false,
-    cloudSyncRevision: 0, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
+    cloudSyncRevision: 0, todayFocusSyncPending: false, cloudSyncEnabled: true, accountSessionRevision: 1, authUser: null, accountSyncState: 'not-signed-in',
     medicationAccountDataReady: false, accountSessionVerification: 'verified', clearMedicationSafetyResults() {}, refreshMedicationCheckContext: async () => {},
     $: selector => storageNodes[selector] || null, $$: () => [],
     setSyncStatus() {}, deviceStorageStatus: () => 'Session only', setAccountSyncState: undefined,

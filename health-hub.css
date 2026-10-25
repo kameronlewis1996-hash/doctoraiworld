@@ -4301,6 +4301,19 @@ dialog.quick-modal[open] > #modal-body { min-height: 0; overflow-y: auto; oversc
 .symptom-guidance-result.urgent p { color: #78643a; }
 .symptom-guidance-result.monitor { border-color: #bce3ed; background: #effbfe; }
 
+#quick-modal .modal-form[data-modal-form="symptom"] .symptom-quick-chip {
+  min-height: 44px;
+  padding: 7px 12px;
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: normal;
+}
+#quick-modal .modal-form[data-modal-form="symptom"] .modal-actions > button {
+  min-height: 48px;
+  padding-inline: 14px;
+  font-size: 14px;
+}
+
 @media (max-width: 620px) {
   #view-symptoms .symptom-page-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   #view-symptoms .symptom-page-actions > button { width: 100%; min-width: 0; }

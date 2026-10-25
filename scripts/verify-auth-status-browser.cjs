@@ -300,6 +300,7 @@ async function runVisual(browser, base) {
   await finish(checking, reports, 'visual-checking-mobile');
 
   const unavailable = await createCase(browser, base, { width: 390 });
+  await waitForState(unavailable, 'signed-out');
   unavailable.api.failNextAuth();
   await simulateTabReturn(unavailable.page);
   await waitForState(unavailable, 'unavailable');
