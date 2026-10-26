@@ -25,6 +25,7 @@ class Element {
     this.listeners = new Map();
     this.children = {};
     this.classes = new Set();
+    this.focused = false;
     this.classList = { toggle: (name, active) => active ? this.classes.add(name) : this.classes.delete(name) };
     Object.assign(this, properties);
   }
@@ -41,6 +42,8 @@ class Element {
   }
   querySelector(selector) { return this.children[selector] || null; }
   querySelectorAll(selector) { return Object.entries(this.children).filter(([key]) => key === selector).map(([, child]) => child); }
+  matches() { return false; }
+  focus() { this.focused = true; }
   showModal() { this.open = true; }
   close() { this.open = false; }
 }
@@ -67,7 +70,11 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
   const accessInput = new Element();
   const accessNote = new Element();
   const accessPanel = new Element({ children: { form: accessForm, input: accessInput, small: accessNote } });
-  const planSection = new Element({ parentNode: { insertBefore() {} } });
+  const pageHeading = new Element();
+  const plansHeading = new Element();
+  const overviewHeading = new Element();
+  const planSection = new Element({ parentNode: { insertBefore() {} }, children: { 'h1, h2, h3': plansHeading } });
+  const overviewSection = new Element({ children: { 'h1, h2, h3': overviewHeading } });
   const selectors = {
     '[data-price]': nodes.price, '[data-period]': nodes.period, '[data-equivalent]': nodes.equivalent,
     '[data-monthly-value]': nodes.monthlyValue, '[data-plan-value]': nodes.planValue,
@@ -80,13 +87,19 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
   };
   const requests = [];
   const destinations = [];
+  const windowListeners = new Map();
   const location = { search, pathname: '/subscription', hash: '#plans', assign: url => destinations.push(url) };
   const history = { replaceState() {} };
+  const window = {
+    location, history, requestAnimationFrame: callback => callback(),
+    addEventListener(name, callback) { const listeners = windowListeners.get(name) || []; listeners.push(callback); windowListeners.set(name, listeners); }
+  };
   const context = {
     URLSearchParams, console, history, location,
-    window: { location, history },
+    window,
     document: {
-      querySelector: selector => selectors[selector] || null,
+      querySelector: selector => selectors[selector] || (selector === 'main h1, h1' ? pageHeading : null),
+      getElementById: id => id === 'plans' ? planSection : id === 'overview' ? overviewSection : null,
       querySelectorAll: selector => selector === '[data-plan]' ? [nodes.weekly, nodes.monthly, nodes.annual] : [],
       createElement: () => accessPanel
     },
@@ -100,7 +113,8 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
   vm.runInNewContext(source, context, { filename: 'subscription.js' });
   await new Promise(resolve => setImmediate(resolve));
   const checkoutRequests = () => requests.filter(request => request.url === '/api/stripe/create-checkout-session');
-  return { ...nodes, requests, destinations, checkoutRequests };
+  const emitWindow = name => (windowListeners.get(name) || []).forEach(listener => listener({ type:name }));
+  return { ...nodes, requests, destinations, checkoutRequests, location, emitWindow, pageHeading, plansHeading, overviewHeading };
 }
 
 async function run() {
@@ -118,6 +132,22 @@ async function run() {
   assert.equal(ui.planValue.hidden, false);
   assert.equal(ui.planValue.textContent, 'Monthly is better value than weekly: 12 monthly payments total NZ$348.00; 52 weekly payments total NZ$363.48.');
   assert.equal(ui.savings.textContent, '', 'NZD monthly and USD annual must not produce a currency-mixing discount.');
+
+  const historyNavigation = await boot();
+  await historyNavigation.subscribe.emit('click');
+  assert.equal(historyNavigation.dialog.open, true);
+  historyNavigation.location.hash = '';
+  historyNavigation.emitWindow('popstate');
+  assert.equal(historyNavigation.dialog.open, false, 'Browser Back dismisses the review dialog when it removes the Plans hash.');
+  assert.equal(historyNavigation.pageHeading.focused, true, 'Back moves focus to the page heading after Plans is removed.');
+  historyNavigation.emitWindow('hashchange');
+  assert.equal(historyNavigation.dialog.open, false, 'The paired hashchange cannot reopen or disrupt a dismissed dialog.');
+  historyNavigation.location.hash = '#plans';
+  await historyNavigation.subscribe.emit('click');
+  historyNavigation.location.hash = '#overview';
+  historyNavigation.emitWindow('hashchange');
+  assert.equal(historyNavigation.dialog.open, false, 'Hash navigation dismisses an open review dialog.');
+  assert.equal(historyNavigation.overviewHeading.focused, true, 'Hash navigation focuses the destination heading.');
 
   await ui.weekly.emit('click');
   assert.equal(ui.weekly.attributes.get('aria-pressed'), 'true');

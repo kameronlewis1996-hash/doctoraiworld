@@ -108,9 +108,10 @@ const routeLocation = { hash:'' };
 const routeHistory = { state:null, pushState(state, title, hash) { this.state=state; routeLocation.hash=hash; }, replaceState(state, title, hash) { this.state=state; routeLocation.hash=hash; } };
 const breadcrumbNodes = Object.fromEntries(['hub-breadcrumb','hub-parent-link','hub-parent-divider','hub-current-location'].map(id=>[id,{hidden:false,dataset:{},textContent:''}]));
 const breadcrumbStart = { hidden: false }, breadcrumbSeparator = { hidden: false };
+const scanOptions = { open:false }, scanAction = { focused:false, focus() { this.focused=true; } };
 breadcrumbNodes['hub-breadcrumb'].querySelector = selector => selector === '[data-hub-home]' ? breadcrumbStart : breadcrumbSeparator;
 const navigationContext = {
-  currentView:'health', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
+  currentView:'health', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { if (selector === '#view-medications .medication-scan-options') return scanOptions; if (selector === '#view-medications [data-open-medication-scanner]') return scanAction; const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
   els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
   renderMedicationSchedule() {}, requestAnimationFrame:fn=>fn(), sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
   window:{scrollTo() {},dispatchEvent() {}}, CustomEvent:class { constructor(type, options) { this.type=type; this.detail=options.detail; } }
@@ -126,11 +127,23 @@ const canonicalFixtures = [
 for (const [name, hash] of canonicalFixtures) {
   navigationContext.routeNavigate(name, true, false);
   assert.equal(breadcrumbNodes['hub-breadcrumb'].hidden, false, 'Every destination has a visible breadcrumb.');
-  assert.equal(breadcrumbStart.hidden, ['today','health'].includes(name), 'My Health omits a redundant self link.');
-  assert.equal(breadcrumbSeparator.hidden, ['today','health'].includes(name), 'My Health omits the unused separator.');
+  assert.equal(breadcrumbStart.hidden, ['today','health','add'].includes(name), 'My Health appears only once in the root and Add paths.');
+  assert.equal(breadcrumbSeparator.hidden, ['today','health','add'].includes(name), 'The first separator is hidden when its home breadcrumb is hidden.');
+  if (name === 'add') {
+    assert.equal(breadcrumbNodes['hub-parent-link'].textContent, 'My Health', 'Add Health Detail keeps one linked My Health parent.');
+    assert.equal(breadcrumbNodes['hub-parent-link'].hidden, false);
+    assert.equal(breadcrumbNodes['hub-current-location'].textContent, 'Add Health Detail');
+  }
+  if (name === 'scan') assert.equal(scanOptions.open, true, 'The Scan medication deep link reveals its collapsed scan actions.');
+  if (name === 'scan') assert.equal(scanAction.focused, true, 'The Scan medication deep link focuses the intended action.');
   assert.equal(routeLocation.hash, hash, `The actual ${name} navigation writes a copyable section alias.`);
   assert.deepEqual(JSON.parse(JSON.stringify(resolveRoute(hash.slice(1)))), JSON.parse(JSON.stringify(resolveRoute(name))), `A copied ${name} link restores the same section without history state.`);
 }
+scanOptions.open = false;
+scanAction.focused = false;
+navigationContext.routeNavigate('medications', false, false);
+assert.equal(scanOptions.open, false, 'Plain Medication navigation leaves Scan options collapsed.');
+assert.equal(scanAction.focused, false, 'Plain Medication navigation does not steal focus to a Pro scan action.');
 const destinationThemes = {
   medications:{ bg:'#F7FAFF', accent:'#0759B6' },
   symptoms:{ bg:'#F7FAFF', accent:'#0759B6' },
