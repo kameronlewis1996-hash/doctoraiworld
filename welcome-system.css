@@ -524,3 +524,56 @@ body {
   body #quick-modal #modal-body :is(.personal-overview-modal, .today-dashboard) { min-width: 0; }
   body #quick-modal #modal-body .modal-actions { position: static; flex-wrap: wrap; }
 }
+
+/* Screenshot correction: Medication was missing from the shared glass heading scope.
+   Explicit non-clinical surfaces only; clinical severity and focus colors remain intact. */
+@media screen {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications > .page-heading,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications :is(.medication-schedule, .library-card, .refill-card, .history-card, .medication-learning-panel, .medication-scan-help) {
+    background: #c7e7f75c !important; background-image: none !important;
+    border-color: #83acc9; color: #143855;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-medications, #view-documents) .secondary-button,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell .hub-breadcrumb button {
+    background: #c7e7f752 !important; background-image: none !important; color: #0759a8;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-medications, #view-documents) .secondary-button:hover { background: #b0ddf280 !important; }
+  .document-capture-button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
+  .document-capture-button small { display: block; font-size: 13px; }
+  #quick-modal .document-capture-copy, #quick-modal .document-capture-consent { margin: 18px 24px; line-height: 1.6; color: #143855; }
+  #quick-modal .document-capture-consent { display: flex; align-items: flex-start; gap: 12px; }
+  #quick-modal .document-capture-consent input { flex-shrink: 0; width: 22px; height: 22px; margin-top: 3px; }
+  #quick-modal .document-capture-actions { padding: 12px 24px 24px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications > .page-heading,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications :is(.medication-schedule, .library-card, .refill-card, .history-card, .medication-learning-panel, .medication-scan-help),
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-medications, #view-documents) .secondary-button { background: Canvas !important; color: CanvasText; border-color: ButtonText; }
+}
+@media screen {
+  /* Name similarity alone is information, not a verified medication risk. */
+  body[data-hub-layout="reference"] .medication-safety-alert.info { background: #c7e7f752; border-color: #83acc9; color: #143855; }
+  body[data-hub-layout="reference"] .medication-safety-alert.info .safety-alert-icon { color: #0759a8; }
+}
+@media screen {
+  /* Coverage limitations remain visible but are not styled as detected interactions.
+     Do not select is-warning/is-caution or clinical severity cards here. */
+  body[data-hub-layout="reference"] #hub-shell #view-medications :is(.safety-result-alert.is-unknown, .medication-db-summary.is-incomplete, .medication-pair-coverage-badge) {
+    background: #c7e7f752; border-color: #83acc9; color: #143855;
+  }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .safety-result-alert.is-unknown h3 { color: #143855; }
+}
+@media screen {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications .medication-view-grid { display: flex; flex-direction: column; gap: 18px; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications .medication-view-grid > * { width: 100%; min-width: 0; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications .medication-toolbar { align-items: flex-start; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications :is(.medication-scan-options, .medication-secondary-details, .medication-learning-panel, .medication-scan-help) { min-width: 0; background: #c7e7f73d !important; }
+  body[data-hub-layout="reference"] #view-medications details > summary { min-height: 44px; padding: 12px; box-sizing: border-box; cursor: pointer; font-size: 15px; line-height: 1.4; }
+  .medication-scan-options-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .medication-scan-options-actions > button { width: auto; min-height: 44px; flex: 1 1 180px; }
+  .medication-secondary-details > .medication-side { padding-top: 12px; }
+  .medication-calendar-details { margin-top: 16px; }
+  .medication-calendar-status:empty { display: none; }
+  body[data-hub-layout="reference"] #view-medications .library-disclaimer { display: block; }
+  body[data-hub-layout="reference"] #view-medications .library-disclaimer > p { margin: 10px 12px; }
+}

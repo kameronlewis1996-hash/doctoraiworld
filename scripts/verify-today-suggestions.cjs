@@ -93,7 +93,7 @@ assert.doesNotMatch(html,/id="view-today"|data-view="today"|data-today-focus-ope
 assert.match(js,/tasks: clone\(state\.tasks\)/, 'Retirement preserves saved goals.');
 assert.match(html,/today-diary-core\.js\?v=2/);
 const hubAsset=html.match(/health-hub\.js\?v=\d+/)?.[0];
-assert.equal(hubAsset,'health-hub.js?v=119');
+assert.equal(hubAsset,'health-hub.js?v=120');
 assert.ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes(hubAsset));
 console.log('Today suggestions passed: deterministic, note-free output, missing notes, existing/completed goals, no automatic writes, stale owner/session rejection, owner reset, local-day dismissal and task-first DOM order. Source/VM tests, not signed-in browser QA.');
 

@@ -846,7 +846,7 @@ function verifyPreparationOwnerTransition() {
     'renderAccountSession(null); ({ careSummaryDraft, appointmentRequestDraft, preparationReturnFocus });'
   ].join('\n');
   const context = {
-    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { dataset: {}, classList: { remove: () => observed.printClassRemoved++ } } },
+    observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { querySelectorAll: () => [], body: { dataset: {}, classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
     currentHealthOwnerReady: () => false, renderTodayPersonalization(ready) { assert.equal(ready, false, 'Personalization remains unavailable during owner transition.'); },
     activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++, renderAuthStatus() {},
