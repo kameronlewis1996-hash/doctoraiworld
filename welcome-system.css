@@ -577,3 +577,15 @@ body {
   body[data-hub-layout="reference"] #view-medications .library-disclaimer { display: block; }
   body[data-hub-layout="reference"] #view-medications .library-disclaimer > p { margin: 10px 12px; }
 }
+
+/* Scan-help actions need distinct cells even when both use secondary styling. */
+@media screen {
+  body[data-hub-layout="reference"] #hub-shell #view-scan .scan-start-card > [data-open-medication-scanner] { grid-area: primary; }
+  body[data-hub-layout="reference"] #hub-shell #view-scan .scan-start-card > [data-modal="medication"] { grid-area: manual; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-scan > .page-heading,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-scan .scan-start-card { background: #c7e7f75c !important; background-image: none !important; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-scan > .page-heading,
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-scan .scan-start-card { background: Canvas !important; }
+}
