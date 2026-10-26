@@ -66,6 +66,18 @@ assert.doesNotMatch(subscription, /<h3>Always-ready care<\/h3>/);
 assert.match(subscription, /Free: organise medicines and questions, then build a visit brief from details you choose\./);
 assert.match(subscription, /consent-based medicine-label text extraction you review before saving/);
 assert.doesNotMatch(subscription, /document (?:text )?extraction|document OCR/i, 'General document uploads must not be described as OCR.');
+assert.match(subscription, /<meta property="og:image:alt" content="DoctorAI Personal Health Hub graphic/);
+assert.match(subscription, /<meta name="twitter:image:alt" content="DoctorAI Personal Health Hub graphic/);
 assert.match(subscription, /DoctorAI does not diagnose, prescribe or replace professional care/);
 assert.doesNotMatch(read('staff.html'), /four fictional sample records/, 'The production release excludes the separate fictional staff-pair demo.');
-console.log('Public copy consistency passed: fictional highlight/search cards retain source/date and visible unassessed-limitations notices; subscription headline describes listed features beside its professional-care limitation; selection scope, catalogue date, curated-rule consent and unchanged price gates agree.');
+for (const name of fs.readdirSync(root).filter(name => name.endsWith('.html'))) {
+  const page = read(name);
+  if (/<meta property="og:image" content=/.test(page)) assert.match(page, /<meta property="og:image:alt" content=/, `${name} must describe its Open Graph image.`);
+  if (/<meta name="twitter:image" content=/.test(page)) assert.match(page, /<meta name="twitter:image:alt" content=/, `${name} must describe its Twitter image.`);
+}
+assert.match(read('health-hub.html'), /<meta property="og:image:alt" content="DoctorAI Personal Health Hub graphic/);
+assert.match(read('health-hub.html'), /<meta name="twitter:image:alt" content="DoctorAI Personal Health Hub graphic/);
+assert.match(read('terms.html'), /<meta property="og:image:alt" content="DoctorAI Personal Health Hub graphic/);
+assert.match(read('sitemap.xml'), /<loc>https:\/\/www\.doctoraiworld\.com\/about<\/loc>/);
+assert.match(read('sitemap.xml'), /<url><loc>https:\/\/www\.doctoraiworld\.com\/subscription<\/loc><lastmod>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z<\/lastmod><\/url>/);
+console.log('Public copy consistency passed: content claims match supported features; social images have text alternatives; discoverable trust and subscription routes are listed with accurate update dates.');

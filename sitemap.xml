@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.doctoraiworld.com/</loc><lastmod>2026-10-04</lastmod></url>
+  <url><loc>https://www.doctoraiworld.com/about</loc></url>
   <url><loc>https://www.doctoraiworld.com/medication-list-template</loc><lastmod>2026-10-02</lastmod></url>
   <url><loc>https://www.doctoraiworld.com/appointment-checklist</loc><lastmod>2026-10-02</lastmod></url>
   <url><loc>https://www.doctoraiworld.com/health-hub</loc></url>
   <url><loc>https://www.doctoraiworld.com/research</loc><lastmod>2026-10-02</lastmod></url>
-  <url><loc>https://www.doctoraiworld.com/subscription</loc></url>
+  <url><loc>https://www.doctoraiworld.com/subscription</loc><lastmod>2026-10-26T23:29:01Z</lastmod></url>
   <url><loc>https://www.doctoraiworld.com/terms</loc></url>
   <url><loc>https://www.doctoraiworld.com/privacy</loc></url>
   <url><loc>https://www.doctoraiworld.com/download</loc></url>
