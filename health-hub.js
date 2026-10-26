@@ -4575,7 +4575,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       return;
     }
     if (consent) consent.disabled = false;
-    if (summary) summary.textContent = view.status === 'complete' ? (window.DoctorAIMedicationCheck.issues(view.result).length ? 'Interaction or medicine warning found — review the result below.' : (view.result.coverage?.unknown || window.DoctorAIMedicationCheck.coverageNotices(view.result).length) ? 'Check incomplete — some medicines or pairs were not assessed. This is not a detected interaction.' : 'No interaction alert found within covered rules; this does not confirm safety.') : view.status === 'pending' ? (view.result ? 'Updating after login — previous warning shown; no fresh result yet.' : 'Checking the current medicine list…') : view.status === 'unavailable' ? 'Check unavailable — no current assessment.' : 'Interaction check not run.';
+    if (summary) summary.textContent = view.status === 'complete' ? (window.DoctorAIMedicationCheck.issues(view.result).length ? 'Interaction or medicine warning found — review the result below.' : (view.result.coverage?.unknown || window.DoctorAIMedicationCheck.coverageNotices(view.result).length) ? 'Check incomplete — some medicines or pairs were not assessed. This is not a detected interaction.' : 'No interaction alert found within covered rules; this does not confirm safety.') : view.status === 'pending' ? (view.result ? 'Updating after login — previous result shown; no fresh result yet.' : 'Checking the current medicine list…') : view.status === 'unavailable' ? 'Check unavailable — no current assessment.' : 'Interaction check not run.';
     if (consent) consent.checked = view.consent;
     if (button) { button.disabled = view.status === 'pending'; button.textContent = view.status === 'pending' ? 'Checking…' : 'Check saved medicines'; }
     if (checked) checked.textContent = view.checkedAt ? (view.status === 'pending' ? 'Previous check · updating: ' : 'Last checked: ') + new Date(view.checkedAt).toLocaleString() + ' · limited rules ' + medicationRulesVersion : 'Last checked: no current check';
@@ -4585,7 +4585,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       renderLocalMedicationDatabaseResult(output, view.result);
       if (view.status === 'pending') {
         const updating = document.createElement('p'); updating.className = 'medication-db-summary is-incomplete';
-        updating.textContent = 'Updating after login. This is the previous warning, not a fresh result. Wait for the new check and time.'; output.prepend(updating);
+        updating.textContent = 'Updating after login. This is the previous result, not a fresh result. Wait for the new check and time.'; output.prepend(updating);
       }
       return;
     }
