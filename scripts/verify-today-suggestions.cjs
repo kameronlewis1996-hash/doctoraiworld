@@ -89,7 +89,11 @@ const html=fs.readFileSync(path.join(root,'health-hub.html'),'utf8');
 const health=html.slice(html.indexOf('id="view-health"'),html.indexOf('id="view-visit-prep"'));
 assert.ok(health.indexOf('<nav class="hub-panel-nav"')<health.indexOf('class="health-tool-welcome"'));
 assert.ok(health.indexOf('class="health-page-heading')===-1 || health.indexOf('health-page-heading')<health.indexOf('health-tool-welcome'));
-assert.match(html,/<h1 id="today-title">Your Today<\/h1>/);
+assert.doesNotMatch(html,/id="view-today"|data-view="today"|data-today-focus-open/, 'Today UI is retired; retained helpers cannot expose a destination.');
+assert.match(js,/tasks: clone\(state\.tasks\)/, 'Retirement preserves saved goals.');
 assert.match(html,/today-diary-core\.js\?v=2/);
-assert.match(html,/health-hub\.js\?v=117/);
+const hubAsset=html.match(/health-hub\.js\?v=\d+/)?.[0];
+assert.equal(hubAsset,'health-hub.js?v=118');
+assert.ok(fs.readFileSync(path.join(root,'service-worker.js'),'utf8').includes(hubAsset));
 console.log('Today suggestions passed: deterministic, note-free output, missing notes, existing/completed goals, no automatic writes, stale owner/session rejection, owner reset, local-day dismissal and task-first DOM order. Source/VM tests, not signed-in browser QA.');
+

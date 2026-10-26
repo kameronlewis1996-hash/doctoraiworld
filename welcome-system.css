@@ -449,3 +449,57 @@ body {
 @media (forced-colors: active) {
   body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion { background: Canvas; color: CanvasText; border-color: CanvasText; }
 }
+
+
+/* Primary medication workspace and pinned app header — no clinical state selectors. */
+@media screen {
+  html { overflow-x: clip; scroll-padding-top: calc(var(--doctorai-header-height, 78px) + 16px); }
+  body[data-hub-layout="reference"] { overflow-x: clip; }
+  body[data-hub-layout="reference"] #hub-shell .primary-nav .nav-item { min-height: 52px; height: auto; padding-block: 10px; }
+  body[data-hub-layout="reference"] #hub-shell .primary-nav .nav-item > span:last-child { white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading { align-items: flex-start; flex-wrap: wrap; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications h1 { font-size: clamp(24px, 3vw, 36px); overflow-wrap: anywhere; }
+  .medication-schedule { padding: clamp(16px, 3vw, 24px); margin-bottom: 24px; color: #143855; }
+  .medication-schedule p, .medication-schedule small { line-height: 1.55; overflow-wrap: anywhere; }
+  .medication-calendar-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; margin-top: 20px; }
+  .medication-calendar-layout > section { min-width: 0; }
+  .medication-calendar-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .medication-calendar-controls h3 { text-align: center; margin: 0; }
+  .medication-calendar-controls button { min-width: 44px; min-height: 44px; }
+  .medication-calendar-date { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+  .medication-calendar-date input { min-width: 0; width: 100%; min-height: 44px; box-sizing: border-box; border: 1px solid #809db5; border-radius: 10px; padding: 8px; color: #143855; background: #edf8ff; }
+  .medication-calendar-grid, .medication-calendar-weekdays { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 3px; }
+  .medication-calendar-weekdays { text-align: center; margin: 10px 0 5px; }
+  .medication-calendar-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; min-height: 44px; padding: 4px 0; border: 1px solid #88a9bf; border-radius: 8px; background: #e6f5fcaa; color: #123856; font: inherit; }
+  .medication-calendar-day[aria-pressed="true"] { background: #0759a8; color: white; border-color: #0759a8; }
+  .calendar-dot { display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .medication-calendar-selection { margin-top: 16px; }
+  .medication-calendar-selection summary { min-height: 44px; padding: 10px 0; font-weight: 700; cursor: pointer; }
+  .medication-calendar-selection fieldset { border: 1px solid #88a9bf; border-radius: 12px; padding: 12px; }
+  .medication-calendar-selection label { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 0; overflow-wrap: anywhere; }
+  .medication-calendar-selection input { flex-shrink: 0; width: 22px; height: 22px; }
+  .medication-day-timeline { list-style: none; padding: 0; }
+  .medication-day-timeline li { display: grid; grid-template-columns: 60px minmax(0,1fr); gap: 12px; padding: 16px 0; border-bottom: 1px solid #9bb7cc; }
+  .medication-day-timeline time { font-weight: 700; }
+  .medication-calendar-review article { padding: 12px; margin: 10px 0; border: 1px solid #89aabd; border-radius: 12px; background: #d8edfa80; }
+  .medication-calendar-boundary { font-size: 13px; }
+  .medication-schedule :is(button,input,summary):focus-visible { outline: 3px solid #0759a8; outline-offset: 3px; }
+  @media (max-width: 800px) {
+    body[data-hub-layout="reference"] #hub-shell .hub-topbar { position: fixed; inset: 0 0 auto 0; z-index: 80; box-sizing: border-box; height: auto; min-height: calc(78px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); background: #d5edfaf2; }
+    body[data-hub-layout="reference"] #hub-shell .hub-main { padding-top: var(--doctorai-header-height, calc(78px + env(safe-area-inset-top, 0px))); }
+    body[data-hub-layout="reference"].mobile-category-open #hub-shell #category-bar { position: fixed; top: var(--doctorai-header-height, 78px); left: 8px; right: 8px; bottom: auto; z-index: 79; margin: 8px 0; max-height: calc(100dvh - var(--doctorai-header-height, 78px) - 110px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+    body[data-hub-layout="reference"] .mobile-bottom-nav-item b { white-space: normal; overflow-wrap: anywhere; font-size: 11px; line-height: 1.2; }
+    body[data-hub-layout="reference"] .mobile-bottom-nav-item { min-width: 0; }
+    .medication-calendar-layout { grid-template-columns: minmax(0,1fr); }
+  }
+  @media (max-width: 390px) {
+    .medication-schedule { padding: 12px; }
+    .medication-calendar-grid, .medication-calendar-weekdays { gap: 2px; }
+    .medication-calendar-day { min-height: 44px; }
+  }
+  @media (forced-colors: active) {
+    .medication-calendar-day, .medication-calendar-review article { background: Canvas; color: CanvasText; border-color: ButtonText; }
+    .medication-calendar-day[aria-pressed="true"] { background: Highlight; color: HighlightText; }
+  }
+}
+@media print { .medication-schedule { break-inside: avoid; } .medication-calendar-controls, .medication-calendar-selection { display: none; } }

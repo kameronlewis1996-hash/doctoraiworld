@@ -147,7 +147,7 @@ assert.match(hubSource, /not clinically validated/);
   assert.match(hubHtml, /doctorai-layout\.css\?v=3/);
   assert.match(hubHtml, /health-alert-status\.js\?v=6/);
   assert.match(hubHtml, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /doctorai-shell-v194/);
+  assert.match(serviceWorker, /doctorai-shell-v195/);
   assert.match(serviceWorker, /health-alerts\.js\?v=7/);
   assert.match(serviceWorker, /health-hub\.js\?v=117/);
   assert.match(serviceWorker, /health-hub\.css\?v=95/);
@@ -159,3 +159,4 @@ assert.match(hubSource, /not clinically validated/);
 
   console.log('Medication rights, retained-data provenance, Pharmac attribution, Coenzyme Q10 importer regression, incomplete-product handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+

@@ -46,13 +46,14 @@
   }
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-  const viewNames = ['today', 'health', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
-  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medication & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit Prep', profile: 'Profile', add: 'Add Health Detail', alerts: 'Alerts' };
-  const hubPanels = { today: [], health: ['details', 'medications', 'documents', 'results', 'timeline', 'ask'], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
-  const legacyHubRoutes = { medications: ['health', 'medications'], scan: ['health', 'medications'], visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['health', 'medications'], prescriptions: ['health', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
+  const viewNames = ['health', 'medications', 'diary', 'visit-prep', 'profile', 'add', 'alerts'];
+  const viewLabels = { today: 'Today', health: 'My Health', medications: 'Medications & Prescriptions', scan: 'Scan medication', diary: 'Diary & Appointments', 'visit-prep': 'Visit Prep', profile: 'Profile', add: 'Add Health Detail', alerts: 'Alerts' };
+  const hubPanels = { medications: ['medications'], health: ['details', 'documents', 'results', 'timeline', 'ask'], diary: ['symptoms', 'appointments'], 'visit-prep': [], profile: [], add: ['quick-add'], alerts: [] };
+  const legacyHubRoutes = { today: ['health', 'details'], medications: ['medications', 'medications'], scan: ['medications', 'medications'], visit: ['visit-prep', ''], ask: ['health', 'ask'], symptoms: ['diary', 'symptoms'], appointments: ['diary', 'appointments'], results: ['health', 'results'], timeline: ['health', 'timeline'], documents: ['health', 'documents'], medicines: ['medications', 'medications'], prescriptions: ['medications', 'medications'], memory: ['profile', ''], summary: ['visit-prep', ''], privacy: ['profile', ''] };
   function resolveHubRoute(name, requestedPanel = '') {
+    if (name === 'health' && requestedPanel === 'medications') name = 'medications';
     const legacy = legacyHubRoutes[name];
-    const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'today';
+    const view = legacy ? legacy[0] : viewNames.includes(name) ? name : 'health';
     const preferred = requestedPanel || (legacy ? legacy[1] : '');
     return { view, panel: hubPanels[view].includes(preferred) ? preferred : (hubPanels[view][0] || '') };
   }
@@ -385,7 +386,7 @@
   };
   const storageConsent = $('#storage-consent');
 
-  let currentView = 'today';
+  let currentView = 'health';
   let currentHubPanel = 'details';
   let renderedHubLocation = '';
   let timelineFilter = 'all';
@@ -822,6 +823,7 @@
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
     const next = route.view; currentView = next; currentHubPanel = route.panel;
+    if (next === 'medications') renderMedicationSchedule();
     if (route.panel === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
     try { sessionStorage.setItem('doctorai-last-hub-view', next); } catch {}
     document.body.dataset.hubTheme = next; document.body.dataset.activeFeature = route.panel || next; document.body.dataset.hubPanel = route.panel;
@@ -836,7 +838,7 @@
       const active = item.closest('[data-view-panel]')?.dataset.viewPanel === next && item.dataset.hubPanelTarget === route.panel; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     document.querySelectorAll('.hub-panel-nav [data-view="visit-prep"]').forEach(item => { const active = next === 'visit-prep'; item.classList.toggle('active', active); if (active) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current'); });
-    const featureLabels = { medications: 'Medication & Prescriptions', documents: 'Documents', symptoms: 'Symptom diary', appointments: 'Appointments', results: 'Measurements & results', timeline: 'Health history', ask: 'Ask DoctorAI' };
+    const featureLabels = { medications: 'Medications & Prescriptions', documents: 'Documents', symptoms: 'Symptom diary', appointments: 'Appointments', results: 'Measurements & results', timeline: 'Health history', ask: 'Ask DoctorAI' };
     const section = document.querySelector('[data-view-panel="' + next + '"]');
     const label = featureLabels[route.panel] || viewLabels[next];
     const heading = section?.querySelector(':scope > .page-heading h1');
@@ -849,11 +851,12 @@
     if (healthActions) healthActions.hidden = route.panel !== 'details';
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
-    const parentView = next === 'health' && route.panel !== 'details' || next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
+    const parentView = next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
     if (breadcrumb) {
       breadcrumb.hidden = false;
-      breadcrumb.querySelector('[data-view="today"]').hidden = next === 'today';
-      breadcrumb.querySelector('span[aria-hidden]').hidden = next === 'today';
+      const homeLink = breadcrumb.querySelector('[data-hub-home]');
+      if (homeLink) homeLink.hidden = next === 'health' && route.panel === 'details';
+      breadcrumb.querySelector('span[aria-hidden]').hidden = next === 'health' && route.panel === 'details';
     }
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');
@@ -907,6 +910,40 @@
       const hasRefillDate = medication.refill && medication.refill !== 'Not set';
       return !hasRefillDate && amount !== null && amount <= 14;
     });
+  }
+
+  let medicationScheduleSelection = new Set();
+  let medicationScheduleDay = '';
+  let medicationScheduleOwner = -1;
+  function renderMedicationSchedule() {
+    const target = $('#medication-schedule');
+    if (!target) return;
+    if (!currentHealthOwnerReady()) { target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>Saved medicine details are hidden until your account and records are ready.</p>'; return; }
+    const core = window.DoctorAIMedicationSchedule;
+    if (!core) { target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>The calendar could not load. Your saved medicine list remains below. Refresh to try again.</p>'; return; }
+    if (medicationScheduleOwner !== healthOwnerRevision) { medicationScheduleSelection = new Set(); medicationScheduleDay = core.localDay(new Date()); medicationScheduleOwner = healthOwnerRevision; }
+    if (!core.parseDay(medicationScheduleDay)) medicationScheduleDay = core.localDay(new Date());
+    const selectionOpen = target.querySelector?.('.medication-calendar-selection')?.open ?? true;
+    const records = state.medications || [];
+    const ids = new Set(records.map(item => item.id));
+    medicationScheduleSelection = new Set([...medicationScheduleSelection].filter(id => ids.has(id)));
+    const guards = `data-schedule-owner="${healthOwnerRevision}" data-schedule-session="${accountSessionRevision}"`;
+    const selection = records.length ? `<details class="medication-calendar-selection" ${selectionOpen ? 'open' : ''}><summary>Select medicines (${medicationScheduleSelection.size} selected)</summary><fieldset><legend>Show these saved medicines</legend>${records.map(med=>`<label><input type="checkbox" data-schedule-medicine="${escapeHTML(med.id)}" ${guards} ${medicationScheduleSelection.has(med.id)?'checked':''}><span>${escapeHTML(med.name || 'Unnamed medicine')}${med.dose?` <small>${escapeHTML(med.dose)}</small>`:''}</span></label>`).join('')}</fieldset></details>` : '<p>No medicines saved yet. Use Add medication above to record details from your label or prescription.</p>';
+    const day = medicationScheduleDay, parsed = core.parseDay(day), plan=core.dayPlan(records,[...medicationScheduleSelection],day);
+    const monthLabel=parsed.toLocaleDateString(undefined,{month:'long',year:'numeric'}), zone=Intl.DateTimeFormat().resolvedOptions().timeZone || 'device local time';
+    const month=core.monthDays(day), offset=(core.parseDay(month[0]).getDay()+6)%7;
+    const grid=Array.from({length:offset},()=>'<span aria-hidden="true"></span>').join('')+month.map(value=>{
+      const count=core.dayPlan(records,[...medicationScheduleSelection],value).timed.length;
+      return `<button type="button" class="medication-calendar-day" data-schedule-day="${value}" ${guards} aria-pressed="${value===day}" aria-label="${value}${count?`, ${count} saved time entries`:''}"><b>${Number(value.slice(-2))}</b>${count?'<span class="calendar-dot" aria-hidden="true"></span>':''}</button>`;
+    }).join('');
+    const edit = item=>`<button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">Review saved details</button>`;
+    const rows=plan.timed.map(item=>`<li><time datetime="${day}T${item.time}">${escapeHTML(item.time)}</time><div><b>${escapeHTML(item.name)}</b><p>${escapeHTML(item.note)}</p>${edit(item)}</div></li>`).join('');
+    const review=plan.needsReview.length?`<section class="medication-calendar-review"><h3>Timing not fully recorded</h3>${plan.needsReview.map(item=>`<article><b>${escapeHTML(item.name)}</b><p>${escapeHTML(item.note)}</p>${edit(item)}</article>`).join('')}</section>`:'';
+    const outside=plan.outside.length?`<details><summary>Not scheduled on this date (${plan.outside.length})</summary>${plan.outside.map(item=>`<p><b>${escapeHTML(item.name)}</b> — ${escapeHTML(item.note)}</p>`).join('')}</details>`:'';
+    target.innerHTML=`<div class="card-heading"><div><p class="card-kicker">Your saved routine</p><h2 id="medication-schedule-title">Calendar &amp; daily timeline</h2></div></div><p>Choose medicines and a date to review the timing you recorded. This does not recommend when or how much to take.</p>${selection}<div class="medication-calendar-layout"><section aria-label="Medication calendar"><div class="medication-calendar-controls"><button type="button" class="secondary-button" data-schedule-month="-1" ${guards} aria-label="Previous month">‹</button><h3>${escapeHTML(monthLabel)}</h3><button type="button" class="secondary-button" data-schedule-month="1" ${guards} aria-label="Next month">›</button></div><label class="medication-calendar-date">Review date<input type="date" min="1900-01-01" max="2200-12-31" value="${day}" data-schedule-date ${guards}></label><div class="medication-calendar-weekdays" aria-hidden="true">${['M','T','W','T','F','S','S'].map(d=>`<span>${d}</span>`).join('')}</div><div class="medication-calendar-grid">${grid}</div><small>Times use your current device timezone: ${escapeHTML(zone)}. If you travel or the clock changes, confirm your routine with your pharmacist; this calendar does not convert prescription times.</small></section><section aria-label="Selected date timeline"><h3>Saved times · ${escapeHTML(day)}</h3><p class="medication-calendar-boundary">A planned entry is not evidence of a dose taken. Earlier undated taken/missed flags are not shown as daily adherence.</p>${medicationScheduleSelection.size?(rows?`<ol class="medication-day-timeline">${rows}</ol>`:'<p>No complete saved times for the selected medicines on this date.</p>'):'<p>Select a saved medicine to see its recorded times. Nothing is selected automatically.</p>'}${review}${outside}</section></div>`;
+  }
+  function medicationScheduleActionAllowed(element) {
+    return currentHealthOwnerReady() && Number(element.dataset.scheduleOwner) === healthOwnerRevision && Number(element.dataset.scheduleSession) === accountSessionRevision;
   }
 
   function renderMedicationLibrary() {
@@ -1266,6 +1303,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const loading = !accountSessionReady || accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
     const unavailable = accountSessionVerification === 'failed' || Boolean(!loading && accountSessionVerification === 'verified' && !currentHealthOwnerReady()) || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
     const view = $('#view-today');
+    if (!view) return;
     const availability = loading ? 'loading' : unavailable ? 'unavailable' : 'ready';
     renderTodayPersonalization(!loading && !unavailable && currentHealthOwnerReady());
     if (statusOnly && view?.dataset.recordsAvailability === availability) return;
@@ -1516,7 +1554,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function refreshAppointmentDateViews() {
     const today = briefLocalDate(new Date());
     if (appointmentViewDay === today) return;
-    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments(); renderMedicationLibrary(); clearMedicationSafetyResults(); renderHealthAlerts();
+    renderTodayOverview(); renderCompactToday(); renderTodayAppointment(); renderAppointments(); renderMedicationLibrary(); renderMedicationSchedule(); clearMedicationSafetyResults(); renderHealthAlerts();
     appointmentViewDay = today;
   }
 
@@ -1945,6 +1983,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     renderCareHome();
     renderTodayMedications();
     renderMedicationLibrary();
+    renderMedicationSchedule();
     renderTodayAppointment();
     renderTodayTrend();
     renderHomePrescriptionAlert();
@@ -2138,6 +2177,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const healthOwnerChanged = activateHealthDataOwner(authUser, localScope, allowGuest);
     if (healthOwnerChanged) {
       todaySuggestionDismissal = null;
+      medicationScheduleSelection = new Set(); medicationScheduleDay = ''; medicationScheduleOwner = -1;
       todayFocusSyncPending = false;
       const focusStatus = $('#today-focus-save-status');
       if (focusStatus) focusStatus.textContent = '';
@@ -4501,6 +4541,17 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   }
 
   async function handleClick(event) {
+    const scheduleControl = event.target.closest('[data-schedule-day], [data-schedule-month]');
+    if (scheduleControl) {
+      if (!medicationScheduleActionAllowed(scheduleControl)) { renderMedicationSchedule(); return; }
+      const core = window.DoctorAIMedicationSchedule;
+      if (scheduleControl.dataset.scheduleDay) medicationScheduleDay = scheduleControl.dataset.scheduleDay;
+      else { const date = core.parseDay(medicationScheduleDay); date.setDate(1); date.setMonth(date.getMonth() + Number(scheduleControl.dataset.scheduleMonth)); if (date.getFullYear() < 1900 || date.getFullYear() > 2200) return; medicationScheduleDay = core.localDay(date); }
+      renderMedicationSchedule();
+      document.querySelector('[data-schedule-day="' + medicationScheduleDay + '"]')?.focus({ preventScroll: true });
+      return;
+    }
+
     if (event.target.closest('.skip-link')) {
       event.preventDefault();
       // The hash belongs to Hub routing; a skip must preserve the active page.
@@ -5311,7 +5362,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     if (hash === 'terms') { location.assign('/terms'); return; }
     if (hash === 'privacy') { showView('profile', false); openPrivacy(); return; }
     if (hash === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); return; }
-    showView(hash || 'today', false, true, history.state?.view === hash ? history.state.panel : '');
+    showView(hash || 'health', false, true, history.state?.view === hash ? history.state.panel : '');
   }
   window.addEventListener('hashchange', restoreHubLocation);
   window.addEventListener('popstate', restoreHubLocation);
@@ -5334,6 +5385,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   window.addEventListener('pagehide', stopMedicationScannerCamera);
   window.addEventListener('load', configureGoogleSignIn);
 
+  const appHeader = document.querySelector('.hub-topbar');
+  if (appHeader && typeof ResizeObserver !== 'undefined') {
+    const updateHeaderOffset = () => document.documentElement.style.setProperty('--doctorai-header-height', `${Math.ceil(appHeader.getBoundingClientRect().height)}px`);
+    new ResizeObserver(updateHeaderOffset).observe(appHeader);
+    updateHeaderOffset();
+  }
   const initialView = location.hash.slice(1);
   const termsQuery = new URLSearchParams(location.search).get('terms') === '1';
   renderAll();
@@ -5341,11 +5398,24 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   if (termsQuery || initialView === 'terms') location.replace('/terms');
   else if (initialView === 'privacy') { showView('profile', false); openPrivacy(); }
   else if (initialView === 'summary') { preparationReturnFocus = true; showView('visit-prep', false); openCareSummary(); }
-  else showView(initialView || 'today', false, false, history.state?.view === initialView ? history.state.panel : '');
+  else showView(initialView || 'health', false, false, history.state?.view === initialView ? history.state.panel : '');
   document.addEventListener('change', event => {
+    if (event.target.matches('[data-schedule-medicine], [data-schedule-date]')) {
+      const control = event.target;
+      if (!medicationScheduleActionAllowed(control)) { renderMedicationSchedule(); return; }
+      if (control.matches('[data-schedule-date]')) { if (!window.DoctorAIMedicationSchedule.parseDay(control.value)) { control.value = medicationScheduleDay; showToast('Choose a valid calendar date.'); return; } medicationScheduleDay = control.value; }
+      else { const id = control.dataset.scheduleMedicine; if (control.checked) medicationScheduleSelection.add(id); else medicationScheduleSelection.delete(id); }
+      const id = control.dataset.scheduleMedicine;
+      renderMedicationSchedule();
+      const restored = id ? [...document.querySelectorAll('[data-schedule-medicine]')].find(el=>el.dataset.scheduleMedicine===id) : document.querySelector('[data-schedule-date]');
+      restored?.focus({preventScroll:true});
+      return;
+    }
+
     if (event.target.matches('[data-today-section-select]')) { selectTodaySection(event.target.value); return; }
     if (event.target.matches('[data-hub-section-select]')) { showView('health', true, true, event.target.value); return; }
     if (event.target.matches('[data-local-medication-db-consent]')) medicationCheckController.setConsent(event.target.checked).catch(() => {});
   });
   loadAccountSession();
 })();
+

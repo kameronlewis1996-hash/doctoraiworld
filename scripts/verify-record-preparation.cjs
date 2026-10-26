@@ -221,6 +221,7 @@ function verifyAppointmentDayRefresh() {
     constructor(...values) { super(...(values.length ? values : [clock])); }
   };
   f.context.renderMedicationLibrary = () => {};
+  f.context.renderMedicationSchedule = () => {};
   f.context.clearMedicationSafetyResults = () => {};
   f.context.renderHealthAlerts = () => {};
   f.context.renderTodayOverview = () => calls.overview++;
@@ -968,3 +969,4 @@ async function verifyMedicineHistoryDeletion() {
   await verifyMedicineHistoryDeletion();
   console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; medicine history provenance and deletion; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+

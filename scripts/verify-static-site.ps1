@@ -221,6 +221,12 @@ $cspHashes = if ($nodePath) { & $nodePath (Join-Path $root 'scripts/csp-hashes.j
 foreach ($hash in ($cspHashes | Select-String -Pattern "'sha256-[^']+'" -AllMatches | ForEach-Object { $_.Matches.Value })) {
   if (-not $vercelText.Contains($hash)) { $failures.Add("CSP is missing an inline block hash: $hash") }
 }
+$medicationScheduleCheck = Join-Path $root 'scripts/verify-medication-schedule.cjs'
+if ($nodePath -and (Test-Path -LiteralPath $medicationScheduleCheck -PathType Leaf)) {
+  & $nodePath $medicationScheduleCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('The medication calendar safety and owner-isolation regression failed') }
+} else { $failures.Add('The medication calendar regression requires Node.js and its test script') }
+
 $todaySuggestionCheck = Join-Path $root 'scripts/verify-today-suggestions.cjs'
 if ($nodePath -and (Test-Path -LiteralPath $todaySuggestionCheck -PathType Leaf)) {
   & $nodePath $todaySuggestionCheck
@@ -270,3 +276,4 @@ if ($failures.Count) {
 }
 
 Write-Output "DoctorAI static verification passed ($($required.Count) required files, $($htmlFiles.Count) production pages)."
+
