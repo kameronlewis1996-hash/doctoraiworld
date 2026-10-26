@@ -393,6 +393,12 @@ body {
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card {
     padding: 24px; margin-block: 16px;
   }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > span {
+    width: 36px; height: 36px; margin-inline: auto;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card h2 { margin: 8px 0; font-size: 24px; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > p { margin: 8px 0 12px; max-width: none; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > small { margin-top: 10px; }
   body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell .health-tool-welcome {
     grid-template-columns: 112px minmax(0, 1fr); gap: 10px 18px;
     align-items: center; justify-items: stretch; margin-bottom: 20px; text-align: left;
