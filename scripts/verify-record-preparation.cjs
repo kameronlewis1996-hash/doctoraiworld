@@ -221,6 +221,7 @@ function verifyAppointmentDayRefresh() {
     constructor(...values) { super(...(values.length ? values : [clock])); }
   };
   f.context.renderMedicationLibrary = () => {};
+  f.context.renderMedicationSchedule = () => {};
   f.context.clearMedicationSafetyResults = () => {};
   f.context.renderHealthAlerts = () => {};
   f.context.renderTodayOverview = () => calls.overview++;
@@ -847,6 +848,7 @@ function verifyPreparationOwnerTransition() {
   const context = {
     observed, els: { modalBody: { innerHTML: 'fictional owner A hidden modal content' } }, document: { body: { dataset: {}, classList: { remove: () => observed.printClassRemoved++ } } },
     $: selector => selector === '#care-summary-print' ? { remove: () => observed.printRemoved++ } : null,
+    currentHealthOwnerReady: () => false, renderTodayPersonalization(ready) { assert.equal(ready, false, 'Personalization remains unavailable during owner transition.'); },
     activateHealthDataOwner: () => true, closeModal: () => observed.closed++, renderAll: () => observed.rendered++, renderAuthStatus() {},
     medicationScanController: null, closeMedicationScanner() {},
     clearChat() {}, refreshMedicationCheckContext: () => Promise.resolve(), renderEntitlementStatus() {}, applyBrandTheme() {}, renderStorageStatus() {}, setAccountSyncState() {},
@@ -967,3 +969,4 @@ async function verifyMedicineHistoryDeletion() {
   await verifyMedicineHistoryDeletion();
   console.log('Record preparation passed: appointment and measurement flows; owner-scoped measurement IDs; per-entry visit selection, review/back focus, hidden-dialog cleanup and owner-switch isolation; medicine history provenance and deletion; unsent appointment request drafts; and browser serializer/API state roundtrip. Fictional data only; no browser, real storage or network.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
+

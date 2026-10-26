@@ -1,0 +1,91 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+const read = p => fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+const js = read('health-hub.js');
+const between=(start,end)=>{const a=js.indexOf(start),b=js.indexOf(end,a+start.length);assert.ok(a>=0&&b>a);return js.slice(a,b);};
+// Actual dialog implementation; synthetic UI only, no browser/network/storage.
+let focused='';
+class Element {}
+const opener=new Element();
+const modal={open:false,scrollTop:246,classList:{toggle(){}},showModal(){this.open=true;}};
+const body={innerHTML:'',scrollTop:246,querySelector(){return null;},querySelectorAll(){return [];}};
+const title={textContent:'',setAttribute(){},focus(){focused='heading';}};
+const ctx=vm.createContext({HTMLElement:Element,document:{activeElement:opener,body:{}},els:{modal,modalBody:body,modalTitle:title,modalEyebrow:{}},window:{DoctorAIIcons:{hydrate(){}}}});
+vm.runInContext(between('  let modalReturnFocus =','  function persistProfileShortcuts()'),ctx);
+for(const form of ['Symptom','Medication','Health profile','Visit brief']){
+ modal.open=false;modal.scrollTop=246;body.scrollTop=633;focused='';
+ ctx.label=form;vm.runInContext("setModal(label,'Form','<form>Required first field</form>')",ctx);
+ assert.equal(body.scrollTop,0,form+' body reset');assert.equal(modal.scrollTop,0);assert.equal(focused,'heading');
+ assert.equal(vm.runInContext('modalReturnFocus',ctx),opener,'Cancel return opener retained');
+ modal.scrollTop=200;body.scrollTop=400;
+ vm.runInContext("setModal(label+' review','Review','<form>Reviewed details</form>')",ctx);
+ assert.equal(body.scrollTop,0,'same-dialog replacement reset');assert.equal(focused,'heading');
+}
+const css=read('welcome-system.css');
+assert.match(css,/modal-form\[data-modal-form="symptom"\] \.modal-actions\s*\{\s*position: static/);
+assert.match(css,/#modal-body\s*\{[\s\S]*?min-height: 0; overflow-y: auto/);
+console.log('Audit follow-up: shared modal new/reopen/replacement scroll and heading focus passed; source footer containment checks passed. Not rendered viewport QA.');
+(async()=>{
+ const core=require('../medication-schedule-core.js');let resolveFetch;
+ const target={innerHTML:'',dataset:{},querySelector(){return {open:true};}};
+ const record={id:'a',name:'Synthetic record',frequency:'Once daily',time:'08:00',startDate:'2026-10-01'};
+ const c=vm.createContext({Set,Date,Intl,window:{DoctorAIMedicationSchedule:core},$:s=>s==='#medication-schedule'?target:null,escapeHTML:s=>String(s),state:{medications:[record]},healthOwnerRevision:1,accountSessionRevision:1,accountSessionReady:true,accountSyncState:'checking',medicationAccountDataReady:false,authUser:{sub:'a',email:'a@example.invalid'},cloudSyncEnabled:true,accountSyncScope:()=> 'scope-a',setSyncStatus(){},updateTodayFocusSyncFeedback(){},fetch:()=>new Promise(r=>{resolveFetch=r}),hasHealthState:()=>false,serialiseHealthState:()=>({}),localStateUpdatedAt:0,applyCloudState(){},write(){},refreshMedicationCheckContext:()=>Promise.resolve(),queueCloudSave(){},deviceStorageStatus:()=>''});
+ c.currentHealthOwnerReady=()=>c.accountSessionReady&&c.medicationAccountDataReady&&!['checking','unconfirmed','unavailable'].includes(c.accountSyncState);
+ vm.runInContext(between('  let medicationScheduleSelection =','  function renderMedicationLibrary()'),c);
+ c.renderStorageStatus=()=>vm.runInContext('refreshMedicationScheduleAvailability()',c);
+ c.renderAll=()=>vm.runInContext('renderMedicationSchedule()',c);
+ vm.runInContext(js.match(/^  function setAccountSyncState\(.*$/m)[0],c);
+ vm.runInContext(between('  async function loadCloudState()','  function updateDate()'),c);
+ vm.runInContext('renderMedicationSchedule()',c);assert.match(target.innerHTML,/hidden until/);
+ const pending=vm.runInContext('loadCloudState()',c);assert.match(target.innerHTML,/hidden until/);
+ resolveFetch({ok:true,json:async()=>({state:{medications:[record]},updatedAt:2})});await pending;
+ assert.match(target.innerHTML,/Calendar &amp; daily timeline/,'direct entry refreshes after delayed cloud readiness');
+ vm.runInContext("medicationScheduleSelection.add('a');renderMedicationSchedule()",c);
+ const stableMarkup=target.innerHTML;vm.runInContext("setAccountSyncState('saving');setAccountSyncState('ready')",c);
+ assert.equal(target.innerHTML,stableMarkup,'saving status does not replace focused calendar controls');
+ assert.equal(vm.runInContext('medicationScheduleSelection.size',c),1);
+ vm.runInContext("setAccountSyncState('unconfirmed')",c);assert.match(target.innerHTML,/hidden until/);
+ vm.runInContext("setAccountSyncState('ready')",c);assert.match(target.innerHTML,/08:00/,'same-owner retry restores selection');
+ c.healthOwnerRevision=2;c.accountSessionRevision=2;c.state.medications=[];c.renderStorageStatus();
+ assert.equal(vm.runInContext('medicationScheduleSelection.size',c),0);assert.doesNotMatch(target.innerHTML,/Synthetic record/);
+ c.accountSessionReady=false;c.renderStorageStatus();assert.match(target.innerHTML,/hidden until/);
+ c.accountSessionReady=true;c.renderStorageStatus();assert.match(target.innerHTML,/No medicines saved/,'guest-ready transition refreshes');
+ assert.match(js,/renderSessionAvailability\(\);\s*refreshMedicationScheduleAvailability\(\)/,'actual status path invokes calendar refresh');
+ console.log('Audit follow-up: actual delayed cloud lifecycle, readiness retry, guest transition, stable saving selection and owner reset passed.');
+})().catch(e=>{console.error(e);process.exitCode=1;});
+assert.match(css,/personal-overview-sections \{ max-height: none; overflow: visible/,'one overview scroll owner');
+assert.match(css,/font-size: 14px !important; line-height: 1.45; white-space: normal/,'readable shared actions');
+assert.match(css,/#quick-modal :is\(input, select, textarea\) \{ font-size: 16px !important/,'readable form fields');
+assert.match(css,/#privacy-modal \.privacy-actions \{ flex-wrap: wrap/);
+console.log('Audit follow-up: readable action/field typography, wrapping privacy controls and single-scroll overview source checks passed.');
+assert.match(css,/#privacy-modal \[data-delete-health\]/);assert.match(read('health-hub.html'),/data-delete-health>/);
+assert.doesNotMatch(read('subscription.html'),/Today dashboard|Back to DoctorAI Today/);
+assert.match(read('appointment-checklist.html'),/href="\/health-hub#appointments"[^>]*>Open appointments/);
+assert.match(read('medication-list-template.html'),/Open medicines/);
+assert.match(read('research.html'),/My notes<\/button>/);assert.doesNotMatch(read('research.html'),/Start a discussion|Save discussion prompt|community accounts are being connected/);
+assert.doesNotMatch(read('mobile-auth.html'),/Google sign-in is not connected yet/);
+assert.match(read('professional-brief-demo.html'),/href="\/health-hub#visit-prep">Open Visit Prep/);
+assert.doesNotMatch(js,/Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing/);
+assert.match(read('health-hub.html'),/data-device-storage-session aria-describedby="session-storage-consequence"/);
+// Actual mobile-auth initialisation: malformed requests stop before any network call.
+let authFetches=0;const status={textContent:'',classList:{toggle(){}}},fallback={style:{}};
+vm.runInNewContext(read('mobile-auth.js'),{URLSearchParams,URL,location:{search:'',assign(){throw Error('unexpected redirect');}},document:{querySelector:s=>s==='#status'?status:s==='#fallback'?fallback:{}},fetch(){authFetches++;throw Error('unexpected fetch');},window:{}});
+assert.match(status.textContent,/request is invalid/);assert.equal(fallback.style.display,'block');assert.equal(authFetches,0);
+console.log('Audit follow-up: contextual labels, retired Today copy, private notes, demo return and contextual invalid-auth recovery passed. No auth behavior changes.');
+const schedule=require('../medication-schedule-core.js');
+for(const [day,key,expected] of [
+ ['2026-01-31','PageDown','2026-02-28'],['2028-01-31','PageDown','2028-02-29'],['2026-03-01','ArrowLeft','2026-02-28'],['2026-12-31','ArrowRight','2027-01-01'],['2026-10-26','ArrowUp','2026-10-19'],['2026-10-26','Home','2026-10-01'],['2026-10-26','End','2026-10-31'],['1900-01-01','ArrowLeft',null],['2200-12-31','PageDown',null]
+]) assert.equal(schedule.navigateDay(day,key),expected);
+let keyRender=0,keyFocus='',prevented=0;
+const keyCtx=vm.createContext({window:{DoctorAIMedicationSchedule:schedule},medicationScheduleDay:'2026-10-26',medicationScheduleActionAllowed:()=>true,renderMedicationSchedule(){keyRender++;},document:{querySelector:s=>({focus(){keyFocus=s;}})}});
+vm.runInContext(between('  function handleMedicationCalendarKeydown(','  function medicationScheduleActionAllowed('),keyCtx);
+keyCtx.event={key:'ArrowRight',target:{closest:()=>({dataset:{scheduleDay:'2026-10-26'}})},preventDefault(){prevented++;}};
+assert.equal(vm.runInContext('handleMedicationCalendarKeydown(event)',keyCtx),true);assert.equal(keyCtx.medicationScheduleDay,'2026-10-27');assert.equal(keyRender,1);assert.match(keyFocus,/2026-10-27/);assert.equal(prevented,1);
+keyCtx.medicationScheduleActionAllowed=()=>false;keyCtx.event.key='ArrowDown';vm.runInContext('handleMedicationCalendarKeydown(event)',keyCtx);assert.equal(keyCtx.medicationScheduleDay,'2026-10-27','stale keyboard event cannot change selection');
+assert.match(js,/tabindex="\$\{value===day\?0:-1\}"/);assert.match(js,/scheduleControl.dataset.scheduleMonth \? '\[data-schedule-month/);
+assert.match(read('health-hub.html'),/id="medication-schedule-status"[^>]*role="status" aria-live="polite"/);
+assert.match(js,/editor cannot yet record a weekly weekday or a second daily time/);assert.doesNotMatch(js,/No health tasks yet\. Add a small next step/);
+console.log('Audit follow-up: date keyboard movement/bounds/leap months, stale-event guard, month-control focus, stable live region and honest capability/empty copy passed.');

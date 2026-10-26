@@ -40,26 +40,26 @@ if ((Get-Item -LiteralPath $hubStylePath).Length -lt 120000 -or $hubStyleText -n
 $layoutStyleText = Get-Content -LiteralPath (Join-Path $root 'hub-navigation.css') -Raw
 if ($layoutStyleText -notmatch 'grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)') { $failures.Add('The shared task navigation must have four equal mobile columns') }
 $primaryNav = [regex]::Match($hubHtmlText, '(?s)<nav class="primary-nav"[^>]*>(.*?)</nav>').Groups[1].Value
-$mainViews = @('today', 'health', 'visit-prep', 'profile')
+$mainViews = @('health', 'medications', 'visit-prep', 'profile')
 $retainedViews = $mainViews + @('diary', 'add', 'alerts')
 $mainPanels = [regex]::Matches($hubHtmlText, 'data-view-panel="([^"]+)"') | ForEach-Object { $_.Groups[1].Value }
 if ($mainPanels.Count -ne 7 -or (Compare-Object ($retainedViews | Sort-Object) ($mainPanels | Sort-Object))) { $failures.Add('Four main destinations must preserve Diary, Add and Alerts') }
 foreach ($mainView in $mainViews) { if ($primaryNav -notmatch ('data-view="' + [regex]::Escape($mainView) + '"')) { $failures.Add("The main navigation is missing the $mainView tab") } }
-if ([regex]::Matches($primaryNav, 'data-view="').Count -ne 4) { $failures.Add('Main navigation must expose Today, My Health, Visit Prep and Profile') }
+if ([regex]::Matches($primaryNav, 'data-view="').Count -ne 4) { $failures.Add('Main navigation must expose My Health, Medications, Visit Prep and Profile') }
 if ($hubHtmlText -match 'personal-overview-card|quick-access-orbit|colour-hero-live|overview-strip') { $failures.Add('The retired orbit, statistics strip and duplicate overview card must remain absent') }
 $nestedFeatures = @('medications', 'ask', 'appointments', 'symptoms', 'results', 'timeline', 'documents')
 foreach ($feature in $nestedFeatures) { if ($hubHtmlText -notmatch ('data-hub-panel="' + [regex]::Escape($feature) + '"')) { $failures.Add("The reference layout lost the useful $feature feature") } }
 if ($hubHtmlText -notmatch 'data-hub-panel="symptoms"' -or $hubHtmlText -notmatch 'data-modal="symptom"') { $failures.Add('My Diary must retain the structured Symptom Diary and add action') }
-if ($hubHtmlText -notmatch 'data-diary-question-form="today"' -or $hubHtmlText -notmatch 'data-diary-question-form="medicine"' -or $hubHtmlText -notmatch 'id="diary-question-list"' -or $hubScriptText -notmatch 'DoctorAITodayDiary\?\.createQuestion') { $failures.Add('The Today and Medicine question forms must explicitly save into the diary') }
+if ($hubHtmlText -notmatch 'data-diary-question-form="medicine"' -or $hubHtmlText -notmatch 'id="diary-question-list"' -or $hubScriptText -notmatch 'DoctorAITodayDiary\?\.createQuestion') { $failures.Add('The retained Medicine question form must explicitly save into the diary') }
 if ($hubHtmlText -notmatch 'term-profile-ui\.js\?v=1' -or $hubHtmlText -notmatch 'term-catalogues\.js\?v=3' -or $hubScriptText -notmatch 'DoctorAITermProfile\?\.mount') { $failures.Add('Health profile must load the local terminology selectors') }
 if ($hubHtmlText -notmatch 'medicine-catalog-search\.js\?v=2' -or $hubScriptText -notmatch 'DoctorAIMedicineCatalogSearch') { $failures.Add('Medication entry must load the explicit local Pharmac product picker') }
 if ($hubScriptText -notmatch 'name="doseAmount"' -or $hubScriptText -notmatch 'name="doseUnitChoice"' -or $hubScriptText -notmatch 'Product strength and form' -or $hubScriptText -notmatch 'Amount per dose' -or $healthStateCoreText -notmatch 'function validDoseAmount') { $failures.Add('Medication entry must keep product strength separate from a validated, private per-dose amount') }
-if ($hubHtmlText -notmatch 'today-preview\.css\?v=3' -or $hubHtmlText -notmatch 'today-diary-core\.js\?v=1') { $failures.Add('Today preview assets must be loaded by Health Hub') }
+if ($hubHtmlText -notmatch 'today-preview\.css\?v=3' -or $hubHtmlText -notmatch 'today-diary-core\.js\?v=2') { $failures.Add('Today preview assets must be loaded by Health Hub') }
 if ($hubHtmlText -notmatch 'data-open-appointment-request' -or $hubScriptText -notmatch 'function reviewAppointmentRequest\(' -or $hubScriptText -notmatch 'data-copy-appointment-request') { $failures.Add('Visit prep must expose a reviewed appointment request draft with manual copy') }
 if ($hubHtmlText -notmatch 'id="alerts-list"' -or $hubHtmlText -notmatch 'health-alerts\.js' -or $hubScriptText -notmatch 'DoctorAIHealthAlerts\.evaluate') { $failures.Add('Alerts must evaluate saved health combinations and render a dedicated results area') }
 if ($hubHtmlText -notmatch 'health-alert-status\.js\?v=6' -or $hubScriptText -notmatch 'DoctorAIAlertStatus\?\.render') { $failures.Add('Alert summaries must render the fail-closed local status result') }
-if ($hubHtmlText -notmatch 'health-hub\.js\?v=116' -or $hubScriptText -notmatch 'dataset\.scanAttempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'scanFieldsReviewed' -or $hubScriptText -notmatch 'scanReviewRequired') { $failures.Add('Saving a scanned medication must ask people to review label details before use') }
-if ($hubHtmlText -notmatch 'health-hub\.css\?v=95' -or $hubHtmlText -notmatch 'health-hub\.js\?v=116' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
+if ($hubHtmlText -notmatch 'health-hub\.js\?v=119' -or $hubScriptText -notmatch 'dataset\.scanAttempted' -or $hubScriptText -notmatch 'focusMedicationSafetyPanel' -or $hubScriptText -notmatch 'scanFieldsReviewed' -or $hubScriptText -notmatch 'scanReviewRequired') { $failures.Add('Saving a scanned medication must ask people to review label details before use') }
+if ($hubHtmlText -notmatch 'health-hub\.css\?v=95' -or $hubHtmlText -notmatch 'health-hub\.js\?v=119' -or $hubStyleText -notmatch '\.medication-edit-link' -or $hubScriptText -notmatch 'data-edit-medication=' -or $hubScriptText -notmatch 'data-edit-medication\]') { $failures.Add('Saved medications must expose the current stylesheet and an in-place edit action') }
 if ($hubScriptText -notmatch "source:\s*'symptom-diary'" -or $hubScriptText -notmatch 'data-modal-form="symptom"' -or $hubScriptText -match 'state\.symptoms') { $failures.Add('Symptom Diary must use the canonical timeline store with working form handling') }
 if ($hubScriptText -notmatch 'Intensity \(optional\)' -or $hubScriptText -notmatch 'Not recorded / not sure' -or $hubScriptText -notmatch 'Date \*' -or $hubScriptText -notmatch 'date > localToday') { $failures.Add('Symptom Diary must offer an honest optional intensity value, require a date, and reject future dates') }
 if ($hubHtmlText -notmatch 'data-symptom-guidance' -or $hubScriptText -notmatch 'data-modal-form="symptom-guidance"' -or $hubScriptText -notmatch 'setSymptomGuidanceResult') { $failures.Add('Symptom Diary is missing the non-diagnostic urgency safety check') }
@@ -82,10 +82,10 @@ $medicationDispatcherText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/
 if ($medicationDispatcherText -notmatch "'ingredient-search'" -or $medicationDispatcherText -notmatch "'nzf-interactions'" -or $medicationDispatcherText -notmatch "'nzf-product-search'" -or $medicationDispatcherText -notmatch "'safety-check'" -or $medicationDispatcherText -notmatch 'scan:') { $failures.Add('Medication API dispatcher must preserve all existing medication endpoints') }
 $medicationScanApiText = Get-Content -Raw -LiteralPath (Join-Path $root 'api/medication/_handlers/scan.js')
 if ($medicationScanApiText -notmatch 'body\.consent\s*!==\s*true' -or $medicationScanApiText -notmatch 'store:\s*false' -or $medicationScanApiText -notmatch "type:\s*'json_schema'" -or $medicationScanApiText -notmatch 'AbortSignal\.timeout' -or $medicationScanApiText -notmatch 'MAX_IMAGE_DATA_URL') { $failures.Add('Medication scan API is missing explicit image consent or structured, no-store, bounded processing') }
-if ($workerText -notmatch "doctorai-shell-v192" -or $workerText -notmatch "aurora-theme\.css\?v=11" -or $workerText -notmatch "welcome\.css\?v=11" -or $workerText -notmatch "welcome\.js\?v=5" -or $workerText -notmatch "health-hub\.css\?v=95" -or $workerText -notmatch "hub-category-themes\.css\?v=6" -or $workerText -notmatch "feature-icons\.js\?v=9" -or $workerText -notmatch "health-alerts\.js\?v=7" -or $workerText -notmatch "health-alert-status\.js\?v=6" -or $workerText -notmatch "health-hub\.js\?v=116" -or $workerText -notmatch "term-catalogues\.js\?v=3" -or $workerText -notmatch "medicine-catalog-search\.js\?v=2" -or $workerText -notmatch "subscription\.css\?v=12" -or $workerText -notmatch "subscription\.js\?v=13" -or $workerText -notmatch "accessibility\.css\?v=15" -or $workerText -notmatch "care-design\.css\?v=10" -or $workerText -notmatch "site-shell\.css\?v=3" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css\?v=5'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
+if ($workerText -notmatch "doctorai-shell-v196" -or $workerText -notmatch "aurora-theme\.css\?v=11" -or $workerText -notmatch "welcome\.css\?v=11" -or $workerText -notmatch "welcome\.js\?v=5" -or $workerText -notmatch "health-hub\.css\?v=95" -or $workerText -notmatch "hub-category-themes\.css\?v=6" -or $workerText -notmatch "feature-icons\.js\?v=9" -or $workerText -notmatch "health-alerts\.js\?v=7" -or $workerText -notmatch "health-alert-status\.js\?v=6" -or $workerText -notmatch "health-hub\.js\?v=119" -or $workerText -notmatch "term-catalogues\.js\?v=3" -or $workerText -notmatch "medicine-catalog-search\.js\?v=2" -or $workerText -notmatch "subscription\.css\?v=12" -or $workerText -notmatch "subscription\.js\?v=13" -or $workerText -notmatch "accessibility\.css\?v=15" -or $workerText -notmatch "care-design\.css\?v=10" -or $workerText -notmatch "site-shell\.css\?v=3" -or $workerText -notmatch "'/medication-list-template'" -or $workerText -notmatch "'/medication-list-template\.css\?v=5'" -or $workerText -notmatch "'/medication-list-template\.js'") { $failures.Add('The PWA cache does not contain the current site assets') }
 if ($workerText -notmatch "doctorai-layout\.css\?v=3" -or $hubHtmlText -notmatch 'doctorai-layout\.css\?v=3') { $failures.Add('The reference layout asset must be current in the page and PWA cache') }
 if ($hubHtmlText -notmatch 'today-records\.css\?v=2') { $failures.Add('Today must load the current daily-view stylesheet') }
-foreach ($newStyle in @('welcome-system.css?v=2', 'today-records.css?v=2', 'aurora-pages.css?v=2', 'public-info-aurora.css?v=2', 'hub-aurora-secondary.css?v=6', 'about.css?v=3', 'research.css?v=14', 'appointment-checklist.css?v=5')) {
+foreach ($newStyle in @('welcome-system.css?v=6', 'today-records.css?v=2', 'aurora-pages.css?v=2', 'public-info-aurora.css?v=2', 'hub-aurora-secondary.css?v=6', 'about.css?v=3', 'research.css?v=14', 'appointment-checklist.css?v=5')) {
   if ($workerText -notmatch [regex]::Escape($newStyle)) { $failures.Add("The PWA cache is missing $newStyle") }
 }
 if ($workerText -notmatch 'hub-navigation\.css\?v=4' -or $hubHtmlText -notmatch 'hub-navigation\.css\?v=4') { $failures.Add('The shared navigation stylesheet must be loaded and cached') }
@@ -221,6 +221,31 @@ $cspHashes = if ($nodePath) { & $nodePath (Join-Path $root 'scripts/csp-hashes.j
 foreach ($hash in ($cspHashes | Select-String -Pattern "'sha256-[^']+'" -AllMatches | ForEach-Object { $_.Matches.Value })) {
   if (-not $vercelText.Contains($hash)) { $failures.Add("CSP is missing an inline block hash: $hash") }
 }
+$auditFollowupCheck = Join-Path $root 'scripts/verify-audit-followup.cjs'
+if (Test-Path $auditFollowupCheck) {
+  & node $auditFollowupCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('Deep audit follow-up checks failed') }
+} else { $failures.Add('Missing deep audit follow-up checks') }
+$medicationScheduleCheck = Join-Path $root 'scripts/verify-medication-schedule.cjs'
+if ($nodePath -and (Test-Path -LiteralPath $medicationScheduleCheck -PathType Leaf)) {
+  & $nodePath $medicationScheduleCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('The medication calendar safety and owner-isolation regression failed') }
+} else { $failures.Add('The medication calendar regression requires Node.js and its test script') }
+
+if ($hubHtmlText -match 'data-view-panel="today"|data-view="today"') { $failures.Add('Today must be retired from the user interface without deleting saved records') }
+if ($hubHtmlText -notmatch 'medication-schedule-core\.js\?v=2' -or $workerText -notmatch 'medication-schedule-core\.js\?v=2') { $failures.Add('The medication calendar core must be loaded and cached') }
+$todaySuggestionCheck = Join-Path $root 'scripts/verify-today-suggestions.cjs'
+if ($nodePath -and (Test-Path -LiteralPath $todaySuggestionCheck -PathType Leaf)) {
+  & $nodePath $todaySuggestionCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('The Today suggestion privacy and optional-goal regression failed') }
+} else { $failures.Add('The Today suggestion regression requires Node.js and its test script') }
+
+$uxClarityCheck = Join-Path $root 'scripts/verify-ux-clarity.cjs'
+if ($nodePath -and (Test-Path -LiteralPath $uxClarityCheck -PathType Leaf)) {
+  & $nodePath $uxClarityCheck
+  if ($LASTEXITCODE -ne 0) { $failures.Add('The UX clarity regression failed') }
+} else { $failures.Add('The UX clarity regression requires Node.js and its test script') }
+
 $wholeSiteStyleCheck = Join-Path $root 'scripts/verify-whole-site-style.cjs'
 if ($nodePath -and (Test-Path -LiteralPath $wholeSiteStyleCheck -PathType Leaf)) {
   & $nodePath $wholeSiteStyleCheck
@@ -258,3 +283,4 @@ if ($failures.Count) {
 }
 
 Write-Output "DoctorAI static verification passed ($($required.Count) required files, $($htmlFiles.Count) production pages)."
+

@@ -357,3 +357,170 @@ body {
     background: Canvas;
   }
 }
+
+/* UX audit: keep actions in flow, reduce first-use repetition and protect narrow layouts.
+   Presentation only. Existing auth, consent, form submission and clinical states own behavior. */
+@media screen {
+  /* A sticky footer inside the scrolling form covered fields before their turn in the flow. */
+  body #quick-modal[open] { overflow: hidden; max-height: calc(100dvh - 24px); }
+  body #quick-modal[open] > .modal-header { flex: 0 0 auto; }
+  body #quick-modal[open] > #modal-body {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px); scroll-padding-block: 16px;
+  }
+  body #quick-modal .modal-form[data-modal-form="symptom"] .modal-actions {
+    position: static; margin: 0; padding: 14px 0 0; background: transparent;
+    flex-wrap: wrap;
+  }
+  body #quick-modal .modal-field { min-width: 0; align-content: start; }
+  body #quick-modal .modal-field :is(input, select, textarea) { min-width: 0; }
+  body #quick-modal .modal-actions > button { white-space: normal; }
+
+  /* Keep the privacy choice complete, while giving the actual daily task room. */
+  body[data-hub-layout="reference"][data-hub-theme] #storage-consent {
+    padding: 16px 20px; gap: 12px; margin-bottom: 12px;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-visit-prep, #view-profile, #view-health) { padding-top: 16px; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-visit-prep, #view-profile) > .page-heading {
+    padding: 16px 20px; margin-bottom: 16px; min-height: 0;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell
+    :is(#view-today, #view-visit-prep, #view-profile) > .page-heading h1 {
+    font-size: clamp(28px, 3vw, 36px); line-height: 1.15;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card {
+    padding: 24px; margin-block: 16px;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > span {
+    width: 36px; height: 36px; margin-inline: auto;
+  }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card h2 { margin: 8px 0; font-size: 24px; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > p { margin: 8px 0 12px; max-width: none; }
+  body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-visit-prep .reference-brief-card > small { margin-top: 10px; }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell .health-tool-welcome {
+    grid-template-columns: 112px minmax(0, 1fr); gap: 10px 18px;
+    align-items: center; justify-items: stretch; margin-bottom: 20px; text-align: left;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-brand {
+    grid-column: 1; grid-row: 1 / span 3; width: 112px; height: 84px; max-width: 100%;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-tagline {
+    grid-column: 2; font-size: 17px !important; line-height: 1.4 !important;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell
+    :is(.health-tool-account, .health-tool-account-state) { grid-column: 2; width: 100%; }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-account > button { min-height: 44px; }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button {
+    white-space: normal; overflow-wrap: anywhere;
+  }
+}
+@media screen and (max-width: 820px) {
+  body.doctorai-public-page .doctorai-site-menu {
+    max-height: calc(100vh - 68px); max-height: calc(100dvh - 68px);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+}
+@media screen and (max-width: 600px) {
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell .health-tool-welcome {
+    grid-template-columns: 72px minmax(0, 1fr); gap: 8px 12px;
+  }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-brand { width: 72px; height: 64px; }
+  body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-account { grid-column: 1 / -1; }
+  body[data-hub-layout="reference"][data-hub-theme] #storage-consent { padding: 14px 16px; }
+}
+
+/* Personal Today suggestions are local, optional and never a substitute for clinical advice. */
+@media screen {
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion {
+    margin: 16px 0; padding: 16px; border: 1px solid #8db3d5; border-radius: 16px;
+    background: #d9edfab8; color: #153c66; min-width: 0;
+  }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion[hidden] { display: none; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion h3 { margin: 0 0 10px; font-size: 18px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion p { margin: 8px 0; line-height: 1.5; overflow-wrap: anywhere; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-label { font-weight: 700; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-reason { font-size: 14px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-actions button { min-height: 44px; white-space: normal; }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell .health-tool-welcome { margin-top: 24px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion { background: Canvas; color: CanvasText; border-color: CanvasText; }
+}
+
+
+/* Primary medication workspace and pinned app header — no clinical state selectors. */
+@media screen {
+  html { overflow-x: clip; scroll-padding-top: calc(var(--doctorai-header-height, 78px) + 16px); }
+  body[data-hub-layout="reference"] { overflow-x: clip; }
+  body[data-hub-layout="reference"] #hub-shell .primary-nav .nav-item { min-height: 52px; height: auto; padding-block: 10px; }
+  body[data-hub-layout="reference"] #hub-shell .primary-nav .nav-item > span:last-child { white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications > .page-heading { align-items: flex-start; flex-wrap: wrap; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications h1 { font-size: clamp(24px, 3vw, 36px); overflow-wrap: anywhere; }
+  .medication-schedule { padding: clamp(16px, 3vw, 24px); margin-bottom: 24px; color: #143855; }
+  .medication-schedule p, .medication-schedule small { line-height: 1.55; overflow-wrap: anywhere; }
+  .medication-calendar-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; margin-top: 20px; }
+  .medication-calendar-layout > section { min-width: 0; }
+  .medication-calendar-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .medication-calendar-controls h3 { text-align: center; margin: 0; }
+  .medication-calendar-controls button { min-width: 44px; min-height: 44px; }
+  .medication-calendar-date { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+  .medication-calendar-date input { min-width: 0; width: 100%; min-height: 44px; box-sizing: border-box; border: 1px solid #809db5; border-radius: 10px; padding: 8px; color: #143855; background: #edf8ff; }
+  .medication-calendar-grid, .medication-calendar-weekdays { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 3px; }
+  .medication-calendar-weekdays { text-align: center; margin: 10px 0 5px; }
+  .medication-calendar-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; min-height: 44px; padding: 4px 0; border: 1px solid #88a9bf; border-radius: 8px; background: #e6f5fcaa; color: #123856; font: inherit; }
+  .medication-calendar-day[aria-pressed="true"] { background: #0759a8; color: white; border-color: #0759a8; }
+  .calendar-dot { display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .medication-calendar-selection { margin-top: 16px; }
+  .medication-calendar-selection summary { min-height: 44px; padding: 10px 0; font-weight: 700; cursor: pointer; }
+  .medication-calendar-selection fieldset { border: 1px solid #88a9bf; border-radius: 12px; padding: 12px; }
+  .medication-calendar-selection label { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 0; overflow-wrap: anywhere; }
+  .medication-calendar-selection input { flex-shrink: 0; width: 22px; height: 22px; }
+  .medication-day-timeline { list-style: none; padding: 0; }
+  .medication-day-timeline li { display: grid; grid-template-columns: 60px minmax(0,1fr); gap: 12px; padding: 16px 0; border-bottom: 1px solid #9bb7cc; }
+  .medication-day-timeline time { font-weight: 700; }
+  .medication-calendar-review article { padding: 12px; margin: 10px 0; border: 1px solid #89aabd; border-radius: 12px; background: #d8edfa80; }
+  .medication-calendar-boundary { font-size: 13px; }
+  .medication-schedule :is(button,input,summary):focus-visible { outline: 3px solid #0759a8; outline-offset: 3px; }
+  @media (max-width: 800px) {
+    body[data-hub-layout="reference"] #hub-shell .hub-topbar { position: fixed; inset: 0 0 auto 0; z-index: 80; box-sizing: border-box; height: auto; min-height: calc(78px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); background: #d5edfaf2; }
+    body[data-hub-layout="reference"] #hub-shell .hub-main { padding-top: var(--doctorai-header-height, calc(78px + env(safe-area-inset-top, 0px))); }
+    body[data-hub-layout="reference"].mobile-category-open #hub-shell #category-bar { position: fixed; top: var(--doctorai-header-height, 78px); left: 8px; right: 8px; bottom: auto; z-index: 79; margin: 8px 0; max-height: calc(100dvh - var(--doctorai-header-height, 78px) - 110px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+    body[data-hub-layout="reference"] .mobile-bottom-nav-item b { white-space: normal; overflow-wrap: anywhere; font-size: 11px; line-height: 1.2; }
+    body[data-hub-layout="reference"] .mobile-bottom-nav-item { min-width: 0; }
+    .medication-calendar-layout { grid-template-columns: minmax(0,1fr); }
+  }
+  @media (max-width: 390px) {
+    .medication-schedule { padding: 12px; }
+    .medication-calendar-grid, .medication-calendar-weekdays { gap: 2px; }
+    .medication-calendar-day { min-height: 44px; }
+  }
+  @media (forced-colors: active) {
+    .medication-calendar-day, .medication-calendar-review article { background: Canvas; color: CanvasText; border-color: ButtonText; }
+    .medication-calendar-day[aria-pressed="true"] { background: Highlight; color: HighlightText; }
+  }
+}
+@media print { .medication-schedule { break-inside: avoid; } .medication-calendar-controls, .medication-calendar-selection { display: none; } }
+
+/* Deep audit: readable controls and one scroll owner per shared dialog. */
+@media screen {
+  body[data-hub-layout="reference"] :is(#quick-modal, #privacy-modal) :is(button, .modal-field > span),
+  body[data-hub-layout="reference"] #hub-shell :is(.trend-tabs, .measurement-history-actions, .timeline-filters) button,
+  body[data-hub-layout="reference"] #hub-shell :is(.primary-button, .secondary-button, .quiet-button, .text-button),
+  body:is(.appointment-guide, .medication-guide) button {
+    font-size: 14px !important; line-height: 1.45; white-space: normal;
+  }
+  body[data-hub-layout="reference"] :is(#quick-modal, #privacy-modal) button,
+  body[data-hub-layout="reference"] #hub-shell :is(.trend-tabs, .measurement-history-actions, .timeline-filters) button,
+  body:is(.appointment-guide, .medication-guide) button { min-height: 44px; }
+  body[data-hub-layout="reference"] #quick-modal :is(input, select, textarea) { font-size: 16px !important; }
+  body[data-hub-layout="reference"] #privacy-modal .privacy-actions { flex-wrap: wrap; justify-content: flex-start; gap: 12px; }
+  body[data-hub-layout="reference"] #privacy-modal [data-delete-health] {
+    border: 1px solid #9c3244; border-radius: 10px; padding: 10px 14px; background: transparent; color: #81273a;
+  }
+  body #quick-modal #modal-body .personal-overview-sections { max-height: none; overflow: visible; }
+  body #quick-modal #modal-body :is(.personal-overview-modal, .today-dashboard) { min-width: 0; }
+  body #quick-modal #modal-body .modal-actions { position: static; flex-wrap: wrap; }
+}

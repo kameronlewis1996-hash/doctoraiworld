@@ -32,15 +32,15 @@
   <link rel="stylesheet" href="/accessibility.css?v=15">
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
   <script defer src="/feature-icons.js?v=8"></script>
-  <link rel="stylesheet" href="/welcome-system.css?v=2">
+  <link rel="stylesheet" href="/welcome-system.css?v=6">
 </head>
 <body class="doctorai-public-page" data-subscription="free">
   <header class="research-header">
-    <a href="/health-hub#today" class="back-link" aria-label="Back to your Health Hub">← <span>Health Hub</span></a>
+    <a href="/health-hub#health" class="back-link" aria-label="Back to your Health Hub">← <span>Health Hub</span></a>
     <a class="research-brand" href="/research" aria-label="DoctorAI logo">
       <img id="research-logo" data-brand-logo src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI logo">
     </a>
-    <a href="/health-hub#today" class="hub-button">Open my hub</a>
+    <a href="/health-hub#health" class="hub-button">Open my hub</a>
   </header>
 
   <main class="research-main">
@@ -55,7 +55,7 @@
     <nav class="research-tabs" aria-label="Research sections" role="tablist">
       <button class="research-tab active" id="tab-highlights" type="button" role="tab" aria-selected="true" aria-controls="research-panel-highlights" data-research-tab="highlights"><span data-doctorai-icon="research" aria-hidden="true"></span> Highlights</button>
       <button class="research-tab" id="tab-explore" type="button" role="tab" aria-selected="false" aria-controls="research-panel-explore" data-research-tab="explore"><span data-doctorai-icon="search" aria-hidden="true"></span> Explore</button>
-      <button class="research-tab" id="tab-discuss" type="button" role="tab" aria-selected="false" aria-controls="research-panel-discuss" data-research-tab="discuss"><span data-doctorai-icon="chat" aria-hidden="true"></span> Discuss</button>
+      <button class="research-tab" id="tab-discuss" type="button" role="tab" aria-selected="false" aria-controls="research-panel-discuss" data-research-tab="discuss"><span data-doctorai-icon="chat" aria-hidden="true"></span> My notes</button>
     </nav>
 
     <section class="research-panel active" id="research-panel-highlights" role="tabpanel" aria-labelledby="tab-highlights" data-research-panel="highlights">
@@ -92,7 +92,7 @@
       <section class="research-community" aria-labelledby="community-title">
         <div class="community-heading"><div><p class="eyebrow">Think it through</p><h2 id="community-title">Your private research notes</h2><p>Turn a paper into a thoughtful question for your care team. These notes stay on this device.</p></div><span class="community-badge">Private notes</span></div>
         <div class="discussion-grid" id="discussion-list"></div>
-        <div class="forum-compose"><div><p class="card-kicker">Start a discussion</p><h3>What would you like to ask?</h3><p class="compose-note">Save a private prompt on this device while shared, moderated community accounts are being connected.</p></div><label for="discussion-title">Discussion title</label><input id="discussion-title" type="text" maxlength="90" placeholder="e.g. What should I ask my clinician about this study?"><label for="discussion-body">Your question or reflection</label><textarea id="discussion-body" rows="3" maxlength="500" placeholder="Keep it general and leave out names or private health details."></textarea><div class="compose-actions"><button type="button" class="primary-discussion-button" id="discussion-post">Save discussion prompt</button><span id="discussion-status" role="status">Private beta — saved on this device.</span></div></div>
+        <div class="forum-compose"><div><p class="card-kicker">Add a private note</p><h3>What would you like to ask?</h3><p class="compose-note">Save a question or reflection in this browser. This is not a public discussion and nothing is sent to other people.</p></div><label for="discussion-title">Note title</label><input id="discussion-title" type="text" maxlength="90" placeholder="e.g. What should I ask my clinician about this study?"><label for="discussion-body">Your question or reflection</label><textarea id="discussion-body" rows="3" maxlength="500" placeholder="Keep it general and leave out names or private health details."></textarea><div class="compose-actions"><button type="button" class="primary-discussion-button" id="discussion-post">Save private note</button><span id="discussion-status" role="status">Private notes — stored in this browser.</span></div></div>
       </section>
     </section>
 
@@ -102,7 +102,7 @@
         <h2>Use research as a conversation starter</h2>
         <p>Open the original paper before drawing conclusions. Research can be early, limited or updated over time.</p>
         <p class="source-note">Primary index: <a href="https://europepmc.org/" target="_blank" rel="noopener">Europe PMC</a>. DoctorAI provides education and organisation—not diagnosis or treatment.</p>
-        <a class="hub-button research-method-cta" href="/health-hub#appointments">Open the free Health Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
+        <a class="hub-button research-method-cta" href="/health-hub#appointments">Open appointments <span data-doctorai-icon="arrow" aria-hidden="true"></span></a>
         <section class="research-share" aria-labelledby="research-share-title">
           <div class="research-share-copy">
             <h3 id="research-share-title">Share this research explorer</h3>
@@ -122,3 +122,4 @@
   <script src="/resource-share.js?v=1"></script>
 </body>
 </html>
+
