@@ -415,6 +415,7 @@
   let cloudSyncDirty = false;
   let cloudSyncRevision = 0;
   let todayFocusSyncPending = false;
+  let todaySuggestionDismissal = null; // Page-session only; contains no health-note text.
   let localStateUpdatedAt = Number(read('updated-at', 0)) || 0;
   let profileShortcutEditing = false;
   let medicationAlertFingerprint = '';
@@ -1229,11 +1230,44 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0] || null;
   }
 
+
+  function currentTodaySuggestion() {
+    if (!currentHealthOwnerReady()) return null;
+    return window.DoctorAITodayDiary?.buildTodaySuggestion?.({
+      ready: true, today: briefLocalDate(new Date()), profile: state.profile,
+      timeline: state.timeline, appointments: state.appointments, tasks: state.tasks
+    }) || null;
+  }
+
+  function renderTodayPersonalization(ready) {
+    const hour = new Date().getHours();
+    const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const personalName = ready ? String(state.profile?.name || authUser?.name || '').trim().split(/\s+/)[0].slice(0, 40) : '';
+    if (els.todayGreeting) els.todayGreeting.textContent = personalName ? `${salutation}, ${personalName}.` : `${salutation}.`;
+    const target = $('#today-goal-suggestion');
+    if (!target) return;
+    target.hidden = true;
+    target.innerHTML = '';
+    if (!ready || currentTodayFocus()) return;
+    const suggestion = currentTodaySuggestion();
+    if (!suggestion) {
+      target.innerHTML = '<p>No saved notes to base a suggestion on yet. Add a note in My Health, or choose your own focus.</p>';
+      target.hidden = false;
+      return;
+    }
+    const day = briefLocalDate(new Date());
+    if (todaySuggestionDismissal?.owner === healthOwnerRevision && todaySuggestionDismissal.day === day && todaySuggestionDismissal.id === suggestion.id) return;
+    const guards = `data-suggestion-owner="${healthOwnerRevision}" data-suggestion-session="${accountSessionRevision}" data-suggestion-id="${escapeHTML(suggestion.id)}"`;
+    target.innerHTML = `<h3>A suggested goal for you</h3><p class="today-suggestion-label">${escapeHTML(suggestion.label)}</p><p class="today-suggestion-reason">${escapeHTML(suggestion.reason)}</p><small>Optional organisation, not medical advice. Review or change it before saving.</small><div class="today-suggestion-actions"><button type="button" class="secondary-button" data-today-suggestion-use ${guards}>Use or edit suggestion</button><button type="button" class="text-button" data-today-suggestion-dismiss ${guards}>Hide for this visit</button></div>`;
+    target.hidden = false;
+  }
+
   function renderCompactToday(statusOnly = false) {
     const loading = !accountSessionReady || accountSessionVerification === 'pending' || Boolean(authUser && accountSyncState === 'checking' && !medicationAccountDataReady);
     const unavailable = accountSessionVerification === 'failed' || Boolean(!loading && accountSessionVerification === 'verified' && !currentHealthOwnerReady()) || Boolean(authUser && (!cloudSyncEnabled || accountSyncState === 'unconfirmed' || accountSyncState === 'unavailable' || (accountSyncState === 'ready' && !medicationAccountDataReady)));
     const view = $('#view-today');
     const availability = loading ? 'loading' : unavailable ? 'unavailable' : 'ready';
+    renderTodayPersonalization(!loading && !unavailable && currentHealthOwnerReady());
     if (statusOnly && view?.dataset.recordsAvailability === availability) return;
     if (view) view.dataset.recordsAvailability = availability;
 
@@ -1283,7 +1317,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderTodayOverview() {
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}.`;
+    renderTodayPersonalization(currentHealthOwnerReady());
     const tracked = currentMedicationRecords().filter(item => item.status === 'taken').length;
     if (els.medOverview) els.medOverview.textContent = currentMedicationRecords().length ? `${tracked} of ${currentMedicationRecords().length} taken` : 'No medicines logged';
     const medOverviewMeta = $('#med-overview-meta');
@@ -2103,6 +2137,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     medicationLoginId = authUser && /^[a-f0-9]{64}$/.test(loginId) ? loginId : '';
     const healthOwnerChanged = activateHealthDataOwner(authUser, localScope, allowGuest);
     if (healthOwnerChanged) {
+      todaySuggestionDismissal = null;
       todayFocusSyncPending = false;
       const focusStatus = $('#today-focus-save-status');
       if (focusStatus) focusStatus.textContent = '';
@@ -2124,7 +2159,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const firstName = displayName.split(/\s+/)[0];
     const hour = new Date().getHours();
     const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    if (els.todayGreeting) els.todayGreeting.textContent = `${salutation}.`;
+    renderTodayPersonalization(currentHealthOwnerReady());
     const accountLink = $('.account-link');
     if (accountLink) {
       accountLink.querySelector('b').textContent = signedIn ? displayName : 'Sign in with Google';
@@ -4471,6 +4506,32 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       // The hash belongs to Hub routing; a skip must preserve the active page.
       focusCurrentViewHeading();
       document.activeElement.scrollIntoView({ block: 'start', behavior: 'auto' });
+      return;
+    }
+
+    const suggestionAction = event.target.closest('[data-today-suggestion-use], [data-today-suggestion-dismiss]');
+    if (suggestionAction) {
+      if (!currentHealthOwnerReady() || suggestionAction.dataset.suggestionOwner !== String(healthOwnerRevision) || suggestionAction.dataset.suggestionSession !== String(accountSessionRevision)) {
+        renderCompactToday(); return;
+      }
+      const suggestion = currentTodaySuggestion();
+      if (!suggestion || suggestion.id !== suggestionAction.dataset.suggestionId) { renderCompactToday(); return; }
+      if (suggestionAction.hasAttribute('data-today-suggestion-dismiss')) {
+        todaySuggestionDismissal = { owner: healthOwnerRevision, day: briefLocalDate(new Date()), id: suggestion.id };
+        renderCompactToday();
+        $('[data-today-focus-open]')?.focus();
+        return;
+      }
+      const form = $('[data-today-focus-form]'), input = $('#today-focus-input');
+      if (!form || !input) return;
+      input.value = suggestion.label;
+      delete form.dataset.editingTaskId;
+      form.dataset.sessionRevision = String(accountSessionRevision);
+      form.dataset.healthOwnerRevision = String(healthOwnerRevision);
+      const status = $('#today-focus-save-status');
+      if (status) status.textContent = 'Review or edit this suggestion, then save only if it suits you.';
+      form.hidden = false;
+      input.focus();
       return;
     }
     const focusOpen = event.target.closest('[data-today-focus-open]');

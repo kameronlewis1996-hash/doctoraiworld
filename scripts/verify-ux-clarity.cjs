@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const read = p => fs.readFileSync(path.join(__dirname,'..',p),'utf8');
-const css = read('welcome-system.css').split('/* UX audit:')[1];
+const css = read('welcome-system.css').split('/* UX audit:')[1].split('/* Personal Today suggestions')[0];
 assert.ok(css, 'scoped UX correction present');
 assert.match(css, /modal-form\[data-modal-form="symptom"\] \.modal-actions\s*\{\s*position: static/);
 assert.match(css, /#modal-body\s*\{[\s\S]*?min-height: 0; overflow-y: auto/);
@@ -18,5 +18,5 @@ assert.equal((guest.match(/data-google-signin/g)||[]).length,1,'one existing Goo
 assert.match(guest,/Continue with Google/);
 assert.match(guest,/without signing in; choose where this browser keeps them/);
 assert.ok(html.includes('data-health-landing-account="signed-in" hidden'));
-assert.match(read('service-worker.js'),/doctorai-shell-v193/);
+assert.match(read('service-worker.js'),/doctorai-shell-v194/);
 console.log('UX clarity source checks passed: normal-flow symptom actions, bounded scroll, narrow tile/menu safeguards, one verified-state Google CTA. Not a rendered phone test.');

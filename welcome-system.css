@@ -430,3 +430,22 @@ body {
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-account { grid-column: 1 / -1; }
   body[data-hub-layout="reference"][data-hub-theme] #storage-consent { padding: 14px 16px; }
 }
+
+/* Personal Today suggestions are local, optional and never a substitute for clinical advice. */
+@media screen {
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion {
+    margin: 16px 0; padding: 16px; border: 1px solid #8db3d5; border-radius: 16px;
+    background: #d9edfab8; color: #153c66; min-width: 0;
+  }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion[hidden] { display: none; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion h3 { margin: 0 0 10px; font-size: 18px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion p { margin: 8px 0; line-height: 1.5; overflow-wrap: anywhere; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-label { font-weight: 700; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-reason { font-size: 14px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-suggestion-actions button { min-height: 44px; white-space: normal; }
+  body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell .health-tool-welcome { margin-top: 24px; }
+}
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-today .today-goal-suggestion { background: Canvas; color: CanvasText; border-color: CanvasText; }
+}

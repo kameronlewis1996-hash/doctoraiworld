@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="/today-records.css?v=2">
   <link rel="stylesheet" href="/hub-category-themes.css?v=6">
   <script defer src="/feature-icons.js?v=9"></script>
-  <link rel="stylesheet" href="/welcome-system.css?v=3">
+  <link rel="stylesheet" href="/welcome-system.css?v=4">
   <link rel="stylesheet" href="/health-tool-landing.css?v=3">
 </head>
 <body data-hub-layout="reference" data-hub-theme="today" data-subscription="free">
@@ -94,12 +94,13 @@
     <div class="storage-consent-actions"><button type="button" class="primary-button" data-device-storage-allow>Keep on this device</button><button type="button" class="secondary-button" data-device-storage-session>Use this session only</button><a href="/privacy">Learn more</a></div>
   </section>
         <section class="view active reference-today" id="view-today" data-view-panel="today" aria-labelledby="today-title">
-  <div class="page-heading reference-intro hub-page-heading"><div class="hub-heading-copy"><p id="today-greeting" class="reference-greeting">Good morning.</p><h1 id="today-title">Today</h1><p class="page-subtitle">A clear place for what you choose to focus on and what is coming up.</p></div></div>
+  <div class="page-heading reference-intro hub-page-heading"><div class="hub-heading-copy"><p id="today-greeting" class="reference-greeting">Good morning.</p><h1 id="today-title">Your Today</h1><p class="page-subtitle">Your saved notes, your next appointment and one focus you choose.</p></div></div>
   <div class="today-record-status" id="today-record-status" role="status" aria-live="polite"><p id="today-record-status-copy">Checking your saved information…</p><button type="button" class="text-button" data-today-retry hidden>Retry loading</button></div>
   <div class="today-focus-layout">
     <section class="today-focus-card" aria-labelledby="today-focus-title">
       <div class="today-focus-card-heading"><p class="today-focus-kicker">Your day</p><h2 id="today-focus-title">One personal focus</h2></div>
       <div class="today-focus-copy" id="today-focus-copy" role="status" aria-live="polite"><p>Checking your saved information…</p></div>
+      <aside class="today-goal-suggestion" id="today-goal-suggestion" aria-label="Optional goal suggestion" hidden></aside>
       <form class="today-focus-form" id="today-focus-form" data-today-focus-form hidden>
         <label for="today-focus-input">What would you like to focus on today?</label>
         <input id="today-focus-input" name="focus" type="text" maxlength="180" autocomplete="off" required aria-describedby="today-focus-help">
@@ -123,7 +124,8 @@
   <nav class="today-more-records" aria-label="Your health records"><span>Detailed records are in My Health:</span><button type="button" class="text-button" data-view="health">My Health</button><button type="button" class="text-button" data-view="medications">Medicines</button><button type="button" class="text-button" data-view="results">Measurements</button><button type="button" class="text-button" data-view="documents">Documents</button></nav>
   <p class="today-compact-boundary">Today reflects details you chose to save. They may be incomplete or out of date. Check important questions with your healthcare professional.</p>
 </section>
-<section class="view" id="view-health" data-view-panel="health" aria-labelledby="health-title" hidden><section class="health-tool-welcome" aria-label="Welcome to your health hub">
+<section class="view" id="view-health" data-view-panel="health" aria-labelledby="health-title" hidden><div class="page-heading health-page-heading hub-page-heading"><div class="health-heading-copy"><p class="eyebrow">Your private health hub</p><h1 id="health-title">My Health</h1><p class="page-subtitle">Conditions, allergies, documents, measurements and health history.</p></div><div class="health-page-actions"><button class="primary-button" type="button" data-view="add"><span data-doctorai-icon="add" aria-hidden="true"></span> Add health details</button></div></div><label class="hub-section-picker">My Health section<select data-hub-section-select aria-label="My Health section"><option value="details">Health details</option><option value="medications">Medication &amp; Prescriptions</option><option value="documents">Documents</option><option value="results">Measurements &amp; results</option><option value="timeline">Health history</option><option value="ask">Ask DoctorAI</option></select></label><nav class="hub-panel-nav" aria-label="My Health sections"><button type="button" data-hub-panel-target="details"><span data-doctorai-icon="health" aria-hidden="true"></span>Health details</button><button type="button" data-hub-panel-target="medications"><span data-doctorai-icon="capsule" aria-hidden="true"></span>Medication &amp; Prescriptions</button><button type="button" data-hub-panel-target="documents"><span data-doctorai-icon="document" aria-hidden="true"></span>Documents</button><button type="button" data-hub-panel-target="results"><span data-doctorai-icon="chart" aria-hidden="true"></span>Measurements</button><button type="button" data-hub-panel-target="timeline"><span data-doctorai-icon="timeline" aria-hidden="true"></span>History</button><button type="button" data-hub-panel-target="ask"><span data-doctorai-icon="chat" aria-hidden="true"></span>Ask DoctorAI</button></nav>
+<section class="health-tool-welcome" aria-label="Welcome to your health hub">
   <img class="health-tool-brand" src="/doctorai-public-logo-transparent.png?v=10" alt="DoctorAI World" width="1535" height="1024">
   <p class="health-tool-tagline">Your health details, together.<br>Ready for your next conversation.</p>
   <div class="health-tool-account" data-health-landing-account="signed-out" hidden>
@@ -135,7 +137,7 @@
     <button type="button" class="secondary-button" data-view="profile">My account</button>
   </div>
   <p class="health-tool-account-state" data-health-landing-status role="status">Checking sign-in…</p>
-</section><div class="page-heading health-page-heading hub-page-heading"><div class="health-heading-copy"><p class="eyebrow">Your private health hub</p><h1 id="health-title">My Health</h1><p class="page-subtitle">Conditions, allergies, documents, measurements and health history.</p></div><div class="health-page-actions"><button class="primary-button" type="button" data-view="add"><span data-doctorai-icon="add" aria-hidden="true"></span> Add health details</button></div></div><label class="hub-section-picker">My Health section<select data-hub-section-select aria-label="My Health section"><option value="details">Health details</option><option value="medications">Medication &amp; Prescriptions</option><option value="documents">Documents</option><option value="results">Measurements &amp; results</option><option value="timeline">Health history</option><option value="ask">Ask DoctorAI</option></select></label><nav class="hub-panel-nav" aria-label="My Health sections"><button type="button" data-hub-panel-target="details"><span data-doctorai-icon="health" aria-hidden="true"></span>Health details</button><button type="button" data-hub-panel-target="medications"><span data-doctorai-icon="capsule" aria-hidden="true"></span>Medication &amp; Prescriptions</button><button type="button" data-hub-panel-target="documents"><span data-doctorai-icon="document" aria-hidden="true"></span>Documents</button><button type="button" data-hub-panel-target="results"><span data-doctorai-icon="chart" aria-hidden="true"></span>Measurements</button><button type="button" data-hub-panel-target="timeline"><span data-doctorai-icon="timeline" aria-hidden="true"></span>History</button><button type="button" data-hub-panel-target="ask"><span data-doctorai-icon="chat" aria-hidden="true"></span>Ask DoctorAI</button></nav><div class="hub-panel" id="hub-panel-details" data-hub-panel="details">
+</section><div class="hub-panel" id="hub-panel-details" data-hub-panel="details">
 
           <section class="care-visit-card" aria-labelledby="health-visit-title"><div><h2 id="health-visit-title">Preparing for an appointment?</h2><p>Choose the saved details and questions to include in your visit brief.</p></div><button class="secondary-button" type="button" data-open-summary>Build my visit brief <span data-doctorai-icon="arrow" aria-hidden="true"></span></button></section>
           <div class="health-overview-grid">
@@ -314,7 +316,7 @@
   <script defer src="/medicine-catalog-search.js?v=2"></script>
   <script defer src="/term-catalogues.js?v=3"></script>
   <script defer src="/term-profile-ui.js?v=1"></script>
-  <script defer src="/today-diary-core.js?v=1"></script>
-  <script defer src="health-hub.js?v=116"></script>
+  <script defer src="/today-diary-core.js?v=2"></script>
+  <script defer src="health-hub.js?v=117"></script>
 </body>
 </html>
