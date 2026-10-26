@@ -41,7 +41,8 @@ for(const cls of ['medication-scan-options','medication-secondary-details','medi
 assert.equal((view.match(/class="primary-button"/g)||[]).length,1,'one primary Add medication action');
 const core=require('../medication-schedule-core.js');let opened=false;
 const panel={innerHTML:'',dataset:{},querySelector:()=>({get open(){return opened;}})};
-const cx=vm.createContext({Set,Date,Intl,window:{DoctorAIMedicationSchedule:core},$:s=>s==='#medication-schedule'?panel:null,currentHealthOwnerReady:()=>true,healthOwnerRevision:1,accountSessionRevision:1,state:{medications:[{id:'synthetic',name:'Synthetic medicine',frequency:'Once daily',startDate:'2026-10-01',time:'08:00'}]},escapeHTML:String});
+class FixtureDate extends Date { constructor(...args) { super(...(args.length ? args : [2026,9,26,12,0,0])); } }
+const cx=vm.createContext({Set,Date:FixtureDate,Intl,window:{DoctorAIMedicationSchedule:core},$:s=>s==='#medication-schedule'?panel:null,currentHealthOwnerReady:()=>true,healthOwnerRevision:1,accountSessionRevision:1,state:{medications:[{id:'synthetic',name:'Synthetic medicine',frequency:'Once daily',startDate:'2026-10-01',time:'08:00'}]},escapeHTML:String});
 vm.runInContext(js.slice(js.indexOf('  let medicationScheduleSelection ='),js.indexOf('  function renderMedicationLibrary()')),cx);
 vm.runInContext('renderMedicationSchedule()',cx);assert.doesNotMatch(panel.innerHTML,/class="medication-calendar-details" open/);
 opened=true;vm.runInContext("medicationScheduleSelection.add('synthetic');medicationScheduleDay='2026-10-27';renderMedicationSchedule()",cx);
