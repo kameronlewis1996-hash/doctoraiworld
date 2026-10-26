@@ -853,11 +853,12 @@
     const breadcrumb = document.getElementById('hub-breadcrumb');
     const parentLink = document.getElementById('hub-parent-link');
     const parentView = next === 'add' ? 'health' : next === 'diary' ? 'visit-prep' : '';
+    const redundantHomeCrumb = (next === 'health' && route.panel === 'details') || next === 'add';
     if (breadcrumb) {
       breadcrumb.hidden = false;
       const homeLink = breadcrumb.querySelector('[data-hub-home]');
-      if (homeLink) homeLink.hidden = next === 'health' && route.panel === 'details';
-      breadcrumb.querySelector('span[aria-hidden]').hidden = next === 'health' && route.panel === 'details';
+      if (homeLink) homeLink.hidden = redundantHomeCrumb;
+      breadcrumb.querySelector('span[aria-hidden]').hidden = redundantHomeCrumb;
     }
     if (parentLink) { parentLink.hidden = !parentView; parentLink.dataset.view = parentView; parentLink.textContent = viewLabels[parentView] || ''; }
     const parentDivider = document.getElementById('hub-parent-divider');
@@ -871,8 +872,12 @@
     else if (!updateHash || location.hash !== canonicalHash) history.replaceState(routeState, '', canonicalHash);
     renderedHubLocation = location.href;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-    if (moveFocus) { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
-    if (name === 'scan') requestAnimationFrame(() => document.querySelector('#view-medications [data-open-medication-scanner]')?.focus({ preventScroll: true }));
+    if (moveFocus && name !== 'scan') { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
+    if (name === 'scan') requestAnimationFrame(() => {
+      const scanOptions = document.querySelector('#view-medications .medication-scan-options');
+      if (scanOptions) scanOptions.open = true;
+      document.querySelector('#view-medications [data-open-medication-scanner]')?.focus();
+    });
     window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
     window.dispatchEvent(new CustomEvent('doctorai:panel-shown', { detail: { view: next, panel: route.panel } }));
   }

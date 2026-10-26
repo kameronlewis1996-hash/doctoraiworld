@@ -183,6 +183,23 @@
     if (dialog && !dialog.open) dialog.showModal();
   };
 
+  const focusNavigationDestination = () => {
+    const hash = window.location.hash.slice(1);
+    const destination = hash ? document.getElementById(hash) : document.querySelector('main h1, h1');
+    const target = destination?.matches?.('h1, h2, h3') ? destination : destination?.querySelector?.('h1, h2, h3') || destination;
+    if (!target) return;
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  };
+
+  const dismissCheckoutOnHistoryNavigation = () => {
+    if (!dialog?.open) return;
+    dialog.close();
+    window.requestAnimationFrame(focusNavigationDestination);
+  };
+  window.addEventListener('popstate', dismissCheckoutOnHistoryNavigation);
+  window.addEventListener('hashchange', dismissCheckoutOnHistoryNavigation);
+
   const activateCode = async (form, status) => {
     const inputs = [...form.querySelectorAll('input')];
     const code = (form.querySelector('[placeholder="Complimentary access code"]') || inputs.at(-1))?.value.trim() || accessCodeFromLink;
