@@ -112,8 +112,8 @@
       const requestId = ++this.requestId; const generation = this.generation;
       const owner = this.context.owner; const signature = this.signature;
       this.abort = new AbortController(); const abort = this.abort; const signal = abort.signal;
-      const keepWarning = loginRefresh && this.view.status === 'complete' && issues(this.view.result).length > 0 && this.now() - this.view.checkedAt < MAX_AGE;
-      this.view.status = 'pending'; if (!keepWarning) { this.view.result = null; this.view.checkedAt = null; }
+      const keepPreviousNotice = loginRefresh && this.view.status === 'complete' && (issues(this.view.result).length > 0 || coverageNotices(this.view.result).length > 0) && this.now() - this.view.checkedAt < MAX_AGE;
+      this.view.status = 'pending'; if (!keepPreviousNotice) { this.view.result = null; this.view.checkedAt = null; }
       this.view.error = ''; this.persist(); this.emit();
       const timer = setTimeout(() => abort.abort(), 20000);
       const operation = (async () => {

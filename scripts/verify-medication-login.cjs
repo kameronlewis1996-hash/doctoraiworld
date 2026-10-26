@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const { Controller, issues } = require('../medication-check-controller.js');
+const { Controller, issues, coverageNotices } = require('../medication-check-controller.js');
 const { review } = require('../server-src/medication/safety-engine.cjs');
 const core = require('../server-src/_lib/doctorai-core.cjs');
 const auth = require('../api/auth/google.js');
@@ -28,7 +28,8 @@ async function settleUntil(condition) { for (let i = 0; i < 100; i++) { if (cond
   const updating = controller.update(next); await settleUntil(() => calls === 2);
   assert.equal(controller.snapshot().status, 'pending'); assert.equal(controller.snapshot().checkedAt, originalTime);
   assert.deepEqual(controller.snapshot().result, previousResult, 'Prior result remains visible while login refresh is pending');
-  assert.ok(issues(controller.snapshot().result).some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'), 'Unassessed medicine-pair coverage remains visible while login refresh is pending');
+  assert.equal(issues(controller.snapshot().result).length, 0, 'Unassessed coverage is not a detected risk');
+  assert.ok(coverageNotices(controller.snapshot().result).some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'), 'Unassessed medicine-pair coverage remains visible while login refresh is pending');
   await controller.update(next); await controller.update(next); assert.equal(calls, 2, 'Repeated auth notifications do not duplicate requests');
   now += 1000; release(); await updating; assert.equal(controller.snapshot().checkedAt, now); assert.equal(controller.snapshot().status, 'complete');
   slow = false; fail = true;
