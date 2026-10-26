@@ -37,7 +37,7 @@ const foreignKey = 'another-app-medications';
 function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConsent = false, confirmed = true, cloudFailure = false } = {}) {
   const memory = new Map([[prefix + 'device-storage-consent', consent], [preferenceKey, '["ask"]'], [foreignKey, 'private-to-another-app']]);
   for (const key of healthKeys) memory.set(key, JSON.stringify({ fictional: key }));
-  const calls = { confirmations: [], statuses: [], toasts: [], fetches: [], close: 0, drafts: 0, chats: 0, consents: [], saves: 0, renders: 0 };
+  const calls = { confirmations: [], statuses: [], toasts: [], fetches: [], focusFrames: [], close: 0, drafts: 0, chats: 0, consents: [], saves: 0, renders: 0 };
   const localStorage = {
     get length() { return memory.size; },
     key(index) { return [...memory.keys()][index] ?? null; },
@@ -60,6 +60,7 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
     cloudSyncDirty: true, cloudSyncRevision: 3, accountSessionRevision: 2,
     authUser: signedIn ? { email: 'fictional@example.invalid', sub: 'fictional-account' } : null,
     storageConsent: { hidden: false },
+    requestAnimationFrame(callback) { calls.focusFrames.push(callback); return calls.focusFrames.length; },
     window: { clearTimeout() {}, confirm(message) { calls.confirmations.push(message); return confirmed; } },
     renderStorageStatus() {}, saveState() { calls.saves++; },
     setSyncStatus(message) { calls.statuses.push(message); },
@@ -108,6 +109,7 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
 
   const session = fixture();
   session.api.setDeviceStorage(false);
+  assert.equal(session.calls.focusFrames.length, 1, 'Closing the visible storage choice schedules focus return.');
   assert.equal(session.calls.confirmations.length, 1, 'Existing saved health records require an explicit removal confirmation.');
   assert.match(session.calls.confirmations[0], /Signed-in account copies remain/, 'The prompt distinguishes browser removal from account deletion.');
   assert.equal(session.memory.get(prefix + 'device-storage-consent'), 'session');

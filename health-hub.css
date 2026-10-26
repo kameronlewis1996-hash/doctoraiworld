@@ -35,6 +35,7 @@ html { min-width: 320px; overflow-x: hidden; scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; min-height: 100vh; overflow-x: hidden; background: var(--paper); color: var(--navy); font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 .storage-consent { position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px clamp(18px,4vw,48px); border-bottom: 1px solid #b8dce9; background: #eaf9fc; color: var(--navy); box-shadow: 0 8px 24px #17355012; }
 .storage-consent[hidden] { display: none; }
+.storage-consent:focus { outline: 3px solid #0759b6; outline-offset: 2px; }
 .storage-consent b { display: block; font-size: 14px; }
 .storage-consent p { max-width: 720px; margin: 4px 0 0; color: #486b80; font-size: 12px; line-height: 1.5; }
 .storage-consent-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -2987,7 +2988,7 @@ body[data-hub-theme="today"] {
     margin-top: 10px;
   }
   #storage-consent .primary-button,
-  #storage-consent .secondary-button { min-height: 42px; padding: 8px; font-size: 11px; }
+  #storage-consent .secondary-button { min-height: 44px; padding: 8px; font-size: 11px; }
   #storage-consent a { grid-column: 1 / -1; padding: 3px; text-align: center; }
 }
 

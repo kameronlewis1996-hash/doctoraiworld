@@ -42,6 +42,12 @@ async function visibleFocus(page) {
 async function ring(page, selector) {
   return page.locator(selector).first().evaluate(e=>{const s=getComputedStyle(e);return {color:s.outlineColor,width:parseFloat(s.outlineWidth),style:s.outlineStyle};});
 }
+function contrastAgainstWhite(color) {
+  const channels = color.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+  if (!channels) return 0;
+  const linear = channels.slice(1).map(Number).map(channel=>{const value=channel/255;return value<=0.04045?value/12.92:((value+0.055)/1.055)**2.4;});
+  return 1.05/(0.2126*linear[0]+0.7152*linear[1]+0.0722*linear[2]+0.05);
+}
 async function keyboardFocus(page, selector) {
   // Arrive by a real backward Tab, including controls initially below the fold.
   await page.locator(selector).first().focus();
@@ -52,16 +58,23 @@ async function keyboardFocus(page, selector) {
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base = 'http://127.0.0.1:'+server.address().port;
-  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const browser = await chromium.launch({...(process.env.PLAYWRIGHT_USE_BUNDLED_BROWSER==='1'?{}:{channel:'msedge'}),headless:true});
   try {
-    for (const width of [1440,390,320]) {
-      const c = await browser.newContext({viewport:{width,height:width>800?1000:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    for (const width of [1440,720,390,320]) {
+      const c = await browser.newContext({viewport:{width,height:width>800?1000:844},deviceScaleFactor:width===720?2:1,reducedMotion:'reduce',serviceWorkers:'block'});
       await c.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==base)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({json:url.pathname==='/api/auth/google'?{authenticated:false}:{active:false,authenticated:false}});return route.continue();});
       await c.addInitScript(()=>localStorage.setItem('doctorai-health-hub-device-storage-consent','yes'));
       const page = await c.newPage();
       page.on('pageerror',e=>report.errors.push(e.message));
       page.on('dialog',d=>d.accept());
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      check(await page.locator('#today-record-status').evaluate(e=>[e.getAttribute('role'),e.getAttribute('aria-live')]),['status','polite'],width+': loading and sync status is announced politely');
+      check(await page.locator('#medication-library').evaluate(e=>e.textContent.includes('No current medicines recorded')),true,width+': first-use medicine list explains its empty state');
+      if(width<=800){
+        check(await page.locator('[data-mobile-menu]').getAttribute('aria-label'),'Open Health Hub menu',width+': mobile menu has a clear accessible name');
+        check(await page.locator('[data-mobile-menu]').evaluate(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;}),true,width+': mobile menu meets the 44px touch target');
+        check(await page.locator('.mobile-bottom-nav-item').evaluateAll(items=>items.length===4&&items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': all four mobile destinations meet 44px touch targets');
+      }
       await page.keyboard.press('Tab');
       check(await page.locator('.skip-link').evaluate(e=>e===document.activeElement),true,width+': skip link is first keyboard stop');
       await page.keyboard.press('Enter');
@@ -71,6 +84,22 @@ async function keyboardFocus(page, selector) {
       await page.keyboard.press('Tab');
       check(await page.locator('.view.active').evaluate(e=>e.contains(document.activeElement)),true,width+': next Tab stays in active content after skip');
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      if (width<=800) {
+        const menu = page.locator('[data-mobile-menu]');
+        await menu.focus();
+        await page.keyboard.press('Enter');
+        check(await menu.getAttribute('aria-expanded'),'true',width+': opening the menu updates its expanded state');
+        check(await menu.getAttribute('aria-label'),'Close Health Hub menu',width+': open menu exposes a close action');
+        await page.waitForFunction(()=>{const current=document.querySelector('#category-bar [aria-current="page"]')||document.querySelector('#category-bar [data-view]');return current===document.activeElement;});
+        check(await page.locator('#category-bar').evaluate(e=>e.contains(document.activeElement)),true,width+': opening the menu moves focus to the current destination');
+        await shot(page,'mobile-menu-keyboard-'+width);
+        await page.keyboard.press('Tab');
+        check(await page.locator('#category-bar').evaluate(e=>e.contains(document.activeElement)),true,width+': Tab advances through menu destinations');
+        await page.keyboard.press('Escape');
+        check(await menu.getAttribute('aria-expanded'),'false',width+': Escape closes the mobile menu');
+        check(await menu.getAttribute('aria-label'),'Open Health Hub menu',width+': closed menu exposes its open action');
+        check(await menu.evaluate(e=>e===document.activeElement),true,width+': Escape restores focus to the menu trigger');
+      }
 
       const add = '#view-medications [data-modal="medication"]';
       await keyboardFocus(page,add);await page.keyboard.press('Enter');
@@ -78,7 +107,7 @@ async function keyboardFocus(page, selector) {
       check(await page.locator('#quick-modal').evaluate(e=>e.contains(document.activeElement)),true,width+': dialog receives focus');
       await keyboardFocus(page,'#quick-modal [data-close-modal]');
       const dialogRing = await ring(page,'#quick-modal [data-close-modal]');
-      check(dialogRing.color,'rgb(7, 89, 182)',width+': dialog focus ring is opaque');
+      check(dialogRing.width>=3 && dialogRing.style==='solid' && contrastAgainstWhite(dialogRing.color)>=3,true,width+': dialog focus ring is visible and high contrast');
       await shot(page,'dialog-focus-'+width);
       const tabSteps = Math.min(30, await page.locator('#quick-modal :is(input, select, textarea, button, a, summary)').count()+1);
       const obscured = [];
@@ -97,8 +126,16 @@ async function keyboardFocus(page, selector) {
       }
       check(obscured,[],width+': dialog Tab traversal never completely obscures a focused control');
       await page.locator('#quick-modal button[type="submit"]').click();
-      check(await page.locator('#quick-modal [name="name"]').evaluate(e=>e===document.activeElement),true,width+': missing required medicine name receives focus');
-      await page.locator('#quick-modal [name="name"]').fill('Synthetic accessibility record');
+      const medicineName = page.locator('#quick-modal [name="name"]');
+      check(await medicineName.evaluate(e=>e===document.activeElement),true,width+': missing required medicine name receives focus');
+      check(await medicineName.getAttribute('aria-invalid'),'true',width+': missing medicine name is announced as invalid');
+      check(await medicineName.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': field description includes its validation error');
+      check(await page.locator('#medication-form-error').getAttribute('role'),'alert',width+': validation error is announced to screen readers');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Medication name is required. Copy it from your label.',width+': validation alert explains the required field');
+      await medicineName.fill('Synthetic accessibility record');
+      check(await medicineName.getAttribute('aria-invalid'),null,width+': editing clears the invalid state');
+      check(await medicineName.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': editing removes the stale field error association');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'',width+': editing clears the stale validation alert');
       await page.locator('#quick-modal [name="dose"]').fill('Fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
@@ -106,9 +143,47 @@ async function keyboardFocus(page, selector) {
       check(await page.locator('#medication-library .library-item-actions button').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': medicine actions have 44px targets');
       if (width<=800) check(await page.locator('#medication-library .library-copy').first().evaluate(e=>e.getBoundingClientRect().width>=180),true,width+': mobile medicine copy has a readable column');
 
+      const reactionAction = page.locator('#medication-library [data-record-medication-reaction]').first();
+      await reactionAction.evaluate(e=>{const details=e.closest('details');if(details)details.open=true;});
+      await keyboardFocus(page,'#medication-library [data-record-medication-reaction]');
+      await page.keyboard.press('Enter');
+      await page.locator('#quick-modal').waitFor({state:'visible'});
+      const reaction = page.locator('#quick-modal [name="reaction"]');
+      const reactionDeclared = page.locator('#quick-modal [name="reactionDeclared"]');
+      await page.locator('#quick-modal button[type="submit"]').click();
+      check(await reaction.getAttribute('aria-invalid'),'true',width+': missing reaction details are marked invalid');
+      check(await reaction.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': reaction field references the announced error');
+      check(await reaction.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-reaction-help')),true,width+': reaction field keeps its original help text');
+      check(await reactionDeclared.getAttribute('aria-invalid'),'true',width+': missing reaction confirmation is marked invalid');
+      check(await reactionDeclared.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': confirmation field references the announced error');
+      check(await page.locator('#medication-form-error').getAttribute('role'),'alert',width+': reaction validation error is announced to screen readers');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Complete each required field before saving.',width+': reaction validation explains what is missing');
+      await reaction.fill('Synthetic observation only');
+      check(await reaction.getAttribute('aria-invalid'),null,width+': editing clears the reaction error state');
+      check(await reaction.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')&&e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-reaction-help')),true,width+': editing removes only the error description');
+      check(await reactionDeclared.getAttribute('aria-invalid'),'true',width+': remaining invalid confirmation stays marked');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'Complete each required field before saving.',width+': remaining invalid field keeps its announcement');
+      check(await reactionDeclared.evaluate(e=>e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': remaining invalid field keeps its error description');
+      await reactionDeclared.check();
+      check(await reactionDeclared.getAttribute('aria-invalid'),null,width+': confirming clears the final invalid state');
+      check(await reactionDeclared.evaluate(e=>!e.getAttribute('aria-describedby')?.split(/\s+/).includes('medication-form-error')),true,width+': confirming removes the final error description');
+      check((await page.locator('#medication-form-error').textContent()).trim(),'',width+': editing clears the reaction validation alert');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      check(await reactionAction.evaluate(e=>e===document.activeElement),true,width+': dismissing reaction entry restores focus to its trigger');
+
       const edit = '#medication-library [data-edit-medication]';
-      await keyboardFocus(page,edit);await page.keyboard.press('Enter');
-      await page.locator('#quick-modal [name="dose"]').fill('Edited fictional strength');
+      await keyboardFocus(page,edit);
+      check(await page.locator(edit).evaluate(e=>e===document.activeElement),true,width+': edit action receives keyboard focus');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(()=>document.querySelector('#quick-modal').open,{timeout:3000});
+      await page.waitForTimeout(100);
+      const editDose = page.locator('#quick-modal [name="dose"]');
+      await editDose.waitFor({state:'visible',timeout:3000});
+      await editDose.focus();
+      await page.keyboard.press('Control+A');
+      await page.keyboard.insertText('Edited fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
       check(await visibleFocus(page),true,width+': edit save restores focus after list rerender');
@@ -122,8 +197,7 @@ async function keyboardFocus(page, selector) {
       await keyboardFocus(page,'#health-memory-toggle');
       const switchRing = await ring(page,'#health-memory-toggle + span');
       await shot(page,'memory-switch-focus-'+width);
-      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch');
-      check(switchRing.width>=3,true,width+': switch focus ring width');
+      check(switchRing.width>=3 && switchRing.style==='solid' && contrastAgainstWhite(switchRing.color)>=3,true,width+': hidden checkbox paints a high-contrast focus ring on the visible switch');
       const switchTarget = await page.locator('#health-memory-toggle').evaluate(e=>{const r=e.closest('label').getBoundingClientRect();return r.width>=44&&r.height>=44;});
       check(switchTarget,true,width+': switch has 44px touch target');
 
@@ -154,7 +228,8 @@ async function keyboardFocus(page, selector) {
 
       await page.goto(base+'/health-hub#ask',{waitUntil:'networkidle'});
       await keyboardFocus(page,'.response-length-picker input:checked');
-      check((await ring(page,'.response-length-picker input:checked + span')).color,'rgb(7, 89, 182)',width+': answer length focus ring is opaque');
+      const answerRing=await ring(page,'.response-length-picker input:checked + span');
+      check(answerRing.width>=3 && answerRing.style==='solid' && contrastAgainstWhite(answerRing.color)>=3,true,width+': answer length focus ring is visible and high contrast');
       check(await page.locator('.response-length-picker label').first().evaluate(e=>e.getBoundingClientRect().height>=44),true,width+': answer length touch target');
       await page.keyboard.press('ArrowRight');
       check(await page.locator('.response-length-picker input[value="detailed"]').isChecked(),true,width+': answer length supports native arrow keys');
@@ -164,7 +239,7 @@ async function keyboardFocus(page, selector) {
       if (width<=800) {await page.locator('.doctorai-site-menu-button').click();await page.keyboard.press('Escape');}
       await keyboardFocus(page,width<=800?'.doctorai-site-menu-button':'.doctorai-site-menu a:first-child');
       const publicRing = await ring(page,width<=800?'.doctorai-site-menu-button':'.doctorai-site-menu a:first-child');
-      check(publicRing.color.startsWith('rgb(') && publicRing.width>=3 && publicRing.style==='solid',true,width+': public navigation has a solid opaque focus ring');
+      check(publicRing.width>=3 && publicRing.style==='solid' && contrastAgainstWhite(publicRing.color)>=3,true,width+': public navigation has a visible high-contrast focus ring');
       await shot(page,'public-navigation-focus-'+width);
       if (width===320) {
         await page.goto(base+'/',{waitUntil:'networkidle'});
@@ -183,6 +258,97 @@ async function keyboardFocus(page, selector) {
       }
       await c.close();
     }
+    const firstUseViewports = [
+      {width:320,height:844,name:'320'},
+      {width:390,height:844,name:'390'},
+      {width:1440,height:1000,name:'desktop'},
+      // A 720 CSS-pixel viewport represents the layout width of a 1440px
+      // desktop viewport at 200% browser zoom; it exercises the same reflow.
+      {width:720,height:500,deviceScaleFactor:2,name:'200-percent-layout'}
+    ];
+    for (const viewport of firstUseViewports) {
+      const context = await browser.newContext({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:viewport.deviceScaleFactor||1,reducedMotion:'reduce',serviceWorkers:'block'});
+      await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==base)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({json:url.pathname==='/api/auth/google'?{authenticated:false}:{active:false,authenticated:false}});return route.continue();});
+      const page = await context.newPage();
+      page.on('pageerror',e=>report.errors.push(e.message));
+      page.on('dialog',d=>d.accept());
+      await page.goto(base+'/health-hub',{waitUntil:'networkidle'});
+      const label = viewport.name==='200-percent-layout'?'200% zoom layout (720 CSS px)':viewport.width+'px';
+      check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,label+': storage choice reflows without horizontal overflow');
+      check(await page.locator('#storage-consent').isVisible(),true,label+': storage choice is visible');
+      check(await page.locator('#storage-consent').evaluate(e=>[e.getAttribute('role'),e.getAttribute('aria-labelledby'),e.getAttribute('aria-describedby'),e.getAttribute('tabindex')]),['dialog','storage-consent-title','storage-consent-description','-1'],label+': choice is a named, described focus target');
+      check(await page.locator('#storage-consent').evaluate(e=>e===document.activeElement),true,label+': focus enters the storage choice when it appears');
+      const consentRing = await ring(page,'#storage-consent');
+      check(contrastAgainstWhite(consentRing.color)>=3,true,label+': focused storage choice has a high-contrast outline');
+      check(consentRing.width>=3 && consentRing.style==='solid',true,label+': storage-choice focus outline is at least 3px and solid');
+      check(await page.locator('#storage-consent [data-device-storage-allow], #storage-consent [data-device-storage-session]').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,label+': both storage choices meet 44px touch targets');
+      await shot(page,'first-use-storage-choice-'+viewport.name);
+      await page.keyboard.press('Tab');
+      check(await page.locator('#storage-consent [data-device-storage-allow]').evaluate(e=>e===document.activeElement),true,label+': Tab reaches the device storage choice');
+      await page.keyboard.press('Tab');
+      check(await page.locator('#storage-consent [data-device-storage-session]').evaluate(e=>e===document.activeElement),true,label+': Tab reaches the session-only choice');
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(()=>document.querySelector('#storage-consent').hidden);
+      await page.waitForFunction(()=>document.querySelector('.view.active > .page-heading h1')===document.activeElement);
+      check(await visibleFocus(page),true,label+': choosing storage returns focus to the active page heading');
+      const headingRing = await ring(page,'.view.active > .page-heading h1');
+      await shot(page,'first-use-heading-focus-'+viewport.name);
+      check(headingRing.width>=3 && headingRing.style==='solid' && contrastAgainstWhite(headingRing.color)>=3,true,label+': restored heading has a high-contrast 3px focus indicator');
+      await page.reload({waitUntil:'networkidle'});
+      check(await page.locator('#storage-consent').isHidden(),true,label+': repeat visit does not reopen the storage choice');
+      await context.close();
+    }
+
+    const interruptedContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    await interruptedContext.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==base)return route.abort();if(url.pathname.startsWith('/api/'))return route.fulfill({json:url.pathname==='/api/auth/google'?{authenticated:false}:{active:false,authenticated:false}});return route.continue();});
+    const interruptedPage = await interruptedContext.newPage();
+    interruptedPage.on('pageerror',e=>report.errors.push(e.message));
+    interruptedPage.on('dialog',d=>d.accept());
+    await interruptedPage.goto(base+'/health-hub#profile',{waitUntil:'networkidle'});
+    check(await interruptedPage.locator('#storage-consent').isVisible(),true,'interrupted first use: storage choice remains available on a deep-linked view');
+    await interruptedPage.keyboard.press('Tab');
+    check(await interruptedPage.locator('#storage-consent [data-device-storage-allow]').evaluate(e=>e===document.activeElement),true,'interrupted first use: keyboard can choose device storage');
+    await interruptedPage.keyboard.press('Enter');
+    await interruptedPage.waitForFunction(()=>document.querySelector('#storage-consent').hidden);
+    await interruptedPage.waitForFunction(()=>document.querySelector('#view-profile > .page-heading h1')===document.activeElement);
+    check(await visibleFocus(interruptedPage),true,'interrupted first use: accepting on a deep link returns focus to the current view');
+    await interruptedContext.close();
+
+    const scannerContext = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce',serviceWorkers:'block'});
+    await scannerContext.route('**/*',route=>{
+      const url=new URL(route.request().url());
+      if(url.origin!==base)return route.abort();
+      if(url.pathname==='/api/auth/google')return route.fulfill({json:{authenticated:true,user:{email:'synthetic@example.invalid',name:'Synthetic Test'}}});
+      if(url.pathname==='/api/stripe/entitlement')return route.fulfill({json:{active:true}});
+      if(url.pathname.startsWith('/api/'))return route.fulfill({json:{active:false,authenticated:true}});
+      return route.continue();
+    });
+    await scannerContext.addInitScript(()=>{
+      localStorage.setItem('doctorai-health-hub-device-storage-consent','yes');
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:()=>Promise.reject(new DOMException('Synthetic camera denial','NotAllowedError'))}});
+    });
+    const scannerPage=await scannerContext.newPage();
+    scannerPage.on('pageerror',e=>report.errors.push(e.message));
+    await scannerPage.goto(base+'/health-hub#today',{waitUntil:'networkidle'});
+    await keyboardFocus(scannerPage,'#view-today [data-open-medication-scanner]');
+    check(await scannerPage.locator('#view-today [data-open-medication-scanner]').evaluate(e=>e===document.activeElement),true,'scanner: keyboard can focus the Today scan action');
+    await scannerPage.keyboard.press('Enter');
+    await scannerPage.waitForFunction(()=>document.querySelector('#medication-scanner-modal')?.open);
+    await scannerPage.waitForFunction(()=>/permission|photo/i.test(document.querySelector('#medication-scanner-status')?.textContent||''));
+    const scannerDialog=scannerPage.locator('#medication-scanner-modal');
+    check(await scannerDialog.evaluate(e=>[e.getAttribute('aria-labelledby'),e.getAttribute('aria-describedby')]),['medication-scanner-title','medication-scanner-intro'],'scanner: dialog has a name and description');
+    check(await scannerDialog.evaluate(e=>e.contains(document.activeElement)),true,'scanner: opening moves keyboard focus into the dialog');
+    check(await scannerPage.locator('[data-medication-image-consent]').isChecked(),false,'scanner: no label-image consent is selected');
+    check(await scannerPage.locator('#medication-scanner-status').textContent().then(text=>/choose a label photo/i.test(text)),true,'scanner: denied camera access explains the photo alternative');
+    const scannerRing=await ring(scannerPage,'#medication-scanner-modal [data-close-medication-scanner]');
+    check(scannerRing.width>=3&&scannerRing.style==='solid'&&contrastAgainstWhite(scannerRing.color)>=3,true,'scanner: close control has a visible high-contrast focus ring');
+    await scannerPage.keyboard.press('Escape');
+    await scannerPage.waitForFunction(()=>!document.querySelector('#medication-scanner-modal').open);
+    await scannerPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    check(await scannerPage.locator('#view-medications [data-open-medication-scanner]').first().evaluate(e=>e===document.activeElement&&!!e.getClientRects().length),true,'scanner: Escape restores focus to the visible scan action after its view change');
+    check(await visibleFocus(scannerPage),true,'scanner: dismissal leaves a visible keyboard focus position');
+    await scannerContext.close();
+
     check(report.errors,[],'No browser exceptions');
   } finally {await browser.close();server.close();if(out)fs.writeFileSync(path.join(out,'accessibility-interactions.json'),JSON.stringify(report,null,2));}
   console.log(JSON.stringify({suite:'accessibility-browser',result:report.failures.length?'baseline defects recorded':'passed',checks:report.checks.length,failures:report.failures,errors:report.errors,screenshots:report.screenshots},null,2));
