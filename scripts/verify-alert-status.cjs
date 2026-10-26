@@ -21,7 +21,7 @@ check('resolved warfarin and ibuprofen remain unassessed and never green', () =>
   assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
   assert.ok(result.alerts.some(alert => alert.ruleId === 'medication-pair-unassessed' && alert.severity === 'unknown'));
   assert.equal(describe(result).level, 'orange');
-  assert.equal(describe(result).title, 'Some medicine pairs not checked');
+  assert.equal(describe(result).title, 'Unable to verify all medicine pairs');
   assert.match(describe(result).note, /1 of 1 saved medicine pair(?:s)?/);
 });
 check('empty records never imply clearance', () => assert.equal(describe(evaluate({})).level, 'neutral'));
@@ -69,7 +69,7 @@ check('both locations update and stale green clears after failure', () => {
   const nodes=Array.from({length:2},()=>({dataset:{},parts:{},querySelector(key){return this.parts[key] ||= {};},setAttribute(key,value){this[key]=value;}}));
   const doc={querySelectorAll:selector=>selector==='[data-alert-summary]'?nodes:[]}; render(known,doc);
   nodes.forEach(n=>assert.equal(n.dataset.alertLevel,'orange'));render(null,doc);
-  nodes.forEach(n=>{assert.equal(n.dataset.alertLevel,'neutral');assert.match(n['aria-label'],/Checks unavailable/);assert.equal(n.parts['[data-alert-symbol]'].textContent,'?');});
+  nodes.forEach(n=>{assert.equal(n.dataset.alertLevel,'neutral');assert.match(n['aria-label'],/Unable to verify/);assert.equal(n.parts['[data-alert-symbol]'].textContent,'?');});
 });
 function presentationDOM() {
   const summaries = Array.from({ length: 2 }, () => ({
@@ -126,9 +126,9 @@ function assertPresentation(dom, result, expectedLevel, expectedTitle) {
 check('alert summary state updates with real current results without changing the shell', () => {
   const dom = presentationDOM();
   assertPresentation(dom, evaluate({}), 'neutral', 'No current medicines');
-  assertPresentation(dom, known, 'orange', 'Some details need review');
+  assertPresentation(dom, known, 'orange', 'Unable to verify everything');
   assertPresentation(dom, evaluate({ medications: [label('war', 'warfarin'), label('sulfa', 'sulfamethoxazole')] }), 'red', 'Contact a professional');
-  assertPresentation(dom, null, 'neutral', 'Checks unavailable');
+  assertPresentation(dom, null, 'neutral', 'Unable to verify');
 });
 check('urgent instructions remain distinguishable and clear when records empty', () => {
   const dom = presentationDOM();
