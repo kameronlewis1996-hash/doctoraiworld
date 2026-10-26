@@ -503,3 +503,24 @@ body {
   }
 }
 @media print { .medication-schedule { break-inside: avoid; } .medication-calendar-controls, .medication-calendar-selection { display: none; } }
+
+/* Deep audit: readable controls and one scroll owner per shared dialog. */
+@media screen {
+  body[data-hub-layout="reference"] :is(#quick-modal, #privacy-modal) :is(button, .modal-field > span),
+  body[data-hub-layout="reference"] #hub-shell :is(.trend-tabs, .measurement-history-actions, .timeline-filters) button,
+  body[data-hub-layout="reference"] #hub-shell :is(.primary-button, .secondary-button, .quiet-button, .text-button),
+  body:is(.appointment-guide, .medication-guide) button {
+    font-size: 14px !important; line-height: 1.45; white-space: normal;
+  }
+  body[data-hub-layout="reference"] :is(#quick-modal, #privacy-modal) button,
+  body[data-hub-layout="reference"] #hub-shell :is(.trend-tabs, .measurement-history-actions, .timeline-filters) button,
+  body:is(.appointment-guide, .medication-guide) button { min-height: 44px; }
+  body[data-hub-layout="reference"] #quick-modal :is(input, select, textarea) { font-size: 16px !important; }
+  body[data-hub-layout="reference"] #privacy-modal .privacy-actions { flex-wrap: wrap; justify-content: flex-start; gap: 12px; }
+  body[data-hub-layout="reference"] #privacy-modal [data-delete-health] {
+    border: 1px solid #9c3244; border-radius: 10px; padding: 10px 14px; background: transparent; color: #81273a;
+  }
+  body #quick-modal #modal-body .personal-overview-sections { max-height: none; overflow: visible; }
+  body #quick-modal #modal-body :is(.personal-overview-modal, .today-dashboard) { min-width: 0; }
+  body #quick-modal #modal-body .modal-actions { position: static; flex-wrap: wrap; }
+}

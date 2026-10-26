@@ -18,6 +18,19 @@
     for(let d=1;d<=end;d++)result.push(localDay(new Date(date.getFullYear(),date.getMonth(),d,12)));
     return result;
   }
+  function navigateDay(day, key) {
+    const date = parseDay(day); if (!date) return null;
+    const offsets = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    if (Object.hasOwn(offsets, key)) date.setDate(date.getDate() + offsets[key]);
+    else if (key === 'Home') date.setDate(1);
+    else if (key === 'End') date.setMonth(date.getMonth() + 1, 0);
+    else if (key === 'PageUp' || key === 'PageDown') {
+      const originalDay = date.getDate(); date.setDate(1);
+      date.setMonth(date.getMonth() + (key === 'PageUp' ? -1 : 1));
+      date.setDate(Math.min(originalDay, new Date(date.getFullYear(), date.getMonth() + 1, 0, 12).getDate()));
+    } else return null;
+    return date.getFullYear() < 1900 || date.getFullYear() > 2200 ? null : localDay(date);
+  }
   function dayPlan(records, selectedIds, day) {
     if(!parseDay(day))return { timed:[], needsReview:[], outside:[] };
     const selected=new Set(selectedIds || []), result={timed:[],needsReview:[],outside:[]};
@@ -43,5 +56,5 @@
     result.timed.sort((a,b)=>a.time.localeCompare(b.time)||a.name.localeCompare(b.name));
     return result;
   }
-  return {parseDay,localDay,monthDays,dayPlan};
+  return {parseDay,localDay,monthDays,navigateDay,dayPlan};
 });

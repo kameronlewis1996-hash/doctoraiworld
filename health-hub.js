@@ -614,6 +614,7 @@
   }
   function renderStorageStatus() {
     renderSessionAvailability();
+    refreshMedicationScheduleAvailability();
     renderCompactToday(true);
     const hasUnassignedRecords = accountSessionVerification === 'verified' && Boolean(authUser) && hasUnassignedLegacyHealthData();
     $$('[data-unassigned-legacy-note]').forEach(note => { note.hidden = !hasUnassignedRecords; });
@@ -915,12 +916,21 @@
   let medicationScheduleSelection = new Set();
   let medicationScheduleDay = '';
   let medicationScheduleOwner = -1;
+  function medicationScheduleAvailabilityKey() {
+    return `${currentHealthOwnerReady()}:${healthOwnerRevision}:${accountSessionRevision}`;
+  }
+  function refreshMedicationScheduleAvailability() {
+    const target = $('#medication-schedule');
+    if (target && target.dataset.calendarAvailability !== medicationScheduleAvailabilityKey()) renderMedicationSchedule();
+  }
   function renderMedicationSchedule() {
     const target = $('#medication-schedule');
     if (!target) return;
-    if (!currentHealthOwnerReady()) { target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>Saved medicine details are hidden until your account and records are ready.</p>'; return; }
+    target.dataset.calendarAvailability = medicationScheduleAvailabilityKey();
+    const liveStatus = $('#medication-schedule-status');
+    if (!currentHealthOwnerReady()) { if (liveStatus) liveStatus.textContent = ''; target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>Saved medicine details are hidden until your account and records are ready.</p>'; return; }
     const core = window.DoctorAIMedicationSchedule;
-    if (!core) { target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>The calendar could not load. Your saved medicine list remains below. Refresh to try again.</p>'; return; }
+    if (!core) { if (liveStatus) liveStatus.textContent = 'Calendar unavailable. Your saved medicine list remains below.'; target.innerHTML = '<h2 id="medication-schedule-title">Your medication calendar</h2><p>The calendar could not load. Your saved medicine list remains below. Refresh to try again.</p>'; return; }
     if (medicationScheduleOwner !== healthOwnerRevision) { medicationScheduleSelection = new Set(); medicationScheduleDay = core.localDay(new Date()); medicationScheduleOwner = healthOwnerRevision; }
     if (!core.parseDay(medicationScheduleDay)) medicationScheduleDay = core.localDay(new Date());
     const selectionOpen = target.querySelector?.('.medication-calendar-selection')?.open ?? true;
@@ -934,13 +944,30 @@
     const month=core.monthDays(day), offset=(core.parseDay(month[0]).getDay()+6)%7;
     const grid=Array.from({length:offset},()=>'<span aria-hidden="true"></span>').join('')+month.map(value=>{
       const count=core.dayPlan(records,[...medicationScheduleSelection],value).timed.length;
-      return `<button type="button" class="medication-calendar-day" data-schedule-day="${value}" ${guards} aria-pressed="${value===day}" aria-label="${value}${count?`, ${count} saved time entries`:''}"><b>${Number(value.slice(-2))}</b>${count?'<span class="calendar-dot" aria-hidden="true"></span>':''}</button>`;
+      return `<button type="button" class="medication-calendar-day" data-schedule-day="${value}" ${guards} aria-pressed="${value===day}" tabindex="${value===day?0:-1}" aria-label="${value}${count?`, ${count} saved time entries`:''}"><b>${Number(value.slice(-2))}</b>${count?'<span class="calendar-dot" aria-hidden="true"></span>':''}</button>`;
     }).join('');
-    const edit = item=>`<button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">Review saved details</button>`;
+    const edit = item=>`<button type="button" class="text-button" data-edit-medication="${escapeHTML(item.id)}">View or edit saved record</button>`;
     const rows=plan.timed.map(item=>`<li><time datetime="${day}T${item.time}">${escapeHTML(item.time)}</time><div><b>${escapeHTML(item.name)}</b><p>${escapeHTML(item.note)}</p>${edit(item)}</div></li>`).join('');
     const review=plan.needsReview.length?`<section class="medication-calendar-review"><h3>Timing not fully recorded</h3>${plan.needsReview.map(item=>`<article><b>${escapeHTML(item.name)}</b><p>${escapeHTML(item.note)}</p>${edit(item)}</article>`).join('')}</section>`:'';
     const outside=plan.outside.length?`<details><summary>Not scheduled on this date (${plan.outside.length})</summary>${plan.outside.map(item=>`<p><b>${escapeHTML(item.name)}</b> — ${escapeHTML(item.note)}</p>`).join('')}</details>`:'';
-    target.innerHTML=`<div class="card-heading"><div><p class="card-kicker">Your saved routine</p><h2 id="medication-schedule-title">Calendar &amp; daily timeline</h2></div></div><p>Choose medicines and a date to review the timing you recorded. This does not recommend when or how much to take.</p>${selection}<div class="medication-calendar-layout"><section aria-label="Medication calendar"><div class="medication-calendar-controls"><button type="button" class="secondary-button" data-schedule-month="-1" ${guards} aria-label="Previous month">‹</button><h3>${escapeHTML(monthLabel)}</h3><button type="button" class="secondary-button" data-schedule-month="1" ${guards} aria-label="Next month">›</button></div><label class="medication-calendar-date">Review date<input type="date" min="1900-01-01" max="2200-12-31" value="${day}" data-schedule-date ${guards}></label><div class="medication-calendar-weekdays" aria-hidden="true">${['M','T','W','T','F','S','S'].map(d=>`<span>${d}</span>`).join('')}</div><div class="medication-calendar-grid">${grid}</div><small>Times use your current device timezone: ${escapeHTML(zone)}. If you travel or the clock changes, confirm your routine with your pharmacist; this calendar does not convert prescription times.</small></section><section aria-label="Selected date timeline"><h3>Saved times · ${escapeHTML(day)}</h3><p class="medication-calendar-boundary">A planned entry is not evidence of a dose taken. Earlier undated taken/missed flags are not shown as daily adherence.</p>${medicationScheduleSelection.size?(rows?`<ol class="medication-day-timeline">${rows}</ol>`:'<p>No complete saved times for the selected medicines on this date.</p>'):'<p>Select a saved medicine to see its recorded times. Nothing is selected automatically.</p>'}${review}${outside}</section></div>`;
+    target.innerHTML=`<div class="card-heading"><div><p class="card-kicker">Your saved routine</p><h2 id="medication-schedule-title">Calendar &amp; daily timeline</h2></div></div><p>Choose medicines and a date to review the timing you recorded. This does not recommend when or how much to take.</p><p class="medication-calendar-boundary">This calendar supports recorded daily times. The editor cannot yet record a weekly weekday or a second daily time; incomplete schedules are labelled below. Keep using your original label or prescription for the complete routine.</p>${selection}<div class="medication-calendar-layout"><section aria-label="Medication calendar"><div class="medication-calendar-controls"><button type="button" class="secondary-button" data-schedule-month="-1" ${guards} aria-label="Previous month">‹</button><h3>${escapeHTML(monthLabel)}</h3><button type="button" class="secondary-button" data-schedule-month="1" ${guards} aria-label="Next month">›</button></div><label class="medication-calendar-date">Review date<input type="date" min="1900-01-01" max="2200-12-31" value="${day}" data-schedule-date ${guards}></label><div class="medication-calendar-weekdays" aria-hidden="true">${['M','T','W','T','F','S','S'].map(d=>`<span>${d}</span>`).join('')}</div><p class="medication-calendar-key-help">Keyboard: arrow keys move days, Home/End move to the month edges, Page Up/Down change month.</p><div class="medication-calendar-grid" aria-label="Choose a date">${grid}</div><small>Times use your current device timezone: ${escapeHTML(zone)}. If you travel or the clock changes, confirm your routine with your pharmacist; this calendar does not convert prescription times.</small></section><section aria-label="Selected date timeline"><h3>Saved times · ${escapeHTML(day)}</h3><p class="medication-calendar-boundary">A planned entry is not evidence of a dose taken. Earlier undated taken/missed flags are not shown as daily adherence.</p>${medicationScheduleSelection.size?(rows?`<ol class="medication-day-timeline">${rows}</ol>`:'<p>No complete saved times for the selected medicines on this date.</p>'):'<p>Select a saved medicine to see its recorded times. Nothing is selected automatically.</p>'}${review}${outside}</section></div>`;
+    if (liveStatus) {
+      const message = `Viewing ${day}: ${plan.timed.length} saved time entries. ${plan.needsReview.length ? 'Some selected records have incomplete timing.' : ''}`.trim();
+      if (liveStatus.textContent !== message) liveStatus.textContent = message;
+    }
+  }
+  function handleMedicationCalendarKeydown(event) {
+    const control = event.target.closest('[data-schedule-day]');
+    if (!control || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(event.key)) return false;
+    event.preventDefault();
+    if (!medicationScheduleActionAllowed(control)) { renderMedicationSchedule(); return true; }
+    const next = window.DoctorAIMedicationSchedule.navigateDay(control.dataset.scheduleDay, event.key);
+    if (next) {
+      medicationScheduleDay = next;
+      renderMedicationSchedule();
+      document.querySelector('[data-schedule-day="' + next + '"]')?.focus({ preventScroll: true });
+    }
+    return true;
   }
   function medicationScheduleActionAllowed(element) {
     return currentHealthOwnerReady() && Number(element.dataset.scheduleOwner) === healthOwnerRevision && Number(element.dataset.scheduleSession) === accountSessionRevision;
@@ -1236,7 +1263,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const today = briefLocalDate(new Date());
     els.taskList.innerHTML = state.tasks.length ? state.tasks.map(task => `<div class="task-row ${task.done ? 'done' : ''}">
       <button class="task-check" type="button" data-task-toggle="${escapeHTML(task.id)}" aria-label="${task.done ? 'Mark task incomplete' : 'Complete task'}">${task.done ? iconMarkup('check', 16) : ''}</button><span><b>${escapeHTML(task.label)}</b><small>${escapeHTML(task.detail)}</small></span><span>${task.done ? 'Done' : briefDate(task.date) ? (briefDate(task.date) === today ? 'Today' : formatShortDate(task.date)) : 'Saved'}</span>
-    </div>`).join('') : '<div class="empty-state">No health tasks yet. Add a small next step when you need one.</div>';
+    </div>`).join('') : '<div class="empty-state">No saved health tasks. Existing tasks are kept here so you can review or mark them complete.</div>';
     const complete = state.tasks.filter(task => task.done).length;
     if (els.taskCount) els.taskCount.textContent = state.tasks.length ? `${complete} of ${state.tasks.length} complete` : 'No tasks yet';
   }
@@ -1616,7 +1643,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   function renderResults() {
     if (!els.resultList) return;
     if (!hasProAccess()) {
-      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and trends. Pro unlocks medical uploads, health photos, AI explanations and permission-based sharing.');
+      els.resultList.innerHTML = proFeatureGate('Results files are a Pro feature.', 'Free includes typed measurements and saved history. Pro adds supported document and health-photo uploads, viewing and downloads. AI conversations are also available in Free.');
       return;
     }
     const results = state.documents.filter(doc => doc.category === 'result');
@@ -2883,12 +2910,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     });
     window.DoctorAIIcons.hydrate(els.modalBody);
     if (!wasOpen) els.modal.showModal();
-    else {
-      // Replacing an open dialog's contents can remove the focused control.
-      els.modal.scrollTop = 0;
-      els.modalTitle.setAttribute('tabindex', '-1');
-      els.modalTitle.focus({ preventScroll: true });
-    }
+    // Each new form starts at its beginning, not the previous tool's scroll position.
+    // The body is the shared scroll owner; reset the outer fallback as well.
+    els.modal.scrollTop = 0;
+    els.modalBody.scrollTop = 0;
+    els.modalTitle.setAttribute('tabindex', '-1');
+    els.modalTitle.focus({ preventScroll: true });
   }
 
   function persistProfileShortcuts() {
@@ -4548,7 +4575,8 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (scheduleControl.dataset.scheduleDay) medicationScheduleDay = scheduleControl.dataset.scheduleDay;
       else { const date = core.parseDay(medicationScheduleDay); date.setDate(1); date.setMonth(date.getMonth() + Number(scheduleControl.dataset.scheduleMonth)); if (date.getFullYear() < 1900 || date.getFullYear() > 2200) return; medicationScheduleDay = core.localDay(date); }
       renderMedicationSchedule();
-      document.querySelector('[data-schedule-day="' + medicationScheduleDay + '"]')?.focus({ preventScroll: true });
+      const focusSelector = scheduleControl.dataset.scheduleMonth ? '[data-schedule-month="' + scheduleControl.dataset.scheduleMonth + '"]' : '[data-schedule-day="' + medicationScheduleDay + '"]';
+      document.querySelector(focusSelector)?.focus({ preventScroll: true });
       return;
     }
 
@@ -5287,6 +5315,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     showView('medications');
   });
   document.addEventListener('keydown', event => {
+    if (handleMedicationCalendarKeydown(event)) return;
     if (event.key === 'Tab' && !els.drawer.hidden && !document.querySelector('dialog[open]')) {
       const panel = els.drawer.querySelector('.drawer-panel');
       const focusable = [...panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(item => item.getClientRects().length && !item.closest('[hidden], [inert]'));

@@ -32,7 +32,7 @@ const html=fs.readFileSync(require.resolve('../health-hub.html'),'utf8');
 const css=fs.readFileSync(require.resolve('../welcome-system.css'),'utf8');
 const start=js.indexOf('  let medicationScheduleSelection =');const end=js.indexOf('  function renderMedicationLibrary()',start);
 assert.ok(start>0&&end>start);
-const target={innerHTML:''};let ready=true;
+const target={innerHTML:'',dataset:{}};let ready=true;
 const ctx=vm.createContext({Set,Date,Intl,window:{DoctorAIMedicationSchedule:core},$:s=>s==='#medication-schedule'?target:null,currentHealthOwnerReady:()=>ready,healthOwnerRevision:1,accountSessionRevision:1,state:{medications:[med]},escapeHTML:s=>String(s).replace(/[<>&"]/g,'')});
 vm.runInContext(js.slice(start,end),ctx);vm.runInContext('renderMedicationSchedule()',ctx);
 assert.match(target.innerHTML,/Nothing is selected automatically/);
@@ -45,7 +45,7 @@ assert.equal(vm.runInContext("medicationScheduleActionAllowed({dataset:{schedule
 assert.doesNotMatch(js.slice(start,end),/fetch\(|localStorage|sessionStorage|saveState\(/);
 assert.match(js,/medicationScheduleSelection = new Set\(\); medicationScheduleDay = ''; medicationScheduleOwner = -1/);
 assert.doesNotMatch(html,/data-view-panel="today"|data-view="today"/);
-assert.match(html,/medication-schedule-core\.js\?v=1/);
+assert.match(html,/medication-schedule-core\.js\?v=2/);
 assert.match(css,/position: fixed; inset: 0 0 auto 0/);assert.match(css,/safe-area-inset-top/);assert.match(css,/padding-top: var\(--doctorai-header-height/);assert.match(css,/max-height: calc\(100dvh - var\(--doctorai-header-height/);
 assert.match(js,/new ResizeObserver\(updateHeaderOffset\)/);
 console.log('Medication calendar passed: explicit local dates/times, no weekly/PRN or second-dose inference, selection IDs, missing/invalid dates, day bounds, leap/DST/local timezone, no adherence inference, owner reset/readiness/stale guard and nonpersistent rendering. Source/VM tests; not phone or clinical validation.');
