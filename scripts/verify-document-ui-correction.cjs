@@ -54,3 +54,5 @@ assert.match(js,/querySelectorAll\('#view-medications details\[open\]'\)/);
 console.log('Medication simplification passed: list-first, one primary action, native collapsed options, repeated open/close, retained day/filter and owner reset; empty calendar hidden. Source/VM, not rendered QA.');
 
 assert.doesNotMatch(js, /previous warning/);assert.match(js, /previous result shown/);
+
+assert.match(css, /\[data-open-medication-scanner\] \{ grid-area: primary/);assert.match(css, /\[data-modal="medication"\] \{ grid-area: manual/);
