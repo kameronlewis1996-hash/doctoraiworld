@@ -11,7 +11,7 @@
       return { level: 'neutral', symbol: '?', title: 'Checks unavailable', note: 'Open Alerts for details. Your records are not cleared.' };
     }
     const alerts = result.alerts;
-    const count = alerts.length;
+    const count = alerts.filter(alert => !['unknown', 'info'].includes(alert?.severity) && alert?.type !== 'interaction-coverage').length;
     const notices = `${count} ${count === 1 ? 'notice' : 'notices'}`;
     const symptomOnly = alerts.length > 0 && alerts.every(alert => Array.isArray(alert?.triggers) && alert.triggers.length && !alert.triggers.some(trigger => trigger.kind === 'medication')) && alerts.some(alert => alert.triggers.some(trigger => trigger.kind === 'symptom'));
     if (alerts.some(alert => ['urgent', 'critical'].includes(alert?.severity))) {
@@ -20,6 +20,7 @@
     if (alerts.some(alert => alert?.severity === 'high')) {
       return { level: 'red', symbol: '!', title: 'Contact a professional', note: `${notices}. Ask a pharmacist or clinician to review.` };
     }
+    if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
     const coverage = result.coverage;
     const medicines = coverage.medications;
     const medicationMedication = coverage.medicationMedication;
@@ -32,9 +33,8 @@
       Array.isArray(medicationMedication.unassessed) && medicationMedication.unassessed.length <= medicationMedication.unassessedPairs &&
       Number.isSafeInteger(medicationMedication.omittedUnassessedPairs) && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length;
     if (validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
-      return { level: 'orange', symbol: '?', title: 'Some medicine pairs not checked', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
+      return { level: 'neutral', symbol: '?', title: 'Some medicine pairs not checked', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
     }
-    if (count) return { level: 'orange', symbol: '!', title: 'Review needed', note: `${notices} in your saved details. Open to review.` };
     const allergies = coverage.allergyMedication;
     const conditions = coverage.conditionMedication;
     const symptoms = coverage.symptoms;
@@ -71,9 +71,9 @@
       symptoms.undated > 0 || symptoms.unmatched.length > 0 || symptoms.omittedByLimit > 0 ||
       results.recorded > 0 ||
       Object.values(coverage).some(part => part && typeof part === 'object' && Number(part.omittedByLimit) > 0);
-    if (outsideChecks) return { level: 'orange', symbol: '?', title: 'Some details need review', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
-    // Green describes only a recognised, fully supplied local medication check, never overall health.
-    return { level: 'green', symbol: '✓', title: 'No flagged notices', note: limited };
+    if (outsideChecks || alerts.length) return { level: 'neutral', symbol: '?', title: 'Coverage is limited', note: medicines.requested > 0 ? `${medicationMedication.ruleCount} pairwise and ${medicationMedication.multiMedicineRuleCount} multi-medicine rule(s) are retained. Medicine interaction coverage is very limited; unmatched pairs are unassessed. No alert does not mean safe. Open Alerts and ask a pharmacist or prescriber to review.` : 'Some entries are missing, uncertain or outside these checks. Open Alerts for details.' };
+    // A quiet summary is not clearance; preserve the limitation even without a risk notice.
+    return { level: 'neutral', symbol: '?', title: 'Limited checks: no flagged notices', note: limited };
   }
   function render(result, documentRoot) {
     const doc = documentRoot || (typeof document !== 'undefined' ? document : null);
@@ -104,3 +104,4 @@
   }
   return Object.freeze({ describe, render });
 });
+

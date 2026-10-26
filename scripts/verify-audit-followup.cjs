@@ -42,7 +42,7 @@ console.log('Audit follow-up: shared modal new/reopen/replacement scroll and hea
  vm.runInContext('renderMedicationSchedule()',c);assert.match(target.innerHTML,/hidden until/);
  const pending=vm.runInContext('loadCloudState()',c);assert.match(target.innerHTML,/hidden until/);
  resolveFetch({ok:true,json:async()=>({state:{medications:[record]},updatedAt:2})});await pending;
- assert.match(target.innerHTML,/Calendar &amp; daily timeline/,'direct entry refreshes after delayed cloud readiness');
+ assert.match(target.innerHTML,/Today's saved times/,'direct entry refreshes after delayed cloud readiness');
  vm.runInContext("medicationScheduleSelection.add('a');renderMedicationSchedule()",c);
  const stableMarkup=target.innerHTML;vm.runInContext("setAccountSyncState('saving');setAccountSyncState('ready')",c);
  assert.equal(target.innerHTML,stableMarkup,'saving status does not replace focused calendar controls');
@@ -52,7 +52,7 @@ console.log('Audit follow-up: shared modal new/reopen/replacement scroll and hea
  c.healthOwnerRevision=2;c.accountSessionRevision=2;c.state.medications=[];c.renderStorageStatus();
  assert.equal(vm.runInContext('medicationScheduleSelection.size',c),0);assert.doesNotMatch(target.innerHTML,/Synthetic record/);
  c.accountSessionReady=false;c.renderStorageStatus();assert.match(target.innerHTML,/hidden until/);
- c.accountSessionReady=true;c.renderStorageStatus();assert.match(target.innerHTML,/No medicines saved/,'guest-ready transition refreshes');
+ c.accountSessionReady=true;c.renderStorageStatus();assert.equal(target.innerHTML,'','guest-ready empty calendar removes redundant panel');assert.equal(target.hidden,true);
  assert.match(js,/renderSessionAvailability\(\);\s*refreshMedicationScheduleAvailability\(\)/,'actual status path invokes calendar refresh');
  console.log('Audit follow-up: actual delayed cloud lifecycle, readiness retry, guest transition, stable saving selection and owner reset passed.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

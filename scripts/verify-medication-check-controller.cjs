@@ -11,7 +11,7 @@ const options={load:()=>saved,save:r=>{saved=clone(r);},remove:()=>{saved=null;}
 let controller=new Controller(options);
 await controller.update(clone(base));assert.equal(calls,0);
 await controller.setConsent(true);assert.equal(calls,0,'Checkbox alone must not send terms');
- await controller.run();assert.equal(calls,1);assert.equal(controller.snapshot().status,'complete');assert.ok(issues(controller.snapshot().result).some(a=>a.ruleId==='medication-pair-unassessed'&&a.severity==='unknown'));
+ await controller.run();assert.equal(calls,1);assert.equal(controller.snapshot().status,'complete');assert.equal(issues(controller.snapshot().result).length,0,'Unassessed coverage is not an interaction warning');assert.ok(controller.snapshot().result.alerts.some(a=>a.ruleId==='medication-pair-unassessed'&&a.severity==='unknown'),'Coverage notice retained');
 await controller.update(clone(base));assert.equal(calls,1,'Opening an unchanged view must reuse the current check');
 assert.ok(!JSON.stringify(saved).includes(base.owner),'Saved metadata must not expose the account identity');
 controller=new Controller(options);await controller.update(clone(base));assert.equal(calls,1,'Reload must restore a current account/profile/input/rules-bound result');
@@ -45,7 +45,7 @@ releases[0]();await old;await duplicate;
 if(mutation==='edit'){assert.equal(racer.snapshot().result.resolved.length,1);assert.equal(issues(racer.snapshot().result).length,0);}else assert.equal(racer.snapshot().result,null);
 }
 const failing=new Controller({request:async()=>{throw new Error('Synthetic unavailable');}});await failing.update({...base,storageAllowed:false});await failing.setConsent(true);await failing.run();assert.equal(failing.snapshot().status,'unavailable');assert.equal(failing.snapshot().result,null);await failing.update({...base,storageAllowed:false});assert.equal(failing.snapshot().status,'unavailable','An unchanged open must not erase the failure or retry repeatedly');
-for(const names of [['ibuprofen','warfarin'],['Nurofen','Marevan']]){const r=review({medications:names});assert.equal(r.status,'unknown');assert.ok(issues(r).some(a=>a.ruleId==='medication-pair-unassessed'&&a.severity==='unknown'));assert.match(r.disclaimer,/does not mean safe/i);}
+for(const names of [['ibuprofen','warfarin'],['Nurofen','Marevan']]){const r=review({medications:names});assert.equal(r.status,'unknown');assert.equal(issues(r).length,0);assert.ok(r.alerts.some(a=>a.ruleId==='medication-pair-unassessed'&&a.severity==='unknown'));assert.match(r.disclaimer,/does not mean safe/i);}
 for(const name of ['fictional unknown medicine','Panadol Extra']){const r=review({medications:[name,'warfarin']});assert.equal(r.status,'unknown');assert.ok(r.coverage.unknown>0);assert.equal(issues(r).length,0);}
 const session=new Controller({...options});await session.update({...base,storageAllowed:false});await session.setConsent(true);await session.run();assert.equal(saved,null,'Device-storage opt-out must not persist results or consent');
 console.log('Medication check controller passed: generic/brand warnings, unknown coverage, explicit consent, activation, change-triggered checks, reload/staleness, Pro/account/profile isolation, revocation, errors, duplicate requests and stale-response races.');

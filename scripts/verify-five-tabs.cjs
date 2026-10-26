@@ -191,7 +191,7 @@ navigationContext.routeNavigate('diary', true, false);
 assert.equal(breadcrumbNodes['hub-parent-link'].textContent, 'Visit Prep', 'Diary and appointments have the requested Visit Prep parent.');
 assert.equal(breadcrumbNodes['hub-parent-link'].dataset.view, 'visit-prep', 'The Diary parent returns to Visit Prep.');
 navigationContext.routeNavigate('medications', true, false);
-assert.equal(breadcrumbNodes['hub-current-location'].textContent, 'Medications & Prescriptions', 'Medicines has a direct main section path.');
+assert.equal(breadcrumbNodes['hub-current-location'].textContent, 'Medication', 'Medicines has a direct main section path.');
 navigationContext.routeNavigate('ask', true, false);
 assert.equal(navigationContext.document.title, 'Ask DoctorAI · DoctorAI Personal Health Hub', 'Ask has a matching document title.');
 const storageStart = js.indexOf('function renderStorageStatus(');
@@ -538,6 +538,6 @@ async function verifySignOutResponseHandling() {
   }
 }
 verifyAccountResponseBoundaries().then(verifyAccountStateIsolation).then(verifySignOutResponseHandling).then(() => {
-console.log('Shared task navigation verified: My Health, Medications & Prescriptions, Visit Prep and Profile; legacy Today redirects and standalone medication aliases; retained diary/appointment routes; privacy, account isolation, consent and clinical alert boundaries.');
+console.log('Shared task navigation verified: My Health, Medication, Visit Prep and Profile; legacy Today redirects and standalone medication aliases; retained diary/appointment routes; privacy, account isolation, consent and clinical alert boundaries.');
 }).catch(error => {console.error(error); process.exitCode=1;});
 

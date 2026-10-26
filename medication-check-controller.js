@@ -7,7 +7,8 @@
   'use strict';
   const MAX_AGE = 24 * 60 * 60 * 1000;
   const digest = async text => Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))), value => value.toString(16).padStart(2, '0')).join('');
-  const issues = result => (result?.alerts || []).filter(alert => ['interaction', 'interaction-coverage', 'allergy', 'contraindication', 'duplicate-ingredient'].includes(alert.type));
+  const issues = result => (result?.alerts || []).filter(alert => ['interaction', 'allergy', 'contraindication', 'duplicate-ingredient'].includes(alert?.type) && !['unknown', 'info'].includes(alert.severity));
+  const coverageNotices = result => (result?.alerts || []).filter(alert => alert?.type === 'interaction-coverage' || ['unknown', 'info'].includes(alert?.severity));
   class Controller {
     constructor({ request, load = () => null, save = () => {}, remove = () => {}, onChange = () => {}, hash = digest, now = Date.now }) {
       Object.assign(this, { request, load, save, remove, onChange, hash, now });
@@ -111,8 +112,8 @@
       const requestId = ++this.requestId; const generation = this.generation;
       const owner = this.context.owner; const signature = this.signature;
       this.abort = new AbortController(); const abort = this.abort; const signal = abort.signal;
-      const keepWarning = loginRefresh && this.view.status === 'complete' && issues(this.view.result).length > 0 && this.now() - this.view.checkedAt < MAX_AGE;
-      this.view.status = 'pending'; if (!keepWarning) { this.view.result = null; this.view.checkedAt = null; }
+      const keepPreviousNotice = loginRefresh && this.view.status === 'complete' && (issues(this.view.result).length > 0 || coverageNotices(this.view.result).length > 0) && this.now() - this.view.checkedAt < MAX_AGE;
+      this.view.status = 'pending'; if (!keepPreviousNotice) { this.view.result = null; this.view.checkedAt = null; }
       this.view.error = ''; this.persist(); this.emit();
       const timer = setTimeout(() => abort.abort(), 20000);
       const operation = (async () => {
@@ -135,5 +136,6 @@
       return operation;
     }
   }
-  return { Controller, issues, MAX_AGE };
+  return { Controller, issues, coverageNotices, MAX_AGE };
 });
+

@@ -34,11 +34,11 @@ function fixture() {
     authUser: userA, accountSessionRevision: 1, medicationScanBusy: false,
     medicationScanController: null, medicationScannerActive: false, medicationScannerStream: null,
     medicationAccountDataReady: true, medicationLoginId: '', accountSessionReady: true,
-    entitlementReady: true, subscriptionTier: 'pro', MAX_SCAN_DATA_URL: 10000,
+    accountSessionVerification: 'checking', entitlementReady: true, subscriptionTier: 'pro', MAX_SCAN_DATA_URL: 10000,
     AbortController,
     window: { isSecureContext: true, setTimeout(fn) { calls.timers.add(fn); return fn; } },
     clearTimeout(timer) { calls.timers.delete(timer); },
-    document: { body: { dataset: {} }, getElementById: () => null }, navigator: { mediaDevices: {} },
+    document: { disclosure: { open: true }, querySelectorAll() { return [this.disclosure]; }, body: { dataset: {} }, getElementById: () => null }, navigator: { mediaDevices: {} },
     els: {
       medicationImageConsent: { checked: true }, medicationCaptureButton: { disabled: false },
       medicationScannerStatus: { textContent: '' },
@@ -48,7 +48,7 @@ function fixture() {
     $: () => null, $$: () => [],
     showToast: text => calls.toasts.push(text), openMedicationModal: value => calls.modals.push(value),
     clearChat() {}, activateHealthDataOwner: () => true, refreshMedicationCheckContext: async () => {},
-    renderAuthStatus() {}, renderStorageStatus() {},
+    renderAuthStatus() {}, renderStorageStatus() {}, renderTodayPersonalization() {}, currentHealthOwnerReady: () => false,
     discardPreparationDrafts() {}, renderAll() {}, setAccountSyncState() {}, setAvatar() {},
     loadCloudState: async () => {}, setSyncStatus() {}, deviceStorageStatus: () => '',
     applyBrandTheme() {}, renderEntitlementStatus() {}, medicationScanAccess: async () => true,
@@ -61,6 +61,7 @@ function fixture() {
 function switchAccount(context, next = userB) {
   context.accountSessionRevision++;
   context.renderAccountSession(next);
+  assert.equal(context.document.disclosure.open, false, 'Owner change closes medication disclosures');
 }
 async function settleUntil(condition) {
   for (let n = 0; n < 100; n++) { if (condition()) return; await Promise.resolve(); }
