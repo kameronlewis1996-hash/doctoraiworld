@@ -273,6 +273,25 @@ async function verifySubscriptionEntitlements() {
     assert.equal(saved[0].entitlement.tier, 'free');
   }
 
+  const staleActiveSubscription = makeSubscription('weekly', { status: 'active' });
+  for (const [type, object] of [
+    ['customer.subscription.updated', staleActiveSubscription],
+    ['checkout.session.completed', {
+      subscription: staleActiveSubscription.id, payment_status: 'paid', metadata: metadata('weekly')
+    }],
+    ['checkout.session.completed', {
+      subscription: staleActiveSubscription, payment_status: 'paid', metadata: metadata('weekly')
+    }]
+  ]) {
+    FakeStripe.subscription = makeSubscription('weekly', { status: 'canceled' });
+    saved.length = 0;
+    FakeStripe.subscriptionRetrievals = [];
+    await deliverWebhook(webhook, { type, data: { object } });
+    assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id]);
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0].entitlement.tier, 'free', `${type} must use current Stripe state when its event snapshot is stale.`);
+  }
+
   for (const [type, status] of [['invoice.payment_failed', 'past_due'], ['customer.subscription.deleted', 'canceled']]) {
     FakeStripe.subscription = makeSubscription('weekly', { status });
     saved.length = 0;
@@ -283,9 +302,10 @@ async function verifySubscriptionEntitlements() {
   }
 
   saved.length = 0;
+  FakeStripe.subscription = makeSubscription('weekly', { metadata: { ...metadata('weekly'), product: 'unrelated' } });
   await deliverWebhook(webhook, {
     type: 'customer.subscription.updated',
-    data: { object: makeSubscription('weekly', { metadata: { ...metadata('weekly'), product: 'unrelated' } }) }
+    data: { object: FakeStripe.subscription }
   });
   assert.equal(saved.length, 0, 'Unrelated Stripe products must not write DoctorAI entitlements.');
 

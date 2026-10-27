@@ -26,13 +26,18 @@ async function recordEntitlementEvent(event, stripe) {
   const checkoutEvent = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type);
   if (event.type === 'checkout.session.completed' && !['paid', 'no_payment_required'].includes(object.payment_status)) return;
   if (event.type === 'checkout.session.async_payment_succeeded' && object.payment_status !== 'paid') return;
-  let subscription = checkoutEvent ? object.subscription : object;
+  let subscriptionId = checkoutEvent
+    ? (typeof object.subscription === 'string' ? object.subscription : object.subscription?.id)
+    : object.id;
   if (event.type.startsWith('invoice.')) {
-    const subscriptionId = invoiceSubscriptionId(object);
+    subscriptionId = invoiceSubscriptionId(object);
     if (!subscriptionId) return;
-    subscription = await stripe.subscriptions.retrieve(subscriptionId);
   }
-  if (typeof subscription === 'string') subscription = await stripe.subscriptions.retrieve(subscription);
+  // Snapshot events can arrive out of order. Resolve the current Stripe state
+  // before writing access so an older active snapshot cannot undo a later
+  // cancellation or payment failure.
+  if (!subscriptionId) return;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   if (!subscription || typeof subscription !== 'object') return;
   const metadata = { ...(object.metadata || {}), ...(subscription.metadata || {}) };
   if (metadata.product !== 'doctorai_pro') return;
