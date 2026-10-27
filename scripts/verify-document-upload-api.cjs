@@ -5,8 +5,8 @@ const vm = require('node:vm');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '..', 'api', 'documents.js'), 'utf8');
 
-async function exercise({ signedIn = true, pro = true, putFails = false, metadataFails = false } = {}) {
-  const calls = [];
+async function exercise({ signedIn = true, pro = true, putFails = false, metadataFails = false, cleanupFails = false } = {}) {
+  const calls = [], logs = [];
   const core = {
     noStore() {}, storageConfigured: () => true, documentStorageConfigured: () => true,
     identityFromRequest: async () => signedIn ? { id: 'synthetic-account' } : null,
@@ -17,9 +17,9 @@ async function exercise({ signedIn = true, pro = true, putFails = false, metadat
   };
   const blob = {
     async put() { calls.push('put'); if (putFails) throw new Error('synthetic blob error'); },
-    async del() { calls.push('cleanup'); }, get() {}
+    async del() { calls.push('cleanup'); if (cleanupFails) throw new Error('synthetic cleanup error'); }, get() {}
   };
-  const sandbox = { module: { exports: {} }, Buffer, Response, require(name) {
+  const sandbox = { module: { exports: {} }, Buffer, Response, console: { error: (...args) => logs.push(args) }, require(name) {
     if (name === '../server-src/_lib/doctorai-core.cjs') return core;
     if (name === '@vercel/blob') return blob;
     return require(name);
@@ -27,7 +27,7 @@ async function exercise({ signedIn = true, pro = true, putFails = false, metadat
   vm.runInNewContext(source, sandbox, { filename: 'documents.js' });
   const response = { setHeader() {}, status(code) { this.code = code; return this; }, json(value) { this.body = value; return this; } };
   await sandbox.module.exports({ method: 'POST', body: { name: 'synthetic.pdf', data: 'data:application/pdf;base64,QQ==' } }, response);
-  return { calls, response };
+  return { calls, response, logs };
 }
 (async () => {
   const anonymous = await exercise({ signedIn: false });
@@ -38,6 +38,16 @@ async function exercise({ signedIn = true, pro = true, putFails = false, metadat
   assert.equal(failedPut.response.code, 503); assert.deepEqual(failedPut.calls, ['put']);
   const failedMetadata = await exercise({ metadataFails: true });
   assert.equal(failedMetadata.response.code, 503); assert.deepEqual(failedMetadata.calls, ['put', 'metadata', 'cleanup']);
+  const failedCleanup = await exercise({ metadataFails: true, cleanupFails: true });
+  assert.equal(failedCleanup.response.code, 503);
+  assert.deepEqual(failedCleanup.calls, ['put', 'metadata', 'cleanup']);
+  assert.equal(failedCleanup.response.body.code, 'document_cleanup_incomplete');
+  assert.match(failedCleanup.response.body.error, /contact support/i);
+  assert.match(failedCleanup.response.body.reference, /^doc-[0-9a-f-]{36}$/);
+  assert.ok(failedCleanup.response.body.error.includes(failedCleanup.response.body.reference), 'the user can provide the reference to support');
+  assert.equal(failedCleanup.logs.length, 1);
+  assert.ok(JSON.stringify(failedCleanup.logs).includes(failedCleanup.response.body.reference));
+  assert.doesNotMatch(JSON.stringify(failedCleanup.logs), /synthetic-account|synthetic\.pdf|synthetic cleanup error/);
   const success = await exercise();
   assert.equal(success.response.code, 201); assert.deepEqual(success.calls, ['put', 'metadata']);
   assert.ok(success.response.body.document.id);

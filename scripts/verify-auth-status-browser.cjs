@@ -131,6 +131,13 @@ async function installApi(page, initial = {}) {
   };
 }
 
+async function waitForGate(promise, name) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`Timed out waiting for synthetic ${name}`)), 12000); timer.unref(); })]);
+  } finally { clearTimeout(timer); }
+}
+
 function todayDate() {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -146,16 +153,50 @@ function syntheticHealthState(label) {
   };
 }
 
-async function waitForTodayRecords(testCase, focusText, appointmentText) {
-  await testCase.page.waitForFunction(({ focusText, appointmentText }) =>
-    document.querySelector('#today-focus-copy')?.textContent.includes(focusText) &&
-    document.querySelector('#today-next-up-copy')?.textContent.includes(appointmentText),
-  { focusText, appointmentText });
+async function waitForHealthRecords(testCase, label) {
+  await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+  await testCase.page.waitForFunction(label => document.querySelector('#conditions-tags')?.textContent.includes(`${label} condition`), label);
 }
 
-async function taskStorageSnapshot(page) {
+async function openStaleHealthEditor(testCase) {
+  await testCase.page.locator('#view-health [data-modal="health"]').first().click();
+  await testCase.page.locator('#quick-modal[open] [data-modal-form="health"]').waitFor({ state: 'visible' });
+  await testCase.page.evaluate(() => {
+    window.__staleHealthForm = document.querySelector('[data-modal-form="health"]');
+    window.__staleHealthForm.elements.notes.value = 'Synthetic unsaved account A note';
+  });
+}
+
+async function assertPrivateSurfaceLocked(testCase) {
+  assert.equal(await testCase.page.locator('#view-stack').isHidden(), true);
+  assert.equal(await testCase.page.locator('#view-stack').evaluate(element => element.inert), true);
+  assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false);
+  assert.equal(await testCase.page.locator('#modal-body').textContent(), '');
+  assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A (?:profile|condition|allergy|medicine)/);
+}
+
+async function tryStaleHealthSubmit(testCase) {
+  const writes = testCase.api.healthStateWriteCount();
+  const before = await privateStorageSnapshot(testCase.page);
+  await testCase.page.evaluate(() => {
+    window.__staleHealthForm.elements.notes.value = 'Synthetic stale note';
+    window.__staleHealthForm.requestSubmit();
+  });
+  assert.deepEqual(await privateStorageSnapshot(testCase.page), before, 'stale form must not change stored profile or task state');
+  assert.equal(testCase.api.healthStateWriteCount(), writes, 'stale form must not write account state');
+}
+
+async function openSavedOverview(testCase) {
+  const nav = testCase.width <= 620 ? '.mobile-bottom-nav-item[data-view="profile"]' : '.primary-nav .nav-item[data-view="profile"]';
+  await testCase.page.locator(nav).click();
+  await testCase.page.locator('#view-profile:not([hidden])').waitFor({ state: 'visible' });
+  await testCase.page.locator('#view-profile [data-open-personal-overview]').click();
+  await testCase.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
+}
+
+async function privateStorageSnapshot(page) {
   return page.evaluate(() => Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index))
-    .filter(key => /doctorai-health-hub-(?:guest|account-.+)-tasks$/.test(key || ''))
+    .filter(key => /doctorai-health-hub-(?:guest|account-.+)-(?:tasks|profile)$/.test(key || ''))
     .sort()
     .map(key => [key, localStorage.getItem(key)]));
 }
@@ -169,7 +210,7 @@ async function createCase(browser, base, options = {}) {
   page.on('pageerror', error => errors.push(error.message));
   const api = await installApi(page, options);
   const initialAuthGate = options.delayInitialAuth ? api.delayNextAuth() : null;
-  await page.goto(`${base}/health-hub.html#today`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${base}/health-hub.html#health`, { waitUntil: 'domcontentloaded' });
   return { context, page, api, errors, width, initialAuthGate };
 }
 
@@ -287,13 +328,15 @@ async function runFunctional(browser, base) {
   const reports = [];
   const firstOpen = await createCase(browser, base, { width: 390, delayInitialAuth: true });
   const { page, api } = firstOpen;
-  await firstOpen.initialAuthGate.started.promise;
+  await waitForGate(firstOpen.initialAuthGate.started.promise, 'firstOpen.initialAuthGate');
   await waitForState(firstOpen, 'checking');
   let metrics = await assertAccessibleStatus(firstOpen, 'checking', 'Checking sign-in');
   assert.equal(metrics.disabled, true);
   assert.match(metrics.liveText, /checking sign-in status/i);
   firstOpen.initialAuthGate.response.resolve();
   await waitForState(firstOpen, 'signed-out');
+  assert.equal(await firstOpen.page.locator('#view-health').isVisible(), true, 'My Health is the default signed-out view');
+  assert.equal(await firstOpen.page.locator('#view-today').count(), 0, 'the retired Today view is absent');
   metrics = await assertAccessibleStatus(firstOpen, 'signed-out', 'Sign in');
   assert.match(metrics.ariaLabel, /sign in with google/i);
   assert.match(metrics.liveText, /signed out/i);
@@ -304,7 +347,7 @@ async function runFunctional(browser, base) {
   await firstOpen.page.waitForFunction(() => typeof window.__syntheticGoogleCallback === 'function');
   const login = api.delayNextLogin();
   await firstOpen.page.evaluate(() => { window.__syntheticGoogleCallback({ credential: 'synthetic-google-credential' }); });
-  await login.started.promise;
+  await waitForGate(login.started.promise, 'login');
   await waitForState(firstOpen, 'checking');
   metrics = await assertAccessibleStatus(firstOpen, 'checking', 'Checking sign-in');
   assert.equal(metrics.disabled, true);
@@ -319,7 +362,7 @@ async function runFunctional(browser, base) {
   assert.match(await firstOpen.page.locator('.drawer-profile').innerText(), /Synthetic Member/);
   const logout = api.delayNextLogout();
   await firstOpen.page.locator('.drawer-signout[data-google-signout]').click();
-  await logout.started.promise;
+  await waitForGate(logout.started.promise, 'logout');
   await waitForState(firstOpen, 'checking');
   metrics = await assertAccessibleStatus(firstOpen, 'checking', 'Checking sign-in');
   assert.equal(metrics.disabled, true);
@@ -365,7 +408,7 @@ async function runVisual(browser, base) {
     await checking.page.locator('#view-medications button[data-modal="medication"]').first().focus();
     const gate = checking.api.delayNextAuth();
     await simulateTabReturn(checking.page);
-    await gate.started.promise;
+    await waitForGate(gate.started.promise, 'gate');
     await waitForState(checking, 'checking');
     const gateMetrics = await checking.page.locator('#session-verification-gate').evaluate(element => {
       const title = element.querySelector('h1');
@@ -425,7 +468,7 @@ async function runVisual(browser, base) {
   await waitForState(checking, 'signed-out');
   const gate = checking.api.delayNextAuth();
   await simulateTabReturn(checking.page);
-  await gate.started.promise;
+  await waitForGate(gate.started.promise, 'gate');
   await waitForState(checking, 'checking');
   const pendingMetrics = await assertAccessibleStatus(checking, 'checking', 'Checking sign-in');
   await checking.page.screenshot({ path: path.join(auditDir, 'final-checking-mobile.png'), fullPage: false });
@@ -459,171 +502,91 @@ async function runVisual(browser, base) {
 
 async function runAdverse(browser, base) {
   const reports = [];
+
   {
-    const accountAState = syntheticHealthState('Synthetic Account A');
-    const accountBState = syntheticHealthState('Synthetic Account B');
-    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: accountAState });
+    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
     await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
-    await testCase.page.locator('[data-today-focus-open]').click();
-    await testCase.page.locator('#today-focus-input').fill('Unsaved focus during delayed logout');
-    const accountATasks = await taskStorageSnapshot(testCase.page);
-
-    await testCase.page.locator('.profile-trigger[data-auth-status-control]').click();
-    await testCase.page.locator('#profile-drawer:not([hidden])').waitFor({ state: 'visible' });
-    assert.equal(await testCase.page.locator('#view-today').isVisible(), true, 'Today remains the active page while the desktop profile drawer is open');
+    await waitForHealthRecords(testCase, 'Synthetic Account A');
+    await openStaleHealthEditor(testCase);
     const logout = testCase.api.delayNextLogout();
-    await testCase.page.locator('.drawer-signout[data-google-signout]').click();
-    await logout.started.promise;
+    // A session change can arrive while a modal is open; trigger the handler without claiming a user-reachable click.
+    await testCase.page.evaluate(() => document.querySelector('.drawer-signout[data-google-signout]').click());
+    await waitForGate(logout.started.promise, 'logout');
     await waitForState(testCase, 'checking');
-    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'logout immediately hides the open focus form');
-    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
-    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
-    assert.match(await testCase.page.locator('#today-next-up-copy').innerText(), /Checking saved appointments/);
-    assert.doesNotMatch(await testCase.page.locator('#today-next-up-copy').innerText(), /Synthetic Account A appointment/);
-    assert.equal(await testCase.page.locator('#view-today [data-open-personal-overview]').isDisabled(), true, 'saved overview is disabled during logout');
-
-    const accountWritesBeforeSubmit = testCase.api.healthStateWriteCount();
-    await testCase.page.evaluate(() => {
-      const form = document.querySelector('#today-focus-form');
-      form.elements.focus.value = 'Injected synthetic focus during delayed logout';
-      form.requestSubmit();
-    });
-    assert.deepEqual(await taskStorageSnapshot(testCase.page), accountATasks, 'a focus submit during logout cannot change account A task storage');
-    assert.equal(testCase.api.healthStateWriteCount(), accountWritesBeforeSubmit, 'a focus submit during logout cannot write account state');
-
-    await testCase.page.evaluate(() => {
-      const button = document.querySelector('#view-today [data-open-personal-overview]');
-      button.disabled = false;
-      button.click();
-    });
-    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'the overview handler refuses an account read during logout');
+    await assertPrivateSurfaceLocked(testCase);
+    await tryStaleHealthSubmit(testCase);
     logout.response.resolve();
     await waitForState(testCase, 'signed-out');
-    await testCase.page.waitForFunction(() => document.querySelector('#today-focus-copy')?.textContent.includes('No focus saved for today') && document.querySelector('#today-next-up-copy')?.textContent.includes('No upcoming appointment saved'));
-    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
-
-    const guestTasks = await taskStorageSnapshot(testCase.page);
-    const guestWritesBeforeSubmit = testCase.api.healthStateWriteCount();
-    await testCase.page.evaluate(() => {
-      const form = document.querySelector('#today-focus-form');
-      form.elements.focus.value = 'Injected stale focus into guest after logout';
-      form.requestSubmit();
-    });
-    assert.deepEqual(await taskStorageSnapshot(testCase.page), guestTasks, 'a stale account A form cannot write into the guest workspace after logout');
-    assert.equal(testCase.api.healthStateWriteCount(), guestWritesBeforeSubmit);
-
-    testCase.api.setHealthState(accountBState);
+    await testCase.page.locator('#view-stack:not([hidden])').waitFor({ state: 'visible' });
+    assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A/);
+    await tryStaleHealthSubmit(testCase);
+    testCase.api.setHealthState(syntheticHealthState('Synthetic Account B'));
     testCase.api.setLoginUser(accountB);
     await testCase.page.locator(activeStatusSelector(testCase.width)).click();
     await testCase.page.locator('#google-signin-modal[open]').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => typeof window.__syntheticGoogleCallback === 'function');
     const login = testCase.api.delayNextLogin();
     await testCase.page.evaluate(() => { window.__syntheticGoogleCallback({ credential: 'synthetic-account-b-credential' }); });
-    await login.started.promise;
-    login.response.resolve();
+    await waitForGate(login.started.promise, 'login'); login.response.resolve();
     await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account B focus', 'Synthetic Account B appointment');
-    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
-    const accountBTasks = await taskStorageSnapshot(testCase.page);
-    const writesBeforeStaleSubmit = testCase.api.healthStateWriteCount();
-    await testCase.page.evaluate(() => {
-      const form = document.querySelector('#today-focus-form');
-      form.elements.focus.value = 'Injected stale focus into account B';
-      form.requestSubmit();
-    });
-    assert.deepEqual(await taskStorageSnapshot(testCase.page), accountBTasks, 'the cleared account A editor cannot write into account B');
-    assert.equal(testCase.api.healthStateWriteCount(), writesBeforeStaleSubmit);
-    reports.push({ case: 'delayed-logout-focus-gate-and-account-a-to-guest-to-b-isolation', result: 'passed' });
+    await waitForHealthRecords(testCase, 'Synthetic Account B');
+    assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A/);
+    await tryStaleHealthSubmit(testCase);
+
+    reports.push({ case: 'delayed-logout-editor-and-account-a-to-guest-to-b-isolation', result: 'passed', logout: 'programmatic handler while modal open' });
     await finish(testCase, reports, 'logout-owner-transition');
   }
   {
-    const accountAState = syntheticHealthState('Synthetic Account A');
-    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: accountAState });
+    const testCase = await createCase(browser, base, { width: 1440, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
     await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
-    await testCase.page.locator('[data-today-focus-open]').click();
-    await testCase.page.locator('#today-focus-input').fill('Unsaved synthetic focus before expiry');
-    const tasksBeforeExpiry = await taskStorageSnapshot(testCase.page);
+    await waitForHealthRecords(testCase, 'Synthetic Account A');
+    await openStaleHealthEditor(testCase);
     testCase.api.setAuth(null);
     const gate = testCase.api.delayNextAuth();
-    await simulateTabReturn(testCase.page);
-    await gate.started.promise;
+    await simulateTabReturn(testCase.page); await waitForGate(gate.started.promise, 'gate');
     await waitForState(testCase, 'checking');
-    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'expired-session revalidation hides and clears the focus editor');
-    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
-    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
-    assert.match(await testCase.page.locator('#today-next-up-copy').innerText(), /Checking saved appointments/);
-    assert.doesNotMatch(await testCase.page.locator('#today-next-up-copy').innerText(), /Synthetic Account A appointment/);
-    const writesBeforeExpirySubmit = testCase.api.healthStateWriteCount();
-    await testCase.page.evaluate(() => {
-      const form = document.querySelector('#today-focus-form');
-      form.elements.focus.value = 'Injected synthetic focus during expiry check';
-      form.requestSubmit();
-    });
-    assert.deepEqual(await taskStorageSnapshot(testCase.page), tasksBeforeExpiry, 'a submit during expiry revalidation cannot change account storage');
-    assert.equal(testCase.api.healthStateWriteCount(), writesBeforeExpirySubmit);
-    const hiddenIdentity = await testCase.page.evaluate(() => ({
-      header: document.querySelector('.hub-topbar').innerText,
-      drawer: document.querySelector('.drawer-profile').innerText,
-      profileName: document.querySelector('#profile-page-name').textContent,
-      greeting: document.querySelector('#today-greeting').textContent
-    }));
+    await assertPrivateSurfaceLocked(testCase);
+    await tryStaleHealthSubmit(testCase);
+    const hiddenIdentity = await testCase.page.evaluate(() => ({ header: document.querySelector('.hub-topbar').innerText, drawer: document.querySelector('.drawer-profile').innerText, profileName: document.querySelector('#profile-page-name').textContent }));
     assert.doesNotMatch(JSON.stringify(hiddenIdentity), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
-    gate.response.resolve();
-    await waitForState(testCase, 'signed-out');
-    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
+    gate.response.resolve(); await waitForState(testCase, 'signed-out');
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
-    reports.push({ case: 'expired-session-tab-return-hides-identity-focus-and-appointment', result: 'passed', duringCheck: hiddenIdentity });
+
+    reports.push({ case: 'expired-session-hides-identity-editor-and-health-records', result: 'passed', duringCheck: hiddenIdentity });
     await finish(testCase, reports, 'expired-session');
   }
   {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
     await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
-    await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await waitForHealthRecords(testCase, 'Synthetic Account A');
+    await testCase.page.locator('.mobile-bottom-nav-item[data-view="medications"]').click();
     await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
-
     testCase.api.setAuth(null);
     const gate = testCase.api.delayNextAuth();
-    await simulateTabReturn(testCase.page);
-    await gate.started.promise;
+    await simulateTabReturn(testCase.page); await waitForGate(gate.started.promise, 'gate');
     await waitForState(testCase, 'checking');
-    assert.doesNotMatch(await testCase.page.locator('#main-content').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/, 'expired-session revalidation hides other saved My Health records while the GET is pending');
-    assert.equal(await testCase.page.locator('#view-stack').isHidden(), true, 'the private record surface is unavailable until session ownership is confirmed');
-    gate.response.resolve();
-    await waitForState(testCase, 'signed-out');
-    await testCase.page.locator('#view-stack').waitFor({ state: 'visible' });
+    await assertPrivateSurfaceLocked(testCase);
+    gate.response.resolve(); await waitForState(testCase, 'signed-out');
+    await testCase.page.locator('#view-stack:not([hidden])').waitFor({ state: 'visible' });
     assert.doesNotMatch(await testCase.page.locator('#main-content').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/);
     reports.push({ case: 'expired-session-hides-all-my-health-records-while-revalidating', result: 'passed' });
     await finish(testCase, reports, 'expired-record-surface');
   }
   {
-    const accountAState = syntheticHealthState('Synthetic Account A');
-    const accountBState = syntheticHealthState('Synthetic Account B');
-    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: accountAState });
-    await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
-    await testCase.page.locator('[data-today-focus-open]').click();
-    await testCase.page.locator('#today-focus-input').fill('Unsaved synthetic focus before account switch');
+    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
+    await waitForState(testCase, 'signed-in'); await waitForHealthRecords(testCase, 'Synthetic Account A');
+    await openStaleHealthEditor(testCase);
     const stale = testCase.api.delayNextAuth();
-    await simulateTabReturn(testCase.page);
-    await stale.started.promise;
-    await waitForState(testCase, 'checking');
-    assert.equal(await testCase.page.locator('#today-focus-form').isHidden(), true, 'account revalidation immediately hides the focus editor');
-    assert.match(await testCase.page.locator('#today-focus-copy').innerText(), /Checking your saved information/);
-    assert.doesNotMatch(await testCase.page.locator('#today-focus-copy').innerText(), /Synthetic Account A focus/);
-    testCase.api.setAuth(accountB);
-    testCase.api.setHealthState(accountBState);
-    await simulateTabReturn(testCase.page);
-    await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account B focus', 'Synthetic Account B appointment');
+    await simulateTabReturn(testCase.page); await waitForGate(stale.started.promise, 'stale');
+    await waitForState(testCase, 'checking'); await assertPrivateSurfaceLocked(testCase);
+    await tryStaleHealthSubmit(testCase);
+    testCase.api.setAuth(accountB); testCase.api.setHealthState(syntheticHealthState('Synthetic Account B'));
+    await simulateTabReturn(testCase.page); await waitForState(testCase, 'signed-in');
+    await waitForHealthRecords(testCase, 'Synthetic Account B');
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /synthetic\.account-a@example\.invalid|Synthetic Account A/);
-    stale.response.resolve();
-    await testCase.page.waitForTimeout(80);
+    await tryStaleHealthSubmit(testCase);
+    stale.response.resolve(); await testCase.page.waitForTimeout(80);
     const metrics = await assertAccessibleStatus(testCase, 'signed-in', 'Signed in');
     assert.doesNotMatch(metrics.headerText, /synthetic\.account-a@example\.invalid|Synthetic Account A/);
     await testCase.page.locator('.mobile-notifications-button').click();
@@ -632,59 +595,33 @@ async function runAdverse(browser, base) {
     await testCase.page.locator('#profile-drawer:not([hidden])').waitFor({ state: 'visible' });
     assert.match(await testCase.page.locator('.drawer-profile').innerText(), /Synthetic Account B/);
     assert.doesNotMatch(await testCase.page.locator('.drawer-profile').innerText(), /Synthetic Account A/);
+
     reports.push({ case: 'account-switch-and-late-prior-session-response', result: 'passed', visibleIdentity: 'synthetic account B only' });
     await finish(testCase, reports, 'account-switch-late-response');
   }
-  {
+  for (const closedFirst of [false, true]) {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
-    await waitForState(testCase, 'signed-in');
-    await waitForTodayRecords(testCase, 'Synthetic Account A focus', 'Synthetic Account A appointment');
-    await testCase.page.locator('#view-today [data-open-personal-overview]').click();
-    await testCase.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
+    await waitForState(testCase, 'signed-in'); await waitForHealthRecords(testCase, 'Synthetic Account A');
+    await openSavedOverview(testCase);
     assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
     assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A appointment/);
-
+    if (closedFirst) {
+      await testCase.page.keyboard.press('Escape');
+      await testCase.page.waitForFunction(() => !document.querySelector('#quick-modal')?.open);
+      assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
+    }
     testCase.api.setAuth(null);
     const gate = testCase.api.delayNextAuth();
-    await simulateTabReturn(testCase.page);
-    await gate.started.promise;
-    await waitForState(testCase, 'checking');
-    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'revalidation closes a saved overview already on screen');
-    assert.equal(await testCase.page.locator('#modal-body').textContent(), '', 'revalidation clears saved overview content from the modal');
-    assert.equal(await testCase.page.locator('#view-today [data-open-personal-overview]').isDisabled(), true);
-    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
-    await testCase.page.evaluate(() => {
-      const button = document.querySelector('#view-today [data-open-personal-overview]');
-      button.disabled = false;
-      button.click();
-    });
-    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'overview handler refuses retained account state during revalidation');
-    gate.response.resolve();
-    await waitForState(testCase, 'signed-out');
-    assert.doesNotMatch(await testCase.page.locator('#view-today').innerText(), /Synthetic Account A/);
-    reports.push({ case: 'held-expiry-revalidation-closes-and-clears-saved-overview', result: 'passed' });
-    await finish(testCase, reports, 'expired-overview-gate');
-  }
-  {
-    const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
-    await waitForState(testCase, 'signed-in');
-    await testCase.page.locator('#view-today [data-open-personal-overview]').click();
-    await testCase.page.locator('#quick-modal[open]').waitFor({ state: 'visible' });
-    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
-    await testCase.page.keyboard.press('Escape');
-    await testCase.page.waitForFunction(() => !document.querySelector('#quick-modal')?.open);
-    assert.match(await testCase.page.locator('#modal-body').innerText(), /Synthetic Account A profile/);
-
-    const gate = testCase.api.delayNextAuth();
-    await simulateTabReturn(testCase.page);
-    await gate.started.promise;
-    await waitForState(testCase, 'checking');
-    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false);
-    assert.equal(await testCase.page.locator('#modal-body').textContent(), '', 'closed-dialog content is cleared from the previous account before revalidation');
-    gate.response.resolve();
-    await waitForState(testCase, 'signed-in');
-    reports.push({ case: 'closed-saved-overview-content-cleared-before-owner-revalidation', result: 'passed' });
-    await finish(testCase, reports, 'closed-overview-gate');
+    await simulateTabReturn(testCase.page); await waitForGate(gate.started.promise, 'gate');
+    await waitForState(testCase, 'checking'); await assertPrivateSurfaceLocked(testCase);
+    const overview = testCase.page.locator('#view-profile [data-open-personal-overview]');
+    assert.equal(await overview.evaluate(button => button.closest('#view-stack').inert), true, 'overview is in the inert private surface');
+    await overview.evaluate(button => { button.disabled = false; button.click(); });
+    assert.equal(await testCase.page.locator('#quick-modal').evaluate(element => element.open), false, 'overview handler refuses account reads during revalidation');
+    gate.response.resolve(); await waitForState(testCase, 'signed-out');
+    assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A/);
+    reports.push({ case: closedFirst ? 'closed-overview-cleared-before-revalidation' : 'open-overview-closed-and-cleared-before-revalidation', result: 'passed' });
+    await finish(testCase, reports, closedFirst ? 'closed-overview-gate' : 'expired-overview-gate');
   }
   {
     const testCase = await createCase(browser, base, { width: 390 });
@@ -702,9 +639,8 @@ async function runAdverse(browser, base) {
   {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
     await waitForState(testCase, 'signed-in');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
     await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('.mobile-bottom-nav-item[data-view="medications"]').click();
     await testCase.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
     testCase.api.failNextAuth();
     await simulateTabReturn(testCase.page);
@@ -728,10 +664,10 @@ async function runAdverse(browser, base) {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true });
     await waitForState(testCase, 'signed-in');
     await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
     await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('.mobile-bottom-nav-item[data-view="medications"]').click();
     await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications .medication-scan-options > summary').click();
     await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
     await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
@@ -740,7 +676,7 @@ async function runAdverse(browser, base) {
     testCase.api.setAuth(null);
     const gate = testCase.api.delayNextAuth();
     await simulateTabReturn(testCase.page);
-    await gate.started.promise;
+    await waitForGate(gate.started.promise, 'gate');
     await waitForState(testCase, 'checking');
     assert.equal(await testCase.page.evaluate(() => document.activeElement === document.querySelector('#session-verification-title')), true, 'focus moves to the session gate after the scanner closes');
     assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'session revalidation closes the camera dialog immediately');
@@ -755,10 +691,10 @@ async function runAdverse(browser, base) {
     const testCase = await createCase(browser, base, { width: 1440, auth: accountA, entitlementActive: true, cameraStub: true });
     await waitForState(testCase, 'signed-in');
     await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
     await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-panel-target="medications"]').click();
+    await testCase.page.locator('.primary-nav .nav-item[data-view="medications"]').click();
     await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications .medication-scan-options > summary').click();
     await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
     await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
@@ -766,7 +702,7 @@ async function runAdverse(browser, base) {
     await testCase.page.evaluate(() => document.querySelector('.profile-trigger[data-auth-status-control]').click());
     await testCase.page.locator('#profile-drawer:not([hidden])').waitFor({ state: 'visible' });
     await testCase.page.evaluate(() => document.querySelector('.drawer-signout[data-google-signout]').click());
-    await logout.started.promise;
+    await waitForGate(logout.started.promise, 'logout');
     await waitForState(testCase, 'checking');
     assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'pending logout closes the camera dialog immediately');
     assert.equal(await testCase.page.evaluate(() => window.__syntheticCameraTrack.readyState), 'ended', 'pending logout stops the active camera stream');
@@ -779,10 +715,10 @@ async function runAdverse(browser, base) {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true });
     await waitForState(testCase, 'signed-in');
     await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
     await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('.mobile-bottom-nav-item[data-view="medications"]').click();
     await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications .medication-scan-options > summary').click();
     await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
     await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Camera ready'));
@@ -790,12 +726,12 @@ async function runAdverse(browser, base) {
     const scanFailed = testCase.page.waitForEvent('requestfailed', request => request.url().includes('/api/medication/scan'));
     await testCase.page.locator('[data-medication-image-consent]').check();
     await testCase.page.locator('[data-medication-capture]').click();
-    await scanGate.started.promise;
+    await waitForGate(scanGate.started.promise, 'scanGate');
 
     testCase.api.setAuth(null);
     const authGate = testCase.api.delayNextAuth();
     await simulateTabReturn(testCase.page);
-    await authGate.started.promise;
+    await waitForGate(authGate.started.promise, 'authGate');
     await waitForState(testCase, 'checking');
     const failedRequest = await scanFailed;
     assert.match(failedRequest.failure()?.errorText || '', /aborted|cancelled/i, 'the pending label extraction request is cancelled during session revalidation');
@@ -810,10 +746,10 @@ async function runAdverse(browser, base) {
     const testCase = await createCase(browser, base, { width: 390, auth: accountA, entitlementActive: true, cameraStub: true, cameraStubDelay: true });
     await waitForState(testCase, 'signed-in');
     await testCase.page.waitForFunction(() => document.body.dataset.subscription === 'pro');
-    await testCase.page.locator('#view-today [data-view="health"]').click();
     await testCase.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
-    await testCase.page.locator('#view-health [data-hub-section-select]').selectOption('medications');
+    await testCase.page.locator('.mobile-bottom-nav-item[data-view="medications"]').click();
     await testCase.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
+    await testCase.page.locator('#view-medications .medication-scan-options > summary').click();
     await testCase.page.locator('#view-medications [data-open-medication-scanner]').first().click();
     await testCase.page.locator('#medication-scanner-modal[open]').waitFor({ state: 'visible' });
     await testCase.page.waitForFunction(() => document.querySelector('#medication-scanner-status')?.textContent.includes('Checking camera access'));
@@ -821,7 +757,7 @@ async function runAdverse(browser, base) {
     testCase.api.setAuth(null);
     const authGate = testCase.api.delayNextAuth();
     await simulateTabReturn(testCase.page);
-    await authGate.started.promise;
+    await waitForGate(authGate.started.promise, 'authGate');
     await waitForState(testCase, 'checking');
     assert.equal(await testCase.page.locator('#medication-scanner-modal').evaluate(element => element.open), false, 'revalidation closes the dialog while camera permission is pending');
     await testCase.page.evaluate(() => window.__releaseSyntheticCamera());

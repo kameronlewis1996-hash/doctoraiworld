@@ -10,7 +10,7 @@ assert.ok(start > 0 && end > start);
 const defer = () => { let resolve, reject; const promise = new Promise((a,b) => { resolve=a; reject=b; }); return { promise, resolve, reject }; };
 const file = { name: 'synthetic.pdf', size: 42 };
 function fixture({ read, response, pro = true } = {}) {
-  const calls = [], toasts = [];
+  const calls = [], toasts = [], dialogs = [];
   const context = vm.createContext({
     healthOwnerRevision: 1, accountSessionRevision: 1, authUser: { email: 'a@example.invalid' }, documentUploadBusy: false,
     currentSessionOwnerVerified: () => true, hasProAccess: () => pro,
@@ -18,12 +18,12 @@ function fixture({ read, response, pro = true } = {}) {
     documentDetails: () => ({ category: 'other', type: 'Medical document' }),
     fileAsDataUrl: () => read ? read.promise : Promise.resolve('data:application/pdf;base64,QQ=='),
     fetch: async () => { calls.push('POST'); return response ? response.promise : { ok: true, json: async () => ({ document: { id: 'synthetic-id' } }) }; },
-    showToast: value => toasts.push(value), openGoogleSignIn() {}, window: { location: {} },
+    showToast: value => toasts.push(value), setModal: (title, eyebrow, body) => dialogs.push({ title, eyebrow, body }), escapeHTML: String, openGoogleSignIn() {}, window: { location: {} },
     state: { documents: [], timeline: [] }, formatFileSize: () => '1 KB', saveState() {},
     renderResults() {}, renderDocuments() {}, renderTimeline() {}, renderActivity() {}, Date, JSON
   });
   vm.runInContext(source.slice(start, end), context);
-  return { context, calls, toasts, upload: () => context.addDocument(file, { owner: context.healthOwnerRevision, session: context.accountSessionRevision }) };
+  return { context, calls, toasts, dialogs, upload: () => context.addDocument(file, { owner: context.healthOwnerRevision, session: context.accountSessionRevision }) };
 }
 (async () => {
   const read = defer(), pendingRead = fixture({ read });
@@ -62,6 +62,14 @@ function fixture({ read, response, pro = true } = {}) {
   await serverError.upload();
   assert.equal(serverError.context.state.documents.length, 0);
   assert.ok(serverError.toasts.includes('Secure document storage is unavailable right now.'));
+
+  const cleanupError = fixture();
+  cleanupError.context.fetch = async () => ({ ok: false, json: async () => ({ code: 'document_cleanup_incomplete', reference: 'doc-12345678-1234-1234-1234-123456789abc', error: 'The upload did not finish and cleanup could not be confirmed.' }) });
+  await cleanupError.upload();
+  assert.equal(cleanupError.context.state.documents.length, 0);
+  assert.equal(cleanupError.dialogs.length, 1, 'cleanup reference must remain visible in a dialog');
+  assert.match(cleanupError.dialogs[0].body, /doc-12345678-1234-1234-1234-123456789abc/);
+  assert.match(cleanupError.dialogs[0].body, /support@doctoraiworld\.com/);
 
   const malformed = fixture();
   malformed.context.fetch = async () => ({ ok: true, json: async () => ({}) });

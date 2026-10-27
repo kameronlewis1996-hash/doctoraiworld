@@ -32,7 +32,8 @@ const server = http.createServer((req,res) => {
       if (pathname === '/api/documents' && req.method() === 'POST') {
         posts++;
         if (posts === 1) { started.resolve(); await pending.promise; return route.fulfill({ status: 201, json: { document: { id: 'synthetic-id', name: 'synthetic.pdf', size: 4 } } }); }
-        return route.fulfill({ status: 503, json: { error: 'Secure document storage is unavailable right now.' } });
+        if (posts === 2) return route.fulfill({ status: 503, json: { error: 'Secure document storage is unavailable right now.' } });
+        return route.fulfill({ status: 503, json: { code: 'document_cleanup_incomplete', reference: 'doc-12345678-1234-1234-1234-123456789abc', error: 'Cleanup could not be confirmed.' } });
       }
       if (pathname === '/api/documents') return route.fulfill({ status: 200, json: { documents: [] } });
       return route.fulfill({ status: 200, json: {} });
@@ -54,7 +55,18 @@ const server = http.createServer((req,res) => {
     await (await secondPicker).setFiles({ name: 'synthetic-retry.pdf', mimeType: 'application/pdf', buffer: Buffer.from('fake') });
     await page.waitForFunction(() => document.querySelector('#toast')?.textContent.includes('Secure document storage is unavailable'));
     assert.equal(posts, 2);
-    console.log('Document upload browser: synthetic Pro picker, duplicate prevention, success and server error passed at 390px.');
+    const thirdPicker = page.waitForEvent('filechooser'); await button.click();
+    await (await thirdPicker).setFiles({ name: 'synthetic-cleanup.pdf', mimeType: 'application/pdf', buffer: Buffer.from('fake') });
+    const dialog = page.locator('#quick-modal[open]');
+    await dialog.waitFor({ state: 'visible' });
+    assert.match(await dialog.innerText(), /doc-12345678-1234-1234-1234-123456789abc/);
+    assert.match(await dialog.innerText(), /support@doctoraiworld\.com/);
+    await page.waitForTimeout(3100);
+    assert.equal(await dialog.isVisible(), true, 'cleanup reference remains available after the toast timeout');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    assert.equal(posts, 3);
+    console.log('Document upload browser: synthetic Pro picker, duplicate prevention, success, server error and persistent cleanup reference passed at 390px.');
     await context.close();
   } finally { await browser.close(); server.close(); }
 })().catch(error => { console.error(error); server.close(); process.exitCode = 1; });

@@ -4101,6 +4101,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       responseReceived = true;
       const payload = await response.json().catch(() => ({}));
       if (!documentCaptureAllowed(captureContext)) return;
+      if (!response.ok && payload.code === 'document_cleanup_incomplete' && /^doc-[0-9a-f-]{36}$/i.test(String(payload.reference || ''))) {
+        setModal('Upload needs attention', 'Private document', `<p class="modal-help">The upload did not finish and cleanup could not be confirmed. Contact <a href="mailto:support@doctoraiworld.com">support@doctoraiworld.com</a> with this reference:</p><p class="modal-help"><strong>${escapeHTML(payload.reference)}</strong></p><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Close</button></div>`);
+        return;
+      }
       if (!response.ok) throw new Error(payload.error || 'Secure document storage is unavailable right now.');
       const saved = payload.document || {};
       if (typeof saved.id !== 'string' || !saved.id) throw new Error('Upload could not be confirmed. Check your document library before trying again.');
