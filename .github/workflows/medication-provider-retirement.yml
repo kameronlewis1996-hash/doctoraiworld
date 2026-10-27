@@ -6,6 +6,7 @@ on:
       - 'api/medication/**'
       - 'api/auth/google.js'
       - 'api/health/state.js'
+      - 'api/documents.js'
       - 'server-src/_lib/doctorai-core.cjs'
       - 'data/medication/**'
       - 'docs/nz-medication-database.md'
@@ -31,6 +32,7 @@ on:
       - 'scripts/verify-server-core.js'
       - 'scripts/verify-health-state-contract.cjs'
       - 'scripts/verify-record-preparation.cjs'
+      - 'scripts/verify-document-delete.cjs'
       - '.github/workflows/medication-provider-retirement.yml'
       - 'scripts/csp-hashes.js'
       - 'service-worker.js'
@@ -78,6 +80,7 @@ jobs:
           node scripts/verify-medication-catalog-search.cjs
           node scripts/verify-five-tabs.cjs
           node scripts/verify-record-preparation.cjs
+          node scripts/verify-document-delete.cjs
       - name: Run local medication and scan regressions
         run: |
           node scripts/verify-medication-safety.js

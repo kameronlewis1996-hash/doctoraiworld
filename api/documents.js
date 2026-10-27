@@ -138,7 +138,8 @@ module.exports = async function handler(request, response) {
       if (!id) return response.status(400).json({ error: 'Choose a document to delete.' });
       const document = await core.readDocumentMetadata(account, id);
       if (!document?.blobPath) return response.status(404).json({ error: 'This private document could not be found.' });
-      await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
+      // Keep the index entry when storage deletion fails so the user can retry.
+      await del(document.blobPath, { token: core.documentStorageToken() });
       await core.deleteDocumentMetadata(account, id);
       return response.status(200).json({ ok: true, id });
     }
