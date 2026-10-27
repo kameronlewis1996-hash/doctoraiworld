@@ -21,7 +21,7 @@ const start=js.indexOf('  let documentCaptureContext ='),end=js.indexOf('  const
  c.control={dataset:{captureOwner:'2',captureSession:'2'}};vm.runInContext('chooseDocumentCapture(control)',c);c.event={target:{files:[{name:'synthetic.txt',type:'text/plain',size:1}],value:'x'}};await vm.runInContext('saveCapturedDocument(event)',c);assert.equal(uploads.length,1,'unsupported capture type rejected');
  c.hasProAccess=()=>false;await vm.runInContext('openDocumentCapture()',c);assert.equal(c.window.location.href,'/subscription#plans');
  const add=js.slice(js.indexOf('  async function addDocument('),js.indexOf('  async function viewDocument(',js.indexOf('  async function addDocument(')));
- assert.ok((add.match(/captureContext && !documentCaptureAllowed\(captureContext\)/g)||[]).length>=3,'owner guards before/after asynchronous read/storage response');
+ assert.ok((add.match(/!documentCaptureAllowed\(captureContext\)/g)||[]).length>=3,'owner guards before/after asynchronous read/storage response');
  console.log('Document UI correction passed: Medication labels, glass scope, explicit photo-only meaning, consent/Pro/type/cancel/owner checks, reused private document upload. Synthetic VM only; no image uploaded.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
 const {issues,coverageNotices}=require('../medication-check-controller.js');

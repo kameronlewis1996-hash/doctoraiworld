@@ -33,6 +33,9 @@ on:
       - 'scripts/verify-health-state-contract.cjs'
       - 'scripts/verify-record-preparation.cjs'
       - 'scripts/verify-document-delete.cjs'
+      - 'scripts/verify-document-ui-correction.cjs'
+      - 'scripts/verify-document-upload-races.cjs'
+      - 'scripts/verify-document-upload-api.cjs'
       - '.github/workflows/medication-provider-retirement.yml'
       - 'scripts/csp-hashes.js'
       - 'service-worker.js'
@@ -81,6 +84,9 @@ jobs:
           node scripts/verify-five-tabs.cjs
           node scripts/verify-record-preparation.cjs
           node scripts/verify-document-delete.cjs
+          node scripts/verify-document-ui-correction.cjs
+          node scripts/verify-document-upload-races.cjs
+          node scripts/verify-document-upload-api.cjs
       - name: Run local medication and scan regressions
         run: |
           node scripts/verify-medication-safety.js
