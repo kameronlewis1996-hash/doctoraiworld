@@ -1,9 +1,10 @@
 'use strict';
-// Fictional, signed-out records only. This test never reads a real health profile.
+// Fictional guest records and a mocked Pro account only. This test never reads a real health profile.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
+const { createHash } = require('node:crypto');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const medicationCore = require('../server-src/_lib/doctorai-core.cjs');
@@ -67,8 +68,11 @@ async function verifyRouteColorIdentity(browser, base, width) {
   const context = await contextFor(browser, base, width, []);
   const page = await context.newPage();
   page.on('pageerror', error => report.errors.push(error.message));
+  await page.goto(base + '/health-hub#today', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.body.dataset.hubTheme === 'health');
+  check(await page.locator('#view-health').isVisible(), width + ': legacy Today opens My Health');
   const fixtures = [
-    { route: 'today', accent: '#0759b6', surface: '#e8f2ff', nav: 'today' },
+    { route: 'medications', accent: '#0759b6', surface: '#e8f2ff', nav: 'medications' },
     { route: 'health', accent: '#0759b6', surface: '#e8f2ff', nav: 'health' },
     { route: 'visit-prep', accent: '#0759b6', surface: '#e8f2ff', nav: 'visit-prep' },
     { route: 'profile', accent: '#0759b6', surface: '#e8f2ff', nav: 'profile' }
@@ -105,7 +109,7 @@ async function verifyRouteColorIdentity(browser, base, width) {
       check(colors.tabColor === rgb(fixture.accent), width + ': ' + fixture.route + ' tab text matches its page accent');
       check(colors.tabSurface === rgb(fixture.surface), width + ': ' + fixture.route + ' selected tab surface matches its page');
     }
-    if (fixture.route === 'health') check(colors.sectionTabColor === rgb(fixture.accent), width + ': My Health section control matches the shared brand accent');
+    if (fixture.route === 'health') check(await page.locator('#view-health').isVisible(), width + ': My Health is the visible main page');
     check(colors.headingAccent === rgb(fixture.accent), width + ': ' + fixture.route + ' page heading matches its category accent');
     if (fixture.route === 'visit-prep' && width <= 800) {
       await page.evaluate(() => document.querySelector('#view-visit-prep .reference-visit-actions .text-button')?.scrollIntoView({ block: 'end' }));
@@ -175,14 +179,15 @@ async function contextFor(browser, base, width, medications, options = {}) {
     } });
     return route.continue();
   });
-  await context.addInitScript(({ items, profile }) => {
+  const scope = options.proAccount ? 'account-' + createHash('sha256').update('doctorai:health-hub-local:v1:fixture@example.invalid').digest('hex') : 'guest';
+  await context.addInitScript(({ items, profile, scope }) => {
     if (sessionStorage.getItem('fictional-compact-seeded')) return;
     sessionStorage.setItem('fictional-compact-seeded', 'yes');
     const prefix = 'doctorai-health-hub-';
     localStorage.setItem(prefix + 'device-storage-consent', 'yes');
-    localStorage.setItem(prefix + 'medications', JSON.stringify(items));
-    if (profile) localStorage.setItem(prefix + 'profile', JSON.stringify(profile));
-  }, { items: medications, profile: options.profile });
+    localStorage.setItem(prefix + scope + '-medications', JSON.stringify(items));
+    if (profile) localStorage.setItem(prefix + scope + '-profile', JSON.stringify(profile));
+  }, { items: medications, profile: options.profile, scope });
   return context;
 }
 
@@ -192,6 +197,7 @@ async function verifySavedRows(browser, base, width) {
   page.on('pageerror', error => report.errors.push(error.message));
   await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
   const rows = page.locator('#medication-library > .library-item-wrap');
+  await page.waitForFunction(() => document.querySelectorAll('#medication-library > .library-item-wrap').length === 2);
   check(await rows.count() === 2, width + ': both fictional current medicines are present');
   const first = rows.first();
   const mainText = await first.locator('.library-item').innerText();
@@ -202,7 +208,7 @@ async function verifySavedRows(browser, base, width) {
   const warning = first.locator('.medication-safety-alerts');
   check(await warning.isVisible(), width + ': possible duplicate warning remains visible beside the medicine');
   const visibleWarningText = await warning.innerText();
-  check(/possible.*duplicate/i.test(visibleWarningText) && /pharmacist|clinician/i.test(visibleWarningText), width + ': warning title and next step remain visible without expanding details');
+  check(/Similar saved names \(not a verified duplicate\)/i.test(visibleWarningText) && /Possible repeated label ingredient \(not database checked\)/i.test(visibleWarningText) && /pharmacist|clinician/i.test(visibleWarningText), width + ': distinct unverified name and confirmed-label text notices and professional next step remain visible');
   check(!(await warning.locator('details').first().evaluate(element => element.open)), width + ': longer caution explanation starts collapsed');
   await screenshot(page, 'medication-list-compact-' + width + '.png');
   const rowShot = path.join(out, 'medication-row-warning-' + width + '.png');
@@ -219,20 +225,21 @@ async function verifySavedRows(browser, base, width) {
   check(await editForm.locator('[name="instructions"]').inputValue() === fictionalMedications[0].instructions, width + ': editing opens the original legacy instructions verbatim');
   await editForm.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  const savedLegacyInstructions = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications')).find(item => item.id === 'fictional-one')?.instructions);
+  const savedLegacyInstructions = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications')).find(item => item.id === 'fictional-one')?.instructions);
   check(savedLegacyInstructions === fictionalMedications[0].instructions, width + ': saving an unchanged edit preserves legacy instructions exactly');
 
-  // The detailed reminder disclosure lives under My Health; the compact Today
-  // panel is a separate summary of the same saved records.
+  // The reminder disclosure lives under My Health and summarizes the same saved records.
   await page.goto(base + '/health-hub#health', { waitUntil: 'networkidle' });
   const reminders = page.locator('.health-reminders-disclosure');
-  await reminders.locator(':scope > summary').click();
+  await reminders.locator(':scope > summary').evaluate(element => element.scrollIntoView({ block: 'center' }));
+  if (width <= 800) check(await reminders.locator(':scope > summary').evaluate(element => element.getBoundingClientRect().bottom <= document.querySelector('.mobile-bottom-nav').getBoundingClientRect().top), width + ': reminder disclosure can scroll clear of fixed navigation');
+  await reminders.locator(':scope > summary').click({timeout:5000});
   const todayRows = page.locator('#today-medication-list .medication-row-wrap');
-  check(await todayRows.count() === 2, width + ': Today still lists the two saved medicines');
+  check(await todayRows.count() === 2, width + ': My Health reminders list the two saved medicines');
   const statuses = await todayRows.locator('.medication-status').allInnerTexts();
   check(statuses.every(value => !/^Due\s*$/i.test(value)), width + ': absent times are not presented as a due reminder');
   check(await todayRows.locator('[data-med-missed]').count() === 0, width + ': unscheduled medicines cannot be marked missed from a guessed reminder');
-  await noOverflow(page, width + ' Today reminders');
+  await noOverflow(page, width + ' My Health reminders');
   await context.close();
 }
 
@@ -266,7 +273,7 @@ async function verifyFormJourney(browser, base, width) {
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   check(await page.locator('#medication-library .library-item-wrap').count() === 1 && /Strength not recorded/i.test(await page.locator('#medication-library .library-item').innerText()), width + ': name-only entry saves with product strength explicitly not recorded');
-  const nameOnlyMedication = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  const nameOnlyMedication = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(nameOnlyMedication.name === 'Fictional custom medicine' && !nameOnlyMedication.dose && !nameOnlyMedication.doseAmount && !nameOnlyMedication.doseUnit && !nameOnlyMedication.time, width + ': saving a name alone does not invent product strength, amount or schedule');
   check(nameOnlyMedication.instructions === '', width + ': blank new instructions remain exactly empty without invented directions');
   await page.locator('#medication-library [data-edit-medication]').click();
@@ -344,7 +351,7 @@ async function verifyFormJourney(browser, base, width) {
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
   await page.waitForFunction(() => document.querySelector('#medications-count')?.textContent === '1 current');
   check(/Fictional custom medicine/.test(await page.locator('#medication-library').innerText()) && /Amount per dose recorded: 1\.5 sachets/.test(await page.locator('#medication-library').innerText()), width + ': custom entry and separately recorded amount save without a catalogue match');
-  const amountSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  const amountSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(amountSaved.doseAmount === '1.5' && amountSaved.doseUnit === 'sachets' && amountSaved.dose === '10 mg per tablet, copied from fictional label', width + ': pack strength and user-recorded amount remain separate fields');
   await noOverflow(page, width + ' after add');
   await screenshot(page, 'medication-added-' + width + '.png');
@@ -366,7 +373,7 @@ async function verifyFormJourney(browser, base, width) {
 }
 
 async function savedProfile(page) {
-  return page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-profile') || '{}'));
+  return page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-profile') || '{}'));
 }
 
 async function verifyPossibleReactionJourney(browser, base, width) {
@@ -426,9 +433,9 @@ async function verifyPossibleReactionJourney(browser, base, width) {
   await screenshot(page, 'medication-possible-reaction-' + width + '.png');
   await page.reload({ waitUntil: 'networkidle' });
   check(await row.locator('.medication-record-note').isVisible() && (await savedProfile(page)).allergyEntries[0].medicationId === medicine.id, width + ': the possible reaction and medicine link survive reload');
-  await page.goto(base + '/health-hub#today', { waitUntil: 'networkidle' });
-  const todayAllergies = page.locator('#today-allergy-list');
-  check(await todayAllergies.isVisible() && (await todayAllergies.innerText()).includes(medicine.name) && (await todayAllergies.innerText()).includes('Possible reaction'), width + ': Today displays the saved observation as Possible reaction');
+  await page.goto(base + '/health-hub#health', { waitUntil: 'networkidle' });
+  const healthAllergies = page.locator('#allergies-list');
+  check(await healthAllergies.isVisible() && (await healthAllergies.innerText()).includes(medicine.name) && (await healthAllergies.innerText()).includes('suspected'), width + ': My Health displays the observation with suspected certainty');
   await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
   await row.locator('[data-edit-medication]').click();
   const medicationForm = page.locator('#quick-modal [data-modal-form="medication"]');
@@ -443,7 +450,7 @@ async function verifyPossibleReactionJourney(browser, base, width) {
   await medicationForm.locator('[name="name"]').fill(medicine.name);
   await medicationForm.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  const recreated = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  const recreated = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(recreated.id !== medicine.id && await row.locator('.medication-record-note').count() === 0, width + ': recreating the same medicine name gets a new ID and does not relink the old report');
   check(JSON.stringify((await savedProfile(page)).allergyEntries) === JSON.stringify(profile.allergyEntries), width + ': the original report remains unchanged after recreating the medicine');
   await row.locator('details.medication-record-details > summary').click();
@@ -484,7 +491,7 @@ async function verifyCatalogueSelectionSaved(browser, base, width) {
   await form.locator('[name="doseUnitChoice"]').selectOption('tablets');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(saved?.catalogueMatch?.productId === 'pharmac-fictionalcombination' && saved.catalogueMatch.ingredients.length === 2, width + ': saving preserves the selected source row and combination ingredients');
   check(saved.activeIngredients.length === 0 && saved.activeIngredientsManuallyConfirmed === false, width + ': catalogue-derived ingredients remain outside the label-confirmed checker fields');
   check(saved.doseAmount === '2' && saved.doseUnit === 'tablets' && saved.dose !== '2 tablets', width + ': dose amount is saved separately from the product formulation and label ingredient gate');
@@ -496,7 +503,7 @@ async function verifyCatalogueSelectionSaved(browser, base, width) {
   check((await reopened.locator('#medication-selected-product').innerText()).includes('Fictional amberin, Fictional bluein') && /unconfirmed/i.test(await reopened.locator('#medication-selected-product').innerText()), width + ': reopening re-renders the source ingredients as unconfirmed');
   await reopened.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  const reopenedSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  const reopenedSaved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(reopenedSaved.catalogueMatch?.productId === saved.catalogueMatch.productId && reopenedSaved.activeIngredients.length === 0, width + ': unchanged edit/save retains identity without promoting source ingredients');
   await context.close();
 }
@@ -518,7 +525,7 @@ async function verifyIncompleteCatalogueSelection(browser, base) {
   check(/Incomplete catalogue mapping; known ingredients \(unconfirmed\): Fictional violetin/.test(await panel.innerText()), 'incomplete product: the UI does not present a partial source mapping as complete');
   await form.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(saved.catalogueMatch?.ingredientsComplete === false && saved.catalogueMatch.ingredients.length === 1 && saved.activeIngredients.length === 0, 'incomplete product: persistence retains source status and does not populate confirmed checker fields');
   await page.locator('#medication-library [data-edit-medication]').click();
   const reopened = page.locator('#quick-modal [data-modal-form="medication"]');
@@ -526,7 +533,7 @@ async function verifyIncompleteCatalogueSelection(browser, base) {
   check(/Incomplete catalogue mapping/.test(await reopened.locator('#medication-selected-product').innerText()), 'incomplete product: reopen still labels the mapping incomplete');
   await reopened.locator('button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
   check(saved.catalogueMatch?.ingredientsComplete === false && saved.activeIngredients.length === 0, 'incomplete product: unchanged edit/save remains unconfirmed and incomplete');
   await noOverflow(page, '390 incomplete catalogue selection');
   await context.close();
@@ -557,7 +564,7 @@ async function verifyStrengthTextPresentation(browser, base, width) {
     check(await form.locator('[name="dose"]').inputValue() === fixture.dose, width + ': editing reopens the exact mixed source text');
     await form.locator('button[type="submit"]').click();
     await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]);
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]);
     check(saved.dose === fixture.dose && saved.doseAmount === '120' && saved.doseUnit === 'mg', width + ': saving an unchanged edit preserves the full mixed text and separate amount');
     await noOverflow(page, width + ' mixed strength review');
   } finally {
@@ -681,8 +688,8 @@ async function verifyVoltarenJourney(browser, base, width) {
     check(pairReview.resolved[0].possibleInteractionRoutes[0] === 'systemic' && pairReview.resolved[1].possibleInteractionRoutes[0] === 'oral', width + ': route distinction survives exact-name resolution without guessing from dose text');
     check(/Both|both|Voltaren/.test(pairUi) && /not assessed by this limited check/.test(pairUi) && /No alert does not mean safe/.test(pairUi) && /pharmacist or prescriber/i.test(pairUi), width + ': checker wording names the pair, states it was not assessed and gives a professional next step');
     check(await page.locator('#medication-library .medication-pair-coverage-badge').count() === 2, width + ': the unassessed-pair marker also appears beside both saved medicines');
-    const localAlertShortcut = page.locator('#view-medications .hub-alert-shortcut[data-alert-level="orange"]');
-    check(await localAlertShortcut.locator('[data-alert-title]').innerText() === 'Some medicine pairs not checked' && await localAlertShortcut.locator('[data-alert-note]').isHidden(), width + ': the medication-level alert stays visible without repeating the full orange explanation');
+    const localAlertShortcut = page.locator('#view-medications .hub-alert-shortcut[data-alert-level="neutral"]');
+    check(await localAlertShortcut.locator('[data-alert-title]').innerText() === 'Some medicine pairs not checked' && await localAlertShortcut.locator('[data-alert-note]').isVisible() && /not checked/.test(await localAlertShortcut.locator('[data-alert-note]').innerText()), width + ': the neutral coverage notice visibly explains the unchecked pair');
     check(/No alert does not mean safe/.test(await localAlertShortcut.getAttribute('aria-label')) && /pharmacist or prescriber/.test(await localAlertShortcut.getAttribute('aria-label')), width + ': screen-reader button name retains the complete safety and next-step wording');
     check(await page.locator('[data-local-medication-db-result] .safety-result-alert.is-warning').count() === 0 && await page.locator('[data-local-medication-db-result] .safety-result-alert.is-unknown[role="status"]').count() === 1, width + ': unknown coverage stays orange/status and is not misrepresented as a red interaction warning');
     await screenshot(page, 'voltaren-ibuprofen-not-checked-' + width + '.png');
@@ -733,7 +740,7 @@ async function verifyEarlierNotesReview(browser, base) {
       check(await medicationForm.locator('[name="instructions"]').inputValue() === medicine.instructions, label + ': legacy instruction line breaks and spacing reopen unchanged');
       await medicationForm.locator('button[type="submit"]').click();
       await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
-      const instructions = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-medications'))[0]?.instructions);
+      const instructions = await page.evaluate(() => JSON.parse(localStorage.getItem('doctorai-health-hub-guest-medications'))[0]?.instructions);
       check(instructions === medicine.instructions, label + ': an unchanged edit preserves legacy instruction line breaks and spacing exactly');
     }
     await context.close();
@@ -743,7 +750,8 @@ async function verifyEarlierNotesReview(browser, base) {
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = 'http://127.0.0.1:' + server.address().port;
-  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const executablePath = process.env.CHROMIUM_PATH || (fs.existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+  const browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : { channel: 'msedge' }) });
   try {
     for (const width of [1440, 390, 320]) {
       await verifyRouteColorIdentity(browser, base, width);
