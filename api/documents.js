@@ -127,7 +127,17 @@ module.exports = async function handler(request, response) {
       try {
         await core.saveDocumentMetadata(account, document);
       } catch (error) {
-        await del(document.blobPath, { token: core.documentStorageToken() }).catch(() => {});
+        try {
+          await del(document.blobPath, { token: core.documentStorageToken() });
+        } catch {
+          // The random document ID lets support find the unindexed blob without logging health data.
+          console.error('document_upload_cleanup_incomplete', { reference: id });
+          return response.status(503).json({
+            code: 'document_cleanup_incomplete',
+            reference: id,
+            error: `The upload did not finish and cleanup could not be confirmed. Contact support with reference ${id}.`
+          });
+        }
         throw error;
       }
       return response.status(201).json({ document: serialiseMetadata(document) });
