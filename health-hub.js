@@ -4496,7 +4496,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       article.setAttribute('role', warning || caution ? 'alert' : 'status');
       article.setAttribute('aria-live', warning || caution ? 'assertive' : 'polite');
       const heading = document.createElement('h3');
-      heading.textContent = alert.type === 'interaction' ? 'Interaction warning' : alert.type === 'interaction-coverage' ? 'Pair not checked' : String(alert.title || 'Medicine check notice');
+      heading.textContent = alert.type === 'interaction' ? 'Possible medicine interaction' : alert.type === 'interaction-coverage' ? 'Pair not checked' : String(alert.title || 'Medicine check notice');
       const icon = document.createElement('span');
       icon.className = 'medication-warning-icon';
       icon.innerHTML = iconMarkup(warning || caution ? 'alert' : 'info');
@@ -4510,9 +4510,14 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
           : 'This medicine pair was not assessed by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.';
       } else copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
       article.append(heading, copy);
+      if (alert.type === 'interaction') {
+        const nextStep = document.createElement('p');
+        nextStep.textContent = 'A possible interaction has been flagged. Ask your pharmacist or doctor to confirm. This is information, not a diagnosis; do not change treatment based on this notice.';
+        article.append(nextStep);
+      }
       if (alert.source?.publisher) {
         const source = document.createElement('small');
-        source.textContent = 'Source: ' + String(alert.source.publisher) + (alert.source.title ? ' · ' + String(alert.source.title) : '') + (alert.recordVersion ? ' · rule record v' + String(alert.recordVersion) : '');
+        source.textContent = 'Source: ' + String(alert.source.publisher) + (alert.source.title ? ' · ' + String(alert.source.title) : '') + (alert.recordVersion ? ' · rule record v' + String(alert.recordVersion) : '') + (alert.source.checkedOn ? ' · source checked ' + String(alert.source.checkedOn) : '');
         article.append(source);
       }
       if (alert.evidenceSummary) {
@@ -4530,7 +4535,12 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       if (typeof alert.source?.url === 'string') {
         try {
           const sourceUrl = new URL(alert.source.url);
-          const approvedHost = sourceUrl.protocol === 'https:' && (sourceUrl.hostname === 'medsafe.govt.nz' || sourceUrl.hostname.endsWith('.medsafe.govt.nz') || sourceUrl.hostname === 'accessdata.fda.gov' || sourceUrl.hostname.endsWith('.fda.gov'));
+          const reviewedEvidenceUrls = new Set([
+            'https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2816687',
+            'https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/',
+            'https://link.springer.com/article/10.1186/s40780-026-00560-8'
+          ]);
+          const approvedHost = sourceUrl.protocol === 'https:' && (sourceUrl.hostname === 'medsafe.govt.nz' || sourceUrl.hostname.endsWith('.medsafe.govt.nz') || sourceUrl.hostname === 'accessdata.fda.gov' || sourceUrl.hostname.endsWith('.fda.gov') || reviewedEvidenceUrls.has(sourceUrl.href));
           if (approvedHost) {
             const link = document.createElement('a');
             link.href = sourceUrl.href;
