@@ -3994,6 +3994,34 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     fallback.remove();
   }
 
+  const documentPickerContexts = new Map();
+  let documentUploadBusy = false;
+  async function openDocumentFilePicker(inputId) {
+    const context = { owner: healthOwnerRevision, session: accountSessionRevision };
+    if (!entitlementReady) await loadEntitlement();
+    if (context.owner !== healthOwnerRevision || context.session !== accountSessionRevision) { showToast('Your account changed. Reopen the file picker to continue.'); return; }
+    if (!hasProAccess()) { window.location.href = '/subscription#plans'; return; }
+    if (!currentSessionOwnerVerified() || !authUser) {
+      if (!authUser) openGoogleSignIn();
+      else showToast('Confirm your sign-in before uploading a private health document.');
+      return;
+    }
+    if (documentUploadBusy) { showToast('A document upload is already in progress.'); return; }
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    documentPickerContexts.set(input, context);
+    input.value = '';
+    input.click();
+  }
+  function documentFileChosen(event) {
+    const input = event.target, file = input.files?.[0], context = documentPickerContexts.get(input);
+    input.value = '';
+    documentPickerContexts.delete(input);
+    if (!file) return;
+    if (!documentCaptureAllowed(context)) { showToast('Your account changed. No document was uploaded.'); return; }
+    addDocument(file, context);
+  }
+
   let documentCaptureContext = null;
   function documentCaptureAllowed(context) {
     return Boolean(context && currentSessionOwnerVerified() && authUser && hasProAccess()
@@ -4048,28 +4076,34 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
 
   async function addDocument(file, captureContext = null) {
     if (!file) return;
-    if (captureContext && !documentCaptureAllowed(captureContext)) return;
     if (!hasProAccess()) {
       showToast('File and photo uploads are only available with DoctorAI Pro.');
       window.location.href = '/subscription#plans';
       return;
     }
     if (!authUser) { openGoogleSignIn(); showToast('Sign in before uploading a private health document.'); return; }
+    if (!documentCaptureAllowed(captureContext)) { showToast('Your account changed. No document was uploaded.'); return; }
     if (file.size > 2 * 1024 * 1024) { showToast('Choose a document smaller than 2 MB.'); return; }
+    if (documentUploadBusy) { showToast('A document upload is already in progress.'); return; }
+    documentUploadBusy = true;
     const details = documentDetails(file);
+    let uploadSent = false, responseReceived = false;
     showToast('Encrypting and storing your private document…');
     try {
       const data = await fileAsDataUrl(file);
-      if (captureContext && !documentCaptureAllowed(captureContext)) { showToast('Your account changed. No document was uploaded.'); return; }
+      if (!documentCaptureAllowed(captureContext)) { showToast('Your account changed. No document was uploaded.'); return; }
+      uploadSent = true;
       const response = await fetch('/api/documents', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ name: file.name, category: details.category, type: details.type, data })
       });
+      responseReceived = true;
       const payload = await response.json().catch(() => ({}));
+      if (!documentCaptureAllowed(captureContext)) return;
       if (!response.ok) throw new Error(payload.error || 'Secure document storage is unavailable right now.');
-      if (captureContext && !documentCaptureAllowed(captureContext)) return;
       const saved = payload.document || {};
+      if (typeof saved.id !== 'string' || !saved.id) throw new Error('Upload could not be confirmed. Check your document library before trying again.');
       state.documents.unshift({
         id: saved.id,
         category: saved.category || details.category,
@@ -4085,7 +4119,10 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       renderResults(); renderDocuments(); renderTimeline(); renderActivity();
       showToast('Document encrypted and added to your private library.');
     } catch (error) {
-      showToast(error?.message || 'Secure document storage is unavailable right now.');
+      if (!documentCaptureAllowed(captureContext)) return;
+      showToast(uploadSent && !responseReceived ? 'Upload could not be confirmed. Check your document library before trying again.' : (error?.message || 'Secure document storage is unavailable right now.'));
+    } finally {
+      documentUploadBusy = false;
     }
   }
 
@@ -4822,9 +4859,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
     const fileAction = event.target.closest('[data-file-action]');
     if (fileAction) {
       event.preventDefault();
-      if (!entitlementReady) await loadEntitlement();
-      if (!hasProAccess()) { window.location.href = '/subscription#plans'; return; }
-      document.getElementById(fileAction.dataset.fileAction)?.click();
+      await openDocumentFilePicker(fileAction.dataset.fileAction);
       return;
     }
     const shareTarget = event.target.closest('[data-share-document]');
@@ -5420,9 +5455,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
   els.healthMemoryToggle?.addEventListener('change', event => setMemory(event.target.checked));
   $('#document-capture')?.addEventListener('change', saveCapturedDocument);
   $('#document-capture')?.addEventListener('cancel', () => { documentCaptureContext = null; });
-  $('#result-upload')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
-  $('#document-upload')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
-  $('#document-upload-inline')?.addEventListener('change', event => { addDocument(event.target.files[0]); event.target.value = ''; });
+  for (const id of ['result-upload', 'document-upload', 'document-upload-inline']) {
+    const input = document.getElementById(id);
+    input?.addEventListener('change', documentFileChosen);
+    input?.addEventListener('cancel', () => documentPickerContexts.delete(input));
+  }
   $('#medication-scan')?.addEventListener('change', event => { scanMedicationPhoto(event.target.files[0]); event.target.value = ''; });
   els.modal.addEventListener('click', event => { if (event.target === els.modal) closeModal(); });
   els.modal.addEventListener('close', () => {
