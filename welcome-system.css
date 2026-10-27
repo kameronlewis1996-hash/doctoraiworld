@@ -275,6 +275,12 @@ body {
     background: var(--aurora-glass);
     border-color: var(--welcome-line);
   }
+  /* The mobile dropdown overlaps page content, so keep the text below it from
+     competing with its links while retaining a soft aurora-glass surface. */
+  body.doctorai-homepage .home-mobile-menu nav {
+    background: rgba(217, 237, 250, .98);
+    backdrop-filter: blur(12px);
+  }
   /* Public content uses the same blue glass as the six-tool landing. */
   body.doctorai-homepage :is(.home-universe, .home-brief, .home-destination, .home-invitation, .home-control, .home-aurora-dock),
   body.doctorai-public-page :is(.research-hero, .research-tabs, .research-controls, .highlight-card, .paper-card, .research-community, .discussion-card, .forum-compose, .research-share, .research-trust, .feature-card, .feature-card.featured, .plan-card, .pro-plan, .pro-section-nav, .care-pack-preview, .comparison-table, .pro-access-panel),

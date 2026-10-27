@@ -18,6 +18,6 @@ assert.equal((guest.match(/data-google-signin/g)||[]).length,1,'one existing Goo
 assert.match(guest,/Continue with Google/);
 assert.match(guest,/without signing in; choose where this browser keeps them/);
 assert.ok(html.includes('data-health-landing-account="signed-in" hidden'));
-assert.match(read('service-worker.js'),/doctorai-shell-v199/);
+assert.match(read('service-worker.js'),/doctorai-shell-v200/);
 console.log('UX clarity source checks passed: normal-flow symptom actions, bounded scroll, narrow tile/menu safeguards, one verified-state Google CTA. Not a rendered phone test.');
 

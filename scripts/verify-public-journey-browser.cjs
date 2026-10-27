@@ -64,6 +64,19 @@ function assertNoOverflow(page, label) {
     .then(ok => assert.equal(ok, true, `${label}: no horizontal overflow`));
 }
 
+async function assertMenuSurface(page, menu, label) {
+  const surface = await menu.locator('nav').evaluate(element => {
+    const style = getComputedStyle(element);
+    const channels = style.backgroundColor.match(/[\d.]+/g) || [];
+    return {
+      rgb: channels.slice(0, 3).map(Number),
+      alpha: channels.length === 4 ? Number(channels[3]) : 1
+    };
+  });
+  assert.ok(surface.alpha >= 0.98, `${label}: menu surface must mask text underneath; got alpha ${surface.alpha}`);
+  assert.deepEqual(surface.rgb, [217, 237, 250], `${label}: menu retains the blue-cyan aurora glass tint`);
+}
+
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -116,6 +129,7 @@ function assertNoOverflow(page, label) {
     for (const label of ['Home', 'Open Health Hub', 'Free and Pro', 'Sign in']) {
       assert.equal(await menu.getByRole('link', { name: label, exact: true }).isVisible(), true, `About mobile menu exposes ${label}.`);
     }
+    await assertMenuSurface(page, menu, 'About menu at 390px');
     await page.screenshot({ path: path.join(out, 'about-mobile-menu-390x844.png') });
     await page.keyboard.press('Escape');
     assert.equal(await menu.evaluate(element => element.open), false, 'Escape closes the public mobile menu.');
@@ -126,6 +140,7 @@ function assertNoOverflow(page, label) {
     await summary.focus();
     await page.keyboard.press('Enter');
     assert.equal(await menu.evaluate(element => element.open), true, 'About mobile menu remains keyboard-operable at 320px.');
+    await assertMenuSurface(page, menu, 'About menu at 320px');
     const narrowMenuBounds = await menu.locator('nav').evaluate(element => {
       const bounds = element.getBoundingClientRect();
       return { left: Math.round(bounds.left), right: Math.round(bounds.right) };
@@ -133,6 +148,15 @@ function assertNoOverflow(page, label) {
     assert.ok(narrowMenuBounds.left >= 0 && narrowMenuBounds.right <= 320,
       `About mobile menu stays within a 320px viewport: ${JSON.stringify(narrowMenuBounds)}`);
     await assertNoOverflow(page, 'About at 320×844');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(base, { waitUntil: 'networkidle' });
+    const homepageMenu = page.locator('[data-home-menu]');
+    await homepageMenu.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await homepageMenu.evaluate(element => element.open), true, 'Homepage mobile menu opens by keyboard.');
+    await assertMenuSurface(page, homepageMenu, 'Homepage menu at 390px');
+    await assertNoOverflow(page, 'Homepage at 390×844 with menu open');
 
     // The optional code field starts collapsed so review details and Continue
     // fit together. The static Stripe response is synthetic; Continue is never
@@ -166,10 +190,33 @@ function assertNoOverflow(page, label) {
     assert.equal(await dialog.locator('#checkout-access-code').isVisible(), true, 'The access-code field remains available when requested.');
     await page.keyboard.press('Enter');
     assert.equal(await codeDisclosure.evaluate(element => element.open), false, 'The optional code disclosure can be collapsed again.');
+
+    // A 320 CSS-pixel viewport approximates 400% reflow from a 1280px layout.
+    // Keep review terms visible and scrollable without accepting them or starting checkout.
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.goto(`${base}/subscription`, { waitUntil: 'networkidle' });
+    await page.locator('[data-subscribe]:not([disabled])').waitFor();
+    await page.locator('[data-subscribe]').click();
+    const narrowDialog = page.locator('#checkout-dialog');
+    await narrowDialog.waitFor({ state: 'visible' });
+    await assertNoOverflow(page, 'Subscription review at 320px reflow width');
+    assert.equal(await narrowDialog.locator('.checkout-code-box').evaluate(element => element.open), false);
+    for (const selector of ['#selected-plan-price', '#checkout-renewal-note', '#checkout-terms-confirm', '[data-confirm-checkout]']) {
+      assert.equal(await narrowDialog.locator(selector).isVisible(), true, `${selector} remains available in 320px review.`);
+    }
+    assert.equal(await narrowDialog.locator('#checkout-terms-confirm').isChecked(), false, 'Terms remain unchecked at 320px.');
+    assert.equal(await narrowDialog.locator('[data-confirm-checkout]').isDisabled(), true, 'Checkout remains disabled at 320px.');
+    const narrowReviewBounds = await narrowDialog.evaluate(element => {
+      const d = element.getBoundingClientRect();
+      const button = element.querySelector('[data-confirm-checkout]').getBoundingClientRect();
+      return { dialogTop: Math.round(d.top), dialogBottom: Math.round(d.bottom), dialogClientHeight: element.clientHeight, dialogScrollHeight: element.scrollHeight, continueTop: Math.round(button.top), continueBottom: Math.round(button.bottom), documentWidth: document.documentElement.scrollWidth };
+    });
+    assert.ok(narrowReviewBounds.dialogScrollHeight >= narrowReviewBounds.dialogClientHeight, 'Long review content remains scrollable inside the bounded dialog.');
+    await page.screenshot({ path: path.join(out, 'subscription-review-320x844.png') });
     assert.equal(requests.some(url => url.includes('/api/stripe/create-checkout-session')), false, 'No Checkout Session was created.');
     assert.deepEqual(errors, [], 'No public-page JavaScript errors occurred.');
 
-    console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, screenshots: out, checkoutSessionRequests: 0 }));
+    console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, checkout320: narrowReviewBounds, screenshots: out, checkoutSessionRequests: 0 }));
     await context.close();
   } finally {
     await browser.close();

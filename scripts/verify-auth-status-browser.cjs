@@ -356,7 +356,10 @@ async function runVisual(browser, base) {
   for (const width of [1440, 390, 320]) {
     const checking = await createCase(browser, base, { width, auth: accountA, healthState: syntheticHealthState('Synthetic Account A') });
     await waitForState(checking, 'signed-in');
-    await checking.page.locator('#view-today [data-view="medications"]').click();
+    const medicationNav = width <= 620
+      ? '.mobile-bottom-nav-item[data-view="medications"]'
+      : '.primary-nav .nav-item[data-view="medications"]';
+    await checking.page.locator(medicationNav).click();
     await checking.page.locator('#view-medications:not([hidden])').waitFor({ state: 'visible' });
     await checking.page.waitForFunction(() => document.querySelector('#medication-library')?.textContent.includes('Synthetic Account A medicine'));
     await checking.page.locator('#view-medications button[data-modal="medication"]').first().focus();
@@ -432,8 +435,8 @@ async function runVisual(browser, base) {
 
   const cloudUnavailable = await createCase(browser, base, { width: 390, auth: accountA, healthStateUnavailable: true, healthState: syntheticHealthState('Synthetic Account A') });
   await waitForState(cloudUnavailable, 'signed-in');
-  await cloudUnavailable.page.locator('#view-today [data-view="health"]').click();
-  await cloudUnavailable.page.locator('#view-health:not([hidden])').waitFor({ state: 'visible' });
+  await cloudUnavailable.page.locator('.mobile-bottom-nav-item[data-view="profile"]').click();
+  await cloudUnavailable.page.locator('#view-profile:not([hidden])').waitFor({ state: 'visible' });
   await cloudUnavailable.page.waitForFunction(() => document.querySelector('#hub-account-sync-note')?.textContent.includes('Account storage is unavailable'));
   assert.match(await cloudUnavailable.page.locator('#hub-account-sync-note').innerText(), /Account storage is unavailable/);
   assert.equal(await cloudUnavailable.page.locator('#session-verification-gate').isHidden(), true, 'verified account data remains accessible when cloud storage is unavailable');
