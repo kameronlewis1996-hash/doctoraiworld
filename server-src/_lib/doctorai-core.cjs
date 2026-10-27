@@ -6,6 +6,14 @@ const SESSION_COOKIE = 'doctorai_session';
 const ENTITLEMENT_COOKIES = ['doctorai_entitlement', 'doctorai_free_pro'];
 const ADMIN_EMAILS = new Set(['kameronlewis1996@gmail.com', 'support@doctoraiworld.com']);
 const memoryLimits = new Map();
+const ENTITLEMENT_LOCK_TTL_MS = 30_000;
+const ENTITLEMENT_SAVE_SCRIPT = `-- doctorai:entitlement-save-v1
+if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
+redis.call('HSET', KEYS[2], ARGV[2], ARGV[3])
+return 1`;
+const ENTITLEMENT_RELEASE_SCRIPT = `-- doctorai:entitlement-release-v1
+if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end
+return 0`;
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 const normaliseEmail = value => String(value || '').trim().toLowerCase();
@@ -360,7 +368,54 @@ async function deleteDocumentMetadata(account, id) {
 
 async function saveEntitlement(account, entitlement) {
   if (!storageConfigured()) return false;
-  return hset('accounts', account, 'entitlement', seal({ ...entitlement, email: normaliseEmail(entitlement.email || account.email), updatedAt: Date.now() }));
+  const lease = await acquireEntitlementLease(account);
+  if (!lease) return false;
+  try {
+    return await saveEntitlementWithLease(account, entitlement, lease);
+  } finally {
+    await releaseEntitlementLease(lease);
+  }
+}
+
+async function acquireEntitlementLease(account) {
+  if (!storageConfigured()) return null;
+  const key = userHashKey('entitlement-lock', account);
+  const token = crypto.randomUUID();
+  const raw = await redis('', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(['SET', key, token, 'NX', 'PX', ENTITLEMENT_LOCK_TTL_MS])
+  });
+  return raw.result === 'OK' ? { key, token } : null;
+}
+
+async function saveEntitlementWithLease(account, entitlement, lease) {
+  if (!storageConfigured() || !lease?.key || !lease?.token
+    || lease.key !== userHashKey('entitlement-lock', account)) return false;
+  const stored = seal({
+    ...entitlement,
+    email: normaliseEmail(entitlement.email || account.email),
+    updatedAt: Date.now()
+  });
+  const raw = await redis('', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify([
+      'EVAL', ENTITLEMENT_SAVE_SCRIPT, 2,
+      lease.key, userHashKey('accounts', account), lease.token, 'entitlement', stored
+    ])
+  });
+  return Number(raw.result) === 1;
+}
+
+async function releaseEntitlementLease(lease) {
+  if (!storageConfigured() || !lease?.key || !lease?.token) return false;
+  const raw = await redis('', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(['EVAL', ENTITLEMENT_RELEASE_SCRIPT, 1, lease.key, lease.token])
+  });
+  return Number(raw.result) === 1;
 }
 
 async function readStoredEntitlement(account) {
@@ -426,21 +481,39 @@ async function listAuditEntries(limit = 100) {
 
 async function revokeFreeGrant(account, actor) {
   if (!storageConfigured()) return { found: false, revoked: false };
-  const grant = await readFreeGrant(account);
-  if (!grant) return { found: false, revoked: false };
-  const revoked = {
-    ...grant,
-    revokedAt: new Date().toISOString(),
-    revokedBy: normaliseEmail(actor?.email),
-    actor: normaliseEmail(actor?.email) || 'staff-admin'
-  };
-  await recordFreeGrant(account, revoked);
-  const entitlement = await readStoredEntitlement(account);
-  // Revoking a complimentary grant must never downgrade a separate paid plan.
-  if (entitlement && ['promotional-code', 'staff-grant'].includes(String(entitlement.source))) {
-    await hset('accounts', account, 'entitlement', seal({ tier: 'free', source: 'staff-revoked', email: normaliseEmail(account.email), revokedAt: revoked.revokedAt, updatedAt: Date.now() }));
+  const lease = await acquireEntitlementLease(account);
+  if (!lease) {
+    const error = new Error('An entitlement update is already in progress.');
+    error.retryable = true;
+    throw error;
   }
-  return { found: true, revoked: true };
+  try {
+    const grant = await readFreeGrant(account);
+    if (!grant) return { found: false, revoked: false };
+    const revoked = {
+      ...grant,
+      revokedAt: new Date().toISOString(),
+      revokedBy: normaliseEmail(actor?.email),
+      actor: normaliseEmail(actor?.email) || 'staff-admin'
+    };
+    await recordFreeGrant(account, revoked);
+    const entitlement = await readStoredEntitlement(account);
+    // Revoking a complimentary grant must never downgrade a separate paid plan.
+    if (entitlement && ['promotional-code', 'staff-grant'].includes(String(entitlement.source))) {
+      const saved = await saveEntitlementWithLease(account, {
+        tier: 'free', source: 'staff-revoked', email: normaliseEmail(account.email),
+        revokedAt: revoked.revokedAt, updatedAt: Date.now()
+      }, lease);
+      if (!saved) {
+        const error = new Error('The entitlement lease expired before revocation was saved.');
+        error.retryable = true;
+        throw error;
+      }
+    }
+    return { found: true, revoked: true };
+  } finally {
+    await releaseEntitlementLease(lease);
+  }
 }
 
 function memoryRateLimit(request, scope, maximum, windowMs) {
@@ -550,6 +623,7 @@ function validCatalogueMatch(medication) {
 module.exports = {
   ADMIN_EMAILS,
   accountKey,
+  acquireEntitlementLease,
   activeEntitlement,
   activateSession,
   clearEntitlementCookies,
@@ -586,6 +660,8 @@ module.exports = {
   revokeFreeGrant,
   revokeSession,
   saveEntitlement,
+  saveEntitlementWithLease,
+  releaseEntitlementLease,
   saveDocumentMetadata,
   saveHealthState,
   sessionCookie,
