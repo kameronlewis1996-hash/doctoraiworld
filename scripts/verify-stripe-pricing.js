@@ -148,6 +148,30 @@ async function verifySubscriptionEntitlements() {
     assert.equal(saved[0].entitlement.exp, FakeStripe.subscription.current_period_end);
   }
 
+  for (const [type, paymentStatus, expected] of [
+    ['checkout.session.completed', 'unpaid', false],
+    ['checkout.session.completed', 'no_payment_required', true],
+    ['checkout.session.async_payment_succeeded', 'paid', true],
+    ['checkout.session.async_payment_succeeded', 'unpaid', false]
+  ]) {
+    FakeStripe.subscription = makeSubscription('monthly', { status: paymentStatus === 'no_payment_required' ? 'trialing' : 'active' });
+    saved.length = 0;
+    FakeStripe.subscriptionRetrievals = [];
+    await deliverWebhook(webhook, {
+      type,
+      data: { object: { subscription: FakeStripe.subscription.id, payment_status: paymentStatus, metadata: metadata('monthly') } }
+    });
+    assert.equal(saved.length, expected ? 1 : 0, `${type} only grants access after a paid or no-payment-required outcome.`);
+    if (expected) assert.equal(saved[0].entitlement.tier, 'pro');
+    else assert.deepEqual(FakeStripe.subscriptionRetrievals, [], 'Unpaid Checkout Sessions do not retrieve a subscription or write an entitlement.');
+  }
+
+  FakeStripe.subscription = makeSubscription('annual', { status: 'trialing' });
+  saved.length = 0;
+  await deliverWebhook(webhook, { type: 'customer.subscription.created', data: { object: FakeStripe.subscription } });
+  assert.equal(saved.length, 1, 'New trial subscriptions are recorded from customer.subscription.created.');
+  assert.equal(saved[0].entitlement.tier, 'pro');
+
   FakeStripe.subscription = makeSubscription('weekly', {
     current_period_end: undefined,
     items: { data: [{ current_period_end: nextWeek, price: { recurring: { interval: 'week', interval_count: 1 } } }] }

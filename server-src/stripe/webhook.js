@@ -23,7 +23,10 @@ function invoiceSubscriptionId(invoice) {
 async function recordEntitlementEvent(event, stripe) {
   if (!core.storageConfigured()) return;
   const object = event.data.object || {};
-  let subscription = event.type === 'checkout.session.completed' ? object.subscription : object;
+  const checkoutEvent = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type);
+  if (event.type === 'checkout.session.completed' && !['paid', 'no_payment_required'].includes(object.payment_status)) return;
+  if (event.type === 'checkout.session.async_payment_succeeded' && object.payment_status !== 'paid') return;
+  let subscription = checkoutEvent ? object.subscription : object;
   if (event.type.startsWith('invoice.')) {
     const subscriptionId = invoiceSubscriptionId(object);
     if (!subscriptionId) return;
@@ -66,7 +69,7 @@ async function stripeWebhook(req, res) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (['checkout.session.completed', 'customer.subscription.updated', 'customer.subscription.deleted', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) await recordEntitlementEvent(event, stripe);
+    if (['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) await recordEntitlementEvent(event, stripe);
 
     return res.status(200).json({ received: true });
   } catch (error) {
