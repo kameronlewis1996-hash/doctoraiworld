@@ -70,6 +70,10 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
   const accessInput = new Element();
   const accessNote = new Element();
   const accessPanel = new Element({ children: { form: accessForm, input: accessInput, small: accessNote } });
+  const checkoutCodeInput = new Element();
+  const checkoutCodeForm = new Element({ children: { input: checkoutCodeInput } });
+  const checkoutCodeStatus = new Element();
+  const checkoutCodeBox = new Element({ open: false });
   const pageHeading = new Element();
   const plansHeading = new Element();
   const overviewHeading = new Element();
@@ -80,7 +84,8 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
     '[data-monthly-value]': nodes.monthlyValue, '[data-plan-value]': nodes.planValue,
     '#pricing-status': nodes.pricingStatus, '#selected-plan-price': nodes.selectedPlan,
     '#checkout-dialog': nodes.dialog, '#checkout-status': nodes.checkoutStatus,
-    '#checkout-code-form': null, '#checkout-code-status': null,
+    '#checkout-code-form': checkoutCodeForm, '#checkout-code-status': checkoutCodeStatus,
+    '.checkout-code-box': checkoutCodeBox,
     '[data-subscribe]': nodes.subscribe, '[data-confirm-checkout]': nodes.confirm,
     '#checkout-terms-confirm': nodes.terms, '#checkout-renewal-note': nodes.renewal,
     '#plans': planSection, '[data-annual-savings]': nodes.savings, '[data-close-dialog]': nodes.close
@@ -114,15 +119,18 @@ async function boot({ plans = verifiedPlans, search = '', responseOk = true } = 
   await new Promise(resolve => setImmediate(resolve));
   const checkoutRequests = () => requests.filter(request => request.url === '/api/stripe/create-checkout-session');
   const emitWindow = name => (windowListeners.get(name) || []).forEach(listener => listener({ type:name }));
-  return { ...nodes, requests, destinations, checkoutRequests, location, emitWindow, pageHeading, plansHeading, overviewHeading };
+  return { ...nodes, requests, destinations, checkoutRequests, location, emitWindow, pageHeading, plansHeading, overviewHeading, checkoutCodeInput, checkoutCodeBox };
 }
 
 async function run() {
   assert.match(html, /data-plan="weekly" disabled aria-pressed="false">Weekly<\/button>/);
   assert.match(html, /data-monthly-value hidden>MONTHLY VALUE<\/span>/);
   assert.doesNotMatch(html, />BEST VALUE<\/span>/, 'The Pro card must not claim the weekly selection is the best value.');
+  assert.match(html, /<details class="checkout-code-box"[^>]*><summary id="checkout-code-title">Have a complimentary DoctorAI access code\?<\/summary>/, 'Complimentary access code must stay available in a collapsed native disclosure.');
+  assert.match(html, /id="checkout-renewal-note"[\s\S]*?id="checkout-terms-confirm"[\s\S]*?<details class="checkout-code-box"/, 'Price renewal and age/terms review must remain before the optional code disclosure.');
 
   const ui = await boot();
+  assert.equal(ui.checkoutCodeBox.open, false, 'The optional access code starts collapsed.');
   assert.equal(ui.price.textContent, 'NZ$29.00', 'Monthly remains the default choice.');
   assert.equal(ui.period.textContent, '/ month');
   assert.equal(ui.monthly.attributes.get('aria-pressed'), 'true');
@@ -190,6 +198,9 @@ async function run() {
   assert.equal(deepLinked.selectedPlan.textContent, 'NZ$6.99 / week');
   const invalidLink = await boot({ search: '?plan=daily' });
   assert.equal(invalidLink.monthly.attributes.get('aria-pressed'), 'true', 'An unsupported plan cannot select an unapproved billing period.');
+  const accessCodeLink = await boot({ search: '?access_code=FICTIONAL-CODE' });
+  assert.equal(accessCodeLink.checkoutCodeBox.open, true, 'A deep-linked access code expands its review disclosure so the prefilled code remains visible.');
+  assert.equal(accessCodeLink.checkoutCodeInput.value, 'FICTIONAL-CODE');
 
   for (const invalidWeekly of [
     undefined,

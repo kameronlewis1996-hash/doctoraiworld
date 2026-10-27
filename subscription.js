@@ -13,6 +13,7 @@
   const checkoutStatus = document.querySelector('#checkout-status');
   const checkoutCodeForm = document.querySelector('#checkout-code-form');
   const checkoutCodeStatus = document.querySelector('#checkout-code-status');
+  const checkoutCodeBox = document.querySelector('.checkout-code-box');
   const subscribeButton = document.querySelector('[data-subscribe]');
   const manageBillingButtons = [...document.querySelectorAll('[data-manage-billing]')];
   const confirmCheckoutButton = document.querySelector('[data-confirm-checkout]');
@@ -43,6 +44,7 @@
       checkoutCodeForm.querySelector('input').value = accessCodeFromLink;
       checkoutCodeForm.querySelector('input').defaultValue = accessCodeFromLink;
     }
+    if (checkoutCodeBox) checkoutCodeBox.open = true;
     accessPanel.querySelector('small').textContent = 'Your personal access code is ready. Sign in with Google in the Health Hub, then return here and select Activate Pro.';
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.hash || '#plans'}`);
   }

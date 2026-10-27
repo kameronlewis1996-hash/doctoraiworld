@@ -33,6 +33,19 @@ function fileForLink(href) {
   return candidates.find((candidate) => fs.existsSync(candidate));
 }
 
+const aboutHtml = fs.readFileSync(path.join(root, 'about.html'), 'utf8');
+const mobileMenu = aboutHtml.match(/<details class="home-mobile-menu" data-home-menu>([\s\S]*?)<\/details>/);
+assert.ok(mobileMenu, 'About must provide a mobile navigation disclosure.');
+assert.match(mobileMenu[1], /<summary>Menu<\/summary>/, 'The mobile navigation must have a clear keyboard-operable label.');
+const mobileMenuLinks = [...mobileMenu[1].matchAll(/<a\b[^>]*\bhref="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)];
+assert.ok(mobileMenuLinks.some(([, href, label]) => href === '/' && /Home/.test(label)), 'The mobile menu must keep Home reachable.');
+assert.ok(mobileMenuLinks.some(([, href, label]) => href === '/health-hub#profile' && /Sign in/.test(label)), 'The mobile menu must keep Sign in reachable.');
+assert.ok(mobileMenuLinks.some(([, href]) => href === '/subscription'), 'The mobile menu must link to Free and Pro.');
+assert.match(aboutHtml, /<script defer src="\/welcome\.js\?v=5"><\/script>/, 'About must share the public menu Escape and outside-click behavior.');
+for (const [, href] of mobileMenuLinks) {
+  assert.ok(fileForLink(href), `About mobile menu link ${href} must resolve to a local route.`);
+}
+
 for (const filename of ['index.html', 'health-hub.html', 'about.html']) {
   const html = fs.readFileSync(path.join(root, filename), 'utf8');
   const footer = html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/i)?.[1];
