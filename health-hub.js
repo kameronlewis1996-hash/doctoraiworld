@@ -389,6 +389,8 @@
   let currentView = 'health';
   let currentHubPanel = 'details';
   let renderedHubLocation = '';
+  let pendingScanRouteIntent = null;
+  let scanRouteIntentRevision = 0;
   let timelineFilter = 'all';
   let symptomMode = 'entries';
   let documentFilter = 'all';
@@ -628,6 +630,7 @@
     const labels = { checking: 'Checking private account sync', saving: 'Syncing saved details', ready: 'Private account sync active', unavailable: 'Account sync unavailable', unconfirmed: 'Account sync not confirmed' };
     account.textContent = accountSessionVerification === 'pending' ? 'Checking sign-in' : accountSessionVerification === 'failed' ? 'Sign-in not confirmed' : authUser ? (labels[syncState] || 'Account sync not confirmed') : 'Not signed in';
     note.textContent = accountSessionVerification === 'pending' ? 'Confirming sign-in. Health notices are hidden until account access is confirmed.' : accountSessionVerification === 'failed' ? 'Account access could not be confirmed. Saved health records stay hidden until sign-in is confirmed.' : !authUser ? 'Guest records use a separate browser space. Sign in to use private account sync.' : syncState === 'ready' ? 'Saved hub data syncs privately for this account, separately from device storage.' : syncState === 'unavailable' ? 'Account storage is unavailable. Entries follow your device storage choice.' : 'Account sync has not yet been confirmed. Check this status before relying on a saved copy.';
+    if (typeof resumePendingScanRouteIntent === 'function') resumePendingScanRouteIntent();
   }
   function accountSyncScope() { return authUser ? accountSessionRevision + ':' + String(authUser.sub || '') + ':' + String(authUser.email || '').toLowerCase() : ''; }
   function currentSessionOwnerVerified() {
@@ -823,6 +826,8 @@
   }
   function showView(name, updateHash = true, moveFocus = false, requestedPanel = '') {
     const route = resolveHubRoute(name, requestedPanel);
+    if (name === 'scan') pendingScanRouteIntent = ++scanRouteIntentRevision;
+    else { scanRouteIntentRevision++; pendingScanRouteIntent = null; }
     const next = route.view; currentView = next; currentHubPanel = route.panel;
     if (next === 'medications') renderMedicationSchedule();
     if (route.panel === 'medications' || (next === 'health' && route.panel === 'details') || next === 'alerts') refreshMedicationCheckContext().catch(() => {});
@@ -873,13 +878,30 @@
     renderedHubLocation = location.href;
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     if (moveFocus && name !== 'scan') { const heading = document.querySelector('[data-view-panel="' + next + '"] > .page-heading h1'); if (heading) { heading.setAttribute('tabindex', '-1'); requestAnimationFrame(() => heading.focus({ preventScroll: true })); } }
-    if (name === 'scan') requestAnimationFrame(() => {
+    if (name === 'scan') resumePendingScanRouteIntent();
+    window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
+    window.dispatchEvent(new CustomEvent('doctorai:panel-shown', { detail: { view: next, panel: route.panel } }));
+  }
+  function resumePendingScanRouteIntent() {
+    const intent = pendingScanRouteIntent;
+    if (intent === null) return;
+    if (currentView !== 'medications' || currentHubPanel !== 'medications') {
+      if (pendingScanRouteIntent === intent) pendingScanRouteIntent = null;
+      return;
+    }
+    if (!currentSessionOwnerVerified()) return;
+    requestAnimationFrame(() => {
+      if (pendingScanRouteIntent !== intent) return;
+      if (currentView !== 'medications' || currentHubPanel !== 'medications') {
+        pendingScanRouteIntent = null;
+        return;
+      }
+      if (!currentSessionOwnerVerified()) return;
+      pendingScanRouteIntent = null;
       const scanOptions = document.querySelector('#view-medications .medication-scan-options');
       if (scanOptions) scanOptions.open = true;
       document.querySelector('#view-medications [data-open-medication-scanner]')?.focus();
     });
-    window.dispatchEvent(new CustomEvent('doctorai:view-shown', { detail: next }));
-    window.dispatchEvent(new CustomEvent('doctorai:panel-shown', { detail: { view: next, panel: route.panel } }));
   }
   function renderTodayMedications() {
     if (!els.medicationToday) return;

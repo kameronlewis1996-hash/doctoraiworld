@@ -99,6 +99,12 @@ assert.match(js, /viewStack\.inert = true;\s*viewStack\.setAttribute\('aria-hidd
 const showStart = js.indexOf('function showView(');
 const showEnd = js.indexOf('function renderTodayMedications(', showStart);
 assert.ok(showStart >= 0 && showEnd > showStart, 'Actual navigation presentation and canonical links can be exercised.');
+const sessionOwnerStart = js.indexOf('function currentSessionOwnerVerified(');
+const sessionOwnerEnd = js.indexOf('function currentHealthOwnerReady(', sessionOwnerStart);
+const routeStorageStart = js.indexOf('function renderStorageStatus(');
+const routeStorageEnd = js.indexOf('function accountSyncScope(', routeStorageStart);
+assert.ok(sessionOwnerStart >= 0 && sessionOwnerEnd > sessionOwnerStart, 'Actual account-owner readiness can gate a pending route intent.');
+assert.ok(routeStorageStart >= 0 && routeStorageEnd > routeStorageStart, 'The actual session-status render can resume a pending route intent.');
 const routeViews = Object.fromEntries(views.map(view => [view, {
   dataset: { viewPanel:view }, classList: { toggle() {} }, querySelectorAll: () => [],
   heading: { textContent:'' }, path: secondary.includes(view) ? { textContent:'' } : null,
@@ -108,16 +114,19 @@ const routeLocation = { hash:'' };
 const routeHistory = { state:null, pushState(state, title, hash) { this.state=state; routeLocation.hash=hash; }, replaceState(state, title, hash) { this.state=state; routeLocation.hash=hash; } };
 const breadcrumbNodes = Object.fromEntries(['hub-breadcrumb','hub-parent-link','hub-parent-divider','hub-current-location'].map(id=>[id,{hidden:false,dataset:{},textContent:''}]));
 const breadcrumbStart = { hidden: false }, breadcrumbSeparator = { hidden: false };
-const scanOptions = { open:false }, scanAction = { focused:false, focus() { this.focused=true; } };
+const scanOptions = { open:false }, scanAction = { focused:false, focusCount:0, focus() { this.focused=true; this.focusCount++; } };
 breadcrumbNodes['hub-breadcrumb'].querySelector = selector => selector === '[data-hub-home]' ? breadcrumbStart : breadcrumbSeparator;
+const storageNodes = { '#hub-device-storage-state':{textContent:''}, '#hub-device-storage-note':{textContent:''}, '#hub-account-sync-state':{textContent:''}, '#hub-account-sync-note':{textContent:''} };
 const navigationContext = {
-  currentView:'health', currentHubPanel:'', renderedHubLocation:'', document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { if (selector === '#view-medications .medication-scan-options') return scanOptions; if (selector === '#view-medications [data-open-medication-scanner]') return scanAction; const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
+  currentView:'health', currentHubPanel:'', renderedHubLocation:'', accountSessionReady:true, accountSessionVerification:'verified', authUser:null, activeHealthDataOwner:'guest', localHealthAccountScope:'guest', accountSyncState:'not-signed-in', cloudSyncEnabled:true, medicationAccountDataReady:false, localStorageAllowed:false, localStorageWriteFailed:false, localStorageRemovalFailed:false, deviceStorageChoice:'session',
+  document:{ body:{dataset:{}}, title:'', getElementById:id=>breadcrumbNodes[id], querySelectorAll:() => [], querySelector(selector) { if (selector === '#view-medications .medication-scan-options') return scanOptions; if (selector === '#view-medications [data-open-medication-scanner]') return scanAction; const view=selector.match(/^\[data-view-panel="([^"]+)"\]$/)?.[1]; return routeViews[view] || null; } },
   els:{views:Object.values(routeViews)}, location:routeLocation, history:routeHistory,
+  $:selector=>storageNodes[selector] || null, $$:() => [], renderSessionAvailability() {}, refreshMedicationScheduleAvailability() {}, renderCompactToday() {}, hasUnassignedLegacyHealthData:() => false,
   renderMedicationSchedule() {}, requestAnimationFrame:fn=>fn(), sessionStorage:{setItem() {}}, refreshMedicationCheckContext:() => Promise.resolve(), prefersReducedMotion:() => true,
   window:{scrollTo() {},dispatchEvent() {}}, CustomEvent:class { constructor(type, options) { this.type=type; this.detail=options.detail; } }
 };
 vm.createContext(navigationContext);
-vm.runInContext(js.slice(routeStart, routeEnd) + '\n' + js.slice(showStart, showEnd) + '\nthis.routeNavigate=showView;', navigationContext, { timeout:1000 });
+vm.runInContext('let pendingScanRouteIntent=null; let scanRouteIntentRevision=0;\n' + js.slice(routeStart, routeEnd) + '\n' + js.slice(sessionOwnerStart, sessionOwnerEnd) + '\n' + js.slice(routeStorageStart, routeStorageEnd) + '\n' + js.slice(showStart, showEnd) + '\nthis.routeNavigate=showView; this.renderHubStorageStatus=renderStorageStatus;', navigationContext, { timeout:1000 });
 const canonicalFixtures = [
   ['today','#health'], ['health','#health'], ['visit-prep','#visit-prep'], ['profile','#profile'],
   ['scan','#medications'], ['add','#add'], ['diary','#symptoms'], ['alerts','#alerts'],
@@ -144,6 +153,55 @@ scanAction.focused = false;
 navigationContext.routeNavigate('medications', false, false);
 assert.equal(scanOptions.open, false, 'Plain Medication navigation leaves Scan options collapsed.');
 assert.equal(scanAction.focused, false, 'Plain Medication navigation does not steal focus to a Pro scan action.');
+
+const scanRouteFrames = [];
+navigationContext.requestAnimationFrame = callback => scanRouteFrames.push(callback);
+const focusCountBeforeDeferred = scanAction.focusCount;
+navigationContext.accountSessionReady = false;
+navigationContext.accountSessionVerification = 'pending';
+navigationContext.activeHealthDataOwner = 'pending';
+navigationContext.localHealthAccountScope = '';
+navigationContext.routeNavigate('scan', true, false);
+assert.equal(scanOptions.open, false, 'A bookmarked scan route waits while account ownership is unverified.');
+navigationContext.authUser = { email:'scan-owner@example.test' };
+navigationContext.activeHealthDataOwner = 'account:scan-owner@example.test';
+navigationContext.accountSessionVerification = 'verified';
+navigationContext.accountSessionReady = true;
+navigationContext.accountSyncState = 'checking';
+navigationContext.renderHubStorageStatus();
+assert.equal(scanOptions.open, false, 'The scan route waits for the scheduled post-verification frame.');
+while (scanRouteFrames.length) scanRouteFrames.shift()();
+assert.equal(scanOptions.open, true, 'The pending scan intent is restored after the correct account owner is verified.');
+assert.equal(scanAction.focusCount, focusCountBeforeDeferred + 1, 'The resumed scan intent moves focus to its intended action.');
+
+scanOptions.open = false;
+scanAction.focused = false;
+const focusCountBeforeCancel = scanAction.focusCount;
+navigationContext.accountSessionReady = false;
+navigationContext.accountSessionVerification = 'pending';
+navigationContext.authUser = null;
+navigationContext.activeHealthDataOwner = 'pending';
+navigationContext.localHealthAccountScope = '';
+navigationContext.routeNavigate('scan', true, false);
+navigationContext.routeNavigate('health', true, false);
+navigationContext.routeNavigate('scan', true, false);
+navigationContext.accountSessionReady = true;
+navigationContext.accountSessionVerification = 'verified';
+navigationContext.activeHealthDataOwner = 'guest';
+navigationContext.localHealthAccountScope = 'guest';
+navigationContext.accountSyncState = 'not-signed-in';
+navigationContext.renderHubStorageStatus();
+while (scanRouteFrames.length) scanRouteFrames.shift()();
+assert.equal(scanOptions.open, true, 'Repeated navigation restores only the latest scan intent after verification.');
+assert.equal(scanAction.focusCount, focusCountBeforeCancel + 1, 'Repeated navigation focuses the target once.');
+
+scanOptions.open = false;
+scanAction.focused = false;
+navigationContext.routeNavigate('scan', true, false);
+navigationContext.routeNavigate('health', true, false);
+while (scanRouteFrames.length) scanRouteFrames.shift()();
+assert.equal(scanOptions.open, false, 'A scan intent cannot reopen its disclosure after the user navigates away.');
+assert.equal(scanAction.focusCount, focusCountBeforeCancel + 1, 'A canceled scan intent cannot steal focus later.');
 const destinationThemes = {
   medications:{ bg:'#F7FAFF', accent:'#0759B6' },
   symptoms:{ bg:'#F7FAFF', accent:'#0759B6' },
