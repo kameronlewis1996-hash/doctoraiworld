@@ -20,6 +20,23 @@ function invoiceSubscriptionId(invoice) {
   return null;
 }
 
+function accountContext(object, subscription) {
+  const metadata = { ...(object.metadata || {}), ...(subscription.metadata || {}) };
+  if (metadata.product !== 'doctorai_pro') return null;
+  const email = core.normaliseEmail(metadata.account_email || object.customer_email || object.customer_details?.email);
+  if (!email) return null;
+  return {
+    metadata,
+    account: { sub: String(metadata.account_sub || metadata.client_reference_id || ''), email }
+  };
+}
+
+function retryableError() {
+  const error = new Error('Stripe entitlement synchronization must be retried.');
+  error.retryable = true;
+  return error;
+}
+
 async function recordEntitlementEvent(event, stripe) {
   if (!core.storageConfigured()) return;
   const object = event.data.object || {};
@@ -33,30 +50,57 @@ async function recordEntitlementEvent(event, stripe) {
     subscriptionId = invoiceSubscriptionId(object);
     if (!subscriptionId) return;
   }
-  // Snapshot events can arrive out of order. Resolve the current Stripe state
-  // before writing access so an older active snapshot cannot undo a later
-  // cancellation or payment failure.
   if (!subscriptionId) return;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  if (!subscription || typeof subscription !== 'object') return;
-  const metadata = { ...(object.metadata || {}), ...(subscription.metadata || {}) };
-  if (metadata.product !== 'doctorai_pro') return;
-  const email = core.normaliseEmail(metadata.account_email || object.customer_email || object.customer_details?.email);
-  if (!email) return;
-  const account = { sub: String(metadata.account_sub || metadata.client_reference_id || ''), email };
-  const status = String(subscription.status || 'inactive');
-  const currentPeriodEnd = subscriptionPeriodEnd(subscription);
-  const active = (status === 'active' || status === 'trialing')
-    && (metadata.plan !== 'weekly' || currentPeriodEnd > core.nowSeconds());
-  const exp = active ? Math.max(currentPeriodEnd, core.nowSeconds()) : core.nowSeconds();
-  await core.saveEntitlement(account, {
-    tier: active ? 'pro' : 'free', source: 'stripe', plan: metadata.plan || null, email,
-    customerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id || null,
-    subscriptionId: subscription.id || null, status, cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
-    renewalDate: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
-    cancelledAt: subscription.canceled_at ? new Date(Number(subscription.canceled_at) * 1000).toISOString() : null,
-    currentPeriodEnd: currentPeriodEnd || null, exp
-  });
+  // The first read identifies the account lock. Re-read after acquiring it so
+  // concurrent webhook and Checkout verification writes use current Stripe state.
+  const firstSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+  if (!firstSubscription || typeof firstSubscription !== 'object') return;
+  const firstContext = accountContext(object, firstSubscription);
+  if (!firstContext) return;
+
+  let lease;
+  try {
+    lease = await core.acquireEntitlementLease(firstContext.account);
+  } catch {
+    throw retryableError();
+  }
+  if (!lease) throw retryableError();
+
+  try {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    if (!subscription || typeof subscription !== 'object') return;
+    const context = accountContext(object, subscription);
+    if (!context || core.accountKey(context.account) !== core.accountKey(firstContext.account)) return;
+    const { metadata, account } = context;
+    const email = account.email;
+    const status = String(subscription.status || 'inactive');
+    const currentPeriodEnd = subscriptionPeriodEnd(subscription);
+    const active = (status === 'active' || status === 'trialing')
+      && (metadata.plan !== 'weekly' || currentPeriodEnd > core.nowSeconds());
+    const exp = active ? Math.max(currentPeriodEnd, core.nowSeconds()) : core.nowSeconds();
+    let saved;
+    try {
+      saved = await core.saveEntitlementWithLease(account, {
+        tier: active ? 'pro' : 'free', source: 'stripe', plan: metadata.plan || null, email,
+        customerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id || null,
+        subscriptionId: subscription.id || null, status, cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+        renewalDate: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+        cancelledAt: subscription.canceled_at ? new Date(Number(subscription.canceled_at) * 1000).toISOString() : null,
+        currentPeriodEnd: currentPeriodEnd || null, exp
+      }, lease);
+    } catch {
+      throw retryableError();
+    }
+    if (!saved) throw retryableError();
+  } finally {
+    try {
+      await core.releaseEntitlementLease(lease);
+    } catch (error) {
+      core.reportError('entitlement_lock_release_failed', {
+        route: '/api/stripe/webhook', provider: 'stripe', type: error?.type
+      });
+    }
+  }
 }
 
 async function stripeWebhook(req, res) {
@@ -78,6 +122,10 @@ async function stripeWebhook(req, res) {
 
     return res.status(200).json({ received: true });
   } catch (error) {
+    if (error?.retryable) {
+      core.reportError('stripe_webhook_processing_retryable', { route: '/api/stripe/webhook', provider: 'stripe' });
+      return res.status(503).json({ error: 'Subscription status is temporarily busy. Stripe will retry.' });
+    }
     core.reportError('stripe_webhook_verification_failed', { route: '/api/stripe/webhook', provider: 'stripe', type: error?.type, code: error?.code });
     return res.status(400).json({ error: 'Invalid Stripe webhook.' });
   }

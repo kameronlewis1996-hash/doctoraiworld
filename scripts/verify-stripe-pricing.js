@@ -34,6 +34,9 @@ const originalIdentity = core.identityFromRequest;
 const originalStorage = core.storageConfigured;
 const originalRateLimit = core.rateLimit;
 const originalSaveEntitlement = core.saveEntitlement;
+const originalAcquireEntitlementLease = core.acquireEntitlementLease;
+const originalSaveEntitlementWithLease = core.saveEntitlementWithLease;
+const originalReleaseEntitlementLease = core.releaseEntitlementLease;
 const originalConfigured = core.configured;
 const stripeModulePath = require.resolve('stripe');
 const stripeModule = require.cache[stripeModulePath];
@@ -74,7 +77,9 @@ class FakeStripe {
     this.subscriptions = { retrieve: async id => {
       if (FakeStripe.subscriptionRetrievals) FakeStripe.subscriptionRetrievals.push(id);
       assert.equal(id, FakeStripe.subscription.id);
-      return FakeStripe.subscription;
+      return FakeStripe.subscriptionRetrieveHook
+        ? FakeStripe.subscriptionRetrieveHook(id)
+        : FakeStripe.subscription;
     } };
     this.webhooks = { constructEvent: (rawBody, signature, secret) => {
       assert.ok(Buffer.isBuffer(rawBody), 'Webhook verification receives the unmodified raw body.');
@@ -95,12 +100,42 @@ async function deliverWebhook(handler, event, options = {}) {
   await handled;
   assert.equal(response.statusCode, options.status || 200);
   if (!options.status || options.status === 200) assert.deepEqual(response.body, { received: true });
+  else if (options.body) assert.deepEqual(response.body, options.body);
   else assert.deepEqual(response.body, { error: 'Invalid Stripe webhook.' });
+  return response;
 }
 
 async function verifySubscriptionEntitlements() {
   const saved = [];
-  core.saveEntitlement = async (account, entitlement) => saved.push({ account, entitlement });
+  const activeLeases = new Map();
+  let leaseNumber = 0;
+  let gatedActiveWrite = null;
+  let onActiveWriteStarted = null;
+  let persistedEntitlement = null;
+  core.acquireEntitlementLease = async account => {
+    const key = core.accountKey(account);
+    if (activeLeases.has(key)) return null;
+    const lease = { key, token: `synthetic-lease-${++leaseNumber}` };
+    activeLeases.set(key, lease);
+    return lease;
+  };
+  core.releaseEntitlementLease = async lease => {
+    if (activeLeases.get(lease.key)?.token !== lease.token) return false;
+    activeLeases.delete(lease.key);
+    return true;
+  };
+  core.saveEntitlementWithLease = async (account, entitlement, lease) => {
+    if (activeLeases.get(lease.key)?.token !== lease.token) return false;
+    if (entitlement.status === 'active' && gatedActiveWrite) {
+      onActiveWriteStarted?.();
+      await gatedActiveWrite;
+    }
+    if (activeLeases.get(lease.key)?.token !== lease.token) return false;
+    const write = { account, entitlement };
+    saved.push(write);
+    persistedEntitlement = write;
+    return true;
+  };
   core.configured = () => false;
   process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_synthetic';
@@ -195,7 +230,7 @@ async function verifySubscriptionEntitlements() {
         parent: { type: 'subscription_details', subscription_details: { subscription: reference } }
       } }
     });
-    assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id], 'Basil invoice events retrieve the actual subscription.');
+    assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id, FakeStripe.subscription.id], 'Basil invoice events retrieve the actual subscription before and after locking.');
     assert.equal(saved.length, 1);
     assert.equal(saved[0].entitlement.tier, 'pro');
     assert.equal(saved[0].entitlement.plan, 'weekly', 'Subscription metadata takes precedence over invoice metadata.');
@@ -211,7 +246,7 @@ async function verifySubscriptionEntitlements() {
     type: 'invoice.payment_failed',
     data: { object: { parent: { type: 'subscription_details', subscription_details: { subscription: FakeStripe.subscription.id } } } }
   });
-  assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id]);
+  assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id, FakeStripe.subscription.id]);
   assert.equal(saved.length, 1);
   assert.equal(saved[0].entitlement.tier, 'free', 'Basil payment failure uses the actual past-due subscription status.');
   assert.equal(saved[0].entitlement.plan, 'weekly');
@@ -227,7 +262,7 @@ async function verifySubscriptionEntitlements() {
       parent: { type: 'subscription_details', subscription_details: {} }
     } }
   });
-  assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id], 'The legacy subscription pointer remains a supported fallback.');
+  assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id, FakeStripe.subscription.id], 'The legacy subscription pointer remains a supported fallback.');
   assert.equal(saved[0].entitlement.tier, 'pro');
 
   for (const parent of [undefined, { type: 'quote_details', subscription_details: { subscription: FakeStripe.subscription.id } }, { type: 'subscription_details', subscription_details: {} }, { type: 'subscription_details', subscription_details: { subscription: { id: 42 } } }]) {
@@ -287,9 +322,111 @@ async function verifySubscriptionEntitlements() {
     saved.length = 0;
     FakeStripe.subscriptionRetrievals = [];
     await deliverWebhook(webhook, { type, data: { object } });
-    assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id]);
+    assert.deepEqual(FakeStripe.subscriptionRetrievals, [FakeStripe.subscription.id, FakeStripe.subscription.id]);
     assert.equal(saved.length, 1);
     assert.equal(saved[0].entitlement.tier, 'free', `${type} must use current Stripe state when its event snapshot is stale.`);
+  }
+
+  FakeStripe.subscription = makeSubscription('weekly');
+  FakeStripe.subscriptionRetrieveHook = null;
+  const replay = {
+    id: 'evt_synthetic_replay', type: 'customer.subscription.updated',
+    data: { object: FakeStripe.subscription }
+  };
+  saved.length = 0;
+  await deliverWebhook(webhook, replay);
+  await deliverWebhook(webhook, replay);
+  assert.equal(saved.length, 2, 'Webhook delivery remains at-least-once and a replay can repeat the state write.');
+  assert.deepEqual(saved[1].entitlement, saved[0].entitlement, 'Replaying an event must converge to the same entitlement state.');
+
+  const olderActive = makeSubscription('weekly', { status: 'active' });
+  const newerCancelled = makeSubscription('weekly', { status: 'canceled' });
+  let releaseOlderWrite;
+  let olderWriteStarted;
+  const olderWriteStartedPromise = new Promise(resolve => { olderWriteStarted = resolve; });
+  gatedActiveWrite = new Promise(resolve => { releaseOlderWrite = resolve; });
+  onActiveWriteStarted = olderWriteStarted;
+  let retrieval = 0;
+  FakeStripe.subscription = olderActive;
+  FakeStripe.subscriptionRetrieveHook = () => (++retrieval <= 2 ? olderActive : newerCancelled);
+  const olderEvent = deliverWebhook(webhook, {
+    id: 'evt_synthetic_older_active', type: 'customer.subscription.updated',
+    data: { object: olderActive }
+  });
+  await olderWriteStartedPromise;
+  const busyEvent = await deliverWebhook(webhook, {
+    id: 'evt_synthetic_newer_cancelled', type: 'customer.subscription.deleted',
+    data: { object: newerCancelled }
+  }, {
+    status: 503,
+    body: { error: 'Subscription status is temporarily busy. Stripe will retry.' }
+  });
+  assert.equal(busyEvent.statusCode, 503, 'A concurrent entitlement update must be retried instead of writing without the lease.');
+  releaseOlderWrite();
+  await olderEvent;
+  gatedActiveWrite = null;
+  onActiveWriteStarted = null;
+  FakeStripe.subscription = newerCancelled;
+  await deliverWebhook(webhook, {
+    id: 'evt_synthetic_newer_cancelled', type: 'customer.subscription.deleted',
+    data: { object: newerCancelled }
+  });
+  assert.equal(persistedEntitlement.entitlement.tier, 'free', 'A delayed older active write must not overwrite a later cancellation.');
+  FakeStripe.subscriptionRetrieveHook = null;
+  core.saveEntitlementWithLease = async (account, entitlement, lease) => {
+    if (activeLeases.get(lease.key)?.token !== lease.token) return false;
+    const write = { account, entitlement };
+    saved.push(write);
+    persistedEntitlement = write;
+    return true;
+  };
+
+  const heldLease = await core.acquireEntitlementLease({ email: 'buyer@example.test', sub: 'test-account' });
+  assert.ok(heldLease, 'A webhook entitlement lease can be acquired for the authenticated account.');
+  saved.length = 0;
+  const checkoutDuringWebhook = await verifySession('weekly', makeSubscription('weekly'));
+  assert.equal(checkoutDuringWebhook.statusCode, 503, 'Checkout verification must share the webhook account lock.');
+  assert.equal(saved.length, 0, 'Checkout verification must not write around an active webhook lease.');
+  await core.releaseEntitlementLease(heldLease);
+  const checkoutAfterWebhook = await verifySession('weekly', makeSubscription('weekly'));
+  assert.equal(checkoutAfterWebhook.statusCode, 200, 'Checkout verification can save after the shared account lease is released.');
+  assert.equal(saved.length, 1);
+
+  const originalReadStoredEntitlement = core.readStoredEntitlement;
+  const originalReadFreeGrant = core.readFreeGrant;
+  const originalRecordFreeGrant = core.recordFreeGrant;
+  const originalSetEntitlementCookie = core.setEntitlementCookie;
+  const originalFreeProCode = process.env.DOCTORAI_FREE_PRO_CODE;
+  try {
+    process.env.DOCTORAI_FREE_PRO_CODE = 'SYNTHETIC-PROMO';
+    core.configured = () => true;
+    core.readStoredEntitlement = async () => null;
+    core.readFreeGrant = async () => null;
+    core.recordFreeGrant = async () => true;
+    core.setEntitlementCookie = () => {};
+    delete require.cache[require.resolve('../server-src/staff/redeem-pro.js')];
+    const redeemPro = require('../server-src/staff/redeem-pro.js');
+    const redemptionLease = await core.acquireEntitlementLease({ email: 'buyer@example.test', sub: 'test-account' });
+    assert.ok(redemptionLease);
+    saved.length = 0;
+    const busyRedemption = responseRecorder();
+    await redeemPro({ method: 'POST', body: { code: 'SYNTHETIC-PROMO' }, headers: {}, socket: {} }, busyRedemption);
+    assert.equal(busyRedemption.statusCode, 503, 'Promo redemption must wait for the shared account entitlement lock.');
+    assert.equal(saved.length, 0);
+    await core.releaseEntitlementLease(redemptionLease);
+    const redemption = responseRecorder();
+    await redeemPro({ method: 'POST', body: { code: 'SYNTHETIC-PROMO' }, headers: {}, socket: {} }, redemption);
+    assert.equal(redemption.statusCode, 200);
+    assert.equal(saved[0].entitlement.source, 'promotional-code');
+  } finally {
+    core.configured = () => false;
+    core.readStoredEntitlement = originalReadStoredEntitlement;
+    core.readFreeGrant = originalReadFreeGrant;
+    core.recordFreeGrant = originalRecordFreeGrant;
+    core.setEntitlementCookie = originalSetEntitlementCookie;
+    if (originalFreeProCode === undefined) delete process.env.DOCTORAI_FREE_PRO_CODE;
+    else process.env.DOCTORAI_FREE_PRO_CODE = originalFreeProCode;
+    delete require.cache[require.resolve('../server-src/staff/redeem-pro.js')];
   }
 
   for (const [type, status] of [['invoice.payment_failed', 'past_due'], ['customer.subscription.deleted', 'canceled']]) {
@@ -314,6 +451,133 @@ async function verifySubscriptionEntitlements() {
   await verifyCheckout({ method: 'POST', body: { session_id: 'cs_test_synthetic' } }, wrongAccount);
   assert.equal(wrongAccount.statusCode, 403);
   assert.equal(saved.length, 0, 'A weekly session must remain bound to its authenticated DoctorAI account.');
+}
+
+async function verifyStripeEntitlementLeaseStorage() {
+  const names = ['AUTH_SECRET', 'DOCTORAI_TEST_KV_REST_API_URL', 'DOCTORAI_TEST_KV_REST_API_TOKEN', 'VERCEL_ENV'];
+  const env = Object.fromEntries(names.map(name => [name, process.env[name]]));
+  const originalFetch = global.fetch;
+  const originalStorageConfigured = core.storageConfigured;
+  const locks = new Map();
+  const hashes = new Map();
+
+  process.env.AUTH_SECRET = 'synthetic-only-auth-secret-for-offline-test';
+  process.env.DOCTORAI_TEST_KV_REST_API_URL = 'https://redis.synthetic.invalid';
+  process.env.DOCTORAI_TEST_KV_REST_API_TOKEN = 'synthetic-only-token';
+  process.env.VERCEL_ENV = 'preview';
+  core.storageConfigured = () => true;
+  global.fetch = async (url, options = {}) => {
+    const pathname = new URL(url).pathname;
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts[0] === 'hget') {
+      const value = hashes.get(`${parts[1]}:${parts[2]}`) ?? null;
+      return { ok: true, json: async () => ({ result: value }) };
+    }
+    if (parts[0] === 'hset') {
+      hashes.set(`${parts[1]}:${parts[2]}`, JSON.parse(options.body));
+      return { ok: true, json: async () => ({ result: 1 }) };
+    }
+    const command = JSON.parse(options.body);
+    let result = null;
+    if (command[0] === 'SET') {
+      const [, key, token] = command;
+      if (!locks.has(key)) {
+        locks.set(key, token);
+        result = 'OK';
+      }
+    } else if (command[0] === 'EVAL' && command[1].includes('entitlement-save-v1')) {
+      const [, , , lockKey, accountKey, token, field, value] = command;
+      if (locks.get(lockKey) === token) {
+        hashes.set(`${accountKey}:${encodeURIComponent(field)}`, value);
+        result = 1;
+      } else result = 0;
+    } else if (command[0] === 'EVAL' && command[1].includes('entitlement-release-v1')) {
+      const [, , , lockKey, token] = command;
+      if (locks.get(lockKey) === token) {
+        locks.delete(lockKey);
+        result = 1;
+      } else result = 0;
+    } else {
+      throw new Error(`Unexpected synthetic Redis command: ${command[0]}`);
+    }
+    return { ok: true, json: async () => ({ result }) };
+  };
+
+  try {
+    const account = { email: 'lease@example.test', sub: 'synthetic-account' };
+    const staleLease = await core.acquireEntitlementLease(account);
+    assert.ok(staleLease);
+    assert.equal(await core.acquireEntitlementLease(account), null, 'SET NX must reject a second concurrent lease.');
+    assert.equal(await core.saveEntitlement(account, { tier: 'free', email: account.email }), false,
+      'The compatibility save API must not bypass an active entitlement lease.');
+    assert.equal(await core.saveEntitlementWithLease({ email: 'other@example.test', sub: 'other-account' }, {
+      tier: 'pro', email: 'other@example.test'
+    }, staleLease), false, 'A lease for one account cannot authorize writes to another account.');
+    assert.equal(await core.saveEntitlementWithLease(account, { tier: 'pro', email: account.email }, staleLease), true);
+    const entitlementKey = `${encodeURIComponent(`doctorai:accounts:${core.accountKey(account)}`)}:entitlement`;
+    const previousValue = hashes.get(entitlementKey);
+    assert.ok(previousValue, `A lease holder writes the sealed entitlement hash value (stored keys: ${[...hashes.keys()].join(', ')}; expected: ${entitlementKey}).`);
+
+    locks.delete(staleLease.key); // Model expiration of the first lease before another holder takes it.
+    const currentLease = await core.acquireEntitlementLease(account);
+    assert.ok(currentLease);
+    assert.equal(await core.saveEntitlementWithLease(account, { tier: 'free', email: account.email }, staleLease), false,
+      'A former lease holder cannot overwrite a newer entitlement after lease expiry.');
+    assert.equal(await core.releaseEntitlementLease(staleLease), false,
+      'A former lease holder cannot release the current holder’s lease.');
+    assert.equal(hashes.get(entitlementKey), previousValue,
+      'A fenced stale write leaves the current entitlement untouched.');
+    assert.equal(await core.saveEntitlementWithLease(account, { tier: 'free', email: account.email }, currentLease), true);
+    assert.equal(await core.releaseEntitlementLease(currentLease), true);
+    assert.equal(await core.saveEntitlement(account, { tier: 'pro', email: account.email }), true,
+      'The compatibility save API acquires and releases the same per-account entitlement lease.');
+
+    const grantAccount = { email: 'grant@example.test', sub: 'synthetic-grant-account' };
+    const originalGrant = {
+      email: grantAccount.email, source: 'promotional-code', exp: core.nowSeconds() + 86400,
+      expiresAt: new Date((core.nowSeconds() + 86400) * 1000).toISOString(), redeemedAt: new Date().toISOString()
+    };
+    await core.recordFreeGrant(grantAccount, originalGrant);
+    const grantLease = await core.acquireEntitlementLease(grantAccount);
+    assert.ok(grantLease);
+    assert.equal(await core.saveEntitlementWithLease(grantAccount, {
+      tier: 'pro', source: 'promotional-code', email: grantAccount.email, exp: originalGrant.exp
+    }, grantLease), true);
+    await core.releaseEntitlementLease(grantLease);
+
+    const competingLease = await core.acquireEntitlementLease(grantAccount);
+    assert.ok(competingLease);
+    await assert.rejects(core.revokeFreeGrant(grantAccount, { email: 'staff@example.test' }), error => error.retryable === true,
+      'A complimentary revoke must not bypass a concurrent paid entitlement update.');
+    assert.equal((await core.readFreeGrant(grantAccount)).revokedAt, undefined,
+      'A busy revoke leaves the complimentary grant unchanged for a retry.');
+    await core.releaseEntitlementLease(competingLease);
+
+    assert.deepEqual(await core.revokeFreeGrant(grantAccount, { email: 'staff@example.test' }), { found: true, revoked: true });
+    assert.equal((await core.readFreeGrant(grantAccount)).revokedAt?.length > 0, true);
+    assert.equal(await core.readStoredEntitlement(grantAccount), null);
+    assert.equal(await core.activeEntitlement({}, grantAccount), null,
+      'A revoked complimentary grant no longer activates Pro access.');
+
+    await core.recordFreeGrant(grantAccount, { ...originalGrant, redeemedAt: undefined, revokedAt: undefined });
+    const paidLease = await core.acquireEntitlementLease(grantAccount);
+    assert.ok(paidLease);
+    assert.equal(await core.saveEntitlementWithLease(grantAccount, {
+      tier: 'pro', source: 'stripe', email: grantAccount.email, exp: originalGrant.exp
+    }, paidLease), true);
+    await core.releaseEntitlementLease(paidLease);
+    assert.deepEqual(await core.revokeFreeGrant(grantAccount, { email: 'staff@example.test' }), { found: true, revoked: true });
+    const paidAfterRevocation = await core.readStoredEntitlement(grantAccount);
+    assert.equal(paidAfterRevocation.tier, 'pro', 'Revoking a complimentary code must preserve a separate paid subscription.');
+    assert.equal(paidAfterRevocation.source, 'stripe');
+  } finally {
+    global.fetch = originalFetch;
+    core.storageConfigured = originalStorageConfigured;
+    for (const name of names) {
+      if (env[name] === undefined) delete process.env[name];
+      else process.env[name] = env[name];
+    }
+  }
 }
 
 async function run() {
@@ -508,6 +772,7 @@ async function run() {
   assert.equal(unsafeCheckout.statusCode, 503, 'Preview checkout must refuse live credentials before creating a Stripe session.');
   assert.equal(FakeStripe.checkoutOptions, null, 'Unsafe Preview configuration must not create a checkout session.');
 
+  await verifyStripeEntitlementLeaseStorage();
   await verifySubscriptionEntitlements();
 
   process.stdout.write('Stripe pricing verification passed (weekly/monthly/annual validation, checkout selection, mode guards, and subscription entitlements).\n');
@@ -522,6 +787,9 @@ run().catch(error => { console.error(error); process.exitCode = 1; }).finally(()
   core.storageConfigured = originalStorage;
   core.rateLimit = originalRateLimit;
   core.saveEntitlement = originalSaveEntitlement;
+  core.acquireEntitlementLease = originalAcquireEntitlementLease;
+  core.saveEntitlementWithLease = originalSaveEntitlementWithLease;
+  core.releaseEntitlementLease = originalReleaseEntitlementLease;
   core.configured = originalConfigured;
   core.reportError = originalReportError;
   if (stripeModule && originalStripeExport) stripeModule.exports = originalStripeExport;

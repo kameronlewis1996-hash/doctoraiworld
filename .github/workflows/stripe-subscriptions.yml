@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'server-src/stripe/**'
+      - 'server-src/_lib/doctorai-core.cjs'
+      - 'server-src/staff/redeem-pro.js'
+      - 'server-src/staff/revoke-pro.mjs'
       - 'api/stripe/**'
       - 'subscription.html'
       - 'subscription.css'

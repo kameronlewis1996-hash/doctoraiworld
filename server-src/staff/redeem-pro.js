@@ -38,40 +38,60 @@ module.exports = async function redeemPro(request, response) {
   }
   if (!matchesPromotion && !grant) return json(response, 400, { error: 'This Pro access code is invalid or has expired.' });
 
-  const existing = await core.readStoredEntitlement(account);
-  if (existing && Number(existing.exp) > core.nowSeconds()) {
-    return json(response, 409, { error: 'This account already has active DoctorAI Pro access.' });
-  }
+  let lease = null;
+  try {
+    lease = await core.acquireEntitlementLease(account);
+    if (!lease) return json(response, 503, { error: 'Pro access is being updated. Please try again shortly.' });
 
-  let storedGrant = null;
-  if (grant) {
-    storedGrant = await core.readFreeGrant(account);
-    const tokenHash = crypto.createHash('sha256').update(code).digest('base64url');
-    if (!storedGrant || storedGrant.revokedAt || storedGrant.tokenHash !== tokenHash || storedGrant.redeemedAt || Number(storedGrant.exp) !== Number(grant.exp)) {
-      return json(response, 400, { error: 'This staff Pro access code is invalid, already used, or has been revoked.' });
+    const existing = await core.readStoredEntitlement(account);
+    if (existing && Number(existing.exp) > core.nowSeconds()) {
+      return json(response, 409, { error: 'This account already has active DoctorAI Pro access.' });
     }
-  } else {
-    const previousPromotion = await core.readFreeGrant(account);
-    if (previousPromotion?.source === 'promotional-code' && previousPromotion.redeemedAt) {
-      return json(response, 409, { error: 'This account has already used its complimentary Pro month.' });
+
+    let storedGrant = null;
+    if (grant) {
+      storedGrant = await core.readFreeGrant(account);
+      const tokenHash = crypto.createHash('sha256').update(code).digest('base64url');
+      if (!storedGrant || storedGrant.revokedAt || storedGrant.tokenHash !== tokenHash || storedGrant.redeemedAt || Number(storedGrant.exp) !== Number(grant.exp)) {
+        return json(response, 400, { error: 'This staff Pro access code is invalid, already used, or has been revoked.' });
+      }
+    } else {
+      const previousPromotion = await core.readFreeGrant(account);
+      if (previousPromotion?.source === 'promotional-code' && previousPromotion.redeemedAt) {
+        return json(response, 409, { error: 'This account has already used its complimentary Pro month.' });
+      }
+    }
+
+    const exp = grant ? Number(grant.exp) : Math.floor(Date.now() / 1000) + 30 * 86400;
+    const source = grant ? 'staff-grant' : 'promotional-code';
+    const entry = {
+      ...(storedGrant || {}),
+      email: String(account.email).trim().toLowerCase(),
+      name: String(account.name || ''),
+      source,
+      code: source,
+      redeemedAt: new Date().toISOString(),
+      expiresAt: new Date(exp * 1000).toISOString(),
+      exp,
+      actor: source === 'staff-grant' ? (storedGrant?.issuedBy || 'staff-grant') : 'self'
+    };
+    const saved = await core.saveEntitlementWithLease(account, {
+      tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true
+    }, lease);
+    if (!saved) return json(response, 503, { error: 'Pro access is being updated. Please try again shortly.' });
+    await core.recordFreeGrant(account, entry);
+    core.setEntitlementCookie(response, { tier: 'pro', source, email: entry.email, exp }, 'doctorai_free_pro');
+    return json(response, 200, { active: true, expiresAt: exp, email: entry.email });
+  } catch (error) {
+    core.reportError('pro_access_redemption_failed', { route: '/api/staff/redeem-pro', type: error?.type });
+    return json(response, 503, { error: 'Pro access could not be confirmed. Please try again shortly.' });
+  } finally {
+    if (lease) {
+      try {
+        await core.releaseEntitlementLease(lease);
+      } catch (error) {
+        core.reportError('entitlement_lock_release_failed', { route: '/api/staff/redeem-pro', type: error?.type });
+      }
     }
   }
-
-  const exp = grant ? Number(grant.exp) : Math.floor(Date.now() / 1000) + 30 * 86400;
-  const source = grant ? 'staff-grant' : 'promotional-code';
-  const entry = {
-    ...(storedGrant || {}),
-    email: String(account.email).trim().toLowerCase(),
-    name: String(account.name || ''),
-    source,
-    code: source,
-    redeemedAt: new Date().toISOString(),
-    expiresAt: new Date(exp * 1000).toISOString(),
-    exp,
-    actor: source === 'staff-grant' ? (storedGrant?.issuedBy || 'staff-grant') : 'self'
-  };
-  await core.saveEntitlement(account, { tier: 'pro', source, email: entry.email, exp, plan: 'complimentary', status: 'active', renewalDate: null, cancelAtPeriodEnd: true });
-  await core.recordFreeGrant(account, entry);
-  core.setEntitlementCookie(response, { tier: 'pro', source, email: entry.email, exp }, 'doctorai_free_pro');
-  return json(response, 200, { active: true, expiresAt: exp, email: entry.email });
 };
