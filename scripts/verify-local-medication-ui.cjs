@@ -30,6 +30,28 @@ state.medications=[{name:'fictional unknown medicine',dose:'1 mg'},{name:'warfar
 state.medications=[{name:'paracetamol',dose:'500 mg'}];await context.refreshMedicationCheckContext();assert.match(allText(output.children.at(-1)),/Coverage remains limited/);assert.match(allText(output.children[0]),/No alert does not mean safe/);assert.doesNotMatch(allText(output),/No interaction alert found/);
 context.fetch=async()=>({ok:false,json:async()=>({error:'Synthetic check unavailable; no check returned.'})});state.medications[0].dose='1000 mg';await context.refreshMedicationCheckContext();assert.match(allText(output),/Check unavailable/);assert.ok(!articles().length);assert.doesNotMatch(allText(output),/No interaction alert found/);
 sent=null;pro=false;await context.runLocalMedicationSafetyCheck(button);assert.equal(sent,null);assert.match(output.textContent,/Pro/);pro=true;context.authUser=null;await context.runLocalMedicationSafetyCheck(button);assert.equal(signIns,1);
+// Synthetic presentation checks use the actual retained engine; no account data or live request.
+const engine=require('../server-src/medication/safety-engine.cjs');
+const covered=engine.review({medications:['Marevan','Trisul']});
+context.renderLocalMedicationDatabaseResult(output,covered);
+const interaction=articles().find(e=>allText(e).includes('Possible medicine interaction'));
+assert.ok(interaction,'A retained interaction is presented as a possible interaction');
+assert.equal(interaction.attributes['data-severity'],'high');
+assert.equal(interaction.attributes.role,'alert','High-severity alert semantics are preserved');
+assert.match(allText(interaction),/Ask your pharmacist or doctor to confirm/);
+assert.match(allText(interaction),/not a diagnosis; do not change treatment/);
+assert.match(allText(interaction),/Prompt pharmacist or prescriber review/);
+assert.match(allText(interaction),/source checked 2026-10-13/);
+assert.ok(interaction.children.some(e=>e.tag==='a'&&e.href==='https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/'));
+assert.match(allText(output),/Coverage remains limited/);
+const duplicates=engine.review({medications:['paracetamol','acetaminophen']});
+context.renderLocalMedicationDatabaseResult(output,duplicates);
+const duplicate=articles().find(e=>allText(e).includes('Possible duplicate active ingredient'));
+assert.ok(duplicate,'Duplicate ingredients remain separately labelled');
+assert.doesNotMatch(allText(duplicate),/Possible medicine interaction/);
+const malicious={...covered,alerts:[{type:'interaction',severity:'high',message:'Synthetic warning',source:{publisher:'Example',url:'https://jamanetwork.com.evil.invalid/example'}}]};
+context.renderLocalMedicationDatabaseResult(output,malicious);
+assert.ok(!articles()[0].children.some(e=>e.tag==='a'),'Unapproved evidence URLs cannot become links');
 const css=fs.readFileSync(require.resolve('../health-hub.css'),'utf8');assert.match(css,/\.safety-result-alert\.is-warning\s*\{[^}]*background:#fff0ee/);assert.match(css,/\.medication-warning-icon\s*\{/);
 console.log('UI→API→local rules passed: generic/brand interaction warnings first with alert role/icon/severity styling, source text, state-specific footer, unknown and unavailable presentation, explicit persistent consent, private payload and sign-in/Pro gates.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>Object.assign(core,original));
