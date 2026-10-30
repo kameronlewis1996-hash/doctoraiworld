@@ -249,6 +249,7 @@ body[data-hub-layout="reference"] #hub-shell #view-profile .profile-shortcut-add
 body[data-hub-layout="reference"] #hub-shell #view-profile .profile-simple-links { padding-top: 8px; border-top: 1px solid #d7e3f1; }
 
 /* Account drawer and dialogs share the soft Aurora frame. */
+body[data-hub-layout="reference"] #hub-shell #session-verification-gate { background: #dceefa; border-color: #a9c9e5; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-backdrop { background: #132f5480; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-panel {
   width: min(420px, calc(100% - 20px));
@@ -648,8 +649,8 @@ body[data-hub-layout="reference"] .medication-reaction-confirm input { flex: 0 0
   body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs { width: 100%; flex-wrap: wrap; overflow-x: visible; }
   body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button { flex: 0 0 auto; min-height: 44px; }
   body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs > button { flex: 1 1 0; padding-inline: 7px; font-size: 12px; }
-  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
-  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { flex: 0 0 auto; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { width: 100%; flex-wrap: wrap; overflow-x: visible; }
+  body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { flex: 0 0 auto; min-height: 44px; }
   body[data-hub-layout="reference"] #hub-shell #view-appointments :is(.appointment-large, .past-item) { grid-template-columns: minmax(0, 1fr); }
   body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
   body[data-hub-layout="reference"] #hub-shell #view-visit-prep .reference-visit-actions > button { width: 100%; }
@@ -664,5 +665,6 @@ body[data-hub-layout="reference"] .medication-reaction-confirm input { flex: 0 0
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading,
   body[data-hub-layout="reference"] #hub-shell :is(.document-drop, .document-card, .result-item, .appointment-large, .past-item, .timeline-entry, .symptom-trigger-item) { border-color: CanvasText; background: Canvas; color: CanvasText; box-shadow: none; }
   body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal, #profile-drawer .drawer-panel),
-  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { background: Canvas; color: CanvasText; }
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header,
+  body[data-hub-layout="reference"] #hub-shell #session-verification-gate { background: Canvas; color: CanvasText; border-color: CanvasText; }
 }

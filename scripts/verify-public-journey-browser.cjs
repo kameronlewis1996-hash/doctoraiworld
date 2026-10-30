@@ -271,6 +271,26 @@ async function assertMenuSurface(page, menu, label) {
       await assertNoOverflow(page, `Health history at ${width}px`);
       await page.screenshot({ path: path.join(out, `history-filters-${width}.png`) });
     }
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`${base}/health-hub#documents`, { waitUntil: 'networkidle' });
+      await page.locator('[data-auth-status-control][data-auth-state="signed-out"]').first().waitFor({ state: 'attached' });
+      const tabs = page.locator('#view-documents .document-filters button');
+      await tabs.first().waitFor({ state: 'visible' });
+      assert.equal(await tabs.count(), 4, 'All four document filters remain available.');
+      for (const button of await tabs.all()) {
+        const rect = await button.evaluate(element => { const r = element.getBoundingClientRect(); return { left: r.left, right: r.right, height: r.height }; });
+        assert.ok(rect.left >= 0 && rect.right <= width && rect.height >= 44,
+          `${width}px document filter is fully visible with a 44px target: ${JSON.stringify(rect)}`);
+      }
+      const letters = page.locator('#view-documents [data-document-filter="letter"]');
+      await letters.click();
+      assert.equal(await letters.evaluate(element => element.classList.contains('active')), true,
+        `${width}px document filters remain interactive`);
+      await assertNoOverflow(page, `Documents at ${width}px`);
+      await page.locator('#view-documents .document-toolbar').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(out, `document-filters-${width}.png`) });
+    }
 
     console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, checkout320: narrowReviewBounds, screenshots: out, checkoutSessionRequests: 0 }));
     await context.close();
