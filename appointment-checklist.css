@@ -263,6 +263,7 @@ h2 { margin-bottom: 8px; font-size: clamp(22px, 3.5vw, 30px); line-height: 1.2; 
     transition-duration: .01ms !important;
   }
 }
+
 /* A task-focused printable guide with clear blue wayfinding and generous entry fields. */
 @media screen {
   body.appointment-guide {
@@ -773,4 +774,16 @@ h2 { margin-bottom: 8px; font-size: clamp(22px, 3.5vw, 30px); line-height: 1.2; 
   body.appointment-guide .page-footer nav a {
     transition: none !important;
   }
+}
+
+@media screen {
+  body.appointment-guide .page-header nav a { min-height: 44px; }
+}
+
+/* Keep both resource navigation links inside narrow phone viewports. */
+@media screen and (max-width: 420px) {
+  body.appointment-guide .page-header { flex-wrap: wrap; padding-block: 8px; gap: 2px 7px; }
+  body.appointment-guide .page-header nav { width: 100%; justify-content: flex-end; }
+  body.appointment-guide .page-header nav a,
+  body.appointment-guide .page-header nav .nav-cta { min-height: 44px; }
 }

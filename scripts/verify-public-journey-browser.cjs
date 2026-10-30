@@ -35,6 +35,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     return res.end(JSON.stringify({ plans }));
   }
+  if (route === '/api/auth/google') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end('{"authenticated":false}');
+  }
   if (route.startsWith('/api/')) {
     res.writeHead(503, { 'content-type': 'application/json' });
     return res.end('{"error":"Local regression review only","allowed":false,"authenticated":false}');
@@ -226,6 +230,47 @@ async function assertMenuSurface(page, menu, label) {
     }
     assert.equal(requests.some(url => /va\.vercel-scripts\.com|\/_vercel\/insights\//i.test(url)), false,
       'Subscription, Health Hub and staff pages make no unconsented Vercel analytics request.');
+
+    // The resource header previously clipped its primary link at 320px.
+    for (const width of [320, 360, 375, 390, 412, 768, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`${base}/appointment-checklist`, { waitUntil: 'networkidle' });
+      for (const selector of ['.page-header .brand', '.page-header nav a:not(.nav-cta)', '.page-header .nav-cta']) {
+        const bounds = await page.locator(selector).evaluate(element => {
+          const r = element.getBoundingClientRect();
+          return { left: r.left, right: r.right, height: r.height };
+        });
+        assert.ok(bounds.left >= 0 && bounds.right <= width, `${width}px ${selector} stays in the viewport: ${JSON.stringify(bounds)}`);
+        if (selector.includes('nav')) assert.ok(bounds.height >= 44, `${width}px ${selector} has a 44px target`);
+      }
+      await assertNoOverflow(page, `Appointment checklist at ${width}px`);
+      await page.locator('.page-header .nav-cta').focus();
+      assert.equal(await page.locator('.page-header .nav-cta').evaluate(element => element === document.activeElement), true,
+        `${width}px appointment link can receive keyboard focus`);
+      if ([320, 390].includes(width)) await page.screenshot({ path: path.join(out, `appointment-header-${width}.png`) });
+    }
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`${base}/health-hub#timeline`, { waitUntil: 'networkidle' });
+      const tabs = page.locator('#view-timeline .filter-tabs button');
+      await page.locator('[data-auth-status-control][data-auth-state="signed-out"]').first().waitFor({ state: 'attached' });
+      await tabs.first().waitFor({ state: 'visible' });
+      assert.equal(await tabs.count(), 5, 'All five history filters remain available.');
+      for (const button of await tabs.all()) {
+        const rect = await button.evaluate(element => {
+          const r = element.getBoundingClientRect();
+          return { left: r.left, right: r.right, height: r.height };
+        });
+        assert.ok(rect.left >= 0 && rect.right <= width && rect.height >= 44,
+          `${width}px history filter is fully visible with a 44px target: ${JSON.stringify(rect)}`);
+      }
+      const appointments = page.locator('#view-timeline [data-timeline-filter="appointment"]');
+      await appointments.click();
+      assert.equal(await appointments.evaluate(element => element.classList.contains('active')), true,
+        `${width}px history filters remain interactive`);
+      await assertNoOverflow(page, `Health history at ${width}px`);
+      await page.screenshot({ path: path.join(out, `history-filters-${width}.png`) });
+    }
 
     console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, checkout320: narrowReviewBounds, screenshots: out, checkoutSessionRequests: 0 }));
     await context.close();

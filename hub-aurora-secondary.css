@@ -254,12 +254,13 @@ body[data-hub-layout="reference"] #profile-drawer .drawer-panel {
   width: min(420px, calc(100% - 20px));
   padding: 28px 25px 24px;
   border-left: 1px solid #d2def0;
-  background: linear-gradient(145deg, #fff, #f5f8ff 76%);
+  background: #e1f1fb;
   box-shadow: -18px 0 50px #193b602b;
 }
 body[data-hub-layout="reference"] #profile-drawer .drawer-header,
 body[data-hub-layout="reference"] #profile-drawer .drawer-section { border-color: #dbe5f2; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-label { color: #627892; font-size: 11px; }
+body[data-hub-layout="reference"] #profile-drawer .drawer-profile .quiet-button { flex: 0 0 auto; white-space: nowrap; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-row { min-height: 54px; border-radius: 12px; padding: 9px 8px; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-row:hover { background: #edf4ff; }
 body[data-hub-layout="reference"] #profile-drawer .drawer-row-icon { border: 1px solid #cfdef0; background: #eaf2ff; color: var(--hub-secondary-blue); }
@@ -549,7 +550,7 @@ body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-sign
   overflow: auto;
   border: 1px solid #cfddf0;
   border-radius: 22px;
-  background: linear-gradient(145deg, #fff 0%, #f7faff 100%);
+  background: #e1f1fb;
   box-shadow: 0 28px 80px #16385b30;
 }
 body[data-hub-layout="reference"] .quick-modal { width: min(680px, calc(100% - 28px)); }
@@ -557,7 +558,7 @@ body[data-hub-layout="reference"] .privacy-modal { width: min(760px, calc(100% -
 body[data-hub-layout="reference"] .google-signin-modal { width: min(520px, calc(100% - 28px)); }
 body[data-hub-layout="reference"] .medication-scanner-modal { width: min(720px, calc(100% - 28px)); }
 body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal)::backdrop { background: #142f5580; backdrop-filter: blur(4px); }
-body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { position: sticky; top: 0; z-index: 2; background: linear-gradient(115deg, #eff5ff, #ffffff); }
+body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { position: sticky; top: 0; z-index: 2; background: #e1f1fb; }
 body[data-hub-layout="reference"] :is(.modal-field, .modal-choice, .modal-form-grid) { min-width: 0; }
 body[data-hub-layout="reference"] .modal-field :is(input, textarea, select) { width: 100%; min-width: 0; background: #fff; }
 body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) :is(button, a):focus-visible { outline: 3px solid #0759b6; outline-offset: 3px; }
@@ -644,8 +645,8 @@ body[data-hub-layout="reference"] .medication-reaction-confirm input { flex: 0 0
 @media (max-width: 620px) {
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav { margin-bottom: 14px; padding: 4px; }
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-diary) > .hub-panel-nav > [data-hub-panel-target] { padding-inline: 10px; font-size: 12px; }
-  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
-  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button { flex: 0 0 auto; }
+  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs { width: 100%; flex-wrap: wrap; overflow-x: visible; }
+  body[data-hub-layout="reference"] #hub-shell #view-timeline .filter-tabs > button { flex: 0 0 auto; min-height: 44px; }
   body[data-hub-layout="reference"] #hub-shell #view-results .trend-tabs > button { flex: 1 1 0; padding-inline: 7px; font-size: 12px; }
   body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
   body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { flex: 0 0 auto; }
@@ -662,4 +663,6 @@ body[data-hub-layout="reference"] .medication-reaction-confirm input { flex: 0 0
 @media (forced-colors: active) {
   body[data-hub-layout="reference"] #hub-shell :is(#view-health, #view-add, #view-medications, #view-documents, #view-diary, #view-symptoms, #view-appointments, #view-results, #view-timeline, #view-scan, #view-alerts, #view-visit-prep, #view-profile) > .page-heading,
   body[data-hub-layout="reference"] #hub-shell :is(.document-drop, .document-card, .result-item, .appointment-large, .past-item, .timeline-entry, .symptom-trigger-item) { border-color: CanvasText; background: Canvas; color: CanvasText; box-shadow: none; }
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal, #profile-drawer .drawer-panel),
+  body[data-hub-layout="reference"] :is(.quick-modal, .privacy-modal, .google-signin-modal, .medication-scanner-modal) .modal-header { background: Canvas; color: CanvasText; }
 }

@@ -134,9 +134,11 @@ async function waitForSignedOut(page) {
       await waitForSignedOut(page);
       await page.locator('#health-memory-details').evaluate(e=>e.open=true);
       await keyboardFocus(page,'#health-memory-toggle');
-      const switchRing = await ring(page,'#health-memory-toggle + span');
+      await page.waitForFunction(()=>{const e=document.querySelector('#health-memory-toggle');const s=getComputedStyle(e.nextElementSibling);return e===document.activeElement && e.matches(':focus-visible') && s.outlineStyle==='solid' && parseFloat(s.outlineWidth)>=3 && s.outlineColor==='rgb(7, 89, 182)';});
+      const switchRing = await page.locator('#health-memory-toggle').evaluate(e=>{const s=getComputedStyle(e.nextElementSibling);return {color:s.outlineColor,width:parseFloat(s.outlineWidth),active:e===document.activeElement,focusVisible:e.matches(':focus-visible'),activeId:document.activeElement?.id||document.activeElement?.tagName};});
       await shot(page,'memory-switch-focus-'+width);
-      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch');
+      check(switchRing.active && switchRing.focusVisible,true,width+': switch retains keyboard-visible focus');
+      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch '+JSON.stringify(switchRing));
       check(switchRing.width>=3,true,width+': switch focus ring width');
       const switchTarget = await page.locator('#health-memory-toggle').evaluate(e=>{const r=e.closest('label').getBoundingClientRect();return r.width>=44&&r.height>=44;});
       check(switchTarget,true,width+': switch has 44px touch target');
@@ -146,6 +148,8 @@ async function waitForSignedOut(page) {
       await page.waitForTimeout(30);
       check(await page.locator('.drawer-panel').evaluate(e=>e.contains(document.activeElement)),true,width+': drawer starts focus inside named dialog');
       check(await page.locator('#hub-shell').evaluate(e=>e.inert),true,width+': drawer removes background from interaction/accessibility tree');
+      const drawerSignIn = page.locator('#profile-drawer .drawer-profile [data-google-signin]');
+      check(await drawerSignIn.evaluate(e=>{const r=e.getBoundingClientRect(), p=e.closest('.drawer-panel').getBoundingClientRect();return getComputedStyle(e).whiteSpace==='nowrap' && r.left>=p.left && r.right<=p.right;}),true,width+': drawer sign-in stays on one line inside the panel');
       const last = '.drawer-panel .drawer-signout';
       await keyboardFocus(page,last);await page.keyboard.press('Tab');
       check(await page.locator('.drawer-panel').evaluate(e=>e.contains(document.activeElement)),true,width+': drawer wraps Tab inside panel');
