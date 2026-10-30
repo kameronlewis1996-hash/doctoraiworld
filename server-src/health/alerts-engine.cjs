@@ -159,11 +159,11 @@ function createHealthAlertsEngine(medicineEngine) {
           continue;
         }
         const pair = medicineEngine.reviewResolved({ resolved: [resolved[left], resolved[right]] });
-        const interactionAlerts = pair.alerts.filter(item => item.type === 'interaction');
-        if (interactionAlerts.length) pairCoverage.assessedPairs += 1;
+        const partialCoverage = pair.alerts.some(item => item.type === 'interaction-coverage' && item.coverageState === 'partial');
+        if (pair.coverage.unassessedPairs === 0) pairCoverage.assessedPairs += 1;
         else {
           pairCoverage.unassessedPairs += 1;
-          if (pairCoverage.unassessed.length < 20) pairCoverage.unassessed.push({ left: resolved[left].name || 'Medicine', right: resolved[right].name || 'Medicine', reason: 'No retained pairwise rule matched' });
+          if (pairCoverage.unassessed.length < 20) pairCoverage.unassessed.push({ left: resolved[left].name || 'Medicine', right: resolved[right].name || 'Medicine', reason: partialCoverage ? 'Some ingredient combinations have no retained pairwise rule' : 'No retained pairwise rule matched' });
         }
         for (const alert of pair.alerts.filter(item => ['interaction', 'duplicate-ingredient'].includes(item.type))) {
           add({ type: alert.type === 'interaction' ? 'medication-medication' : 'duplicate-ingredient', severity: alert.severity, title: alert.title, message: alert.message, triggers: [medicineTriggers[left], medicineTriggers[right]], nextAction: reviewAction, ruleId: alert.ruleId, sources: [alert.source] });
@@ -202,7 +202,7 @@ function createHealthAlertsEngine(medicineEngine) {
         }
       }
       const pairTriggers = [...triggerIndexes].map(index => medicineTriggers[index]);
-      if (pairTriggers.length) add({ type: 'medication-medication-unassessed', severity: 'unknown', title: 'Medicine pair coverage is unassessed', message: `${pairCoverage.unassessedPairs} of ${pairCoverage.requestedPairs} saved medicine pair(s) have no retained pairwise rule or a complete medicine identity${examples ? `; examples: ${examples}` : ''}.${extra} No alert does not mean safe. Ask a pharmacist or prescriber to review the full list.`, triggers: pairTriggers, nextAction: reviewAction, ruleId: 'medication-pair-unassessed', sources: [internal] });
+      if (pairTriggers.length) add({ type: 'medication-medication-unassessed', severity: 'unknown', title: 'Medicine pair coverage is unassessed', message: `${pairCoverage.unassessedPairs} of ${pairCoverage.requestedPairs} saved medicine pair(s) are not fully assessed by retained pairwise rules or have an incomplete medicine identity${examples ? `; examples: ${examples}` : ''}.${extra} No alert does not mean safe. Ask a pharmacist or prescriber to review the full list.`, triggers: pairTriggers, nextAction: reviewAction, ruleId: 'medication-pair-unassessed', sources: [internal] });
     }
     for (let index = 0; index < resolved.length; index += 1) {
       for (const allergy of allergies) {

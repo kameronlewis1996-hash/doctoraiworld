@@ -145,13 +145,18 @@ async function contextFor(browser, base, width, medications, options = {}) {
         return route.fulfill({ json: { authenticated: true, user: { sub: 'synthetic-medication-review-account', email: 'fixture@example.invalid', name: 'Fictional Reviewer' }, medicationLoginId: 'a'.repeat(64) } });
       }
       if (options.proAccount && url.pathname === '/api/auth/config') {
-        return route.fulfill({ json: { googleClientId: '', medicationRulesVersion: '2026.10.15-r149' } });
+        return route.fulfill({ json: { googleClientId: '', medicationRulesVersion: '2026.10.28-alias1' } });
       }
       if (options.proAccount && url.pathname === '/api/stripe/entitlement') {
         return route.fulfill({ json: { active: true, expiresAt: Math.floor(Date.now() / 1000) + 3600 } });
       }
       if (options.proAccount && url.pathname === '/api/health/state') {
         return route.fulfill({ json: method === 'GET' ? { state: null, updatedAt: 0 } : { ok: true, updatedAt: Date.now() } });
+      }
+      if (options.proAccount && options.mockScan && url.pathname === '/api/medication/scan' && method === 'POST') {
+        const body = route.request().postDataJSON();
+        check(body.consent === true && /^data:image\/jpeg;base64,/.test(body.image), 'synthetic scan request requires explicit consent and a prepared image');
+        return route.fulfill({ json: { medication: { name: 'Co-trimoxazole', activeIngredients: ['trimethoprim', 'sulfamethoxazole'] }, review: { required: true, confirmed: false, missing: [] } } });
       }
       if (options.proAccount && url.pathname === '/api/medication/safety' && method === 'POST') {
         const body = route.request().postDataJSON();
@@ -689,7 +694,7 @@ async function verifyVoltarenJourney(browser, base, width) {
     check(/Both|both|Voltaren/.test(pairUi) && /not assessed by this limited check/.test(pairUi) && /No alert does not mean safe/.test(pairUi) && /pharmacist or prescriber/i.test(pairUi), width + ': checker wording names the pair, states it was not assessed and gives a professional next step');
     check(await page.locator('#medication-library .medication-pair-coverage-badge').count() === 2, width + ': the unassessed-pair marker also appears beside both saved medicines');
     const localAlertShortcut = page.locator('#view-medications .hub-alert-shortcut[data-alert-level="neutral"]');
-    check(await localAlertShortcut.locator('[data-alert-title]').innerText() === 'Some medicine pairs not checked' && await localAlertShortcut.locator('[data-alert-note]').isVisible() && /not checked/.test(await localAlertShortcut.locator('[data-alert-note]').innerText()), width + ': the neutral coverage notice visibly explains the unchecked pair');
+    check(await localAlertShortcut.locator('[data-alert-title]').innerText() === 'Some medicine pairs not fully checked' && await localAlertShortcut.locator('[data-alert-note]').isVisible() && /not fully checked/.test(await localAlertShortcut.locator('[data-alert-note]').innerText()), width + ': the neutral coverage notice visibly explains the unchecked pair');
     check(/No alert does not mean safe/.test(await localAlertShortcut.getAttribute('aria-label')) && /pharmacist or prescriber/.test(await localAlertShortcut.getAttribute('aria-label')), width + ': screen-reader button name retains the complete safety and next-step wording');
     check(await page.locator('[data-local-medication-db-result] .safety-result-alert.is-warning').count() === 0 && await page.locator('[data-local-medication-db-result] .safety-result-alert.is-unknown[role="status"]').count() === 1, width + ': unknown coverage stays orange/status and is not misrepresented as a red interaction warning');
     await screenshot(page, 'voltaren-ibuprofen-not-checked-' + width + '.png');
@@ -701,6 +706,79 @@ async function verifyVoltarenJourney(browser, base, width) {
     medicationCore.activeEntitlement = originalCore.activeEntitlement;
     medicationCore.reportError = originalCore.reportError;
   }
+}
+
+async function verifyPartialCombinationJourney(browser, base, width, combination = 'Trisul') {
+  const originalCore = { identityFromRequest: medicationCore.identityFromRequest, storageConfigured: medicationCore.storageConfigured, activeEntitlement: medicationCore.activeEntitlement, reportError: medicationCore.reportError };
+  medicationCore.identityFromRequest = async () => ({ sub: 'synthetic-medication-review-account', email: 'fixture@example.invalid' });
+  medicationCore.storageConfigured = () => true;
+  medicationCore.activeEntitlement = async () => ({ tier: 'pro', exp: Math.floor(Date.now() / 1000) + 3600 });
+  medicationCore.reportError = () => {};
+  const medications = [{ id: 'fixture-one', name: 'Marevan' }, { id: 'fixture-two', name: combination }];
+  const context = await contextFor(browser, base, width, medications, { proAccount: true, realCatalogue: true });
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  page.on('dialog', dialog => dialog.accept());
+  try {
+    await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.body.dataset.subscription === 'pro' && document.querySelectorAll('#medication-library .library-item-wrap').length === 2);
+    const panel = page.locator('.clash-panel');
+    await panel.locator('[data-local-medication-db-consent]').check();
+    await panel.locator('[data-run-local-medication-safety-check]').click();
+    const result = panel.locator('[data-local-medication-db-result]');
+    await result.getByText('Pair not fully checked', { exact: true }).waitFor();
+    const warning = result.locator('article[data-severity="high"]');
+    check(await warning.count() === 1 && await warning.getAttribute('role') === 'alert', width + ': supported high-severity warning stays visible and assertive');
+    check(/warfarin|Marevan/i.test(await warning.innerText()) && /Prompt pharmacist or prescriber review/.test(await warning.innerText()), width + ': supported warning retains its professional-review guidance');
+    check(/other ingredient combinations were not assessed/i.test(await result.innerText()) && /No alert does not mean safe/.test(await result.innerText()), width + ': partial coverage is explicit alongside the warning');
+    check(await page.locator('#medication-library .medication-pair-coverage-badge').count() === 2, width + ': both records show the partial-pair coverage badge');
+    check((await page.locator('#medication-library .medication-pair-coverage-badge').first().innerText()).includes('not fully checked'), width + ': the badge describes partial coverage accurately');
+    await noOverflow(page, width + ' partial combination');
+    await page.locator('#medication-library [data-delete-medication]').last().click();
+    await page.waitForFunction(() => document.querySelectorAll('#medication-library .library-item-wrap').length === 1);
+    await page.waitForFunction(() => !/Possible medicine interaction|Pair not fully checked/.test(document.querySelector('[data-local-medication-db-result]')?.textContent || ''));
+    check(await result.locator('article[data-severity="high"]').count() === 0, width + ': removed medicine cannot leave a stale high warning');
+  } finally {
+    await context.close();
+    Object.assign(medicationCore, originalCore);
+  }
+}
+
+async function verifySyntheticScanReview(browser, base, width) {
+  const context = await contextFor(browser, base, width, [], { proAccount: true, mockScan: true, realCatalogue: true });
+  const page = await context.newPage();
+  page.on('pageerror', error => report.errors.push(error.message));
+  try {
+    await page.goto(base + '/health-hub#medications', { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.body.dataset.subscription === 'pro');
+    await page.locator('#view-medications .medication-scan-options > summary').click();
+    await page.locator('#view-medications [data-open-medication-scanner]').first().click();
+    const scanner = page.locator('#medication-scanner-modal');
+    await scanner.waitFor({ state: 'visible' });
+    const before = report.stubbedApiCalls.filter(x => x.path === '/api/medication/scan').length;
+    await scanner.locator('[data-medication-photo]').click();
+    check(report.stubbedApiCalls.filter(x => x.path === '/api/medication/scan').length === before, width + ': choosing a photo without image consent sends nothing');
+    await scanner.locator('[data-medication-image-consent]').check();
+    const chooser = page.waitForEvent('filechooser');
+    await scanner.locator('[data-medication-photo]').click();
+    await (await chooser).setFiles({ name: 'fictional-label.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z2S0AAAAASUVORK5CYII=', 'base64') });
+    const form = page.locator('#quick-modal [data-modal-form="medication"]');
+    await form.waitFor({ state: 'visible' });
+    check(await form.getAttribute('data-scan-review-required') === 'true', width + ': extracted fields require explicit review');
+    check(await form.locator('[name="name"]').inputValue() === 'Co-trimoxazole', width + ': synthetic extracted name is displayed for review');
+    if (!(await form.locator('details.medication-optional-fields').evaluate(element => element.open))) await form.locator('details.medication-optional-fields > summary').click();
+    await form.locator('[name="ingredientsConfirmed"]').check();
+    await form.locator('button[type="submit"]').click();
+    check(await form.isVisible() && !(await form.locator('[name="scanFieldsReviewed"]').isChecked()), width + ': extraction cannot save without the field-review confirmation');
+    await form.locator('[name="scanFieldsReviewed"]').check();
+    await form.locator('[name="dose"]').fill('10 mg');
+    check(!(await form.locator('[name="scanFieldsReviewed"]').isChecked()) && !(await form.locator('[name="ingredientsConfirmed"]').isChecked()), width + ': editing an extracted field revokes both review and ingredient confirmation');
+    await form.locator('[name="ingredientsConfirmed"]').check();
+    await form.locator('[name="scanFieldsReviewed"]').check();
+    await form.locator('button[type="submit"]').click();
+    await page.waitForFunction(() => !document.querySelector('#quick-modal').open);
+    check((await page.locator('#medication-library').innerText()).includes('Co-trimoxazole'), width + ': reviewed synthetic label can be saved');
+  } finally { await context.close(); }
 }
 
 async function verifyEarlierNotesReview(browser, base) {
@@ -766,6 +844,9 @@ async function verifyEarlierNotesReview(browser, base) {
     await verifyStrengthTextPresentation(browser, base, 390);
     await verifyVoltarenJourney(browser, base, 1440);
     await verifyVoltarenJourney(browser, base, 390);
+    await verifyPartialCombinationJourney(browser, base, 1440);
+    await verifyPartialCombinationJourney(browser, base, 390, 'Co-trimoxazole');
+    await verifySyntheticScanReview(browser, base, 390);
     await verifyCatalogueFallback(browser, base);
     await verifyEarlierNotesReview(browser, base);
     assert.deepEqual(report.errors, [], 'No browser JavaScript errors');

@@ -17,6 +17,16 @@ assert.equal(interaction.coverage.completeForRequest, false, 'A matched pair mus
 const retainedInteraction = review({ medications: ['Marevan', 'Trisul'] });
 assert.equal(retainedInteraction.status, 'red');
 assert.ok(retainedInteraction.alerts.some(alert => alert.ruleId === 'warfarin-sulfamethoxazole'));
+assert.equal(retainedInteraction.coverage.assessedPairs, 0, 'A combination product is not fully covered when another ingredient has no retained rule');
+assert.equal(retainedInteraction.coverage.unassessedPairs, 1);
+assert.ok(retainedInteraction.alerts.some(alert => alert.ruleId === 'medication-pair-partial' && alert.coverageState === 'partial' && alert.severity === 'unknown'));
+assert.ok(retainedInteraction.alerts.some(alert => alert.ruleId === 'warfarin-sulfamethoxazole' && alert.severity === 'high'), 'The supported high-severity warning remains');
+const singleIngredientPair = review({ medications: ['warfarin', 'sulfamethoxazole'] });
+assert.equal(singleIngredientPair.coverage.assessedPairs, 1, 'A pair with one matching ingredient combination keeps its supported rule match');
+assert.equal(singleIngredientPair.coverage.completeForRequest, false, 'A matched rule is never a complete safety assessment');
+assert.ok(!singleIngredientPair.alerts.some(alert => alert.coverageState === 'partial'));
+assert.ok(!review({ medications: ['fictional unknown medicine', 'Trisul'] }).alerts.some(alert => alert.ruleId === 'warfarin-sulfamethoxazole'));
+
 
 const allergy = review({ medications: ['amoxicillin'], allergies: ['penicillin'] });
 assert.equal(allergy.status, 'red');

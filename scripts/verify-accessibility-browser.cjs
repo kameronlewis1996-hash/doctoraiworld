@@ -52,7 +52,8 @@ async function keyboardFocus(page, selector) {
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base = 'http://127.0.0.1:'+server.address().port;
-  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const executablePath = process.env.CHROMIUM_EXECUTABLE || (fs.existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : null);
+  const browser = await chromium.launch(executablePath ? {executablePath, headless:true, args:['--no-sandbox']} : {channel:'msedge',headless:true});
   try {
     for (const width of [1440,390,320]) {
       const c = await browser.newContext({viewport:{width,height:width>800?1000:844},reducedMotion:'reduce',serviceWorkers:'block'});

@@ -53,6 +53,7 @@ button.dialog-secondary { background: #fff; text-align: left; cursor: pointer; }
 :where(a, button, input, [tabindex]):focus-visible { outline: 3px solid #0b76c5; outline-offset: 3px; }
 .feature-card > p:not(.feature-kicker), .plan-description, .plan-card li, .pro-safety p, .dialog-copy > p, .checkout-code-box > p { font-size: 12px; }
 .feature-card a, .plan-toggle button, .plan-secondary, .pro-safety a, .dialog-secondary { font-size: 12px; }
+.plan-card li.not-included::before { content: '—'; color: var(--muted); }
 
 /* Reduce decorative framing while keeping plans and navigation easy to scan. */
 .pro-section-nav {

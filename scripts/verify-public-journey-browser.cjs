@@ -163,6 +163,9 @@ async function assertMenuSurface(page, menu, label) {
     // enabled or activated and no Checkout Session is created.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${base}/subscription`, { waitUntil: 'networkidle' });
+    const exclusion = page.locator('.free-plan li.not-included');
+    assert.match(await exclusion.innerText(), /^Not included:/, 'The Free plan labels the upload and scanning exclusion in text.');
+    assert.equal(await exclusion.evaluate(element => getComputedStyle(element, '::before').content), '"—"', 'The exclusion does not use the inclusion checkmark.');
     await page.locator('[data-subscribe]:not([disabled])').waitFor();
     await page.locator('[data-subscribe]').click();
     const dialog = page.locator('#checkout-dialog');

@@ -23,7 +23,7 @@ assert.doesNotMatch(correction, /animation\s*:|transition\s*:|display\s*:|visibi
 assert.doesNotMatch(correction, /\.hub-alert-card\s*\{|\.emergency-card\s*\{|\.checkout-dialog\s*\{/);
 for(const selector of ['.pro-shell','main > .panel','.home-destination','.research-hero','.plan-card','.doctorai-site-footer','.today-focus-card','.reference-brief-card','.profile-shortcut-card','.library-card','.document-card','.result-list-card','.timeline-card','.diary-question-panel','.upcoming-card']) assert.ok(correction.includes(selector), selector);
 const worker = read('service-worker.js');
-assert.match(worker, /doctorai-shell-v203/);
+assert.match(worker, /doctorai-shell-v205/);
 for (const page of pages) assert.ok(worker.includes(read(page).match(/welcome-system\.css\?v=\d+/)[0]), page + ': exact shared asset in cache');
 assert.ok(worker.includes(read('health-hub.html').match(/health-tool-landing\.css\?v=\d+/)[0]));
 const hub = read('health-hub.html');
