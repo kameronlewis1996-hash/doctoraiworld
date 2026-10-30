@@ -147,7 +147,7 @@ assert.match(hubSource, /not clinically validated/);
   assert.match(hubHtml, /doctorai-layout\.css\?v=3/);
   assert.match(hubHtml, /health-alert-status\.js\?v=8/);
   assert.match(hubHtml, /health-alerts\.js\?v=9/);
-  assert.match(serviceWorker, /doctorai-shell-v205/);
+  assert.match(serviceWorker, /doctorai-shell-v206/);
   assert.match(serviceWorker, /health-alerts\.js\?v=9/);
   assert.match(serviceWorker, /health-hub\.js\?v=123/);
   assert.match(serviceWorker, /health-hub\.css\?v=95/);
