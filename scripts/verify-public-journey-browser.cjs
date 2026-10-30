@@ -287,9 +287,30 @@ async function assertMenuSurface(page, menu, label) {
       await letters.click();
       assert.equal(await letters.evaluate(element => element.classList.contains('active')), true,
         `${width}px document filters remain interactive`);
+      const proLink = page.locator('#view-documents .pro-gate a[href^="/subscription"]').first();
+      const proGeometry = await proLink.evaluate(element => {
+        const range = document.createRange(); range.selectNodeContents(element.firstChild);
+        const text = range.getBoundingClientRect(), arrow = element.querySelector('span').getBoundingClientRect(), link = element.getBoundingClientRect();
+        return { textTop: text.top, textBottom: text.bottom, arrowTop: arrow.top, arrowBottom: arrow.bottom, left: link.left, right: link.right };
+      });
+      assert.ok(proGeometry.left >= 0 && proGeometry.right <= width && proGeometry.arrowTop < proGeometry.textBottom && proGeometry.arrowBottom > proGeometry.textTop,
+        `${width}px Pro label and arrow share a visible line: ${JSON.stringify(proGeometry)}`);
       await assertNoOverflow(page, `Documents at ${width}px`);
       await page.locator('#view-documents .document-toolbar').scrollIntoViewIfNeeded();
       await page.screenshot({ path: path.join(out, `document-filters-${width}.png`) });
+      await proLink.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(out, `document-pro-link-${width}.png`) });
+    }
+    for (const [route, selector] of [['/', '.home-footer-brand'], ['/about', '.home-footer-brand'], ['/privacy', '.doctorai-site-footer-brand']]) {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+      const brand = page.locator(selector);
+      await brand.scrollIntoViewIfNeeded();
+      const mark = await brand.locator('img').evaluate(element => { const r = element.getBoundingClientRect(); return { width: r.width, height: r.height, loaded: element.naturalWidth > 0 }; });
+      assert.deepEqual(mark, { width: 42, height: 42, loaded: true }, `${route} footer uses the same uncropped DoctorAI mark size`);
+      assert.match(await brand.innerText(), /DoctorAI/);
+      assert.match(await brand.getAttribute('href'), route === '/privacy' ? /^\/health-hub#/ : /^\/$/, `${route} footer brand keeps its intended destination`);
+      await page.screenshot({ path: path.join(out, `footer-${route === '/' ? 'home' : route.slice(1)}-390.png`) });
     }
 
     console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, checkout320: narrowReviewBounds, screenshots: out, checkoutSessionRequests: 0 }));

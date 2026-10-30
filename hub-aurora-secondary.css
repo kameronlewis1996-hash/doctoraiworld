@@ -487,6 +487,8 @@ body[data-hub-layout="reference"] #hub-shell #view-symptoms .diary-question-pane
 
 /* Document controls and records sit on the same quiet glass surface. */
 body[data-hub-layout="reference"] #hub-shell #view-documents .document-drop { border-style: dashed; border-radius: 18px; box-shadow: 0 7px 20px #496eaa08; }
+body[data-hub-layout="reference"] #hub-shell .pro-gate a { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+body[data-hub-layout="reference"] #hub-shell .pro-gate a > span { display: inline-flex; flex: 0 0 auto; }
 body[data-hub-layout="reference"] #hub-shell #view-documents .document-toolbar { align-items: center; gap: 12px; margin: 16px 0 12px; padding: 9px 11px; border: 1px solid #d7e3f1; border-radius: 15px; background: #f7faffd9; }
 body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters { gap: 5px; }
 body[data-hub-layout="reference"] #hub-shell #view-documents .document-filters > button { min-height: 40px; padding-inline: 12px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #516a84; }
