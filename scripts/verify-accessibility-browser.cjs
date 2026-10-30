@@ -48,6 +48,12 @@ async function keyboardFocus(page, selector) {
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await page.locator(selector).first().evaluate(e=>e===document.activeElement), true, `${selector}: keyboard focus returned to the requested control`);
+}
+async function waitForSignedOut(page) {
+  await page.locator('[data-auth-status-control][data-auth-state="signed-out"]').first().waitFor({state:'attached'});
+  // Allow the route's scheduled heading focus to settle before keyboard input.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -63,6 +69,7 @@ async function keyboardFocus(page, selector) {
       page.on('pageerror',e=>report.errors.push(e.message));
       page.on('dialog',d=>d.accept());
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await page.keyboard.press('Tab');
       check(await page.locator('.skip-link').evaluate(e=>e===document.activeElement),true,width+': skip link is first keyboard stop');
       await page.keyboard.press('Enter');
@@ -72,6 +79,7 @@ async function keyboardFocus(page, selector) {
       await page.keyboard.press('Tab');
       check(await page.locator('.view.active').evaluate(e=>e.contains(document.activeElement)),true,width+': next Tab stays in active content after skip');
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
 
       const add = '#view-medications [data-modal="medication"]';
       await keyboardFocus(page,add);await page.keyboard.press('Enter');
@@ -103,7 +111,8 @@ async function keyboardFocus(page, selector) {
       await page.locator('#quick-modal [name="dose"]').fill('Fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
-      check(await visibleFocus(page),true,width+': add save retains a visible keyboard position');
+      await page.waitForFunction(selector => document.activeElement === document.querySelector(selector), add);
+      check(await page.locator(add).first().evaluate(e=>e===document.activeElement),true,width+': add save returns focus to its opener');
       check(await page.locator('#medication-library .library-item-actions button').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': medicine actions have 44px targets');
       if (width<=800) check(await page.locator('#medication-library .library-copy').first().evaluate(e=>e.getBoundingClientRect().width>=180),true,width+': mobile medicine copy has a readable column');
 
@@ -112,13 +121,15 @@ async function keyboardFocus(page, selector) {
       await page.locator('#quick-modal [name="dose"]').fill('Edited fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
-      check(await visibleFocus(page),true,width+': edit save restores focus after list rerender');
+      await page.waitForFunction(()=>document.activeElement === document.querySelector('.view.active > .page-heading h1'));
+      check(await page.locator('.view.active > .page-heading h1').evaluate(e=>e===document.activeElement),true,width+': edit save focuses the current heading after its opener is replaced');
       await shot(page,'medicine-after-save-'+width);
       await keyboardFocus(page,'#medication-library [data-delete-medication]');await page.keyboard.press('Enter');
       check(await visibleFocus(page),true,width+': delete retains a visible keyboard position');
       check(await page.locator('#medication-library [data-edit-medication]').count(),0,width+': synthetic medicine removed');
 
       await page.goto(base+'/health-hub#profile',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await page.locator('#health-memory-details').evaluate(e=>e.open=true);
       await keyboardFocus(page,'#health-memory-toggle');
       const switchRing = await ring(page,'#health-memory-toggle + span');

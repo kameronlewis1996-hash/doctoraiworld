@@ -219,6 +219,14 @@ async function assertMenuSurface(page, menu, label) {
     assert.equal(requests.some(url => url.includes('/api/stripe/create-checkout-session')), false, 'No Checkout Session was created.');
     assert.deepEqual(errors, [], 'No public-page JavaScript errors occurred.');
 
+    // These pages have no analytics consent prompt. Check attempted network
+    // requests even though external origins are blocked by this fixture.
+    for (const route of ['/health-hub', '/staff']) {
+      await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+    }
+    assert.equal(requests.some(url => /va\.vercel-scripts\.com|\/_vercel\/insights\//i.test(url)), false,
+      'Subscription, Health Hub and staff pages make no unconsented Vercel analytics request.');
+
     console.log(JSON.stringify({ result: 'passed', homepage: heroBounds, checkout: reviewBounds, checkout320: narrowReviewBounds, screenshots: out, checkoutSessionRequests: 0 }));
     await context.close();
   } finally {
