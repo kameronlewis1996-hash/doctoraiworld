@@ -113,6 +113,7 @@ async function waitForSignedOut(page) {
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
       await page.waitForFunction(selector => document.activeElement === document.querySelector(selector), add);
       check(await page.locator(add).first().evaluate(e=>e===document.activeElement),true,width+': add save returns focus to its opener');
+      check(await visibleFocus(page),true,width+': add save restores a visible keyboard position');
       check(await page.locator('#medication-library .library-item-actions button').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': medicine actions have 44px targets');
       if (width<=800) check(await page.locator('#medication-library .library-copy').first().evaluate(e=>e.getBoundingClientRect().width>=180),true,width+': mobile medicine copy has a readable column');
 
@@ -123,6 +124,7 @@ async function waitForSignedOut(page) {
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
       await page.waitForFunction(()=>document.activeElement === document.querySelector('.view.active > .page-heading h1'));
       check(await page.locator('.view.active > .page-heading h1').evaluate(e=>e===document.activeElement),true,width+': edit save focuses the current heading after its opener is replaced');
+      check(await visibleFocus(page),true,width+': edit save restores a visible keyboard position');
       await shot(page,'medicine-after-save-'+width);
       await keyboardFocus(page,'#medication-library [data-delete-medication]');await page.keyboard.press('Enter');
       check(await visibleFocus(page),true,width+': delete retains a visible keyboard position');
@@ -165,6 +167,7 @@ async function waitForSignedOut(page) {
       check(await visibleFocus(page),true,width+': sign-in dismissal restores focus outside hidden drawer');
 
       await page.goto(base+'/health-hub#ask',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await keyboardFocus(page,'.response-length-picker input:checked');
       check((await ring(page,'.response-length-picker input:checked + span')).color,'rgb(7, 89, 182)',width+': answer length focus ring is opaque');
       check(await page.locator('.response-length-picker label').first().evaluate(e=>e.getBoundingClientRect().height>=44),true,width+': answer length touch target');
