@@ -162,6 +162,19 @@ async function assertMenuSurface(page, menu, label) {
     await assertMenuSurface(page, homepageMenu, 'Homepage menu at 390px');
     await assertNoOverflow(page, 'Homepage at 390×844 with menu open');
 
+    // Compact headers keep the logo, Hub action and menu in one usable row.
+    for (const route of ['/', '/about']) {
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.goto(`${base}${route}`, { waitUntil: 'networkidle' });
+      const bounds = await page.evaluate(() => ['.home-brand', '.home-nav .home-button', '[data-home-menu] summary'].map(selector => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
+      }));
+      assert.ok(bounds.every(r => r.left >= 0 && r.right <= 320), `${route}: compact header stays within the viewport`);
+      assert.ok(bounds[1].height >= 44 && bounds[2].height >= 44, `${route}: header actions retain 44px targets`);
+      assert.ok(Math.max(...bounds.map(r => r.top)) < Math.min(...bounds.map(r => r.bottom)), `${route}: header controls share one row`);
+    }
+
     // The optional code field starts collapsed so review details and Continue
     // fit together. The static Stripe response is synthetic; Continue is never
     // enabled or activated and no Checkout Session is created.

@@ -284,6 +284,7 @@ h1, h2, h3 { margin: 0; }
   .home-brand img { width: 96px; height: 60px; }
   .home-footer-brand img { width: 120px; height: 60px; }
   .home-nav-signin { display: none !important; }
+  .home-nav .home-nav-full { display: none; }
   .home-nav-label .home-nav-full { display: none; }
   .home-button-small { min-height: 44px; padding: 11px 12px; gap: 8px; font-size: 12px; }
   .home-button-small > span { width: 16px; height: 16px; flex-basis: 16px; }
@@ -352,10 +353,11 @@ h1, h2, h3 { margin: 0; }
 }
 @media (max-width: 380px) {
   :root { --home-gutter: 16px; }
+  body.doctorai-homepage .home-header { gap: 6px; }
   .home-brand img { width: 86px; height: 54px; }
   .home-footer-brand img { width: 108px; height: 54px; }
   .home-button-small { font-size: 12px; padding-inline: 10px; }
-  .home-mobile-menu summary { padding-inline: 8px; }
+  body.doctorai-homepage .home-mobile-menu summary { padding-inline: 6px; }
   .home-button-small > span:not(.home-nav-label) { display: none; }
   .home-hero h1 { font-size: 46px; }
   .home-brief { padding: 18px; }

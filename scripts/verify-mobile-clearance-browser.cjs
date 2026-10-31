@@ -40,6 +40,10 @@ const routes = ['health','medications','visit-prep','profile','add','diary','ale
       for (const route of routes) {
         await page.goto(`${base}/health-hub#${route}`, { waitUntil:'networkidle' });
         await page.locator('[data-auth-status-control][data-auth-state="signed-out"]').first().waitFor({ state:'attached' });
+        if (route === 'scan') {
+          await page.waitForFunction(() => document.activeElement?.matches('#view-medications [data-open-medication-scanner]'));
+        }
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const result = await page.evaluate(async () => {
           const active = document.querySelector('.view.active'), nav = document.querySelector('.mobile-bottom-nav'), header = document.querySelector('.hub-topbar');
           if (!active || !nav || !header) return { error:'missing active view or navigation' };
