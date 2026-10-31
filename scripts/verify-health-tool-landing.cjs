@@ -30,7 +30,7 @@ for (const route of ['details','medications','documents','results','timeline','a
 assert.equal((navigation.match(/data-doctorai-icon=/g)||[]).length,6);
 assert.match(css, /repeat\(2, minmax\(0, 1fr\)\)/);
 assert.match(css, /:focus-visible/);
-assert.match(css, /min-height: 105px/);
+assert.match(css, /min-height: 92px/);
 assert.match(html, /data-health-landing-account="signed-out" hidden/);
 assert.match(html, /data-health-landing-account="signed-in" hidden/);
 const bottom = html.match(/<nav class="mobile-bottom-nav"[\s\S]*?<\/nav>/)[0];
@@ -42,7 +42,8 @@ console.log('Health tool landing: actual account presentation checked in four st
 
 assert.ok(landingAsset);
 assert.match(css, /background-size: 100% 100%/);
-assert.match(css, /--aurora-glass: #d9edfa80/);
+assert.match(css, /background: var\(--aurora-glass\)/);
+assert.match(fs.readFileSync(path.join(root, 'welcome-system.css'), 'utf8'), /--aurora-glass: #e4f2fbef/i);
 assert.match(css, /@media \(forced-colors: active\)/);
 assert.doesNotMatch(css, /background: #ffffffed/);
 console.log('Aurora revision: transparent landing, blue glass tokens, full-height atmosphere and versioned assets verified.');

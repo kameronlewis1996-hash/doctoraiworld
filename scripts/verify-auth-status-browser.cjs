@@ -647,6 +647,7 @@ async function runAdverse(browser, base) {
     await waitForState(testCase, 'unavailable');
     await testCase.page.locator('#session-verification-gate').waitFor({ state: 'visible' });
     assert.match(await testCase.page.locator('#session-verification-title').innerText(), /sign-in not confirmed/i);
+    assert.equal(await testCase.page.locator('#session-verification-gate').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(220, 238, 250)', 'The unavailable-session gate uses the Hub blue surface.');
     assert.equal(await testCase.page.locator('#view-stack').isHidden(), true);
     assert.doesNotMatch(await testCase.page.locator('body').innerText(), /Synthetic Account A (?:medicine|condition|allergy)/);
     const retry = testCase.page.locator('#session-verification-gate [data-today-retry]');

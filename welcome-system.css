@@ -4,36 +4,21 @@
 :root {
   --welcome-ink: #061639;
   --welcome-copy: #3e5676;
-  --welcome-action: #0664ed;
+  --welcome-action: #0759b6;
   --welcome-hover: #0759b6;
   --welcome-line: #cbdcf5;
   --welcome-wash: #e8f2ff;
   --welcome-surface: #ffffffed;
   --welcome-radius: 20px;
   --welcome-control-radius: 13px;
-  --welcome-shadow: 0 8px 28px #173b670b;
+  --welcome-shadow: 0 8px 24px #153c6614;
   --welcome-font: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 /* Resolve the colour variables on the body so live alert state overrides apply. */
 body {
-  --welcome-atmosphere: radial-gradient(ellipse at 49% 33%, #ffffffc7, transparent 41%),
-    radial-gradient(ellipse 12% 13% at 20% 39%, #ffffffa8, transparent 96%),
-    radial-gradient(ellipse 13% 13% at 80% 39%, #ffffffa8, transparent 96%),
-    radial-gradient(ellipse 19% 15% at -1% 0%, var(--aurora-lilac, #b9b8f9ad), transparent 92%),
-    radial-gradient(ellipse 19% 16% at -2% 31%, var(--aurora-side, #8dacfac4), transparent 88%),
-    radial-gradient(ellipse 22% 18% at 27% 23%, var(--aurora-cyan, #95dffbc4), transparent 90%),
-    radial-gradient(ellipse 23% 19% at 103% 31%, var(--aurora-cyan, #95dffbc4), transparent 90%),
-    radial-gradient(ellipse 18% 18% at -3% 49%, var(--aurora-blush, #f4c9f1ae), transparent 88%),
-    radial-gradient(ellipse 22% 20% at 102% 49%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
-    radial-gradient(ellipse 20% 18% at 16% 77%, var(--aurora-lilac, #b9b8f9ad), transparent 90%),
-    radial-gradient(ellipse 24% 19% at 83% 79%, var(--aurora-cyan, #95dffbc4), transparent 90%),
-    radial-gradient(ellipse 35% 27% at 0% 36%, var(--aurora-side, #8dacfac4), transparent 90%),
-    radial-gradient(ellipse 34% 30% at 100% 46%, var(--aurora-glow, #ad9bf4ae), transparent 90%),
-    radial-gradient(ellipse at 6% 28%, var(--aurora-cyan, #95dffbc4), transparent 44%),
-    radial-gradient(ellipse at 96% 32%, var(--aurora-cyan, #95dffbc4), transparent 45%),
-    radial-gradient(ellipse at 7% 53%, var(--aurora-blush, #f4c9f1ae), transparent 40%),
-    radial-gradient(ellipse at 88% 55%, var(--aurora-lilac, #b9b8f9ad), transparent 44%),
-    radial-gradient(ellipse at 48% 84%, var(--aurora-cyan, #95dffbc4), transparent 47%);
+  --welcome-atmosphere: radial-gradient(ellipse at 12% 12%, var(--aurora-cyan, #b9e5f5), transparent 48%),
+    radial-gradient(ellipse at 90% 40%, var(--aurora-side, #c5e2f3), transparent 52%),
+    linear-gradient(165deg, #edf8fd, #e2f1f9 55%, #edf7fb);
 }
 
 @media screen {
@@ -241,17 +226,17 @@ body {
   html body:is(.doctorai-homepage, .doctorai-public-page, .doctorai-system-page, .doctorai-system-page.staff-page,
     .doctorai-about, .appointment-guide, .medication-guide, .aurora-demo-page,
     [data-hub-layout="reference"]) {
-    --aurora-base: #dceefa;
-    --aurora-cyan: #95dffbc4;
-    --aurora-lilac: #96c9efad;
-    --aurora-blush: #9edfeaae;
-    --aurora-side: #8dbcf4c4;
-    --aurora-glow: #8eccefae;
-    --aurora-glass: #d9edfac9;
-    --welcome-surface: #d9edfab8;
-    --welcome-line: #8db3d5;
-    --welcome-radius: 18px;
-    --welcome-control-radius: 13px;
+    --aurora-base: #e8f4fa;
+    --aurora-cyan: #b9e5f570;
+    --aurora-lilac: #c5e2f370;
+    --aurora-blush: #bce5ee70;
+    --aurora-side: #c5e2f370;
+    --aurora-glow: #c5e4f270;
+    --aurora-glass: #e4f2fbeF;
+    --welcome-surface: #e7f3fbeF;
+    --welcome-line: #b5cedf;
+    --welcome-radius: 16px;
+    --welcome-control-radius: 12px;
     background-color: var(--aurora-base);
     background-image: var(--welcome-atmosphere);
     background-size: 100% 100%;
@@ -491,7 +476,7 @@ body {
   .medication-calendar-boundary { font-size: 13px; }
   .medication-schedule :is(button,input,summary):focus-visible { outline: 3px solid #0759a8; outline-offset: 3px; }
   @media (max-width: 800px) {
-    body[data-hub-layout="reference"] #hub-shell .hub-topbar { position: fixed; inset: 0 0 auto 0; z-index: 80; box-sizing: border-box; height: auto; min-height: calc(78px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); background: #d5edfaf2; }
+    body[data-hub-layout="reference"] #hub-shell .hub-topbar { position: fixed; inset: 0 0 auto 0; z-index: 80; box-sizing: border-box; height: auto; min-height: calc(78px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); background: var(--aurora-glass); }
     body[data-hub-layout="reference"] #hub-shell .hub-main { padding-top: var(--doctorai-header-height, calc(78px + env(safe-area-inset-top, 0px))); }
     body[data-hub-layout="reference"].mobile-category-open #hub-shell #category-bar { position: fixed; top: var(--doctorai-header-height, 78px); left: 8px; right: 8px; bottom: auto; z-index: 79; margin: 8px 0; max-height: calc(100dvh - var(--doctorai-header-height, 78px) - 110px - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
     body[data-hub-layout="reference"] .mobile-bottom-nav-item b { white-space: normal; overflow-wrap: anywhere; font-size: 11px; line-height: 1.2; }
@@ -536,8 +521,8 @@ body {
 @media screen {
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications > .page-heading,
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell #view-medications :is(.medication-schedule, .library-card, .refill-card, .history-card, .medication-learning-panel, .medication-scan-help) {
-    background: #c7e7f75c !important; background-image: none !important;
-    border-color: #83acc9; color: #143855;
+    background: var(--welcome-surface) !important; background-image: none !important;
+    border-color: var(--welcome-line); color: #143855;
   }
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(#view-medications, #view-documents) .secondary-button,
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell .hub-breadcrumb button {
@@ -582,6 +567,29 @@ body {
   .medication-calendar-status:empty { display: none; }
   body[data-hub-layout="reference"] #view-medications .library-disclaimer { display: block; }
   body[data-hub-layout="reference"] #view-medications .library-disclaimer > p { margin: 10px 12px; }
+
+  /* Give each saved record a clear boundary without changing clinical notices. */
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap {
+    margin-block: 12px; padding: 14px; border: 1px solid #b5cedf; border-radius: 14px; background: #f1f8fc;
+  }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item { padding: 0; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-copy { gap: 5px; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .medication-record-details { margin: 12px 0 0; border-top: 1px solid #c4d9e7; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .medication-record-details > summary { padding: 12px 0; }
+
+  /* The form remains one scrollable dialog; labels and guidance stay visible. */
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) { background: #f1f8fc; border: 1px solid #b5cedf; box-shadow: 0 20px 60px #153c6638; }
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) > .modal-header { background: #e5f2fa; border-bottom: 1px solid #c4d9e7; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] { gap: 16px; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .medication-required-note { padding: 12px 14px; margin: 0; border-left: 3px solid #0759b6; border-radius: 4px 10px 10px 4px; background: #e3f1f9; line-height: 1.5; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .modal-field :is(input, select, textarea) { border-color: #94b4cb; border-radius: 10px; }
+}
+
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap,
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]),
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) > .modal-header,
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .medication-required-note { background: Canvas; color: CanvasText; border-color: ButtonText; }
 }
 
 /* Scan-help actions need distinct cells even when both use secondary styling. */

@@ -112,19 +112,20 @@ async function layout(page, label) {
       // Fresh fictional records exercise the real engine/renderer, without a
       // race between a display-only injection and an in-flight account check.
       const shellStates=[];
-      for(const expected of ['orange','red']) {
+      for(const expected of ['neutral','orange','red']) {
         const alertContext=await browser.newContext({viewport:{width,height:width===1440?960:844},serviceWorkers:'block',reducedMotion:'reduce'});
         await alertContext.route('https://**/*',r=>r.abort());
         await alertContext.route('**/api/**',r=>r.fulfill({json:{authenticated:false,active:false}}));
         await alertContext.addInitScript(level=>{
           const prefix='doctorai-health-hub-';
           localStorage.setItem(prefix+'device-storage-consent','yes');
-          localStorage.setItem(prefix+'guest-medications',JSON.stringify(level==='red'?[{id:'one',name:'Marevan'},{id:'two',name:'Trisul'}]:[{id:'one',name:'Fictional unmatched medicine'}]));
+          localStorage.setItem(prefix+'guest-medications',JSON.stringify(level==='red'?[{id:'one',name:'Marevan'},{id:'two',name:'Trisul'}]:level==='neutral'?[{id:'one',name:'Fictional unmatched medicine'}]:[]));
+          if(level==='orange') localStorage.setItem(prefix+'guest-profile',JSON.stringify({bloodType:'O+',emergencyBloodType:'AB-'}));
         },expected);
         const alertPage=await alertContext.newPage();
         alertPage.on('pageerror',e=>report.errors.push(e.message));
         await alertPage.goto(base+'/health-hub#health',{waitUntil:'networkidle'});
-        const expectedLevel=expected==='red'?'red':'orange';
+        const expectedLevel=expected;
         await alertPage.waitForFunction(level=>document.querySelector('#view-medications [data-alert-summary]')?.dataset.alertLevel===level,expectedLevel);
         assert.equal(await alertPage.locator('body').getAttribute('data-health-alert-level'),null,'alert state must not be written to the page shell');
         assert.equal(await alertPage.locator('.hub-severity-banner').count(),0,'severity banner is not inserted into the global shell');
@@ -134,12 +135,14 @@ async function layout(page, label) {
         await alertPage.goto(base+'/health-hub#alerts',{waitUntil:'networkidle'});
         const expectedCard=expected==='red'?'high':'info';
         await alertPage.locator(`#alerts-list .hub-alert-card[data-severity="${expectedCard}"]`).first().waitFor({state:'visible'});
+        if(expected==='orange') assert.match(await alertPage.locator('#alerts-list').innerText(), /Saved blood types disagree/);
+        if(expected==='neutral') assert.match(await alertPage.locator('#alerts-list').innerText(), /not fully matched|unmatched|not recognised|not recognized/i);
         const cardPalette=await alertPage.locator(`#alerts-list .hub-alert-card[data-severity="${expectedCard}"]`).first().evaluate(e=>({background:getComputedStyle(e).backgroundImage,border:getComputedStyle(e).borderLeftColor,kicker:getComputedStyle(e.querySelector('.card-kicker')).color}));
         assert.notEqual(cardPalette.background,'none','severity remains styled within its alert card');
         if(width!==320) await capture(alertPage,'hub-'+expected+'-'+width);
         await alertContext.close();
       }
-      assert.deepEqual(shellStates[0],shellStates[1],'severity leaves global theme and shell styling unchanged');
+      for(const shell of shellStates.slice(1)) assert.deepEqual(shellStates[0],shell,'severity leaves global theme and shell styling unchanged');
       // Print resource fields and checkboxes stay usable; printing is not invoked.
       await page.goto(base+'/appointment-checklist',{waitUntil:'networkidle'});
       await page.locator('#visit-details').check();
@@ -149,7 +152,7 @@ async function layout(page, label) {
       await page.emulateMedia({media:'print'});
       assert.equal(await page.locator('body').evaluate(e=>getComputedStyle(e).backgroundImage),'none');
       await page.emulateMedia({media:'screen'});
-      report.checks.push(`${width}: public menu keyboard; research loading/empty/error; staff denied gate, fictional ideas form, tab keyboard, review error and testing layout; orange/red actual alert renderer; checklist form/reset and print background`);
+      report.checks.push(`${width}: public menu keyboard; research loading/empty/error; staff denied gate, fictional ideas form, tab keyboard, review error and testing layout; neutral/review/high actual alert renderer; checklist form/reset and print background`);
       await context.close();
     }
     assert.deepEqual(report.errors,[]);

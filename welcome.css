@@ -21,6 +21,13 @@
   --home-visit-surface: #eaf3ff;
   --home-visit-accent: #0759b6;
 }
+
+/* Match the public-page footer mark without changing header branding. */
+body.doctorai-homepage .home-footer-brand { display: inline-flex; align-items: center; gap: 9px; color: #071b36; }
+body.doctorai-homepage .home-footer-brand img { width: 42px; height: 42px; object-fit: contain; }
+body.doctorai-homepage .home-footer-brand span { display: grid; gap: 3px; }
+body.doctorai-homepage .home-footer-brand b { font-size: 14px; }
+body.doctorai-homepage .home-footer-brand small { color: #435f73; font-size: 12px; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
 body { margin: 0; min-width: 0; }
@@ -277,6 +284,7 @@ h1, h2, h3 { margin: 0; }
   .home-brand img { width: 96px; height: 60px; }
   .home-footer-brand img { width: 120px; height: 60px; }
   .home-nav-signin { display: none !important; }
+  .home-nav .home-nav-full { display: none; }
   .home-nav-label .home-nav-full { display: none; }
   .home-button-small { min-height: 44px; padding: 11px 12px; gap: 8px; font-size: 12px; }
   .home-button-small > span { width: 16px; height: 16px; flex-basis: 16px; }
@@ -345,10 +353,11 @@ h1, h2, h3 { margin: 0; }
 }
 @media (max-width: 380px) {
   :root { --home-gutter: 16px; }
+  body.doctorai-homepage .home-header { gap: 6px; }
   .home-brand img { width: 86px; height: 54px; }
   .home-footer-brand img { width: 108px; height: 54px; }
   .home-button-small { font-size: 12px; padding-inline: 10px; }
-  .home-mobile-menu summary { padding-inline: 8px; }
+  body.doctorai-homepage .home-mobile-menu summary { padding-inline: 6px; }
   .home-button-small > span:not(.home-nav-label) { display: none; }
   .home-hero h1 { font-size: 46px; }
   .home-brief { padding: 18px; }

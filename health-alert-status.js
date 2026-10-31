@@ -33,7 +33,7 @@
       Array.isArray(medicationMedication.unassessed) && medicationMedication.unassessed.length <= medicationMedication.unassessedPairs &&
       Number.isSafeInteger(medicationMedication.omittedUnassessedPairs) && medicationMedication.omittedUnassessedPairs === medicationMedication.unassessedPairs - medicationMedication.unassessed.length;
     if (validPairCoverage && medicines?.requested > 0 && medicationMedication.unassessedPairs > 0) {
-      return { level: 'neutral', symbol: '?', title: 'Some medicine pairs not checked', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
+      return { level: 'neutral', symbol: '?', title: 'Some medicine pairs not fully checked', note: `${medicationMedication.unassessedPairs} of ${medicationMedication.requestedPairs} saved medicine pair${medicationMedication.unassessedPairs === 1 ? ' was' : 's were'} not fully checked by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.` };
     }
     const allergies = coverage.allergyMedication;
     const conditions = coverage.conditionMedication;

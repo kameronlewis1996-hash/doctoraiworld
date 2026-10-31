@@ -48,11 +48,18 @@ async function keyboardFocus(page, selector) {
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await page.locator(selector).first().evaluate(e=>e===document.activeElement), true, `${selector}: keyboard focus returned to the requested control`);
+}
+async function waitForSignedOut(page) {
+  await page.locator('[data-auth-status-control][data-auth-state="signed-out"]').first().waitFor({state:'attached'});
+  // Allow the route's scheduled heading focus to settle before keyboard input.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base = 'http://127.0.0.1:'+server.address().port;
-  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const executablePath = process.env.CHROMIUM_EXECUTABLE || (fs.existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : null);
+  const browser = await chromium.launch(executablePath ? {executablePath, headless:true, args:['--no-sandbox']} : {channel:'msedge',headless:true});
   try {
     for (const width of [1440,390,320]) {
       const c = await browser.newContext({viewport:{width,height:width>800?1000:844},reducedMotion:'reduce',serviceWorkers:'block'});
@@ -62,6 +69,7 @@ async function keyboardFocus(page, selector) {
       page.on('pageerror',e=>report.errors.push(e.message));
       page.on('dialog',d=>d.accept());
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await page.keyboard.press('Tab');
       check(await page.locator('.skip-link').evaluate(e=>e===document.activeElement),true,width+': skip link is first keyboard stop');
       await page.keyboard.press('Enter');
@@ -71,6 +79,7 @@ async function keyboardFocus(page, selector) {
       await page.keyboard.press('Tab');
       check(await page.locator('.view.active').evaluate(e=>e.contains(document.activeElement)),true,width+': next Tab stays in active content after skip');
       await page.goto(base+'/health-hub#medications',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
 
       const add = '#view-medications [data-modal="medication"]';
       await keyboardFocus(page,add);await page.keyboard.press('Enter');
@@ -102,7 +111,9 @@ async function keyboardFocus(page, selector) {
       await page.locator('#quick-modal [name="dose"]').fill('Fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
-      check(await visibleFocus(page),true,width+': add save retains a visible keyboard position');
+      await page.waitForFunction(selector => document.activeElement === document.querySelector(selector), add);
+      check(await page.locator(add).first().evaluate(e=>e===document.activeElement),true,width+': add save returns focus to its opener');
+      check(await visibleFocus(page),true,width+': add save restores a visible keyboard position');
       check(await page.locator('#medication-library .library-item-actions button').evaluateAll(items=>items.every(e=>{const r=e.getBoundingClientRect();return r.width>=44&&r.height>=44;})),true,width+': medicine actions have 44px targets');
       if (width<=800) check(await page.locator('#medication-library .library-copy').first().evaluate(e=>e.getBoundingClientRect().width>=180),true,width+': mobile medicine copy has a readable column');
 
@@ -111,18 +122,23 @@ async function keyboardFocus(page, selector) {
       await page.locator('#quick-modal [name="dose"]').fill('Edited fictional strength');
       await page.locator('#quick-modal button[type="submit"]').click();
       await page.waitForFunction(()=>!document.querySelector('#quick-modal').open);
-      check(await visibleFocus(page),true,width+': edit save restores focus after list rerender');
+      await page.waitForFunction(()=>document.activeElement === document.querySelector('.view.active > .page-heading h1'));
+      check(await page.locator('.view.active > .page-heading h1').evaluate(e=>e===document.activeElement),true,width+': edit save focuses the current heading after its opener is replaced');
+      check(await visibleFocus(page),true,width+': edit save restores a visible keyboard position');
       await shot(page,'medicine-after-save-'+width);
       await keyboardFocus(page,'#medication-library [data-delete-medication]');await page.keyboard.press('Enter');
       check(await visibleFocus(page),true,width+': delete retains a visible keyboard position');
       check(await page.locator('#medication-library [data-edit-medication]').count(),0,width+': synthetic medicine removed');
 
       await page.goto(base+'/health-hub#profile',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await page.locator('#health-memory-details').evaluate(e=>e.open=true);
       await keyboardFocus(page,'#health-memory-toggle');
-      const switchRing = await ring(page,'#health-memory-toggle + span');
+      await page.waitForFunction(()=>{const e=document.querySelector('#health-memory-toggle');const s=getComputedStyle(e.nextElementSibling);return e===document.activeElement && e.matches(':focus-visible') && s.outlineStyle==='solid' && parseFloat(s.outlineWidth)>=3 && s.outlineColor==='rgb(7, 89, 182)';});
+      const switchRing = await page.locator('#health-memory-toggle').evaluate(e=>{const s=getComputedStyle(e.nextElementSibling);return {color:s.outlineColor,width:parseFloat(s.outlineWidth),active:e===document.activeElement,focusVisible:e.matches(':focus-visible'),activeId:document.activeElement?.id||document.activeElement?.tagName};});
       await shot(page,'memory-switch-focus-'+width);
-      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch');
+      check(switchRing.active && switchRing.focusVisible,true,width+': switch retains keyboard-visible focus');
+      check(switchRing.color,'rgb(7, 89, 182)',width+': hidden checkbox paints focus on visible switch '+JSON.stringify(switchRing));
       check(switchRing.width>=3,true,width+': switch focus ring width');
       const switchTarget = await page.locator('#health-memory-toggle').evaluate(e=>{const r=e.closest('label').getBoundingClientRect();return r.width>=44&&r.height>=44;});
       check(switchTarget,true,width+': switch has 44px touch target');
@@ -132,6 +148,8 @@ async function keyboardFocus(page, selector) {
       await page.waitForTimeout(30);
       check(await page.locator('.drawer-panel').evaluate(e=>e.contains(document.activeElement)),true,width+': drawer starts focus inside named dialog');
       check(await page.locator('#hub-shell').evaluate(e=>e.inert),true,width+': drawer removes background from interaction/accessibility tree');
+      const drawerSignIn = page.locator('#profile-drawer .drawer-profile [data-google-signin]');
+      check(await drawerSignIn.evaluate(e=>{const r=e.getBoundingClientRect(), p=e.closest('.drawer-panel').getBoundingClientRect();return getComputedStyle(e).whiteSpace==='nowrap' && r.left>=p.left && r.right<=p.right;}),true,width+': drawer sign-in stays on one line inside the panel');
       const last = '.drawer-panel .drawer-signout';
       await keyboardFocus(page,last);await page.keyboard.press('Tab');
       check(await page.locator('.drawer-panel').evaluate(e=>e.contains(document.activeElement)),true,width+': drawer wraps Tab inside panel');
@@ -153,6 +171,7 @@ async function keyboardFocus(page, selector) {
       check(await visibleFocus(page),true,width+': sign-in dismissal restores focus outside hidden drawer');
 
       await page.goto(base+'/health-hub#ask',{waitUntil:'networkidle'});
+      await waitForSignedOut(page);
       await keyboardFocus(page,'.response-length-picker input:checked');
       check((await ring(page,'.response-length-picker input:checked + span')).color,'rgb(7, 89, 182)',width+': answer length focus ring is opaque');
       check(await page.locator('.response-length-picker label').first().evaluate(e=>e.getBoundingClientRect().height>=44),true,width+': answer length touch target');

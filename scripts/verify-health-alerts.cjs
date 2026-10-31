@@ -56,6 +56,17 @@ check('medication-medication-catalogue-brand', () => {
   assert.equal(result.coverage.medications.resolved, 2);
 });
 check('duplicate-ingredient', () => assert.ok(has(evaluate({ medications: [label('d1', 'paracetamol'), label('d2', 'acetaminophen')] }), 'duplicate-ingredient')));
+check('partial-combination-retains-warning-and-coverage', () => {
+  const result = evaluate({ medications: [{ id: 'one', name: 'Marevan' }, { id: 'two', name: 'Trisul' }] });
+  assert.ok(has(result, 'medication-medication', 'warfarin-sulfamethoxazole'));
+  assert.ok(has(result, 'medication-medication-unassessed', 'medication-pair-unassessed'));
+  assert.equal(result.coverage.medicationMedication.assessedPairs, 0);
+  assert.equal(result.coverage.medicationMedication.unassessedPairs, 1);
+  assert.match(result.coverage.medicationMedication.unassessed[0].reason, /Some ingredient combinations/);
+  assert.equal(result.alerts.find(item => item.ruleId === 'warfarin-sulfamethoxazole').severity, 'high');
+  assert.match(result.alerts.find(item => item.ruleId === 'medication-pair-unassessed').message, /not fully assessed/);
+});
+
 check('multi-medicine-rule-reaches-health-alerts-with-exact-triggers', () => {
   const catalogueLabel = (productId, ingredient) => {
     const product = pharmac.products.find(item => item.id === productId);

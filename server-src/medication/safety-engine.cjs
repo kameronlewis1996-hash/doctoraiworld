@@ -23,6 +23,14 @@ function addLabelIngredientTerm(term, ingredient) {
 
 for (const product of nz.products) {
   for (const term of [product.name, product.brand, product.chemical, `${product.chemical} ${product.formulation}`, product.brand && `${product.brand} ${product.formulation}`]) addTerm(term, product);
+  // This synonym is explicitly bracketed in the Pharmac chemical heading.
+  // Include every source row, including incomplete or conflicting rows, so the
+  // existing candidate agreement check can fail closed for an ambiguous name.
+  for (const match of String(product.chemical || '').matchAll(/\[([^\]]+)\]/g)) {
+    if (norm(match[1]) !== 'co trimoxazole') continue;
+    addTerm(match[1], product);
+    addTerm(match[1].replace(/[\s-]+/g, ''), product);
+  }
 }
 for (const product of db.products) addTerm(product.name, { ...product, ingredientsComplete: true });
 for (const ingredient of ingredients.values()) {
@@ -297,7 +305,14 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
         if (matched) matchingRules.push(rule);
       }
       const matchingRuleIds = new Set(matchingRules.map(rule => rule.id));
-      if (matchingRules.length) pairCoverage.assessedPairs += 1;
+      // A combination product can have a supported signal for one ingredient
+      // while another ingredient pair has no retained rule. Keep the warning,
+      // but do not report the entire medicine pair as covered.
+      const hasUncoveredIngredientPair = leftMedicine.ingredients.some(leftIngredient => rightMedicine.ingredients.some(rightIngredient =>
+        !matchingRules.some(rule => (!rule.excludeSameIngredient || leftIngredient.id !== rightIngredient.id) &&
+          ((matchesSide(leftIngredient, rule.left, leftMedicine) && matchesSide(rightIngredient, rule.right, rightMedicine)) ||
+           (matchesSide(rightIngredient, rule.left, rightMedicine) && matchesSide(leftIngredient, rule.right, leftMedicine))))));
+      if (matchingRules.length && !hasUncoveredIngredientPair) pairCoverage.assessedPairs += 1;
       else pairCoverage.unassessedPairs += 1;
       const hasParacetamolProductDuplicateRule = matchingRuleIds.has('duplicate-paracetamol-containing-products');
       for (const ingredient of duplicateIngredients) {
@@ -310,6 +325,8 @@ function reviewResolved({ resolved = [], allergies = [], conditions = [] } = {})
       }
       if (!matchingRules.length && leftMedicine.status === 'resolved' && rightMedicine.status === 'resolved') {
         alerts.push({ type: 'interaction-coverage', severity: 'unknown', title: 'Medicine pair is unassessed', message: `${leftMedicine.name} + ${rightMedicine.name} has no matching pairwise rule in DoctorAI's very limited retained rules. This pair is unassessed; no alert does not mean safe. Ask a pharmacist or prescriber to review the full list.`, ruleId: 'medication-pair-unassessed', source: { publisher: 'DoctorAI medication database' } });
+      } else if (hasUncoveredIngredientPair) {
+        alerts.push({ type: 'interaction-coverage', severity: 'unknown', coverageState: 'partial', title: 'Medicine pair is only partly checked', message: `${leftMedicine.name} + ${rightMedicine.name} has no matching pairwise rule for at least one ingredient combination. A separate supported warning is shown, but other combinations remain unassessed. No alert does not mean safe. Ask a pharmacist or prescriber to review the full list.`, ruleId: 'medication-pair-partial', source: { publisher: 'DoctorAI medication database' } });
       }
     }
   }

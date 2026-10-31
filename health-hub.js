@@ -37,12 +37,13 @@
       .map(alert => {
         const match = String(alert.message || '').match(/^(.*?) has no matching pairwise rule/i);
         const names = match?.[1].split(/\s+\+\s+/);
-        return names?.length === 2 ? { left: names[0], right: names[1] } : null;
+        return names?.length === 2 ? { left: names[0], right: names[1], partial: alert.coverageState === 'partial' } : null;
       }).filter(Boolean);
     const matches = pairs.filter(pair => medicationTextKey(pair.left) === key || medicationTextKey(pair.right) === key);
     if (!matches.length) return '';
     const label = matches.map(pair => `${pair.left} + ${pair.right}`).join('; ');
-    return `<span class="medication-pair-coverage-badge" role="note" aria-label="${escapeHTML(label)} was not checked by the retained rules"><span aria-hidden="true">?</span> Pair not checked</span>`;
+    const partial = matches.some(pair => pair.partial);
+    return `<span class="medication-pair-coverage-badge" role="note" aria-label="${escapeHTML(label)} was ${partial ? 'not fully checked' : 'not checked'} by the retained rules"><span aria-hidden="true">?</span> ${partial ? 'Pair not fully checked' : 'Pair not checked'}</span>`;
   }
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
@@ -4496,7 +4497,7 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       article.setAttribute('role', warning || caution ? 'alert' : 'status');
       article.setAttribute('aria-live', warning || caution ? 'assertive' : 'polite');
       const heading = document.createElement('h3');
-      heading.textContent = alert.type === 'interaction' ? 'Possible medicine interaction' : alert.type === 'interaction-coverage' ? 'Pair not checked' : String(alert.title || 'Medicine check notice');
+      heading.textContent = alert.type === 'interaction' ? 'Possible medicine interaction' : alert.type === 'interaction-coverage' ? (alert.coverageState === 'partial' ? 'Pair not fully checked' : 'Pair not checked') : String(alert.title || 'Medicine check notice');
       const icon = document.createElement('span');
       icon.className = 'medication-warning-icon';
       icon.innerHTML = iconMarkup(warning || caution ? 'alert' : 'info');
@@ -4505,9 +4506,11 @@ For symptoms, offer only low-risk self-care and useful monitoring. Do not diagno
       const copy = document.createElement('p');
       if (alert.type === 'interaction-coverage') {
         const pair = String(alert.message || '').split(' has no matching pairwise rule')[0];
-        copy.textContent = pair && pair !== alert.message
-          ? pair + ' was not assessed by this limited check. No alert does not mean safe; ask a pharmacist or prescriber to review.'
-          : 'This medicine pair was not assessed by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.';
+        copy.textContent = alert.coverageState === 'partial'
+          ? (pair && pair !== alert.message ? pair : 'This medicine pair') + ' has a separate supported warning, but other ingredient combinations were not assessed. No alert does not mean safe; ask a pharmacist or prescriber to review.'
+          : pair && pair !== alert.message
+            ? pair + ' was not assessed by this limited check. No alert does not mean safe; ask a pharmacist or prescriber to review.'
+            : 'This medicine pair was not assessed by the available rules. No alert does not mean safe; ask a pharmacist or prescriber to review.';
       } else copy.textContent = String(alert.message || 'Review this result with a pharmacist or prescriber.');
       article.append(heading, copy);
       if (alert.type === 'interaction') {

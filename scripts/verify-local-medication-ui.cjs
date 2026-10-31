@@ -14,7 +14,7 @@ state.profile.allergyEntries=[{id:'legacy-penicillin',substance:'penicillin',cer
 state.profile.allergies=require('../term-catalogues.js').compatibilityFields([],state.profile.allergyEntries).allergies;
 assert.equal(state.profile.allergies,'penicillin','User-declared possible reactions must stay outside confirmed-allergy checker input.');
 let sent=null,signIns=0,pro=true;
-const context=vm.createContext({currentMedicationRecords:()=>require('../medication-records.js').currentMedicines(state.medications),window:{DoctorAIMedicationCheck:check,DoctorAIIcons:{markup:name=>{assert.ok(["alert","info"].includes(name));return "<svg aria-hidden=\"true\"></svg>";}}},document:{createElement:t=>new Element(t),createTextNode:t=>({textContent:t}),querySelector:s=>s==='.clash-panel'?panel:s.includes('result')?output:null},URL,Date,state,authUser:{sub:'synthetic-ui-account',email:'synthetic@example.invalid'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns++;},splitDetails:s=>s.split(';').filter(Boolean),medicationAccountDataReady:true,medicationLoginId:'a'.repeat(64),medicationRulesVersion:'2026.10.15-r149',localStorageAllowed:false,entitlementExpiresAt:Math.floor(Date.now()/1000)+600,accountSessionVerification:'verified',accountSessionReady:true,entitlementReady:true,medicationContextPromise:Promise.resolve(),fetch:async(url,options)=>{
+const context=vm.createContext({currentMedicationRecords:()=>require('../medication-records.js').currentMedicines(state.medications),window:{DoctorAIMedicationCheck:check,DoctorAIIcons:{markup:name=>{assert.ok(["alert","info"].includes(name));return "<svg aria-hidden=\"true\"></svg>";}}},document:{createElement:t=>new Element(t),createTextNode:t=>({textContent:t}),querySelector:s=>s==='.clash-panel'?panel:s.includes('result')?output:null},URL,Date,state,authUser:{sub:'synthetic-ui-account',email:'synthetic@example.invalid'},hasProAccess:()=>pro,openGoogleSignIn:()=>{signIns++;},splitDetails:s=>s.split(';').filter(Boolean),medicationAccountDataReady:true,medicationLoginId:'a'.repeat(64),medicationRulesVersion:'2026.10.28-alias1',localStorageAllowed:false,entitlementExpiresAt:Math.floor(Date.now()/1000)+600,accountSessionVerification:'verified',accountSessionReady:true,entitlementReady:true,medicationContextPromise:Promise.resolve(),fetch:async(url,options)=>{
 assert.equal(url,'/api/medication/safety');assert.equal(options.credentials,'same-origin');sent=JSON.parse(options.body);const response={setHeader(){},status(n){this.code=n;return this;},json(body){this.body=body;}};await api({method:options.method,body:sent},response);return{ok:response.code===200,json:async()=>response.body};}});
 vm.runInContext(code,context);
 context.medicationCheckController=new check.Controller({request:async(payload,signal)=>{const response=await context.fetch('/api/medication/safety',{method:'POST',credentials:'same-origin',body:JSON.stringify(payload),signal});const r=await response.json();if(!response.ok)throw new Error(r.error);return r;},onChange:()=>context.renderMedicationCheckState()});
@@ -44,6 +44,12 @@ assert.match(allText(interaction),/Prompt pharmacist or prescriber review/);
 assert.match(allText(interaction),/source checked 2026-10-13/);
 assert.ok(interaction.children.some(e=>e.tag==='a'&&e.href==='https://pmc.ncbi.nlm.nih.gov/articles/PMC10455514/'));
 assert.match(allText(output),/Coverage remains limited/);
+const partial=articles().find(e=>allText(e).includes('Pair not fully checked'));
+assert.ok(partial,'A combination product keeps its unchecked ingredient-pair notice beside the warning');
+assert.equal(partial.attributes.role,'status');
+assert.match(allText(partial),/separate supported warning/);
+assert.match(allText(partial),/other ingredient combinations were not assessed/);
+assert.match(allText(partial),/No alert does not mean safe/);
 const duplicates=engine.review({medications:['paracetamol','acetaminophen']});
 context.renderLocalMedicationDatabaseResult(output,duplicates);
 const duplicate=articles().find(e=>allText(e).includes('Possible duplicate active ingredient'));

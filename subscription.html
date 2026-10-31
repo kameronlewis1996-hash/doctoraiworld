@@ -25,14 +25,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;family=Newsreader:ital,wght@1,500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="subscription.css?v=13">
+  <link rel="stylesheet" href="subscription.css?v=15">
   <link rel="stylesheet" href="/site-shell.css?v=3">
   <script defer src="/site-shell.js?v=4"></script>
-  <script async src="https://va.vercel-scripts.com/v1/script.js"></script>
   <link rel="stylesheet" href="/accessibility.css?v=15">
   <script defer src="/feature-icons.js?v=8"></script>
   <link rel="stylesheet" href="/aurora-pages.css?v=2">
-  <link rel="stylesheet" href="/welcome-system.css?v=8">
+  <link rel="stylesheet" href="/welcome-system.css?v=11">
 </head>
 <body class="doctorai-public-page subscription-page" data-subscription="free">
   <div class="pro-shell">
@@ -51,14 +50,14 @@
           <h1>Your health story,<br><em>always ready.</em></h1>
           <p class="hero-lead">Free: organise medicines and questions, then build a visit brief from details you choose. Pro adds private uploads and consent-based medicine-label text extraction you review.</p>
           <div class="hero-actions"><a class="primary-cta" href="#plans">See Pro plans <span data-doctorai-icon="arrow" aria-hidden="true"></span></a><a class="secondary-cta" href="#what-you-get">Explore what’s included</a></div>
-          <div class="trust-line"><span data-doctorai-icon="shield" aria-hidden="true"></span> Private by default <i></i><span data-doctorai-icon="memory" aria-hidden="true"></span> You control what is saved <i></i><span data-doctorai-icon="info" aria-hidden="true"></span> Not medical care</div>
+          <div class="trust-line"><span data-doctorai-icon="shield" aria-hidden="true"></span> Choose what to save <i></i><span data-doctorai-icon="memory" aria-hidden="true"></span> Review details before sharing <i></i><span data-doctorai-icon="info" aria-hidden="true"></span> Not medical care</div>
         </div>
         <div class="care-pack-preview" role="group" aria-label="DoctorAI Pro tools preview">
           <div class="preview-glow"></div>
           <div class="preview-head"><div><span class="preview-kicker">YOUR PRO TOOLS</span><b>Files and label details in one place</b></div><span class="preview-status"><i></i> Organised</span></div>
           <div class="preview-appointment"><span class="preview-icon purple" data-doctorai-icon="calendar" aria-hidden="true"></span><div><small>VISIT BRIEF · FREE</small><b>Choose what to include</b><span>Questions · medicines · recent notes</span></div><strong data-doctorai-icon="arrow" aria-hidden="true"></strong></div>
-          <div class="preview-grid"><div><span class="preview-icon blue" data-doctorai-icon="document" aria-hidden="true"></span><small>DOCUMENTS</small><b>Secure library</b></div><div><span class="preview-icon cyan" data-doctorai-icon="memory" aria-hidden="true"></span><small>HEALTH MEMORY</small><b>Only what you approve</b></div><div><span class="preview-icon orange" data-doctorai-icon="refill" aria-hidden="true"></span><small>MEDICATIONS</small><b>Refills in view</b></div><div><span class="preview-icon green" data-doctorai-icon="chart" aria-hidden="true"></span><small>TRENDS</small><b>Patterns, not noise</b></div></div>
-          <div class="preview-footer"><span><i></i> Private to you</span><b>DoctorAI Pro <span data-doctorai-icon="spark" aria-hidden="true"></span></b></div>
+          <div class="preview-grid"><div><span class="preview-icon blue" data-doctorai-icon="document" aria-hidden="true"></span><small>DOCUMENTS</small><b>Your files</b></div><div><span class="preview-icon cyan" data-doctorai-icon="memory" aria-hidden="true"></span><small>HEALTH MEMORY</small><b>Only what you approve</b></div><div><span class="preview-icon orange" data-doctorai-icon="refill" aria-hidden="true"></span><small>MEDICATIONS</small><b>Refills in view</b></div><div><span class="preview-icon green" data-doctorai-icon="chart" aria-hidden="true"></span><small>TRENDS</small><b>Patterns, not noise</b></div></div>
+          <div class="preview-footer"><span><i></i> Your Health Hub</span><b>DoctorAI Pro <span data-doctorai-icon="spark" aria-hidden="true"></span></b></div>
         </div>
       </section>
 
@@ -78,7 +77,7 @@
           <p class="pricing-status" id="pricing-status" role="status" aria-live="polite" aria-atomic="true"></p>
           <p class="plan-value-note" data-plan-value hidden></p>
         <div class="plans-grid">
-          <article class="plan-card free-plan"><div class="plan-label">ESSENTIAL</div><h3>DoctorAI Free</h3><p class="plan-description">A calm starting point for organising your health.</p><div class="plan-price"><b>Free</b><span>forever</span></div><a class="plan-secondary" href="/health-hub#health">Use the free Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a><ul><li>My Health home and saved details</li><li>Manual health profile and timeline</li><li>Medication and appointment tracking</li><li>Visit brief: choose details, review, copy or print</li><li>No file or photo uploads or label-image scanning</li><li>Safety-led AI conversations</li></ul></article>
+          <article class="plan-card free-plan"><div class="plan-label">ESSENTIAL</div><h3>DoctorAI Free</h3><p class="plan-description">A calm starting point for organising your health.</p><div class="plan-price"><b>Free</b><span>forever</span></div><a class="plan-secondary" href="/health-hub#health">Use the free Hub <span data-doctorai-icon="arrow" aria-hidden="true"></span></a><ul><li>My Health home and saved details</li><li>Manual health profile and timeline</li><li>Medication and appointment tracking</li><li>Visit brief: choose details, review, copy or print</li><li class="not-included">Not included: file or photo uploads and medicine-label scanning</li><li>AI conversations about health questions</li></ul></article>
           <article class="plan-card pro-plan"><span class="best-value" data-monthly-value hidden>MONTHLY VALUE</span><div class="plan-label">DOCTORAI PRO</div><h3>Files and label scanning</h3><p class="plan-description">Private files and label capture added to your Health Hub.</p><div class="plan-price"><b data-price aria-live="polite">Loading price...</b><span data-period>checking Stripe</span></div><p class="monthly-equivalent" data-equivalent>Pricing is loaded from Stripe before checkout.</p><button class="plan-primary" type="button" data-subscribe disabled>Start Pro subscription <span data-doctorai-icon="arrow" aria-hidden="true"></span></button><ul><li><strong>Everything in Free, plus:</strong></li><li>Medicine-label scanning with consent and review before saving</li><li>Limited DoctorAI medication rules check; not a full medicine-interaction assessment</li><li>Private uploads for supported documents and health photos</li><li>View and download your uploaded files when you choose</li></ul></article>
         </div>
         <p class="billing-note"><span data-doctorai-icon="info" aria-hidden="true"></span> The selected price is charged at the displayed frequency and renews automatically until cancelled. Manage or cancel through Stripe billing management. Founding-member subscriptions are for adults aged 18 or older. DoctorAI does not diagnose, prescribe or replace professional care.</p>

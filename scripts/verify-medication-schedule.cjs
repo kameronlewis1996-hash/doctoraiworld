@@ -36,7 +36,7 @@ const target={innerHTML:'',dataset:{}};let ready=true;
 const ctx=vm.createContext({Set,Date,Intl,window:{DoctorAIMedicationSchedule:core},$:s=>s==='#medication-schedule'?target:null,currentHealthOwnerReady:()=>ready,healthOwnerRevision:1,accountSessionRevision:1,state:{medications:[med]},escapeHTML:s=>String(s).replace(/[<>&"]/g,'')});
 vm.runInContext(js.slice(start,end),ctx);vm.runInContext('renderMedicationSchedule()',ctx);
 assert.match(target.innerHTML,/Nothing is selected automatically/);
-vm.runInContext("medicationScheduleSelection.add('a'); renderMedicationSchedule()",ctx);assert.match(target.innerHTML,/Fictional medicine/);assert.match(target.innerHTML,/08:00/);
+vm.runInContext("medicationScheduleSelection.add('a'); medicationScheduleDay = '2026-10-26'; renderMedicationSchedule()",ctx);assert.match(target.innerHTML,/Fictional medicine/);assert.match(target.innerHTML,/08:00/);
 ctx.healthOwnerRevision=2;ctx.accountSessionRevision=2;ctx.state.medications=[{...med,id:'b',name:'Different owner'}];vm.runInContext('renderMedicationSchedule()',ctx);
 assert.doesNotMatch(target.innerHTML,/Fictional medicine/);assert.equal(vm.runInContext('medicationScheduleSelection.size',ctx),0);
 assert.equal(vm.runInContext("medicationScheduleActionAllowed({dataset:{scheduleOwner:'1',scheduleSession:'1'}})",ctx),false);

@@ -11,7 +11,7 @@ const importer = fs.readFileSync(path.join(__dirname, 'import-pharmac-medicines.
 const { decision, isCcByRecord } = require('./medication-provenance-policy.cjs');
 const { defaultMedicationSafetyProvider } = require('../server-src/medication/safety-provider.cjs');
 
-assert.equal(seed.ruleset.version, '2026.10.15-r149');
+assert.equal(seed.ruleset.version, '2026.10.28-alias1');
 assert.equal(seed.ruleset.provenanceFiltered, true);
 assert.match(seed.ruleset.scope, /Very limited/i);
 assert.match(seed.ruleset.scope, /no alert does not mean safe/i);
@@ -139,23 +139,23 @@ assert.match(hubSource, /not clinically validated/);
     global.fetch = previousFetch;
   }
 
-  assert.match(hubHtml, /health-hub\.js\?v=122/);
+  assert.match(hubHtml, /health-hub\.js\?v=123/);
   assert.match(hubHtml, /term-catalogues\.js\?v=3/);
   assert.match(hubHtml, /medicine-catalog-search\.js\?v=2/);
-  assert.match(hubHtml, /hub-aurora-secondary\.css\?v=6/);
+  assert.match(hubHtml, /hub-aurora-secondary\.css\?v=9/);
   assert.match(hubHtml, /health-hub\.css\?v=95/);
   assert.match(hubHtml, /doctorai-layout\.css\?v=3/);
-  assert.match(hubHtml, /health-alert-status\.js\?v=7/);
-  assert.match(hubHtml, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /doctorai-shell-v203/);
-  assert.match(serviceWorker, /health-alerts\.js\?v=7/);
-  assert.match(serviceWorker, /health-hub\.js\?v=122/);
+  assert.match(hubHtml, /health-alert-status\.js\?v=8/);
+  assert.match(hubHtml, /health-alerts\.js\?v=9/);
+  assert.match(serviceWorker, /doctorai-shell-v211/);
+  assert.match(serviceWorker, /health-alerts\.js\?v=9/);
+  assert.match(serviceWorker, /health-hub\.js\?v=123/);
   assert.match(serviceWorker, /health-hub\.css\?v=95/);
   assert.match(serviceWorker, /doctorai-layout\.css\?v=3/);
-  assert.match(serviceWorker, /health-alert-status\.js\?v=7/);
+  assert.match(serviceWorker, /health-alert-status\.js\?v=8/);
   assert.match(serviceWorker, /term-catalogues\.js\?v=3/);
   assert.match(serviceWorker, /medicine-catalog-search\.js\?v=2/);
-  assert.match(serviceWorker, /hub-aurora-secondary\.css\?v=6/);
+  assert.match(serviceWorker, /hub-aurora-secondary\.css\?v=9/);
 
   console.log('Medication rights, retained-data provenance, Pharmac attribution, Coenzyme Q10 importer regression, incomplete-product handling, chat boundaries and cache versions verified.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

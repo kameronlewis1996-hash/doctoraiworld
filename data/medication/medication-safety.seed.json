@@ -7208,7 +7208,7 @@
   "contraindicationRules": [],
   "importSources": [],
   "ruleset": {
-    "version": "2026.10.15-r149",
+    "version": "2026.10.28-alias1",
     "recordSchemaVersion": 1,
     "metadataCheckedOn": "2026-10-15",
     "interactionRuleCount": 2,

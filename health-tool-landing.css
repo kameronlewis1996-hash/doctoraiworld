@@ -34,7 +34,7 @@ body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > but
   body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell .health-tool-welcome { gap: 12px; margin-bottom: 22px; }
   body[data-hub-layout="reference"] #hub-shell .health-tool-brand { width: 210px; height: 112px; }
   body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav { gap: 10px; }
-  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { min-height: 105px; font-size: 13px; }
+  body[data-hub-layout="reference"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button { min-height: 92px; gap: 8px; font-size: 13px; }
 }
 @media (forced-colors: active) {
   body[data-hub-layout="reference"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] { outline: 2px solid Highlight; }
@@ -53,12 +53,6 @@ body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="detai
    Keep clinical notices, emergency details, forms and auth state rules untouched. */
 @media screen {
   html body[data-hub-layout="reference"][data-hub-theme] {
-    --aurora-base: #dceefa;
-    --aurora-lilac: #96c9efad;
-    --aurora-blush: #9edfeaae;
-    --aurora-side: #8dbcf4c4;
-    --aurora-glow: #8eccefae;
-    --aurora-glass: #d9edfa80;
     background-size: 100% 100%;
     background-attachment: scroll;
   }
@@ -69,7 +63,7 @@ body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="detai
   body[data-hub-layout="reference"][data-hub-theme] #hub-shell :is(.sidebar, .hub-topbar),
   body[data-hub-layout="reference"][data-hub-theme] .mobile-bottom-nav,
   body[data-hub-layout="reference"][data-hub-theme] #storage-consent {
-    background: #d9edfac9;
+    background: var(--aurora-glass);
   }
   body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health {
     background: transparent;
@@ -82,20 +76,20 @@ body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="detai
     box-shadow: none;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button:nth-child(n) {
-    background: #d9edfa99;
-    border-color: #8db3d5;
+    background: var(--welcome-surface);
+    border-color: var(--welcome-line);
     color: #153c66;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"][data-hub-panel="details"] #hub-shell #view-health > .hub-panel-nav > button[aria-current="page"] {
-    background: #c8e5f5b3;
+    background: #d6ebf7;
     border-color: #0759b6;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health :is(.health-snapshot, .health-reminders-disclosure, .care-visit-card),
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-info-grid > .info-card:not(.emergency-card) {
-    background: #d9edfa99 !important;
+    background: var(--welcome-surface) !important;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell #view-health .health-tool-account > .secondary-button {
-    background: #d9edfa80;
+    background: var(--welcome-surface);
     color: #153c66;
   }
   body[data-hub-layout="reference"][data-hub-theme="health"] #hub-shell .health-tool-tagline,

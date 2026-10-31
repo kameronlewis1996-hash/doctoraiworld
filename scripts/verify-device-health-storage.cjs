@@ -122,7 +122,8 @@ function fixture({ consent = 'yes', signedIn = false, failRemove = '', failConse
   const cancelled = fixture({ confirmed: false });
   cancelled.api.setDeviceStorage(false);
   assert.equal(cancelled.memory.get(prefix + 'device-storage-consent'), 'yes', 'Cancel preserves the prior storage choice.');
-  assert.ok(cancelled.memory.has(prefix + 'medications'));
+  for (const key of healthKeys) assert.ok(cancelled.memory.has(key), `Cancel preserves ${key} across guest and account scopes.`);
+  assert.match(cancelled.calls.confirmations[0], /every DoctorAI profile on this device/, 'The destructive scope is stated before confirmation.');
   assert.deepEqual(cancelled.calls.toasts, []);
 
   const failed = fixture({ failRemove: prefix + 'account-' + scopeB + '-profile' });
