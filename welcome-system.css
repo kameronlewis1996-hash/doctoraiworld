@@ -567,6 +567,29 @@ body {
   .medication-calendar-status:empty { display: none; }
   body[data-hub-layout="reference"] #view-medications .library-disclaimer { display: block; }
   body[data-hub-layout="reference"] #view-medications .library-disclaimer > p { margin: 10px 12px; }
+
+  /* Give each saved record a clear boundary without changing clinical notices. */
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap {
+    margin-block: 12px; padding: 14px; border: 1px solid #b5cedf; border-radius: 14px; background: #f1f8fc;
+  }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item { padding: 0; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-copy { gap: 5px; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .medication-record-details { margin: 12px 0 0; border-top: 1px solid #c4d9e7; }
+  body[data-hub-layout="reference"] #hub-shell #view-medications .medication-record-details > summary { padding: 12px 0; }
+
+  /* The form remains one scrollable dialog; labels and guidance stay visible. */
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) { background: #f1f8fc; border: 1px solid #b5cedf; box-shadow: 0 20px 60px #153c6638; }
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) > .modal-header { background: #e5f2fa; border-bottom: 1px solid #c4d9e7; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] { gap: 16px; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .medication-required-note { padding: 12px 14px; margin: 0; border-left: 3px solid #0759b6; border-radius: 4px 10px 10px 4px; background: #e3f1f9; line-height: 1.5; }
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .modal-field :is(input, select, textarea) { border-color: #94b4cb; border-radius: 10px; }
+}
+
+@media (forced-colors: active) {
+  body[data-hub-layout="reference"] #hub-shell #view-medications .library-item-wrap,
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]),
+  body[data-hub-layout="reference"] #quick-modal:has(.modal-form[data-modal-form="medication"]) > .modal-header,
+  body[data-hub-layout="reference"] #quick-modal .modal-form[data-modal-form="medication"] .medication-required-note { background: Canvas; color: CanvasText; border-color: ButtonText; }
 }
 
 /* Scan-help actions need distinct cells even when both use secondary styling. */

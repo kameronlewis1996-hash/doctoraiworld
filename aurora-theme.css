@@ -87,9 +87,9 @@ body[data-hub-layout="reference"][data-active-feature="visit-prep"] { --destinat
 .doctorai-homepage { overflow-x: clip; }
 .home-aurora-mark {
   position: relative;
-  width: clamp(150px, 14vw, 210px);
+  width: clamp(140px, 12.5vw, 180px);
   aspect-ratio: 1;
-  margin-top: -22px;
+  margin-top: 8px;
   margin-bottom: -18px;
   border: 1px solid #ffffffe6;
   border-radius: 50%;

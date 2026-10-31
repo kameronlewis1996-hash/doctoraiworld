@@ -6,11 +6,11 @@ Draft for review. The goal is a calmer, more consistent interface based on My He
 
 The local baseline showed a large decorative mark competing with the homepage message, saturated background layers, and different card and control treatments across page families. On the smallest phone layout, the homepage and About navigation occupied two rows. The Hub's six large tiles also pushed the next useful content down the screen.
 
-The refinement simplifies the existing shared blue/cyan atmosphere, uses a lighter shared surface and quieter border, standardises control radius and shadow tokens, and keeps clinical warning and emergency colours outside those cosmetic selectors. The homepage mark and heading are more restrained on mobile and desktop; its value and actions remain visible. My Health tiles are more compact while remaining well above 44px. Home and About navigation fit on one row at 320px. Existing logos, routes, consent, pricing, records and warning wording are retained.
+The refinement simplifies the existing shared blue/cyan atmosphere, uses a lighter shared surface and quieter border, standardises control radius and shadow tokens, and keeps clinical warning and emergency colours outside those cosmetic selectors. The homepage mark and heading are more restrained on mobile and desktop; the mark clears the header and the value and actions remain visible. My Health tiles are more compact while remaining well above 44px. Home and About navigation fit on one row at 320px. Medication records have clearer boundaries and the entry dialog gives its required guidance a distinct frame, with aligned fields and readable spacing. Existing logos, routes, consent, pricing, records and warning wording are retained.
 
 ## Before and after
 
-All captures use local Chromium, blocked external requests and fallback system fonts. Medication details are fictional. The dialog's existing content and warning wording are preserved; its pair shows how it sits within the revised system rather than a new form design.
+All captures use local Chromium, blocked external requests and fallback system fonts. Medication details are fictional. The dialog's existing content and warning wording are preserved in its revised framing.
 
 | View | Before | After |
 | --- | --- | --- |

@@ -7,8 +7,8 @@ const pages = ["about.html","appointment-checklist.html","download.html","health
 const read = p => fs.readFileSync(path.join(root,p),'utf8');
 for (const page of pages) {
   const html = read(page);
-  assert.equal((html.match(/href="\/welcome-system\.css\?v=10"/g)||[]).length, 1, page + ': shared style version');
-  if (page === 'about.html' || page === 'index.html') assert.match(html, /welcome-system\.css\?v=10/, page + ': updated mobile menu surface');
+  assert.equal((html.match(/href="\/welcome-system\.css\?v=11"/g)||[]).length, 1, page + ': shared style version');
+  if (page === 'about.html' || page === 'index.html') assert.match(html, /welcome-system\.css\?v=11/, page + ': updated mobile menu surface');
   assert.match(html, /<body[^>]*(doctorai-homepage|doctorai-public-page|doctorai-system-page|doctorai-about|appointment-guide|medication-guide|aurora-demo-page|data-hub-layout="reference")/, page + ': covered body');
 }
 const css = read('welcome-system.css');
@@ -23,7 +23,7 @@ assert.doesNotMatch(correction, /animation\s*:|transition\s*:|display\s*:|visibi
 assert.doesNotMatch(correction, /\.hub-alert-card\s*\{|\.emergency-card\s*\{|\.checkout-dialog\s*\{/);
 for(const selector of ['.pro-shell','main > .panel','.home-destination','.research-hero','.plan-card','.doctorai-site-footer','.today-focus-card','.reference-brief-card','.profile-shortcut-card','.library-card','.document-card','.result-list-card','.timeline-card','.diary-question-panel','.upcoming-card']) assert.ok(correction.includes(selector), selector);
 const worker = read('service-worker.js');
-assert.match(worker, /doctorai-shell-v210/);
+assert.match(worker, /doctorai-shell-v211/);
 for (const page of pages) assert.ok(worker.includes(read(page).match(/welcome-system\.css\?v=\d+/)[0]), page + ': exact shared asset in cache');
 assert.ok(worker.includes(read('health-hub.html').match(/health-tool-landing\.css\?v=\d+/)[0]));
 const hub = read('health-hub.html');
